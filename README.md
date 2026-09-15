@@ -53,6 +53,70 @@ python -m src.train --dataset_dir dataset_clean --epochs 64 --height 64 --width 
 python -m src.evaluate --dataset_dir dataset_clean --model_dir models
 ```
 
+## Journal experiment roadmap
+
+This implementation supports the
+[starter journal paper](https://github.com/sanelehlabisa/phd_work/tree/master/starter_journal).
+Final paper results must record the exact code commit, configuration, split, and
+seed that produced them.
+
+### Current state
+
+The repository can train the original ConvLSTM, custom-width ConvLSTM variants,
+and three 3D-CNN baselines on multiple datasets. Earlier runs made **Proposed
+Lightweight ConvLSTM (`custom_64_32_16_64`)** the provisional leading candidate,
+but the result is not a confirmed optimum until the controlled experiments are
+rerun.
+
+### Problems to fix
+
+- Make all randomness reproducible and save fixed, stratified, group-aware
+  70:15:15 split manifests.
+- Keep related camera views or source-video groups in one split.
+- Correct accumulated metrics and restore the best validation-loss checkpoint
+  before final evaluation.
+- Keep test data locked during model selection.
+- Give augmentation comparisons equal training budgets.
+- Save complete run provenance, including configuration, seeds, splits,
+  checkpoints, environment, histories, and the code commit.
+
+### Experiment protocol
+
+- Use fixed, stratified, group-aware 70:15:15 splits and keep related camera
+  views or source videos together.
+- Select models using validation results and keep test sets locked until the
+  final comparisons are declared.
+- Use seeds `42` and `2026` for confirmation runs.
+- Use a fixed maximum epoch count, validation-loss early stopping, and the best
+  validation-loss checkpoint.
+- Save the configuration, split, seed, histories, checkpoint, environment, and
+  code commit for every reported run.
+
+Screen a bounded set of controlled ConvLSTM width and depth variants on AAD.
+Select five custom models, then compare them with the original ConvLSTM and the
+three 3D-CNN baselines on both datasets.
+
+Run the focused ablations only on the selected proposed model: augmentation on
+or off with equal budgets; weight decay `0` or `0.0001`; lower-priority Adam or
+AdamW; and VDD training from scratch, frozen-feature transfer, or full-network
+fine-tuning from AAD. The three input settings are 16 frames at 32x32, 32 frames
+at 32x32, and 16 frames at 64x64. Control and record the initial learning rate
+even when a scheduler is used.
+
+### Experiment tickets
+
+- [ ] `EXP-001-repair-experiment-runner` — **Next.** Repair splitting,
+  reproducibility, metrics, checkpointing, augmentation fairness, and run
+  manifests.
+- [ ] `EXP-002-define-architecture-registry` — define controlled width and
+  depth variants. **Blocked by EXP-001.**
+- [ ] `EXP-003-screen-aad-architectures` — screen candidates and select five
+  custom models using validation results. **Blocked by EXP-002.**
+- [ ] `EXP-004-run-focused-ablations` — run the selected-model training, input,
+  and transfer ablations. **Blocked by EXP-003.**
+- [ ] `EXP-005-confirm-and-export-results` — run two-seed final comparisons and
+  export versioned evidence for the paper. **Blocked by EXP-004.**
+
 ## References
 
 1. LoDVP / ConvLSTM paper — Ullah et al.
