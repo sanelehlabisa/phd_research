@@ -1,26 +1,27 @@
-  abstract={
-    Introduction {
-      - 
-    }
-  	Problem Statement {
-  	  -	
-  	}
-  	Proposed Method {
-  		-
-  	}
-  	Experimental Results {
-  		-
-  	}
-  	Strengths {
-  		-
-  	}
-  	Weaknesses {
-  		-	
-  	}
-    Key Takeways {
-      - 
-    }
-  }
+% Private reading notes; copy one template into a BibTeX entry and remove `%`.
+% Solution or empirical paper
+% annote = {
+%   Problem or gap:
+%     - ...
+%   Approach:
+%     - ...
+%   Evidence or results:
+%     - ...
+%   Limitation:
+%     - ...
+% },
+
+% Review or survey paper
+% annote = {
+%   Scope:
+%     - ...
+%   Review method or coverage:
+%     - ...
+%   Main synthesis:
+%     - ...
+%   Research gaps:
+%     - ...
+% },
 
 @misc{schuldt2004,
   author={Schüldt, C. and Laptev, I. and Caputo, B.},
@@ -35,7 +36,7 @@
   title = {UCF101: A Dataset of 101 Human Actions Classes From Videos in the Wild},
   booktitle = {arXiv preprint arXiv:1212.0402},
   year = {2012},
-  abstract = {
+  annote = {
     Introduction {
       - Large-scale action recognition benchmark covering 101 diverse human action classes
     }
@@ -68,7 +69,7 @@
   title = {Convolutional LSTM Network: A Machine Learning Approach for Precipitation Nowcasting},
   journal = {NeurIPS},
   year = {2015},
-  abstract = {
+  annote = {
     Introduction {
       - Introduced ConvLSTM: replaces fully connected operations in LSTM with convolutions
     }
@@ -104,7 +105,7 @@
   year={2018},
   pages={6479--6488},
   doi={10.1109/CVPR.2018.00678},
-  abstract={
+  annote = {
     Introduction {
       - First large-scale weakly-supervised anomaly detection benchmark from real surveillance
     }
@@ -140,7 +141,7 @@
   title = {A Closer Look at Spatiotemporal Convolutions for Action Recognition},
   booktitle = {CVPR},
   year = {2018},
-  abstract = {
+  annote = {
     Introduction {
       - Investigates different factorisation strategies for 3D convolutions in video CNNs
     }
@@ -175,7 +176,7 @@
   title = {Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs?},
   booktitle = {CVPR},
   year = {2018},
-  abstract = {
+  annote = {
     Introduction {
       - Investigates whether 3D ResNet architectures replicate 2D ResNet success on video
     }
@@ -220,25 +221,23 @@
   journal={arXiv preprint arXiv:1911.05913},
   year={2020},
   doi={10.48550/arXiv.1911.05913},
-    abstract={
+    annote = {
   	Problem Statement {
   		- The widely deployed cameras in public places e.g. Malls, Universities are mostly used to provide cues and evidence after crimes are conducted and are rarely used to prevent or stop criminal activities in time.
   		- Manually monitoring these cameras is time consuming and labour intensive
   		- It is expensive to monitor a large amount of video data in real-time manually to to wide adoption of cmaeras.
-  		Elier methods relied on detecting anomly objects like gun shooting, blood, etc, rather than recognizing the activityit self.
+  		- Elier methods relied on detecting anomly objects like gun shooting, blood, etc, rather than recognizing the activityit self.
   		- Exising models still have drawbacks of small scale, reduced diversity, and low image resolution.
   		- Some of the existing mnodels cannot genelrilze as they were traied on movie datasets which aren't close enough to real world abnomarl activities
   		- Most existing datasets are mainly composed of videos captured in a single scene, performed by actors, or extracted from edited movies.
-  		- Existinf datasets suffers from one or more of these low image quality, lack of sufficient data amount, videos with long duration but crude annotations, and hybrid sources of videos that are not close enough to
-realistic violence
-- motion information may be useless due to the coarse pooling mechanism
+  		- Existinf datasets suffers from one or more of these low image quality, lack of sufficient data amount, videos with long duration but crude annotations, and hybrid sources of videos that are not close enough to realistic violence
+      - motion information may be useless due to the coarse pooling mechanism
   	}
   	Proposed Method {
   		- Proposed new dataset RWF-2000 with 2000 survellience videos from the real world, these videos were capured form youtuvbe to ensure diversity. Each video into a 5-second clip with 30 FPS
   		- Also proposed a model based on 3D CNN + optical flow (flow gated network).
   		- Th eproposed model is based on multi branch as it process both video frames and optical flow,
-  		- The proposed solution adopt RGB images and optical flows to build the neural network, which can process the spatial and temporal information, lastly Flow-Gated
-architecture can reduce temporal channels of input videos by self-learning, instead of traditional pooling strategies
+  		- The proposed solution adopt RGB images and optical flows to build the neural network, which can process the spatial and temporal information, lastly Flow-Gated architecture can reduce temporal channels of input videos by self-learning, instead of traditional pooling strategies
   	}
   	Experimental Results {
   		- Used accuracy fro metric
@@ -322,7 +321,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages={160580-160595},
   keywords={Atmospheric modeling;Sports;Three-dimensional displays;Feature extraction;Solid modeling;Task analysis;Deep learning;Convolutional long short-term memory;convolutional neural network;deep learning;support vector machine;violence detection},
   doi={10.1109/ACCESS.2021.3131315},
-  abstract = {
+  annote = {
     Introduction {
       - Dataset specifically designed to test robustness against false positives in violence detection
     }
@@ -356,7 +355,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   title = {Is Space-Time Attention All You Need for Video Understanding?},
   booktitle = {ICML},
   year = {2021},
-  abstract = {
+  annote = {
     Introduction {
       - Extends Vision Transformer (ViT) to video by factorising space and time attention
     }
@@ -392,7 +391,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   title = {Video Swin Transformer},
   booktitle = {CVPR},
   year = {2022},
-  abstract = {
+  annote = {
     Introduction {
       - Adapts Swin Transformer hierarchical windowed attention to video
     }
@@ -429,7 +428,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages={1--14},
   year={2022},
   doi={10.1155/2022/8383461},
-    abstract={
+  annote = {
   	Problem Statement {
   		- HAR is one of the milestones of smart city surveillance projects.
       - There is a large amount of video data to process, manual intervention is not feasible and is error-prone. Also, it is exceedingly challenging to monitor public spaces constantly. Hence, it is necessary to install intelligent video surveillance that can track people’s movements in real time, classify them as routine or exceptional, and provide alerts
@@ -492,7 +491,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages={2946},
   year={2022},
   doi={10.3390/s22082946},
-  abstract = {
+  annote = {
     Introduction {
       - Recognising abnormal human activities from surveillance video is challenging
       - Lack of datasets containing varied abnormal behaviours motivated this work
@@ -539,7 +538,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages = {931},
   year = {2022},
   doi = {10.3390/app12020931},
-  abstract = {
+  annote = {
     Introduction {
       - 3D CNNs are dominant in video-based HAR due to joint spatiotemporal processing
     }
@@ -632,7 +631,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages = {3275},
   year = {2023},
   doi = {10.3390/app13053275},
-  abstract = {
+  annote = {
     Introduction {
       - Combines 3DCNN and ConvLSTM to leverage both spatial and temporal strengths
     }
@@ -692,7 +691,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   number = {6},
   year = {2023},
   doi = {10.22266/ijies2023.1231.60},
-  abstract  = {
+  annote  = {
     Introduction {
       - Standard LSTM cannot capture spatial information between consecutive frames
       - Residual attention added to ConvLSTM to focus on relevant regions
@@ -730,7 +729,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages = {61843--61859},
   year = {2024},
   doi = {10.1007/s11042-023-15904-x},
-  abstract = {
+  annote = {
     Introduction {
       - Combines CNN+RNN with fuzzy logic for uncertainty handling in activity detection
     }
@@ -789,7 +788,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   journal = {Results in Engineering},
   year = {2024},
   doi = {10.1016/j.rineng.2024.102555},
-  abstract = {
+  annote = {
     Introduction {
       - Compares CNN, ConvLSTM, and LRCN for HAR from video and sensor data
       - Motivated by patient monitoring and healthcare applications
@@ -830,7 +829,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   volume = {7},
   year = {2024},
   doi = {10.3389/frai.2024.1424190},
-  abstract = {
+  annote = {
     Introduction {
       - CNN applied per-sensor-type (accelerometer, gyroscope, barometer) for wearable HAR
     }
@@ -863,7 +862,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   title = {Recognition of Abnormal Events in Surveillance Videos Using Weakly Supervised Dual-Encoder Models},
   journal = {arXiv preprint},
   year = {2025},
-  abstract = {
+  annote = {
     Introduction {
       - Combines I3D (CNN) and TimeSformer (Transformer) in a dual-backbone MIL framework
     }
@@ -899,7 +898,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   journal = {Scientific Reports},
   year = {2025},
   doi = {10.1038/s41598-025-22898-z},
-  abstract = {
+  annote = {
     Introduction {
       - Early activity recognition requires modelling both past and future context
       - Bi-directional LSTM processes sequences in both temporal directions
@@ -992,7 +991,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   url = {https://www.mdpi.com/2076-3417/15/5/2695},
   issn = {2076-3417},
   doi = {10.3390/app15052695},
-  abstract={
+  annote = {
     Problem Statement {
       - Traditional models has limitations, such as inadequate spatiotemporal information fusion, limited feature diversity, and insufficient accuracy.
 
@@ -1073,7 +1072,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages = {6173-6187},
   keywords = {Fall detection;Accuracy;Sensors;Convolutional neural networks;Older adults;Monitoring;Data models;Ultra wideband technology;Real-time systems;Nonlinear optics;Convolutional neural network (CNN)-long short-term memory (LSTM);fall detection;indoor localization;late fusion decision layer;machine learning (ML);ultrawideband (UWB);variational autoencoder (VAE)},
   doi = {10.1109/JSEN.2026.3651213},
-  abstract={
+  annote = {
   	Problem Statement {
   		- The increase in life expectancy has led to rise in number of elderly people, hence need for monitoing them and ject anolies like fall, etc.
       - Mannual moniting cannot keep up with the incrase
@@ -1107,7 +1106,7 @@ architecture can reduce temporal channels of input videos by self-learning, inst
   pages = {8484-8505},
   keywords = {Human activity recognition;Accuracy;Videos;Training;Robustness;Deep learning;Image classification;Computational modeling;Neurons;Computer architecture;ExpAbsTanH;activation function;deep learning;image classification;human activity recognition},
   doi = {10.1109/ACCESS.2026.3653891},
-  abstract={
+  annote = {
   	Problem Statement {
   		- Existing activation functions often suffer from critical limitations such as vanishing or exploding
       gradients, non-differentiability at zero, and instability during training
