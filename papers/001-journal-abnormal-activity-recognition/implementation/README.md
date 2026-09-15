@@ -1,124 +1,60 @@
-# ConvLSTM Abnormal Human Activity Recognition
+# Paper 001 Implementation
 
-Replication and extension of *"A New Approach for Abnormal Human Activities Recognition
-Based on ConvLSTM Architecture"*, with multi-dataset support and structured evaluation.
+Research code for the
+[journal paper on abnormal activity recognition](../README.md). It implements
+the original and custom ConvLSTM models plus three 3D-CNN comparison models.
+The paper currently uses the Abnormal Activities Dataset (AAD) and AIRTLab
+Violence Detection Dataset (VDD).
 
-## Model
+## Setup and commands
 
-CNN + LSTM architecture. A per-frame CNN backbone extracts spatial features;
-an LSTM models temporal dynamics across the clip. Output: one of 14 activity classes
-(13 anomalies + normal), plus a derived binary normal/abnormal verdict.
+Create an environment and install the project dependencies:
 
-## Supported Datasets
-
-The model targets **14 canonical classes** drawn from UCF-Crime, the standard benchmark
-for surveillance-based abnormal activity recognition. All other datasets are mapped to
-this vocabulary via `labels.json` aliases — no retraining required.
-
-| Dataset | Classes | Type | Link |
-|---|---|---|---|
-| LoDVP Abnormal Activities | 11 | Staged surveillance anomalies | [link](https://kmikt.uniza.sk/ds/abnormal_activities.zip) |
-| AirtLab Violence | 2 | Binary violent / non-violent | [link](https://github.com/airtlab/A-Dataset-for-Automatic-Violence-Detection-in-Videos) |
-| UCF-Crime *(primary benchmark)* | 14 | Real-world surveillance crime | [link](https://www.crcv.ucf.edu/projects/real-world/) |
-| UCF50 / UCF101 | 50 / 101 | General human actions (backbone eval) | [link](https://www.crcv.ucf.edu/data/UCF101.php) |
-| Kinetics-400/700 | 400 / 700 | Large-scale action recognition (pretraining) | [link](https://github.com/cvdfoundation/kinetics-dataset) |
-
-## Canonical Classes (14)
-
-Sourced from UCF-Crime. All dataset folder names resolve to one of these via `labels.json`.
-
-| ID | Class | Abnormal |
-|---|---|---|
-| 0 | normal | ✗ |
-| 1 | abuse | ✓ |
-| 2 | arrest | ✓ |
-| 3 | arson | ✓ |
-| 4 | assault | ✓ |
-| 5 | burglary | ✓ |
-| 6 | explosion | ✓ |
-| 7 | fighting | ✓ |
-| 8 | road accident | ✓ |
-| 9 | robbery | ✓ |
-| 10 | shooting | ✓ |
-| 11 | shoplifting | ✓ |
-| 12 | stealing | ✓ |
-| 13 | vandalism | ✓ |
-
-## Usage
 ```bash
-# Train
-python -m src.train --dataset_dir dataset_clean --epochs 64 --height 64 --width 64
-
-# Evaluate
-python -m src.evaluate --dataset_dir dataset_clean --model_dir models
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-## Journal experiment roadmap
+The current scripts expose their configurations through command-line options:
 
-This implementation supports the
-[starter journal paper](https://github.com/sanelehlabisa/phd_work/tree/master/starter_journal).
-Final paper results must record the exact code commit, configuration, split, and
-seed that produced them.
+```bash
+python -m src.experiments --dataset_dir /path/to/dataset
+python -m src.train --dataset_dir /path/to/dataset --model_dir models
+python -m src.evaluate --dataset_dir /path/to/dataset --model_dir models
+```
 
-### Current state
+Run each command from this `implementation/` directory. Datasets, environments,
+checkpoints, and generated outputs remain local and untracked.
 
-The repository can train the original ConvLSTM, custom-width ConvLSTM variants,
-and three 3D-CNN baselines on multiple datasets. Earlier runs made **Proposed
-Lightweight ConvLSTM (`custom_64_32_16_64`)** the provisional leading candidate,
-but the result is not a confirmed optimum until the controlled experiments are
-rerun.
+## Current validity problems
 
-### Problems to fix
+- Randomness and dataset splits are not fully reproducible.
+- Related views or source videos may cross splits.
+- Model selection can expose test results too early.
+- Metrics and best-checkpoint restoration require correction.
+- Augmentation changes the training budget.
+- Saved results lack complete configuration and provenance.
 
-- Make all randomness reproducible and save fixed, stratified, group-aware
-  70:15:15 split manifests.
-- Keep related camera views or source-video groups in one split.
-- Correct accumulated metrics and restore the best validation-loss checkpoint
-  before final evaluation.
-- Keep test data locked during model selection.
-- Give augmentation comparisons equal training budgets.
-- Save complete run provenance, including configuration, seeds, splits,
-  checkpoints, environment, histories, and the code commit.
+## Agreed experiment protocol
 
-### Experiment protocol
-
-- Use fixed, stratified, group-aware 70:15:15 splits and keep related camera
-  views or source videos together.
-- Select models using validation results and keep test sets locked until the
-  final comparisons are declared.
+- Use fixed, stratified, group-aware 70:15:15 splits.
+- Select with validation data and lock test data until final comparisons.
 - Use seeds `42` and `2026` for confirmation runs.
-- Use a fixed maximum epoch count, validation-loss early stopping, and the best
-  validation-loss checkpoint.
-- Save the configuration, split, seed, histories, checkpoint, environment, and
+- Use validation-loss early stopping and restore the best checkpoint.
+- Save the split, seed, configuration, histories, checkpoint, environment, and
   code commit for every reported run.
+- Screen controlled ConvLSTM width and depth variants on AAD, then confirm five
+  custom models, the original ConvLSTM, and three 3D-CNNs on both datasets.
+- Run training, input-size, and transfer ablations only on the selected model.
 
-Screen a bounded set of controlled ConvLSTM width and depth variants on AAD.
-Select five custom models, then compare them with the original ConvLSTM and the
-three 3D-CNN baselines on both datasets.
+## Tickets
 
-Run the focused ablations only on the selected proposed model: augmentation on
-or off with equal budgets; weight decay `0` or `0.0001`; lower-priority Adam or
-AdamW; and VDD training from scratch, frozen-feature transfer, or full-network
-fine-tuning from AAD. The three input settings are 16 frames at 32x32, 32 frames
-at 32x32, and 16 frames at 64x64. Control and record the initial learning rate
-even when a scheduler is used.
+- [ ] `009-transfer-local-experiment-work` — **Next**
+- [ ] `010-repair-experiment-runner` — blocked by 009
+- [ ] `011-define-architecture-registry` — blocked by 010
+- [ ] `012-screen-aad-architectures` — blocked by 011
+- [ ] `013-run-focused-ablations` — blocked by 012
+- [ ] `014-confirm-and-export-results` — blocked by 013
 
-### Experiment tickets
-
-- [ ] `EXP-001-repair-experiment-runner` — **Next.** Repair splitting,
-  reproducibility, metrics, checkpointing, augmentation fairness, and run
-  manifests.
-- [ ] `EXP-002-define-architecture-registry` — define controlled width and
-  depth variants. **Blocked by EXP-001.**
-- [ ] `EXP-003-screen-aad-architectures` — screen candidates and select five
-  custom models using validation results. **Blocked by EXP-002.**
-- [ ] `EXP-004-run-focused-ablations` — run the selected-model training, input,
-  and transfer ablations. **Blocked by EXP-003.**
-- [ ] `EXP-005-confirm-and-export-results` — run two-seed final comparisons and
-  export versioned evidence for the paper. **Blocked by EXP-004.**
-
-## References
-
-1. LoDVP / ConvLSTM paper — Ullah et al.
-2. AirtLab — Castaldi et al.
-3. UCF-Crime — Sultani, Chen, Shah (CVPR 2018)
+Paper rewriting starts only after ticket 014 produces versioned evidence.

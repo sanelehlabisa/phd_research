@@ -3,7 +3,7 @@
 - Status: Experiments and results require controlled revision
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
-- Implementation: Pending import into `implementation/`
+- Implementation: [`implementation/README.md`](implementation/README.md)
 
 Earlier runs made **Proposed Lightweight ConvLSTM (64-32-16-64)** the leading
 candidate. It remains provisional until the controlled experiments are
@@ -16,8 +16,8 @@ complete.
 - [x] `005-separate-paper-code-roadmaps`
 - [x] `006-checkpoint-current-work`
 - [x] `007-create-numbered-paper-layout`
-- [ ] `008-import-journal-implementation` — **Next**
-- [ ] `009-transfer-local-experiment-work` — blocked by 008
+- [x] `008-import-journal-implementation`
+- [ ] `009-transfer-local-experiment-work` — **Next**
 - [ ] `010-repair-experiment-runner` — blocked by 009
 - [ ] `011-define-architecture-registry` — blocked by 010
 - [ ] `012-screen-aad-architectures` — blocked by 011

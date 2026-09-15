@@ -11,7 +11,7 @@ build entry point, dependencies, and next ticket.
 
 | Paper | Status |
 |---|---|
-| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Experiments being revised; target December 2026 |
+| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Implementation imported; local experiment work pending transfer |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
 ## Build
