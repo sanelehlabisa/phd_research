@@ -2,16 +2,19 @@
 
 ## Repository
 
-- This repository contains PhD papers on video processing and classification of unusual human activities in surveillance video.
-- Each paper lives in its own directory.
-- Papers use LaTeX, BibTeX references, and figures. This is not an application-code repository.
-- Keep LaTeX readable and consistently formatted.
-- Use the repository CLI commands to build PDFs and resolve references.
+- This repository contains PhD papers and their supporting research code for
+  video processing and unusual human-activity classification.
+- Each paper lives under `papers/NNN-short-title/` with a concise `README.md`, a
+  `manuscript/` directory, and an optional `implementation/` directory.
+- Keep LaTeX readable and consistently formatted. Keep research code tested,
+  reproducible, and scoped to its paper.
+- Use the commands documented in the relevant paper README to build manuscripts
+  and verify implementations.
 
 ## Workflow
 
-1. Read the relevant paper files and the guidance in `agents/`, then check
-   `git status` before setting up the task.
+1. Read the root README, the relevant paper README and files, and the guidance
+   in `agents/`, then check `git status` before setting up the task.
 2. If there are pre-existing uncommitted changes, stop and ask the user how to
    handle them. Never discard or overwrite them silently.
 3. Discuss substantial work with the user and ask short, focused questions until
@@ -39,4 +42,7 @@ Small typo fixes or explanations do not require a ticket unless the user asks fo
 - Ask rather than guess when a missing decision could affect the work.
 - Keep generated LaTeX files out of source changes unless explicitly requested.
 - Never delete user content without explicit approval.
+- Keep the root and relevant paper READMEs concise and current whenever
+  structure, build commands, implementation status, dependencies, or the next
+  ticket changes. Do not duplicate details owned by a lower-level README.
 - Follow `agents/rules.md` and `agents/config.md`.

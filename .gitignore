@@ -28,3 +28,11 @@
 *.xdv
 *.pdf
 *.dvi
+
+# Local per-paper implementation data and generated artifacts
+papers/*/implementation/.venv/
+papers/*/implementation/datasets/
+papers/*/implementation/checkpoints/
+papers/*/implementation/outputs/
+papers/*/implementation/models/**/*.pt
+papers/*/implementation/models/**/*.pth

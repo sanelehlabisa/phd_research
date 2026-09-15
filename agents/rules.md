@@ -18,3 +18,6 @@
 - Never fabricate citations, evidence, results, or claims.
 - Preserve unrelated user changes.
 - Keep prompts, records, and responses concise.
+- Keep the root and relevant paper READMEs concise and current when structure,
+  build commands, implementation status, dependencies, or the next ticket
+  changes. Link to lower-level details instead of duplicating them.

@@ -1,0 +1,69 @@
+# Task Prompt
+
+- Ticket: `007-create-numbered-paper-layout`
+- Status: Done
+- Aim: Move both manuscripts into a numbered paper workspace and update repository guidance before importing implementation code.
+- Scope:
+  - `README.md`
+  - `AGENTS.md`
+  - `agents/rules.md`
+  - `agents/config.md`
+  - `.gitignore`
+  - `starter_journal/`
+  - `review_paper/`
+  - New `papers/001-journal-abnormal-activity-recognition/`
+  - New `papers/002-review-abnormal-activity-recognition/`
+  - Git staging and one local commit
+- Changes:
+  - Create this numbered structure:
+    - `papers/001-journal-abnormal-activity-recognition/README.md`
+    - `papers/001-journal-abnormal-activity-recognition/manuscript/`
+    - `papers/002-review-abnormal-activity-recognition/README.md`
+    - `papers/002-review-abnormal-activity-recognition/manuscript/`
+  - Move all files from `starter_journal/` into paper 001, keeping its README at the paper root and placing its LaTeX, BibTeX, figures, and ignored local build artifacts under `manuscript/`.
+  - Rename `starter_journal.tex` to `main.tex` without changing its research content.
+  - Move all files from `review_paper/` under paper 002's `manuscript/` and rename `review_paper.tex` to `main.tex` without changing its research content.
+  - Create a concise paper 002 README that states its purpose, current status, manuscript path, and next planning need; do not invent a submission deadline.
+  - Update the paper 001 README with `Target submission: December 2026` and a concise unified ticket checklist:
+    - checked tickets 003 through 007;
+    - unchecked `008-import-journal-implementation`, marked `Next`;
+    - unchecked future tickets for transferring preserved local experiment work, repairing the runner, defining architectures, screening models, running ablations, confirming/exporting results, rewriting the results section, and aligning affected paper claims, in that dependency order.
+  - Replace obsolete external-repository links and `EXP-*` identifiers in paper 001 with paths and globally numbered tickets for the consolidated workspace.
+  - Rewrite the root README concisely to describe the repository as one PhD research workspace containing numbered paper directories, each with a README, `manuscript/`, and optional `implementation/`.
+  - Include concise build commands for both renamed `main.tex` manuscripts and a short paper index.
+  - Update `AGENTS.md` and `agents/config.md` so they no longer describe the repository as LaTeX-only and instead explain the numbered paper, manuscript, and optional implementation layout.
+  - Add a rule to `AGENTS.md` and `agents/rules.md`: keep the root and paper READMEs concise and current whenever structure, build commands, implementation status, dependencies, or the next ticket changes; do not duplicate details owned by a lower-level README.
+  - Update `.gitignore` only as needed for manuscript build artifacts and future per-paper implementation datasets, environments, checkpoints, and generated outputs.
+  - Preserve historical ticket records without rewriting their old paths.
+  - Preserve ignored local manuscript artifacts, including the root `texput.log`, without staging them.
+  - Do not modify the separate implementation repository in this ticket.
+  - Stage only the approved moves, guidance, README, ignore, and ticket files; inspect the staged diff; create one local commit with message `Create numbered paper workspace`; do not push.
+- Acceptance criteria:
+  - Both papers exist under their numbered directories with `README.md` and `manuscript/` paths.
+  - `starter_journal/` and `review_paper/` no longer exist.
+  - Both manuscript entry files are named `main.tex`, and their references and figures remain alongside them in the expected relative layout.
+  - Root and paper READMEs are concise, accurate, and show `008-import-journal-implementation` as the next journal-paper ticket.
+  - `AGENTS.md`, `agents/rules.md`, and `agents/config.md` accurately describe the mixed manuscript/code workspace and README-maintenance rule.
+  - No research prose, bibliography entry, citation, figure, or result is changed or deleted.
+  - Historical ticket records remain unchanged except for ticket 007's own files.
+  - Both manuscripts build successfully from their new paths without committing generated artifacts.
+  - The commit contains only approved files, the PhD repository is clean afterward, and nothing is pushed.
+- Out of scope:
+  - Importing or editing implementation code or its Git history.
+  - Moving datasets, environments, checkpoints, or experiment outputs from the separate implementation repository.
+  - Renaming either GitHub repository or the local workspace directory.
+  - Rewriting paper content, experiment plans, citations, or results.
+  - Deleting the old implementation repository.
+- Open questions: None.
+- Verification:
+  - Inspect `git status --short --branch` before and after the move.
+  - Confirm the old paper directories are absent and the new numbered structure contains every original file.
+  - Compare hashes of tracked manuscript content before and after moves, allowing only the approved README and filename/path changes.
+  - Build each `main.tex` from its new manuscript directory using the repository's documented commands or `latexmk -pdf` with temporary output directories.
+  - Run `git diff --check`, inspect `git diff --cached --name-status`, and confirm no generated artifacts are staged.
+  - Inspect the local commit with `git show --stat --oneline --decorate HEAD` and confirm the branch is ahead of its remote without pushing.
+  - Confirm the separate implementation repository's status is unchanged.
+
+## Execution Prompt
+
+Execute ticket `007-create-numbered-paper-layout` exactly as written in `agents/work/007-create-numbered-paper-layout/prompt.md`. Follow `AGENTS.md`, `agents/rules.md`, and `agents/config.md`. Make only the approved changes, verify every acceptance criterion, set the ticket status to `Done`, create `completion.md` from `agents/templates/completion.md`, and create the approved local commit without pushing.

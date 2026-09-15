@@ -1,20 +1,31 @@
-# PhD Work
+# PhD Research
 
-PhD research papers on video processing and unusual human-activity classification
-from surveillance video. Each paper is stored in its own directory and written in
-LaTeX with BibTeX references.
+One workspace for PhD manuscripts and their supporting implementations. Papers
+use numbered, stable directories under `papers/`.
 
-## Build a paper
+## Structure
 
-From PowerShell, run the following commands to build the starter journal paper and
-resolve its citations and cross-references:
+Each paper contains a concise `README.md`, a `manuscript/` directory, and an
+optional `implementation/` directory. The paper README records its status,
+build entry point, dependencies, and next ticket.
 
-```powershell
-cd starter_journal
-pdflatex -interaction=nonstopmode -file-line-error starter_journal.tex
-bibtex starter_journal
-pdflatex -interaction=nonstopmode -file-line-error starter_journal.tex
-pdflatex -interaction=nonstopmode -file-line-error starter_journal.tex
+| Paper | Status |
+|---|---|
+| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Experiments being revised; target December 2026 |
+| [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
+
+## Build
+
+Run `latexmk` from the relevant manuscript directory:
+
+```bash
+cd papers/001-journal-abnormal-activity-recognition/manuscript
+latexmk -pdf main.tex
 ```
 
-The generated file is `starter_journal/starter_journal.pdf`.
+```bash
+cd papers/002-review-abnormal-activity-recognition/manuscript
+latexmk -pdf main.tex
+```
+
+Generated PDFs and LaTeX build files remain untracked.
