@@ -13,9 +13,11 @@
 - The current candidate is the `64-32-16-64` custom ConvLSTM. Call it the
   **selected lightweight ConvLSTM candidate**, not an optimal model, until the
   controlled evidence supports a stronger claim.
-- The immediate priority is a focused ablation study explaining which
-  architecture, input, augmentation, and regularisation choices affect the
-  candidate. Do not expand this into an unrestricted hyperparameter search.
+- The immediate implementation priority is to reduce the model API to
+  `ConvLSTM`, `PaperConvLSTM`, and `CustomConvLSTM`, then migrate every active
+  caller. Express each custom recurrent layer as
+  `(filters, (kernel_height, kernel_width))`; do not expand this into an
+  unrestricted hyperparameter search.
 
 ## Research rules
 
@@ -28,6 +30,8 @@
   applicable. Record the seed and determinism settings.
 - Change one ablation factor at a time against a named reference configuration.
   Keep the data split and training budget fixed so the comparison is interpretable.
+- Keep faithful published baselines separate from lightweight variants. Never
+  simplify a baseline and still describe it as a faithful reproduction.
 - Report variation across the planned confirmation seeds; do not present a
   single favourable run as conclusive.
 - Every reported run must retain its full configuration, split reference, code
@@ -50,6 +54,9 @@
 - Keep runs practical for Colab Pro/Pro+. Use short smoke tests before expensive
   runs and never commit datasets, environments, checkpoints, or generated runs.
 - Preserve unrelated user changes. Do not delete or overwrite user work.
+- Historical checkpoints from deleted model classes remain research artifacts,
+  but they are incompatible with the simplified model API. Do not convert,
+  overwrite, or silently load them as another architecture.
 
 ## Task workflow
 

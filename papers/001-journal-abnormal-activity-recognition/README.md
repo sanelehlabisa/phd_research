@@ -1,52 +1,62 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Preparing controlled ablation experiments
+- Status: Simplifying the model API before baseline alignment
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
-The paper proposes a lightweight ConvLSTM-based approach to abnormal
-human-activity recognition from surveillance video. Earlier architecture runs
-identified `64-32-16-64` as the selected lightweight ConvLSTM candidate, but the
-new study must establish which changes caused its accuracy-efficiency trade-off.
+The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
+from surveillance video. Earlier width experiments made `64-32-16-64` a useful
+candidate, but not a proven optimum. The revised study will compare a faithful
+paper baseline with narrow stacked ConvLSTM models before selecting a reference
+architecture for ablation.
 
 ## Evidence plan
 
-1. Treat the 30+ historical runs as exploratory and shortlist only comparable
-   architecture results.
-2. Re-run 3–5 shortlisted ConvLSTM variants under one reproducible protocol.
-3. Select the reference model by validation performance and parameter cost.
-4. Change one factor at a time on that reference: input resolution, sequence
-   length, widths, justified depth, augmentation, weight decay, and dropout.
-5. Use AAD for screening and most ablations; use VDD to test the selected
-   configuration's generalisation.
-6. Export versioned tables and plots before changing reported manuscript claims.
+1. Implement the published ConvLSTM topology faithfully and add configurable
+   stacked ConvLSTM depth, width, and kernel sizes.
+2. Keep the paper baseline separate from the new pooled stacked family, and align
+   the 3D-CNN comparison registry before training comparisons.
+3. Make splits, seeds, metrics, checkpoint selection, and outputs reproducible.
+4. Screen a small, predeclared model set using validation performance, parameter
+   count, and runtime—not test results.
+5. Run one-factor ablations on the selected reference, then confirm the frozen
+   model on the second dataset.
+6. Export versioned tables and plots before changing manuscript claims.
 
 ## Tasks
 
-- [ ] `009-define-ablation-config` — **Next:** add one validated experiment
-  configuration and explicit CLI overrides.
-- [ ] `010-make-splits-reproducible` — seed the full pipeline and create fixed,
+- [ ] `009-define-ablation-config` — deferred; its WIP is stashed and its schema
+  must be revised after ticket 010.
+- [x] `010-prepare-architecture-search` — added the faithful paper baseline,
+  sequence-returning ConvLSTM, explicit layer specifications, and lightweight
+  stacked model.
+- [ ] `011-simplify-model-api` — **Next:** keep one ConvLSTM layer and the paper
+  and custom models, remove obsolete architectures, and migrate every caller.
+- [ ] `012-align-comparison-baselines` — register the paper model and
+  decide how to implement or clearly distinguish 3D ResNet-50/101/152 from the
+  current 18-layer video baselines.
+- [ ] `013-make-splits-reproducible` — seed the full pipeline and create fixed,
   stratified, group-aware split manifests.
-- [ ] `011-fix-selection-and-metrics` — correct metric accumulation, restore the
-  best validation checkpoint, and keep test data out of model selection.
-- [ ] `012-standardize-run-artifacts` — save complete, versioned run evidence
-  and add a CPU smoke check.
-- [ ] `013-expose-ablation-factors` — make focused architecture, input, and
-  training factors configurable without duplicate scripts.
-- [ ] `014-shortlist-architecture-results` — audit the historical runs and name
-  3–5 candidates for controlled confirmation.
-- [ ] `015-confirm-architecture-candidates` — re-run the shortlist and comparison
-  models under the fixed protocol.
-- [ ] `016-run-reference-ablations` — run the approved one-factor comparisons on
-  the selected reference model.
-- [ ] `017-validate-second-dataset` — evaluate the frozen configuration on VDD.
-- [ ] `018-aggregate-ablation-evidence` — produce paper-ready tables, figures,
+- [ ] `014-fix-selection-and-metrics` — correct metrics, restore the best
+  validation checkpoint, and keep test data out of model selection.
+- [ ] `015-standardize-run-artifacts` — save complete, versioned run evidence and
+  add a CPU smoke run.
+- [ ] `016-connect-ablation-config` — revise and resume ticket 009 so one config
+  controls the stable model, input, and training schema.
+- [ ] `017-shortlist-architecture-results` — audit historical runs and predeclare
+  a small candidate set for controlled confirmation.
+- [ ] `018-confirm-architecture-candidates` — compare the shortlist and approved
+  baselines under one protocol.
+- [ ] `019-run-reference-ablations` — run approved one-factor comparisons on the
+  selected reference model.
+- [ ] `020-validate-second-dataset` — evaluate the frozen configuration on VDD.
+- [ ] `021-aggregate-ablation-evidence` — produce paper-ready tables, figures,
   uncertainty, efficiency comparisons, and error-analysis inputs.
-- [ ] `019-rewrite-experimental-results` — revise the experiment and discussion
+- [ ] `022-rewrite-experimental-results` — revise the experiment and discussion
   section using only verified outputs.
-- [ ] `020-align-paper-claims` — update the abstract, contributions, methods,
-  limitations, and conclusion to match the final evidence.
+- [ ] `023-align-paper-claims` — align the abstract, contributions, methods,
+  limitations, and conclusion with the final evidence.
 
 ## Planned results-section flow
 

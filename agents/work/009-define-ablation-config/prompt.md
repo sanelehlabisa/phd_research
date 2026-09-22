@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `009-define-ablation-config`
-- Status: Ready
+- Status: Draft
 - Aim: Give Paper 001 one validated experiment configuration so later ablation
   runs can be changed, reproduced, and compared without duplicate scripts.
 - Scope:
@@ -22,7 +22,7 @@
   - Validate ratios, dimensions, widths, layer counts, probabilities, optimiser
     names, and positive training values with clear errors before a run starts.
   - Represent currently unsupported depth choices in the schema, but reject them
-    clearly until ticket 013 implements and tests the architecture change.
+    clearly until ticket 010 implements and tests the architecture change.
   - Print and save the fully resolved configuration in stable JSON form.
   - Refactor shared argument/configuration handling only where needed; do not
     create a separate script for each experiment or change training behaviour.
@@ -41,13 +41,14 @@
   - Existing model variants and historical results remain untouched.
   - Focused tests pass and `git diff --check` reports no errors.
 - Out of scope:
-  - Changing dataset splits or seeding; ticket 010 owns reproducible data.
-  - Correcting metrics, checkpoint selection, or test access; ticket 011 owns
+  - Changing dataset splits or seeding; ticket 013 owns reproducible data.
+  - Correcting metrics, checkpoint selection, or test access; ticket 014 owns
     those changes.
-  - Creating run directories or provenance bundles; ticket 012 owns artifacts.
-  - Implementing new model depth, running experiments, or editing manuscript
-    results.
-- Open questions: None.
+  - Creating run directories or provenance bundles; ticket 015 owns artifacts.
+  - Changing model depth; ticket 010 owns model implementation.
+  - Running experiments or editing manuscript results.
+- Open questions: Deferred until ticket 010 stabilises the stacked-model layer
+  specification; revise this ticket before resuming it.
 - Verification:
   - Run the focused configuration tests.
   - Resolve legacy defaults, the example JSON, and that JSON with one CLI

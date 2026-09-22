@@ -12,9 +12,9 @@ manuscript sources, and—when needed—its implementation.
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
 The next repository task is
-[`009-define-ablation-config`](agents/work/009-define-ablation-config/prompt.md).
-It defines the common configuration needed before the experiment runner is made
-reproducible and new Colab runs begin.
+[`011-simplify-model-api`](agents/work/011-simplify-model-api/prompt.md). It
+removes obsolete model classes and migrates every active caller to the two
+approved ConvLSTM models before comparison baselines are aligned.
 
 ## Structure
 
