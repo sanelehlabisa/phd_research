@@ -9,7 +9,8 @@ python -m src.train \
     --dataset_dir "datasets/processed/videos_violence-detection-dataset" \
     --model_dir "models" \
     --checkpoint_path "models/videos_violence-detection-dataset_best_model.pth" \
-    --custom_filters 32 64 8 256 \
+    --convlstm-layer 8 3 3 \
+    --convlstm-layer 16 3 3 \
     --resume \
     --finetune_full \
     --batch_size 32 \
@@ -28,6 +29,8 @@ python -m src.train \
 from __future__ import annotations
 
 import argparse
+import json
+from datetime import datetime
 from pathlib import Path
 from timeit import default_timer as timer
 
@@ -41,8 +44,13 @@ from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
 from .dataset import AHARDataset, CachedAHARDataset, AugmentSubset
-from .model import ConvLSTMModel, ConvLSTMPooledModel, ConvLSTMCustom
-from .utils import plot_training_curves, save_model, save_prediction_clips
+from .model import (
+    CustomConvLSTM,
+    count_trainable_parameters,
+    custom_model_from_checkpoint,
+    parse_layer_arguments,
+)
+from .utils import plot_training_curves, save_prediction_clips
 
 parser = argparse.ArgumentParser(description="Train ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
@@ -54,7 +62,9 @@ parser.add_argument(
     help="Resume training same dataset, no layer changes",
 )
 parser.add_argument(
-    "--finetune_last", action="store_true", help="Freeze all except last layer (fc2)"
+    "--finetune_last",
+    action="store_true",
+    help="Freeze all except the classifier",
 )
 parser.add_argument(
     "--finetune_full",
@@ -69,12 +79,14 @@ parser.add_argument("--sequence_length", type=int, default=32)
 parser.add_argument("--width", type=int, default=128)
 parser.add_argument("--height", type=int, default=128)
 parser.add_argument(
-    "--custom_filters",
+    "--convlstm-layer",
+    action="append",
+    nargs=3,
     type=int,
-    nargs="+",
-    default=[32, 64, 4, 256],
-    help="List of 4 integers for ConvLSTMCustom: [td_conv, convlstm, conv_post, fc1]",
+    metavar=("FILTERS", "KERNEL_HEIGHT", "KERNEL_WIDTH"),
+    help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
 )
+parser.add_argument("--hidden-classifier-width", type=int, default=None)
 parser.add_argument("--aug_copies", type=int, default=4)
 parser.add_argument("--train_ratio", type=float, default=0.7)
 parser.add_argument("--val_ratio", type=float, default=0.1)
@@ -150,6 +162,49 @@ def validate_one_epoch(
         total_loss += loss.item()
         total_acc += accuracy_fn(logits.argmax(dim=1), y).item()
     return total_loss / len(loader), total_acc / len(loader)
+
+
+def _save_custom_checkpoint(
+    model: CustomConvLSTM,
+    optimizer: optim.Optimizer,
+    epoch: int,
+    loss: float,
+    checkpoint_path: Path,
+) -> None:
+    """Save weights with enough architecture metadata to rebuild the model.
+
+    Parameters:
+        model: Custom model being trained.
+        optimizer: Optimizer whose state should be saved.
+        epoch: Current training epoch.
+        loss: Current validation loss.
+        checkpoint_path: Destination checkpoint path.
+
+    Returns:
+        None.
+    """
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+    configuration = model.configuration()
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "model_config": configuration,
+            "epoch": epoch,
+            "loss": loss,
+        },
+        checkpoint_path,
+    )
+    metadata = {
+        "epoch": epoch,
+        "loss": loss,
+        "timestamp": datetime.now().isoformat(),
+        "trainable_parameters": count_trainable_parameters(model),
+        "model_config": configuration,
+    }
+    with checkpoint_path.with_suffix(".json").open("w", encoding="utf-8") as handle:
+        json.dump(metadata, handle, indent=2)
+    print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
 def main() -> None:
@@ -247,78 +302,65 @@ def main() -> None:
     val_loader = DataLoader(val_set, shuffle=False, **loader_kw)
     test_loader = DataLoader(test_set, shuffle=False, **loader_kw)
 
-    model = ConvLSTMCustom(
-        num_classes,
-        input_shape=(3, args.height, args.width),
-        filters=args.custom_filters,
+    layers = parse_layer_arguments(args.convlstm_layer)
+    model = CustomConvLSTM(
+        num_classes=num_classes,
+        layers=layers,
+        hidden_classifier_width=args.hidden_classifier_width,
     ).to(device)
 
-    if args.checkpoint_path and Path(args.checkpoint_path).is_file():
-        import zipfile
+    if args.checkpoint_path:
+        checkpoint_path = Path(args.checkpoint_path)
+        if not checkpoint_path.is_file():
+            raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
+        print(f"⏳ Loading: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
+        try:
+            loaded_model = custom_model_from_checkpoint(checkpoint).to(device)
+        except (KeyError, RuntimeError, TypeError, ValueError) as error:
+            raise SystemExit(f"Checkpoint is incompatible: {error}") from error
 
-        if not zipfile.is_zipfile(args.checkpoint_path):
-            print("❌ Checkpoint corrupted - starting fresh")
-        else:
-            print(f"⏳ Loading: {args.checkpoint_path}")
-            checkpoint = torch.load(
-                args.checkpoint_path, map_location=device, weights_only=True
+        if args.convlstm_layer is not None and loaded_model.layers != layers:
+            raise SystemExit("Checkpoint layers do not match --convlstm-layer values")
+        if (
+            args.hidden_classifier_width is not None
+            and loaded_model.hidden_classifier_width != args.hidden_classifier_width
+        ):
+            raise SystemExit(
+                "Checkpoint hidden width does not match --hidden-classifier-width"
             )
-            ckpt_classes = checkpoint["model_state_dict"]["fc2.weight"].shape[0]
 
-            loaded_model = ConvLSTMCustom(
-                ckpt_classes,
-                input_shape=(3, args.height, args.width),
-                filters=args.custom_filters,
+        checkpoint_classes = loaded_model.num_classes
+        if checkpoint_classes != num_classes:
+            loaded_model.classifier = nn.Linear(
+                loaded_model.classifier.in_features, num_classes
             ).to(device)
+            loaded_model.num_classes = num_classes
+            print(f"🔁 Output layer: {checkpoint_classes} → {num_classes} classes")
 
-            try:
-                loaded_model.load_state_dict(checkpoint["model_state_dict"])
-                total_params = sum(p.numel() for p in loaded_model.parameters())
-                print(
-                    f"✅ Loaded epoch={checkpoint['epoch']} | classes={ckpt_classes} | params={total_params:,}"
-                )
-
-                if ckpt_classes != num_classes:
-                    loaded_model.fc2 = nn.Linear(
-                        loaded_model.fc2.in_features, num_classes
-                    ).to(device)
-                    print(f"🔁 Output layer: {ckpt_classes} → {num_classes} classes")
-
-                if args.resume:
-                    for p in loaded_model.parameters():
-                        p.requires_grad = True
-
-                    print("▶️  Resuming - all layers trainable")
-
-                    if args.finetune_last:
-                        fc2_ids = {id(p) for p in loaded_model.fc2.parameters()}
-
-                        for p in loaded_model.parameters():
-                            p.requires_grad = id(p) in fc2_ids
-
-                        frozen = sum(
-                            1 for p in loaded_model.parameters() if not p.requires_grad
-                        )
-                        trainable = sum(
-                            1 for p in loaded_model.parameters() if p.requires_grad
-                        )
-
-                        print(
-                            f"🔒 Frozen: {frozen} | 🔓 Trainable (fc2 only): {trainable}"
-                        )
-
-                else:
-                    for p in loaded_model.parameters():
-                        p.requires_grad = True
-
-                    print("🔓 Training all layers")
-                model = loaded_model
-            except RuntimeError as e:
-                print(f"⚠️  Architecture size mismatch: {e}")
-                print("⚠️  Starting from scratch with new custom_filters sizes.")
+        for parameter in loaded_model.parameters():
+            parameter.requires_grad = True
+        if args.resume:
+            print("▶️  Resuming - all layers trainable")
+        else:
+            print("🔓 Training all layers")
+        if args.finetune_last:
+            classifier_ids = {
+                id(parameter) for parameter in loaded_model.classifier.parameters()
+            }
+            for parameter in loaded_model.parameters():
+                parameter.requires_grad = id(parameter) in classifier_ids
+            print("🔒 Fine-tuning the classifier only")
+        model = loaded_model
+        print(
+            f"✅ Loaded epoch={checkpoint.get('epoch', 0)} | "
+            f"params={count_trainable_parameters(model):,}"
+        )
     else:
-        total_params = sum(p.numel() for p in model.parameters())
-        print(f"⚠️  No checkpoint - scratch | params={total_params:,}")
+        print(
+            "⚠️  No checkpoint - scratch | "
+            f"params={count_trainable_parameters(model):,}"
+        )
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(
@@ -360,16 +402,15 @@ def main() -> None:
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            best_path = str(
+            best_path = (
                 Path(args.model_dir) / f"{Path(args.dataset_dir).name}_best_model.pth"
             )
-            save_model(
+            _save_custom_checkpoint(
                 model,
                 optimizer,
                 epoch,
                 val_loss,
                 checkpoint_path=best_path,
-                extra_meta={"custom_filters": args.custom_filters},
             )
             print(f"  ⭐ Best model updated (val_loss={val_loss:.4f})")
 

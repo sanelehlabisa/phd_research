@@ -6,10 +6,11 @@ hyperparameter grid.
 
 ## Model context
 
-`ConvLSTM2D` can return either its full sequence or final hidden state. The new
-`StackedConvLSTM` uses that sequence output between recurrent layers and a
-resolution-independent adaptive-pooling head. The existing `ConvLSTMOriginal`
-remains a legacy approximation for import and checkpoint compatibility.
+`ConvLSTM` returns either its full sequence or final hidden state.
+`CustomConvLSTM` stacks explicit recurrent layers and uses a
+resolution-independent adaptive-pooling head. `PaperConvLSTM` remains separate
+because it preserves the published full-sequence, flattened classification
+topology. Legacy architecture names and compatibility wrappers are removed.
 
 The [2022 source paper](https://www.mdpi.com/1424-8220/22/8/2946) instead reports
 50 RGB frames at `50×50`, keeps the full sequence through `ConvLSTM2D(64)` and
@@ -17,10 +18,10 @@ the second `Conv2D(16)`, then flattens `(50, 50, 50, 16)` into `Dense(256)`.
 That produces over 512 million parameters and must remain a separate faithful
 baseline rather than being silently made lightweight.
 
-The stacked family uses explicit recurrent layer specifications:
+The custom family uses explicit recurrent layer specifications:
 
 ```python
-convlstm_layers=[
+layers=[
     (8, (3, 3)),
     (16, (3, 3)),
     (32, (5, 5)),
@@ -37,7 +38,7 @@ model uses it and the results are labelled preliminary.
 
 The current comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18`. The
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These are not
-architecture-equivalent baselines; ticket 011 must align or clearly distinguish
+architecture-equivalent baselines; ticket 012 must align or clearly distinguish
 them before a paper comparison.
 
 ## Experiment protocol
@@ -56,10 +57,10 @@ them before a paper comparison.
 
 1. [x] **Architecture preparation (`010`).** Added the faithful paper model,
    sequence-returning ConvLSTM, explicit `(filters, kernel_size)` stacks, a
-   lightweight adaptive-pooling head, parameter counting, and focused tests.
-2. [ ] **Model API cleanup (`011`, next).** Keep `ConvLSTM`, `PaperConvLSTM`, and
-   `CustomConvLSTM`; remove obsolete classes and migrate all active callers.
-3. [ ] **Baseline alignment (`012`).** Register the faithful ConvLSTM and
+   lightweight adaptive-pooling head, and parameter counting.
+2. [x] **Model API cleanup (`011`).** Kept `ConvLSTM`, `PaperConvLSTM`, and
+   `CustomConvLSTM`; removed obsolete classes and migrated all active callers.
+3. [ ] **Baseline alignment (`012`, next).** Register the faithful ConvLSTM and
    resolve the 3D ResNet-50/101/152 versus current 18-layer baseline mismatch.
 4. [ ] **Reproducible data (`013`).** Seed the full pipeline and reuse a
    stratified, group-aware 70:15:15 split manifest.
@@ -87,8 +88,10 @@ untracked. Do not change manuscript results until versioned evidence exists.
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m unittest tests.test_model -v
+python -m src.model \
+  --dataset-dir datasets/violence-detection-dataset/violence-detection-dataset
 ```
 
 Run commands from this directory. The current training and experiment scripts
-remain exploratory until tasks 011–016 are complete.
+remain exploratory until tasks 012–016 are complete. The model smoke command
+uses random weights and its outputs are pipeline checks, not research evidence.

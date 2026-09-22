@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Simplifying the model API before baseline alignment
+- Status: Aligning comparison baselines before controlled experiments
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -31,9 +31,9 @@ architecture for ablation.
 - [x] `010-prepare-architecture-search` — added the faithful paper baseline,
   sequence-returning ConvLSTM, explicit layer specifications, and lightweight
   stacked model.
-- [ ] `011-simplify-model-api` — **Next:** keep one ConvLSTM layer and the paper
-  and custom models, remove obsolete architectures, and migrate every caller.
-- [ ] `012-align-comparison-baselines` — register the paper model and
+- [x] `011-simplify-model-api` — kept one ConvLSTM layer plus the paper and
+  custom models, removed obsolete architectures, and migrated every caller.
+- [ ] `012-align-comparison-baselines` — **Next:** register the paper model and
   decide how to implement or clearly distinguish 3D ResNet-50/101/152 from the
   current 18-layer video baselines.
 - [ ] `013-make-splits-reproducible` — seed the full pipeline and create fixed,

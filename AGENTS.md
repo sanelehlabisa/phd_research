@@ -13,11 +13,11 @@
 - The current candidate is the `64-32-16-64` custom ConvLSTM. Call it the
   **selected lightweight ConvLSTM candidate**, not an optimal model, until the
   controlled evidence supports a stronger claim.
-- The immediate implementation priority is to reduce the model API to
-  `ConvLSTM`, `PaperConvLSTM`, and `CustomConvLSTM`, then migrate every active
-  caller. Express each custom recurrent layer as
+- The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
+  `CustomConvLSTM`. Express each custom recurrent layer as
   `(filters, (kernel_height, kernel_width))`; do not expand this into an
-  unrestricted hyperparameter search.
+  unrestricted hyperparameter search. The immediate priority is to align or
+  clearly distinguish the comparison baselines before any training study.
 
 ## Research rules
 

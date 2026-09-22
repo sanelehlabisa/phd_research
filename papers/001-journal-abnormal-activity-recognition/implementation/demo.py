@@ -8,6 +8,7 @@ Author: Sanele Hlabisa
 python demo.py \
     --dataset_dir "datasets/abnormal_activities" \
     --checkpoint_path "models/best_model.pth" \
+    --convlstm-layer 8 3 3 \
     --num_samples 8 \
     --sequence_length 32 \
     --height 64 \
@@ -24,8 +25,11 @@ import torch
 import torchvision
 
 from src.dataset import AHARDataset
-from src.model import ConvLSTMModel
-from src.utils import load_model
+from src.model import (
+    CustomConvLSTM,
+    custom_model_from_checkpoint,
+    parse_layer_arguments,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
@@ -36,23 +40,48 @@ parser.add_argument("--height", type=int, default=64)
 parser.add_argument("--width", type=int, default=64)
 parser.add_argument("--fps", type=int, default=8)
 parser.add_argument("--seed", type=int, default=None)
+parser.add_argument(
+    "--convlstm-layer",
+    action="append",
+    nargs=3,
+    type=int,
+    metavar=("FILTERS", "KERNEL_HEIGHT", "KERNEL_WIDTH"),
+    help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
+)
+parser.add_argument("--hidden-classifier-width", type=int, default=None)
 
 
 def main() -> None:
     args = parser.parse_args()
-    if args.seed:
+    if args.seed is not None:
         random.seed(args.seed)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dataset = AHARDataset(
         args.dataset_dir, args.sequence_length, (args.height, args.width)
     )
-    model = ConvLSTMModel(
-        dataset.num_classes, input_shape=(3, args.height, args.width)
-    ).to(device)
-    model, _, epoch, loss = load_model(
-        model, checkpoint_path=args.checkpoint_path, map_location=device
-    )
+    checkpoint_path = Path(args.checkpoint_path)
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
+    try:
+        model = custom_model_from_checkpoint(checkpoint).to(device)
+    except (KeyError, RuntimeError, TypeError, ValueError) as error:
+        raise SystemExit(f"Checkpoint is incompatible: {error}") from error
+    layers = parse_layer_arguments(args.convlstm_layer)
+    if args.convlstm_layer is not None and model.layers != layers:
+        raise SystemExit("Checkpoint layers do not match --convlstm-layer values")
+    if (
+        args.hidden_classifier_width is not None
+        and model.hidden_classifier_width != args.hidden_classifier_width
+    ):
+        raise SystemExit(
+            "Checkpoint hidden width does not match --hidden-classifier-width"
+        )
+    if model.num_classes != dataset.num_classes:
+        raise SystemExit("Checkpoint class count does not match the dataset")
+    epoch = int(checkpoint.get("epoch", 0))
+    loss = float(checkpoint.get("loss", float("inf")))
     print(f"📂 Checkpoint → epoch={epoch}, loss={loss:.4f}")
     model.eval()
 

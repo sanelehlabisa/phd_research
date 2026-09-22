@@ -8,7 +8,8 @@ Author: Sanele Hlabisa
 python -m src.evaluate \
     --dataset_dir "datasets/processed/videos_violence-detection-dataset" \
     --checkpoint_path "models/violence-detection-dataset_best_model.pth" \
-    --custom_filters 32 64 8 256 \
+    --convlstm-layer 8 3 3 \
+    --convlstm-layer 16 3 3 \
     --experiments_dir "experiments" \
     --batch_size 32 \
     --sequence_length 64 \
@@ -32,8 +33,12 @@ import torchmetrics
 from torch.utils.data import Dataset, DataLoader, random_split
 
 from .dataset import AHARDataset
-from .model import ConvLSTMModel, ConvLSTMPooledModel, ConvLSTMCustom
-from .utils import load_model, plot_confusion_matrix, save_prediction_clips
+from .model import (
+    CustomConvLSTM,
+    custom_model_from_checkpoint,
+    parse_layer_arguments,
+)
+from .utils import plot_confusion_matrix, save_prediction_clips
 
 parser = argparse.ArgumentParser(description="Evaluate ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
@@ -44,12 +49,14 @@ parser.add_argument("--sequence_length", type=int, default=32)
 parser.add_argument("--width", type=int, default=128)
 parser.add_argument("--height", type=int, default=128)
 parser.add_argument(
-    "--custom_filters",
+    "--convlstm-layer",
+    action="append",
+    nargs=3,
     type=int,
-    nargs="+",
-    default=[32, 64, 4, 256],
-    help="List of 4 integers for ConvLSTMCustom: [td_conv, convlstm, conv_post, fc1]",
+    metavar=("FILTERS", "KERNEL_HEIGHT", "KERNEL_WIDTH"),
+    help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
 )
+parser.add_argument("--hidden-classifier-width", type=int, default=None)
 parser.add_argument("--train_ratio", type=float, default=0.7)
 parser.add_argument("--val_ratio", type=float, default=0.1)
 parser.add_argument("--num_workers", type=int, default=0)
@@ -154,29 +161,50 @@ def main() -> None:
         pin_memory=args.pin_memory,
     )
 
-    model = ConvLSTMCustom(
-        num_classes,
-        input_shape=(3, args.height, args.width),
-        filters=args.custom_filters,
+    layers = parse_layer_arguments(args.convlstm_layer)
+    model = CustomConvLSTM(
+        num_classes=num_classes,
+        layers=layers,
+        hidden_classifier_width=args.hidden_classifier_width,
     ).to(device)
 
     # Initialize defaults in case checkpoint loading is skipped or fails
     epoch = 0
     ckpt_loss = float("inf")
 
-    if args.checkpoint_path and Path(args.checkpoint_path).is_file():
+    if args.checkpoint_path:
+        checkpoint_path = Path(args.checkpoint_path)
+        if not checkpoint_path.is_file():
+            raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
         try:
-            model, _, epoch, ckpt_loss = load_model(
-                model, checkpoint_path=args.checkpoint_path, map_location=device
+            checkpoint = torch.load(
+                checkpoint_path, map_location=device, weights_only=True
             )
+            loaded_model = custom_model_from_checkpoint(checkpoint).to(device)
+            if args.convlstm_layer is not None and loaded_model.layers != layers:
+                raise ValueError(
+                    "checkpoint layers do not match --convlstm-layer values"
+                )
+            if (
+                args.hidden_classifier_width is not None
+                and loaded_model.hidden_classifier_width != args.hidden_classifier_width
+            ):
+                raise ValueError(
+                    "checkpoint hidden width does not match "
+                    "--hidden-classifier-width"
+                )
+            if loaded_model.num_classes != num_classes:
+                raise ValueError(
+                    "checkpoint class count does not match the dataset class count"
+                )
+            model = loaded_model
+            epoch = int(checkpoint.get("epoch", 0))
+            ckpt_loss = float(checkpoint.get("loss", float("inf")))
             print(f"📂 Checkpoint → epoch={epoch}, loss={ckpt_loss:.4f}")
-        except RuntimeError as e:
-            print(f"❌ Architecture mismatch: {e}")
-            print("⚠️ Falling back to default initialized weights.")
+        except (KeyError, RuntimeError, TypeError, ValueError) as error:
+            raise SystemExit(f"Checkpoint is incompatible: {error}") from error
     else:
-        print(
-            "⚠️ No valid checkpoint path provided or found. Using default initialized weights."
-        )
+        print("⚠️ No checkpoint provided. Using random weights.")
 
     criterion = nn.CrossEntropyLoss()
     metrics = {

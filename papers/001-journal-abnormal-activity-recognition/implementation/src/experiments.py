@@ -1,8 +1,7 @@
 """
 experiments.py
 
-Grid search over model configurations for ConvLSTM AHAR.
-Tries original, pooled, and custom filter variants.
+Exploratory comparison runner for ConvLSTM and video-model baselines.
 Saves all results to JSON.
 
 Author: Sanele Hlabisa
@@ -36,7 +35,7 @@ from tqdm import tqdm
 import torchvision.models.video as video_models
 
 from .dataset import AHARDataset, AugmentSubset
-from .model import ConvLSTMOriginal, ConvLSTMModel, ConvLSTMPooledModel, ConvLSTMCustom
+from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
 from .utils import plot_confusion_matrix
 
 parser = argparse.ArgumentParser()
@@ -57,13 +56,14 @@ parser.add_argument("--weight_decay", type=float, default=1e-3)
 
 class Video3DModelWrapper(nn.Module):
     """Wraps PyTorch 3D ResNet models to match our (B, T, C, H, W) input format."""
+
     def __init__(self, base_model, num_classes):
         super().__init__()
         self.model = base_model
-        if hasattr(self.model, 'fc'):
+        if hasattr(self.model, "fc"):
             in_features = self.model.fc.in_features
             self.model.fc = nn.Linear(in_features, num_classes)
-            
+
     def forward(self, x):
         # x is (B, T, C, H, W) -> PyTorch 3D CNNs expect (B, C, T, H, W)
         x = x.permute(0, 2, 1, 3, 4)
@@ -218,29 +218,38 @@ def main() -> None:
 
     # ---- Model configs ----
     input_shape = (3, args.height, args.width)
+    paper_name = (
+        "paper_convlstm"
+        if (args.sequence_length, args.height, args.width) == (50, 50, 50)
+        else "paper_convlstm_reduced_input"
+    )
 
     configs = [
-        # Baselines
-        ("original", ConvLSTMOriginal(num_classes, input_shape)),
-        ("light", ConvLSTMModel(num_classes, input_shape)),
-        ("pooled", ConvLSTMPooledModel(num_classes, input_shape)),
-        
+        (
+            paper_name,
+            PaperConvLSTM(
+                num_classes,
+                input_shape=input_shape,
+                sequence_length=args.sequence_length,
+            ),
+        ),
+        (
+            "custom_reference_8_k3",
+            CustomConvLSTM(num_classes, layers=[(8, (3, 3))]),
+        ),
         # PyTorch 3D ResNet variants
-        ("resnet_3d_18", Video3DModelWrapper(video_models.r3d_18(weights=None), num_classes)),
-        ("resnet_mc3_18", Video3DModelWrapper(video_models.mc3_18(weights=None), num_classes)),
-        ("resnet_r2plus1d_18", Video3DModelWrapper(video_models.r2plus1d_18(weights=None), num_classes)),
-
-        # Custom configurations (10 total to make 16 models)
-        ("custom_32_64_4_256", ConvLSTMCustom(num_classes, input_shape, filters=[32, 64, 4, 256])),
-        ("custom_32_64_8_256", ConvLSTMCustom(num_classes, input_shape, filters=[32, 64, 8, 256])),
-        ("custom_64_32_8_128", ConvLSTMCustom(num_classes, input_shape, filters=[64, 32, 8, 128])),
-        ("custom_64_32_16_128", ConvLSTMCustom(num_classes, input_shape, filters=[64, 32, 16, 128])),
-        ("custom_64_32_16_64", ConvLSTMCustom(num_classes, input_shape, filters=[64, 32, 16, 64])),
-        ("custom_64_32_8_64", ConvLSTMCustom(num_classes, input_shape, filters=[64, 32, 8, 64])),
-        ("custom_32_32_8_64", ConvLSTMCustom(num_classes, input_shape, filters=[32, 32, 8, 64])),
-        ("custom_16_32_8_128", ConvLSTMCustom(num_classes, input_shape, filters=[16, 32, 8, 128])),
-        ("custom_32_64_16_128", ConvLSTMCustom(num_classes, input_shape, filters=[32, 64, 16, 128])),
-        ("custom_16_64_8_64", ConvLSTMCustom(num_classes, input_shape, filters=[16, 64, 8, 64])),
+        (
+            "resnet_3d_18",
+            Video3DModelWrapper(video_models.r3d_18(weights=None), num_classes),
+        ),
+        (
+            "resnet_mc3_18",
+            Video3DModelWrapper(video_models.mc3_18(weights=None), num_classes),
+        ),
+        (
+            "resnet_r2plus1d_18",
+            Video3DModelWrapper(video_models.r2plus1d_18(weights=None), num_classes),
+        ),
     ]
 
     print(f"\nRunning {len(configs)} configurations...\n")
@@ -248,20 +257,32 @@ def main() -> None:
 
     # Extra metrics tracker for final evaluation on test_set
     test_metrics = {
-        "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=num_classes).to(device),
-        "precision": torchmetrics.Precision(task="multiclass", num_classes=num_classes, average="macro").to(device),
-        "recall": torchmetrics.Recall(task="multiclass", num_classes=num_classes, average="macro").to(device),
-        "f1": torchmetrics.F1Score(task="multiclass", num_classes=num_classes, average="macro").to(device),
+        "accuracy": torchmetrics.Accuracy(
+            task="multiclass", num_classes=num_classes
+        ).to(device),
+        "precision": torchmetrics.Precision(
+            task="multiclass", num_classes=num_classes, average="macro"
+        ).to(device),
+        "recall": torchmetrics.Recall(
+            task="multiclass", num_classes=num_classes, average="macro"
+        ).to(device),
+        "f1": torchmetrics.F1Score(
+            task="multiclass", num_classes=num_classes, average="macro"
+        ).to(device),
     }
 
     for i, (name, model) in enumerate(configs):
         model = model.to(device)
-        num_params = sum(p.numel() for p in model.parameters())
+        num_params = count_trainable_parameters(model)
         print(f"[{i+1}/{len(configs)}] {name} | params={num_params:,}")
 
-        opt = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+        opt = optim.Adam(
+            model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
+        )
         criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-        acc_fn = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes).to(device)
+        acc_fn = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes).to(
+            device
+        )
 
         train_accs, val_accs, val_losses = [], [], []
         t0 = timer()
@@ -285,7 +306,7 @@ def main() -> None:
         model.eval()
         for m in test_metrics.values():
             m.reset()
-        
+
         with torch.inference_mode():
             for X, y in test_loader:
                 X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
@@ -297,12 +318,16 @@ def main() -> None:
                 all_true.extend(y.cpu().tolist())
 
         t_res = {k: m.compute().item() for k, m in test_metrics.items()}
-        
+
         # Generates confusion matrix per architecture variant!
-        dataset_name_clean = args.dataset_dir.strip('/').split('/')[-1]
+        dataset_name_clean = args.dataset_dir.strip("/").split("/")[-1]
         cm_path = str(results_dir / f"cm_{dataset_name_clean}_{name}.png")
         plot_confusion_matrix(
-            all_true, all_pred, dataset.class_names, dataset_name=name, save_path=cm_path
+            all_true,
+            all_pred,
+            dataset.class_names,
+            dataset_name=name,
+            save_path=cm_path,
         )
 
         result = {
@@ -345,7 +370,7 @@ def main() -> None:
         )
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dataset_name_clean = args.dataset_dir.strip('/').split('/')[-1]
+    dataset_name_clean = args.dataset_dir.strip("/").split("/")[-1]
     out_path = results_dir / f"grid_search_{dataset_name_clean}_{ts}.json"
     with open(out_path, "w") as f:
         json.dump({"best": ranked[:5], "all": all_results}, f, indent=2)
