@@ -1,48 +1,65 @@
 # AI Working Guide
 
-## Repository
+## Repository context
 
-- This repository contains PhD papers and their supporting research code for
-  video processing and unusual human-activity classification.
-- Each paper lives under `papers/NNN-short-title/` with a concise `README.md`, a
-  `manuscript/` directory, and an optional `implementation/` directory.
-- Keep LaTeX readable and consistently formatted. Keep research code tested,
-  reproducible, and scoped to its paper.
-- Use the commands documented in the relevant paper README to build manuscripts
-  and verify implementations.
+- This repository contains numbered PhD papers and the research code supporting
+  their claims. Read the root README and the relevant paper and implementation
+  READMEs before changing anything.
+- Paper 001 studies lightweight ConvLSTM-based abnormal human-activity
+  recognition from surveillance video. More than 30 earlier runs mainly varied
+  model width and dense-layer size. They are useful for shortlisting, but are
+  exploratory until their configurations, splits, seeds, and training protocol
+  are shown to be comparable.
+- The current candidate is the `64-32-16-64` custom ConvLSTM. Call it the
+  **selected lightweight ConvLSTM candidate**, not an optimal model, until the
+  controlled evidence supports a stronger claim.
+- The immediate priority is a focused ablation study explaining which
+  architecture, input, augmentation, and regularisation choices affect the
+  candidate. Do not expand this into an unrestricted hyperparameter search.
 
-## Workflow
+## Research rules
 
-1. Read the root README, the relevant paper README and files, and the guidance
-   in `agents/`, then check `git status` before setting up the task.
-2. If there are pre-existing uncommitted changes, stop and ask the user how to
-   handle them. Never discard or overwrite them silently.
-3. Discuss substantial work with the user and ask short, focused questions until
-   the aim, scope, inputs, decisions, exclusions, acceptance criteria, and
-   verification are explicit. Do not silently assume missing requirements.
-4. Do not create a work directory or `prompt.md` while any required question is
-   unanswered.
-5. Once all questions are answered, create the next
-   `agents/work/NNN-short-title/` directory and use
-   `agents/templates/prompt.md` to record the answers in a `Ready` prompt.
-6. Return the completed prompt and its execution prompt to the user.
-7. Do not begin substantial edits until the user pastes the execution prompt.
-   After that approval, set the prompt status to `Approved`, then `In progress`.
-8. Make only the approved changes and verify every acceptance criterion.
-9. Set the prompt status to `Done` and create `completion.md` from
-   `agents/templates/completion.md`.
+- Never invent or silently alter results, citations, datasets, or claims.
+- Choose models and checkpoints using validation data only. Keep test data
+  locked until a comparison or final configuration has been selected.
+- Use the same documented, stratified, group-aware split for comparable runs.
+  Prevent related clips or camera views from crossing splits.
+- Seed Python, NumPy, PyTorch, CUDA, data loading, and augmentation where
+  applicable. Record the seed and determinism settings.
+- Change one ablation factor at a time against a named reference configuration.
+  Keep the data split and training budget fixed so the comparison is interpretable.
+- Report variation across the planned confirmation seeds; do not present a
+  single favourable run as conclusive.
+- Every reported run must retain its full configuration, split reference, code
+  revision, parameter count, validation history, selected checkpoint, and final
+  metrics. Mark older runs as non-comparable when required fields are missing.
+- Use AAD for architecture screening and most ablations, then evaluate the
+  selected configuration on VDD. If the manuscript states a different protocol,
+  flag the conflict instead of silently changing the paper or code.
+- Do not rewrite reported manuscript results until versioned experiment outputs
+  exist. Preserve the author's academic voice and distinguish observation from
+  interpretation.
 
-Small typo fixes or explanations do not require a ticket unless the user asks for one.
+## Code rules
 
-## Rules
+- Extend the existing runner and model code; do not create one script per
+  experiment or replace working experiments unnecessarily.
+- Prefer one validated configuration object/file with explicit CLI overrides.
+- Keep architecture variants focused, named, and reproducible. Support width
+  and depth only where the implementation and research question justify them.
+- Keep runs practical for Colab Pro/Pro+. Use short smoke tests before expensive
+  runs and never commit datasets, environments, checkpoints, or generated runs.
+- Preserve unrelated user changes. Do not delete or overwrite user work.
 
-- Do not invent research results, citations, datasets, or claims.
-- Preserve the author's meaning and academic voice.
-- Ask before changing the paper structure, research claims, or bibliography.
-- Ask rather than guess when a missing decision could affect the work.
-- Keep generated LaTeX files out of source changes unless explicitly requested.
-- Never delete user content without explicit approval.
-- Keep the root and relevant paper READMEs concise and current whenever
-  structure, build commands, implementation status, dependencies, or the next
-  ticket changes. Do not duplicate details owned by a lower-level README.
-- Follow `agents/rules.md` and `agents/config.md`.
+## Task workflow
+
+1. Check `git status`, inspect the relevant files, and identify unanswered
+   decisions. Stop before editing if unrelated uncommitted work is present.
+2. For substantial work, capture the agreed scope in the next
+   `agents/work/NNN-short-title/prompt.md`; create it only after required
+   questions are answered.
+3. Execute only after the prompt is approved. Keep its status current, verify
+   every acceptance criterion, and create `completion.md` from the template.
+4. Keep the root and relevant paper READMEs concise and current when status,
+   commands, dependencies, evidence, or the next task changes.
+5. Follow `agents/rules.md` and `agents/config.md` for the shared mechanics.

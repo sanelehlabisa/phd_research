@@ -1,31 +1,35 @@
 # PhD Research
 
-One workspace for PhD manuscripts and their supporting implementations. Papers
-use numbered, stable directories under `papers/`.
+One workspace for PhD manuscripts and the code that produces their evidence.
+Each paper has a numbered directory under `papers/` with a concise guide,
+manuscript sources, and—when needed—its implementation.
+
+## Papers
+
+| Paper | Current focus |
+|---|---|
+| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
+| [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
+
+The next repository task is
+[`009-define-ablation-config`](agents/work/009-define-ablation-config/prompt.md).
+It defines the common configuration needed before the experiment runner is made
+reproducible and new Colab runs begin.
 
 ## Structure
 
-Each paper contains a concise `README.md`, a `manuscript/` directory, and an
-optional `implementation/` directory. The paper README records its status,
-build entry point, dependencies, and next ticket.
+```text
+papers/NNN-short-title/
+├── README.md
+├── manuscript/
+└── implementation/    # optional
+```
 
-| Paper | Status |
-|---|---|
-| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Implementation imported; local experiment work pending transfer |
-| [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
-
-## Build
-
-Run `latexmk` from the relevant manuscript directory:
+Build a manuscript from its `manuscript/` directory with:
 
 ```bash
-cd papers/001-journal-abnormal-activity-recognition/manuscript
 latexmk -pdf main.tex
 ```
 
-```bash
-cd papers/002-review-abnormal-activity-recognition/manuscript
-latexmk -pdf main.tex
-```
-
-Generated PDFs and LaTeX build files remain untracked.
+Datasets, environments, checkpoints, experiment outputs, PDFs, and LaTeX build
+files remain local and untracked unless a task explicitly says otherwise.
