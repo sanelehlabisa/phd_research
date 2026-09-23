@@ -35,5 +35,4 @@ papers/*/implementation/datasets/
 papers/*/implementation/checkpoints/
 papers/*/implementation/outputs/
 papers/*/implementation/runs/
-papers/*/implementation/models/**/*.pt
-papers/*/implementation/models/**/*.pth
+papers/*/implementation/models/

@@ -116,8 +116,10 @@ Generated datasets, environments, checkpoints, and experiment runs remain
 untracked. New command artifacts live under
 `runs/{model,train,evaluate,experiments}/<datetime>_<dataset>_<label>/`; each
 leaf owns its `run.json` and all related evidence. Legacy output directories
-remain untouched. Do not change manuscript results until versioned evidence
-exists.
+were removed from Git; retained pre-014 experiment and prediction files are
+archived locally under the matching `runs/` purpose. The ignored `models/`
+directory remains available to active legacy jobs. Do not change manuscript
+results until versioned evidence exists.
 
 ## Setup and commands
 
