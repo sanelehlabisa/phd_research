@@ -1,6 +1,7 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Preparing reproducible data splits before controlled experiments
+- Status: Fixing selection metrics and test-set isolation before controlled
+  experiments
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -40,10 +41,10 @@ reference architecture for ablation.
   clip-consistent online augmentation and documented runnable AAD commands.
 - [x] `014-standardize-run-artifacts` — separated model, training, evaluation,
   and comparison evidence into local timestamped run directories.
-- [ ] `015-make-splits-reproducible` — **Next:** seed the full pipeline and
-  create fixed, stratified 70:15:15 clip manifests.
-- [ ] `016-fix-selection-and-metrics` — correct metrics, restore the best
-  validation checkpoint, and keep test data out of model selection.
+- [x] `015-make-splits-reproducible` — seeded the full pipeline and added a
+  fixed, stratified 70:15:15 clip manifest.
+- [ ] `016-fix-selection-and-metrics` — **Next:** correct metrics, restore the
+  best validation checkpoint, and keep test data out of model selection.
 - [ ] `017-connect-ablation-config` — revise and resume ticket 009 so one config
   controls the stable model, input, and training schema.
 - [ ] `018-shortlist-architecture-results` — audit historical runs and predeclare

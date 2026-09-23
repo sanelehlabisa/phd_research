@@ -11,6 +11,10 @@ python -m src.evaluate \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
     --runs_dir "runs" \
+    --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+    --seed 42 \
+    --train_ratio 0.7 \
+    --val_ratio 0.15 \
     --batch_size 32 \
     --sequence_length 16 \
     --height 32 \
@@ -28,9 +32,14 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torchmetrics
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import DataLoader
 
-from .dataset import AHARDataset
+from .dataset import (
+    AHARDataset,
+    DEFAULT_SPLIT_SEED,
+    load_split_subsets,
+    resolve_split_manifest_path,
+)
 from .model import (
     CustomConvLSTM,
     custom_model_from_checkpoint,
@@ -39,8 +48,11 @@ from .model import (
 from .utils import (
     RunContext,
     collect_predictions,
+    data_loader_generator,
     plot_confusion_matrix,
     save_prediction_clips,
+    seed_data_loader_worker,
+    seed_everything,
     write_json,
 )
 
@@ -48,6 +60,8 @@ parser = argparse.ArgumentParser(description="Evaluate ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
 parser.add_argument("--checkpoint_path", type=str, default=None)
 parser.add_argument("--runs_dir", type=str, default="runs")
+parser.add_argument("--split_manifest", type=str, default=None)
+parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--sequence_length", type=int, default=32)
 parser.add_argument("--width", type=int, default=128)
@@ -62,7 +76,7 @@ parser.add_argument(
 )
 parser.add_argument("--hidden-classifier-width", type=int, default=None)
 parser.add_argument("--train_ratio", type=float, default=0.7)
-parser.add_argument("--val_ratio", type=float, default=0.1)
+parser.add_argument("--val_ratio", type=float, default=0.15)
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--pin_memory", action="store_true")
 parser.add_argument("--num_samples", type=int, default=8)
@@ -108,10 +122,15 @@ def evaluate(
 
 def main() -> None:
     args = parser.parse_args()
+    deterministic_settings = seed_everything(args.seed)
+    deterministic_settings["data_loader_seeds"] = {"test": args.seed + 2}
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"🖥  Using device: {device}")
 
     dataset_name = Path(args.dataset_dir).name
+    manifest_path = resolve_split_manifest_path(
+        args.dataset_dir, args.split_manifest, DEFAULT_SPLIT_SEED
+    )
     run = RunContext(
         args.runs_dir,
         purpose="evaluate",
@@ -131,7 +150,10 @@ def main() -> None:
                 "validation": args.val_ratio,
                 "test": 1.0 - args.train_ratio - args.val_ratio,
             },
-            "seed": 42,
+            "seed": args.seed,
+            "split_seed": DEFAULT_SPLIT_SEED,
+            "split_manifest": str(manifest_path.resolve()),
+            "deterministic_settings": deterministic_settings,
             "device": str(device),
             "input_checkpoint": args.checkpoint_path,
         },
@@ -145,15 +167,15 @@ def main() -> None:
     num_classes = dataset.num_classes
     print(f"📦 {len(dataset)} samples | {num_classes} classes: {dataset.class_names}")
 
-    n_total = len(dataset)
-    n_train = int(args.train_ratio * n_total)
-    n_val = int(args.val_ratio * n_total)
-    n_test = n_total - n_train - n_val
-    _, _, test_set = random_split(
+    train_set, val_set, test_set, split_metadata = load_split_subsets(
         dataset,
-        [n_train, n_val, n_test],
-        generator=torch.Generator().manual_seed(42),
+        manifest_path,
+        train_ratio=args.train_ratio,
+        val_ratio=args.val_ratio,
+        seed=DEFAULT_SPLIT_SEED,
     )
+    n_total = len(dataset)
+    n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
     print(f"📊 Test split: {n_test} samples")
 
     test_loader = DataLoader(
@@ -162,6 +184,8 @@ def main() -> None:
         shuffle=False,
         num_workers=args.num_workers,
         pin_memory=args.pin_memory,
+        worker_init_fn=seed_data_loader_worker,
+        generator=data_loader_generator(args.seed + 2),
     )
 
     layers = parse_layer_arguments(args.convlstm_layer)
@@ -214,6 +238,8 @@ def main() -> None:
         "class_names": dataset.class_names,
         "dataset_size": n_total,
         "split_sizes": {"train": n_train, "validation": n_val, "test": n_test},
+        "split": split_metadata,
+        "deterministic_settings": deterministic_settings,
         "checkpoint": {
             "path": (
                 str(Path(args.checkpoint_path).resolve())
@@ -233,6 +259,8 @@ def main() -> None:
             "class_names": dataset.class_names,
             "model_configuration": model.configuration(),
             "split_sizes": configuration["split_sizes"],
+            "split": split_metadata,
+            "deterministic_settings": deterministic_settings,
         }
     )
 

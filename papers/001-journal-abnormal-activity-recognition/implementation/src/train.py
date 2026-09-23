@@ -8,6 +8,8 @@ Author: Sanele Hlabisa
 python -m src.train \
     --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
     --runs_dir "runs" \
+    --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+    --seed 42 \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
     --resume \
@@ -16,6 +18,8 @@ python -m src.train \
     --weight_decay 0.0001 \
     --learning_rate 0.001 \
     --epochs 64 \
+    --train_ratio 0.7 \
+    --val_ratio 0.15 \
     --sequence_length 16 \
     --height 32 \
     --width 32 \
@@ -36,7 +40,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchmetrics
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
 from tqdm import tqdm
 
@@ -44,7 +48,10 @@ from .dataset import (
     AHARDataset,
     AugmentSubset,
     CachedAHARDataset,
+    DEFAULT_SPLIT_SEED,
     VideoAugmentation,
+    load_split_subsets,
+    resolve_split_manifest_path,
 )
 from .model import (
     CustomConvLSTM,
@@ -55,15 +62,20 @@ from .model import (
 from .utils import (
     RunContext,
     collect_predictions,
+    data_loader_generator,
     plot_confusion_matrix,
     plot_training_curves,
     save_prediction_clips,
+    seed_data_loader_worker,
+    seed_everything,
     write_json,
 )
 
 parser = argparse.ArgumentParser(description="Train ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
 parser.add_argument("--runs_dir", type=str, default="runs")
+parser.add_argument("--split_manifest", type=str, default=None)
+parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--checkpoint_path", type=str, default=None)
 parser.add_argument(
     "--resume",
@@ -102,7 +114,7 @@ parser.add_argument(
     help="Apply one fresh, clip-consistent online augmentation per training sample",
 )
 parser.add_argument("--train_ratio", type=float, default=0.7)
-parser.add_argument("--val_ratio", type=float, default=0.1)
+parser.add_argument("--val_ratio", type=float, default=0.15)
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--pin_memory", action="store_true")
 
@@ -221,9 +233,18 @@ def _save_custom_checkpoint(
 
 def main() -> None:
     args = parser.parse_args()
+    deterministic_settings = seed_everything(args.seed)
+    deterministic_settings["data_loader_seeds"] = {
+        "train": args.seed,
+        "validation": args.seed + 1,
+        "test": args.seed + 2,
+    }
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.backends.cudnn.benchmark = True
     print(f"🖥  Using device: {device}")
+
+    manifest_path = resolve_split_manifest_path(
+        args.dataset_dir, args.split_manifest, DEFAULT_SPLIT_SEED
+    )
 
     run = RunContext(
         args.runs_dir,
@@ -244,7 +265,10 @@ def main() -> None:
                 "validation": args.val_ratio,
                 "test": 1.0 - args.train_ratio - args.val_ratio,
             },
-            "seed": 42,
+            "seed": args.seed,
+            "split_seed": DEFAULT_SPLIT_SEED,
+            "split_manifest": str(manifest_path.resolve()),
+            "deterministic_settings": deterministic_settings,
             "device": str(device),
             "input_checkpoint": args.checkpoint_path,
         },
@@ -269,15 +293,15 @@ def main() -> None:
     num_classes = dataset.num_classes
     print(f"{len(dataset)} samples | {num_classes} classes")
 
-    n_total = len(dataset)
-    n_train = int(args.train_ratio * n_total)
-    n_val = int(args.val_ratio * n_total)
-    n_test = n_total - n_train - n_val
-    train_set, val_set, test_set = random_split(
+    train_set, val_set, test_set, split_metadata = load_split_subsets(
         dataset,
-        [n_train, n_val, n_test],
-        generator=torch.Generator().manual_seed(42),
+        manifest_path,
+        train_ratio=args.train_ratio,
+        val_ratio=args.val_ratio,
+        seed=DEFAULT_SPLIT_SEED,
     )
+    n_total = len(dataset)
+    n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
     print(f"Train: {n_train} | Val: {n_val} | Test: {n_test}")
 
     train_data = (
@@ -295,10 +319,26 @@ def main() -> None:
         pin_memory=args.pin_memory,
         persistent_workers=args.num_workers > 0,
         prefetch_factor=2 if args.num_workers > 0 else None,
+        worker_init_fn=seed_data_loader_worker,
     )
-    train_loader = DataLoader(train_data, shuffle=True, **loader_kw)
-    val_loader = DataLoader(val_set, shuffle=False, **loader_kw)
-    test_loader = DataLoader(test_set, shuffle=False, **loader_kw)
+    train_loader = DataLoader(
+        train_data,
+        shuffle=True,
+        generator=data_loader_generator(args.seed),
+        **loader_kw,
+    )
+    val_loader = DataLoader(
+        val_set,
+        shuffle=False,
+        generator=data_loader_generator(args.seed + 1),
+        **loader_kw,
+    )
+    test_loader = DataLoader(
+        test_set,
+        shuffle=False,
+        generator=data_loader_generator(args.seed + 2),
+        **loader_kw,
+    )
 
     layers = parse_layer_arguments(args.convlstm_layer)
     model = CustomConvLSTM(
@@ -370,6 +410,8 @@ def main() -> None:
             "validation": n_val,
             "test": n_test,
         },
+        "split": split_metadata,
+        "deterministic_settings": deterministic_settings,
         "training": {
             "epochs": args.epochs,
             "batch_size": args.batch_size,
@@ -386,6 +428,8 @@ def main() -> None:
             "model_configuration": model.configuration(),
             "trainable_parameters": count_trainable_parameters(model),
             "split_sizes": resolved_configuration["split_sizes"],
+            "split": split_metadata,
+            "deterministic_settings": deterministic_settings,
         }
     )
 

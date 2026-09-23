@@ -6,6 +6,7 @@ python -m src.model \
     --sequence-length 64 \
     --height 8 \
     --width 8 \
+    --seed 42 \
     --num-samples 2 \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3
@@ -25,6 +26,7 @@ from .utils import (
     RunContext,
     plot_confusion_matrix,
     safe_filename,
+    seed_everything,
     write_json,
     write_video_torchvision,
 )
@@ -681,8 +683,7 @@ def main() -> None:
         raise ValueError("the ticket-011 smoke command requires T=64")
     if args.num_samples <= 0:
         raise ValueError("num_samples must be positive")
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    deterministic_settings = seed_everything(args.seed)
     device = torch.device("cpu")
     dataset_name = Path(args.dataset_dir).resolve().name
     run = RunContext(
@@ -701,6 +702,7 @@ def main() -> None:
             },
             "augmentation": False,
             "seed": args.seed,
+            "deterministic_settings": deterministic_settings,
             "device": str(device),
         },
     )

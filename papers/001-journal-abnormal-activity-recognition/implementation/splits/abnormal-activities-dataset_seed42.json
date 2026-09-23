@@ -1,0 +1,6515 @@
+{
+  "schema_version": 1,
+  "dataset_name": "abnormal-activities-dataset",
+  "split_level": "clip",
+  "seed": 42,
+  "requested_ratios": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "class_names": [
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism"
+  ],
+  "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+  "counts": {
+    "train": 748,
+    "validation": 160,
+    "test": 161,
+    "total": 1069
+  },
+  "class_counts": {
+    "Begging": {
+      "total": 133,
+      "train": 93,
+      "validation": 20,
+      "test": 20
+    },
+    "Drunkenness": {
+      "total": 90,
+      "train": 63,
+      "validation": 13,
+      "test": 14
+    },
+    "Fight": {
+      "total": 95,
+      "train": 67,
+      "validation": 14,
+      "test": 14
+    },
+    "Harassment": {
+      "total": 89,
+      "train": 62,
+      "validation": 14,
+      "test": 13
+    },
+    "Hijack": {
+      "total": 77,
+      "train": 54,
+      "validation": 12,
+      "test": 11
+    },
+    "Knife Hazard": {
+      "total": 100,
+      "train": 70,
+      "validation": 15,
+      "test": 15
+    },
+    "Normal Videos": {
+      "total": 115,
+      "train": 80,
+      "validation": 17,
+      "test": 18
+    },
+    "Pollution": {
+      "total": 114,
+      "train": 80,
+      "validation": 17,
+      "test": 17
+    },
+    "Property Damage": {
+      "total": 96,
+      "train": 67,
+      "validation": 14,
+      "test": 15
+    },
+    "Robbery": {
+      "total": 86,
+      "train": 60,
+      "validation": 13,
+      "test": 13
+    },
+    "Terrorism": {
+      "total": 74,
+      "train": 52,
+      "validation": 11,
+      "test": 11
+    }
+  },
+  "samples": [
+    {
+      "path": "Begging/GOPR2510.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GOPR2510_1.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_1.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_10.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_100.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_101.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_102.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_103.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_104.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_105.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_106.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_107.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_108.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_109.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_11.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_110.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_111.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_112.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_113.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_114.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_115.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_116.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_117.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_118.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_119.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_12.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_120.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_121.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_122.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_123.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_124.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_125.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_126.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_127.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_128.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_129.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_13.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_130.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_14.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_15.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_16.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_17.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_18.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_19.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_2.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_20.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_21.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_22.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_23.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_24.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_25.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_26.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_27.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_28.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_29.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_3.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_30.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_31.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_32.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_33.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_34.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_35.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_36.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_37.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_38.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_39.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_4.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_40.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_41.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_42.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_43.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_44.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_45.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_46.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_47.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_48.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_49.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_5.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_50.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_51.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_52.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_53.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_54.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_55.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_56.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_57.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_58.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_59.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_6.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_60.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_61.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_62.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_63.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_64.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_65.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_66.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_67.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_68.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_69.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_7.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_70.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_71.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_72.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_73.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_74.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_75.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_76.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_77.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_78.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_79.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_8.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_80.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_81.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_82.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_83.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_84.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "test"
+    },
+    {
+      "path": "Begging/GP012506_85.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_86.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_87.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_88.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_89.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_9.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_90.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_91.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_92.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_93.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_94.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_95.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_96.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_97.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "validation"
+    },
+    {
+      "path": "Begging/GP012506_98.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Begging/GP012506_99.mp4",
+      "class_index": 0,
+      "class_name": "Begging",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_1.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_10.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_11.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_12.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_13.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_14.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_15.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_16.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_17.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_18.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_19.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_2.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_20.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_21.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_22.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_23.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_24.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_25.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_26.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_27.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_28.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_29.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_3.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_30.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_31.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_32.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_33.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_34.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_35.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_36.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_37.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_38.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_39.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_4.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_40.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_41.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_42.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_43.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_44.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_45.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_46.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_47.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_48.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_49.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_5.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_50.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_51.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_52.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_53.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_54.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_55.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_56.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_57.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_58.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_59.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_6.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_60.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_61.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_62.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_63.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_64.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_65.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_66.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_67.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_68.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_69.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_7.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_70.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_71.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_72.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_73.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_74.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_75.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_76.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_77.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_78.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "test"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_79.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_8.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_80.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "validation"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_81.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_82.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_83.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_84.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_85.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_86.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_87.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_88.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_89.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Drunkenness/GOPR2517_9.mp4",
+      "class_index": 1,
+      "class_name": "Drunkenness",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_1.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_10.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2505_11.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_12.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_13.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_14.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_15.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_16.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_17.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_18.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2505_19.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_2.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_20.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_21.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_22.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2505_23.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2505_24.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_25.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2505_26.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2505_27.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_28.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_29.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_3.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2505_30.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_31.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_32.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_33.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_34.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_35.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_36.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_37.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2505_38.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_39.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_4.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_40.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2505_41.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_5.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2505_6.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_7.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_8.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2505_9.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_1.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_10.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_11.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_12.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_13.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_14.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_15.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_16.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_17.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_18.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_19.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_2.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_20.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_21.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_22.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_23.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_24.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_25.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_26.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_27.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_28.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_29.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_3.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_30.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_31.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_32.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_33.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_34.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_35.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_36.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_37.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_38.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_39.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_4.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_40.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_41.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_42.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_43.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_44.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_45.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_46.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_47.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_48.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_49.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_5.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_50.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_6.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2509_7.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2509_8.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "validation"
+    },
+    {
+      "path": "Fight/GOPR2509_9.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "test"
+    },
+    {
+      "path": "Fight/GOPR2519.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Fight/GOPR2519_1.mp4",
+      "class_index": 2,
+      "class_name": "Fight",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2293.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_1.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_10.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_11.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_12.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_13.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_14.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_15.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_16.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_17.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_18.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_19.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_2.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_20.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_21.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_22.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_23.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_24.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_25.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_26.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_27.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_28.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_29.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_3.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_30.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_31.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_32.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_33.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_34.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_35.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_36.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_37.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_38.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_39.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_4.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_40.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_41.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_42.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_43.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_44.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_45.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_46.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_47.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_48.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_49.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_5.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_50.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_51.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_52.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_53.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_54.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_55.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_56.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_57.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_58.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_59.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_6.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_60.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_61.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_62.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_63.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_64.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_65.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_66.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_67.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_68.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_69.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_7.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_70.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_71.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_72.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_73.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_74.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_75.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_76.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2480_77.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_78.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_79.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_8.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2480_80.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_81.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_82.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_83.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2480_9.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "validation"
+    },
+    {
+      "path": "Harassment/GOPR2482.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Harassment/GOPR2483.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2485.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "train"
+    },
+    {
+      "path": "Harassment/GOPR2487.mp4",
+      "class_index": 3,
+      "class_name": "Harassment",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GOPR2529.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_1.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_10.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_11.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GOPR2529_12.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GOPR2529_13.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GOPR2529_14.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_15.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GOPR2529_16.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_17.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_18.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_19.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_2.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_20.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_21.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GOPR2529_22.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_23.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_24.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_25.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_26.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_3.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_4.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GOPR2529_5.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_6.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_7.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_8.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GOPR2529_9.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_1.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_10.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_11.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_12.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_13.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_14.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_15.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_16.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_17.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_18.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_19.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_2.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_20.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_21.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_22.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_23.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_24.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_25.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_26.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_27.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_28.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_29.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_3.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_30.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_31.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_32.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_33.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_34.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_35.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_36.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_37.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_38.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_39.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_4.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_40.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_41.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_42.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_43.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_44.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_45.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_46.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_47.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "validation"
+    },
+    {
+      "path": "Hijack/GP012527_48.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_49.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_5.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_6.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_7.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "test"
+    },
+    {
+      "path": "Hijack/GP012527_8.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Hijack/GP012527_9.mp4",
+      "class_index": 4,
+      "class_name": "Hijack",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_1.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_10.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_11.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_12.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_13.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_14.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_15.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_16.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_17.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_18.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_19.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_2.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_20.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_21.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_22.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_23.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_24.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_25.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_26.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_27.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_28.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_29.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_3.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_30.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_31.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_32.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_33.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_34.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_35.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_36.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_37.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_38.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_39.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_4.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_40.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_41.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_42.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_43.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_44.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_45.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_46.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_47.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_48.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_49.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_5.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_50.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_51.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_52.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_53.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_54.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_55.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_56.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_57.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_58.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_59.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_6.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_60.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_61.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_62.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_63.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_64.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_65.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_66.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_67.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_68.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_69.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_7.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_70.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_71.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_72.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_73.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_74.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_75.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_76.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_77.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_78.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_79.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_8.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_80.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_81.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_82.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_83.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_84.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_85.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_86.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_87.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_88.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_89.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_9.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_90.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_91.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_92.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_93.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_94.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "validation"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_95.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_96.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_97.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_98.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "train"
+    },
+    {
+      "path": "Knife Hazard/GOPR2513_99.mp4",
+      "class_index": 5,
+      "class_name": "Knife Hazard",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_1.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_10.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_11.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_12.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_13.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_14.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_15.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_16.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_17.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_18.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_19.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_2.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_20.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_21.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_22.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_23.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_24.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_25.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_26.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_27.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_3.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_4.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_5.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_6.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_7.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_8.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2233_25_9.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_1.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_10.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_11.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_12.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_13.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_14.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_15.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_16.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_17.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_18.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_19.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_2.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_20.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_21.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_3.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_4.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_5.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_6.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_7.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_8.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2234_9.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2328.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_1.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_10.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_11.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_12.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_13.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_14.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_15.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_16.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_17.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_18.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_19.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_2.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_20.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_21.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_22.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_3.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_4.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_5.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_6.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_7.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_8.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2328_9.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_1.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_10.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_11.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_12.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_13.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_14.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_15.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_16.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_17.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_18.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_19.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_2.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_20.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_3.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_4.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_5.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_6.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_7.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_8.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2389_9.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_1.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_10.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_11.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_12.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_13.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_14.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_15.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_16.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_17.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_18.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_19.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_2.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_20.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_3.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "test"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_4.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_5.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_6.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_7.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "validation"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_8.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Normal Videos/GOPR2449_9.mp4",
+      "class_index": 6,
+      "class_name": "Normal Videos",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2202.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2205.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2452.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_1.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_10.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_100.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_101.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_102.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_103.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_104.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_105.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_106.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_107.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_108.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_109.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_11.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_110.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_12.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_13.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_14.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_15.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_16.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_17.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_18.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_19.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_2.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_20.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_21.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_22.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_23.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_24.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_25.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_26.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_27.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_28.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_29.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_3.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_30.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_31.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_32.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_33.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_34.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_35.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_36.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_37.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_38.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_39.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_4.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_40.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_41.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_42.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_43.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_44.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_45.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_46.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_47.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_48.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_49.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_5.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_50.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_51.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_52.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_53.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_54.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_55.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_56.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_57.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_58.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_59.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_6.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_60.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_61.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_62.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_63.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_64.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_65.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_66.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_67.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_68.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_69.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_7.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_70.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_71.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_72.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_73.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_74.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_75.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_76.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_77.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_78.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_79.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "validation"
+    },
+    {
+      "path": "Pollution/GOPR2466_8.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_80.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_81.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_82.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_83.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_84.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_85.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_86.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_87.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_88.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_89.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_9.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_90.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_91.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_92.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_93.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_94.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_95.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_96.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_97.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "test"
+    },
+    {
+      "path": "Pollution/GOPR2466_98.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Pollution/GOPR2466_99.mp4",
+      "class_index": 7,
+      "class_name": "Pollution",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2525.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2525_1.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2525_2.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2525_3.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_1.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_10.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_11.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_12.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_13.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_14.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_15.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_16.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_17.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_18.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_19.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_2.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_20.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_21.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_22.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_23.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_24.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_25.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_26.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_27.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_28.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_29.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_3.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_30.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_31.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_32.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_33.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_34.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_35.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_36.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_37.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_38.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_39.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_4.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_40.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_41.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_42.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_43.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_44.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_45.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_46.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_47.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_48.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_49.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_5.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_50.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_51.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_52.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_53.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_54.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_55.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_56.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_57.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_58.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_59.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_6.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_60.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_61.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_62.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_63.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_64.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_65.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_66.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_67.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_68.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_69.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_7.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_70.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_71.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_72.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_73.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_74.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_75.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_76.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_77.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_78.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_79.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_8.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_80.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_81.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_82.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_83.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_84.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "test"
+    },
+    {
+      "path": "Property Damage/GOPR2529_85.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_86.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_87.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_88.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_89.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_9.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Property Damage/GOPR2529_90.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "validation"
+    },
+    {
+      "path": "Property Damage/GOPR2529_91.mp4",
+      "class_index": 8,
+      "class_name": "Property Damage",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_1.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_10.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_11.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_12.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_13.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_14.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_15.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_16.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_17.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_18.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_19.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_2.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_20.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_21.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_22.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_23.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_24.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_25.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_26.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_27.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_28.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_29.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_3.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_30.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_31.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_32.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_33.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_34.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_35.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_36.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_37.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_38.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_39.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_4.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_40.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_41.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_42.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_43.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_44.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_45.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_46.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_47.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_48.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_49.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_5.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_50.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_51.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_52.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_53.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_54.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_55.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_56.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_57.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_58.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_59.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_6.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_60.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_61.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_62.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_63.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_64.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_65.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_66.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_67.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_68.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_69.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_7.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_70.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_71.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_72.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_73.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_74.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_75.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_76.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_77.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "test"
+    },
+    {
+      "path": "Robbery/GOPR2501_78.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Robbery/GOPR2501_79.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_8.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_80.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_81.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_82.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_83.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_84.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_85.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "train"
+    },
+    {
+      "path": "Robbery/GOPR2501_9.mp4",
+      "class_index": 9,
+      "class_name": "Robbery",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_1.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_10.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_11.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_12.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_13.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_14.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_15.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_16.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_17.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_18.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_19.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_2.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_20.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_21.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_22.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_23.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_24.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_25.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_26.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_27.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_28.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_29.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_3.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_30.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_31.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_32.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_33.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_34.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_35.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_36.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_37.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_38.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_39.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_4.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_40.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_41.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_42.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_43.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_44.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_45.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_46.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_47.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_48.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_49.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_5.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_50.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_51.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_52.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_53.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_54.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_55.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_56.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_57.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_58.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_59.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_6.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_60.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_61.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_62.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_63.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_64.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_65.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_66.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_67.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_68.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_69.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_7.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_70.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "test"
+    },
+    {
+      "path": "Terrorism/GP012523_71.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_72.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_73.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    },
+    {
+      "path": "Terrorism/GP012523_8.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "validation"
+    },
+    {
+      "path": "Terrorism/GP012523_9.mp4",
+      "class_index": 10,
+      "class_name": "Terrorism",
+      "split": "train"
+    }
+  ]
+}

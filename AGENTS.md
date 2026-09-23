@@ -19,8 +19,9 @@
   unrestricted hyperparameter search. The comparison baselines are now audited,
   and augmentation is one optional, clip-consistent online view per training
   sample. Every model, training, evaluation, and experiment command now has its
-  own local run folder. The immediate priority is a fixed, stratified split
-  manifest and full pipeline seeding before controlled comparisons begin.
+  own local run folder. The split manifest and full-pipeline seeding are now
+  reproducible. The immediate priority is valid metrics, checkpoint selection,
+  and test-set isolation before controlled comparisons begin.
 
 ## Research rules
 

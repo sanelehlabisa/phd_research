@@ -9,6 +9,10 @@ Author: Sanele Hlabisa
 python -m src.experiments \
     --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
     --runs_dir "runs" \
+    --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+    --seed 42 \
+    --train_ratio 0.7 \
+    --val_ratio 0.15 \
     --epochs 24 \
     --batch_size 16 \
     --sequence_length 16 \
@@ -27,17 +31,34 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchmetrics
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 import torchvision.models.video as video_models
 
-from .dataset import AHARDataset, AugmentSubset, VideoAugmentation
+from .dataset import (
+    AHARDataset,
+    AugmentSubset,
+    DEFAULT_SPLIT_SEED,
+    VideoAugmentation,
+    load_split_subsets,
+    resolve_split_manifest_path,
+)
 from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
-from .utils import RunContext, plot_confusion_matrix, safe_filename, write_json
+from .utils import (
+    RunContext,
+    data_loader_generator,
+    plot_confusion_matrix,
+    safe_filename,
+    seed_data_loader_worker,
+    seed_everything,
+    write_json,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
 parser.add_argument("--runs_dir", type=str, default="runs")
+parser.add_argument("--split_manifest", type=str, default=None)
+parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--epochs", type=int, default=24)
 parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--sequence_length", type=int, default=16)
@@ -49,7 +70,7 @@ parser.add_argument(
     help="Apply one fresh, clip-consistent online augmentation per training sample",
 )
 parser.add_argument("--train_ratio", type=float, default=0.7)
-parser.add_argument("--val_ratio", type=float, default=0.1)
+parser.add_argument("--val_ratio", type=float, default=0.15)
 parser.add_argument("--num_workers", type=int, default=2)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--weight_decay", type=float, default=1e-3)
@@ -249,9 +270,18 @@ def main() -> None:
     if args.list_models:
         print_model_registry()
         return
+    deterministic_settings = seed_everything(args.seed)
+    deterministic_settings["data_loader_seeds"] = {
+        "train": args.seed,
+        "validation": args.seed + 1,
+        "test": args.seed + 2,
+    }
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.backends.cudnn.benchmark = True
     print(f"Device: {device}")
+
+    manifest_path = resolve_split_manifest_path(
+        args.dataset_dir, args.split_manifest, DEFAULT_SPLIT_SEED
+    )
 
     run = RunContext(
         args.runs_dir,
@@ -272,7 +302,10 @@ def main() -> None:
                 "validation": args.val_ratio,
                 "test": 1.0 - args.train_ratio - args.val_ratio,
             },
-            "seed": 42,
+            "seed": args.seed,
+            "split_seed": DEFAULT_SPLIT_SEED,
+            "split_manifest": str(manifest_path.resolve()),
+            "deterministic_settings": deterministic_settings,
             "device": str(device),
         },
     )
@@ -288,15 +321,15 @@ def main() -> None:
         f"Loaded {len(dataset)} samples | {num_classes} classes: {dataset.class_names}"
     )
 
-    n_total = len(dataset)
-    n_train = int(args.train_ratio * n_total)
-    n_val = int(args.val_ratio * n_total)
-    n_test = n_total - n_train - n_val
-    train_set, val_set, test_set = random_split(
+    train_set, val_set, test_set, split_metadata = load_split_subsets(
         dataset,
-        [n_train, n_val, n_test],
-        generator=torch.Generator().manual_seed(42),
+        manifest_path,
+        train_ratio=args.train_ratio,
+        val_ratio=args.val_ratio,
+        seed=DEFAULT_SPLIT_SEED,
     )
+    n_total = len(dataset)
+    n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
 
     train_data = (
         AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
@@ -308,11 +341,29 @@ def main() -> None:
     )
 
     loader_kw = dict(
-        batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        pin_memory=True,
+        worker_init_fn=seed_data_loader_worker,
     )
-    train_loader = DataLoader(train_data, shuffle=True, **loader_kw)
-    val_loader = DataLoader(val_set, shuffle=False, **loader_kw)
-    test_loader = DataLoader(test_set, shuffle=False, **loader_kw)
+    train_loader = DataLoader(
+        train_data,
+        shuffle=True,
+        generator=data_loader_generator(args.seed),
+        **loader_kw,
+    )
+    val_loader = DataLoader(
+        val_set,
+        shuffle=False,
+        generator=data_loader_generator(args.seed + 1),
+        **loader_kw,
+    )
+    test_loader = DataLoader(
+        test_set,
+        shuffle=False,
+        generator=data_loader_generator(args.seed + 2),
+        **loader_kw,
+    )
 
     # ---- Model configs ----
     input_shape = (3, args.height, args.width)
@@ -321,6 +372,8 @@ def main() -> None:
         "class_names": dataset.class_names,
         "dataset_size": n_total,
         "split_sizes": {"train": n_train, "validation": n_val, "test": n_test},
+        "split": split_metadata,
+        "deterministic_settings": deterministic_settings,
         "input_dimensions": {
             "sequence_length": args.sequence_length,
             "channels": 3,
@@ -343,6 +396,8 @@ def main() -> None:
             "class_names": dataset.class_names,
             "model_configuration": registry,
             "split_sizes": shared_configuration["split_sizes"],
+            "split": split_metadata,
+            "deterministic_settings": deterministic_settings,
         }
     )
     print(f"\nRunning {len(registry)} configurations...\n")

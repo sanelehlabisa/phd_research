@@ -68,13 +68,16 @@ Inspect the five approved entries without a dataset or model allocation:
 
 ## Experiment protocol
 
-- Fixed 70:15:15 stratified clip split with a saved manifest.
+- Fixed 70:15:15 stratified clip split using the committed
+  [AAD manifest](splits/abnormal-activities-dataset_seed42.json): 748 training,
+  160 validation, and 161 test clips.
 - AAD for architecture screening and most ablations; VDD for final
   generalisation evaluation.
 - `--augment` applies one fresh, clip-consistent online view per training
   sample without changing dataset length; validation and test remain clean.
 - Validation-only model and checkpoint selection; test data remains locked.
-- Seeds `42` and `2026` for reported confirmation runs.
+- Seeds `42` and `2026` for reported confirmation runs; both reuse the same
+  split created with split seed `42`.
 - Validation-loss early stopping with restoration of the selected checkpoint.
 - Accuracy, macro precision/recall/F1, confusion matrix, trainable parameters,
   runtime, and uncertainty across confirmation seeds.
@@ -96,10 +99,11 @@ Inspect the five approved entries without a dataset or model allocation:
 5. [x] **Run artifacts (`014`).** Model, training, evaluation, and comparison
    commands now create separate local runs with reusable JSON, checkpoints,
    plots, confusion matrices, and predictions.
-6. [ ] **Reproducible data (`015`, next).** Seed the full pipeline and reuse a
+6. [x] **Reproducible data (`015`).** Seeded the full pipeline and added a
    fixed, stratified 70:15:15 clip manifest.
-7. [ ] **Valid selection and metrics (`016`).** Isolate full-partition metrics,
-   restore the validation-selected checkpoint, and separate final test access.
+7. [ ] **Valid selection and metrics (`016`, next).** Isolate full-partition
+   metrics, restore the validation-selected checkpoint, and separate final test
+   access.
 8. [ ] **Configuration integration (`017`).** Revise the stashed ticket-009 work
    around the stable model layer specification and reconnect the runner.
 9. [ ] **Architecture shortlist (`018–019`).** Audit historical runs, predeclare
@@ -120,6 +124,10 @@ were removed from Git; retained pre-014 experiment and prediction files are
 archived locally under the matching `runs/` purpose. The ignored `models/`
 directory remains available to active legacy jobs. Do not change manuscript
 results until versioned evidence exists.
+
+The split manifest records relative clip paths, class labels, indices, and
+assignments. It is a clip-level protocol because the source dataset provides no
+reliable subject or source-video grouping metadata.
 
 ## Setup and commands
 
@@ -142,6 +150,7 @@ Preview clean and online-augmented pairs (writes MP4 files under `outputs/`):
   --width 64 \
   --num_samples 2 \
   --fps 8 \
+  --seed 42 \
   --augment
 ```
 
@@ -164,6 +173,7 @@ Smoke-test both random-weight ConvLSTM models (writes sample predictions):
   --sequence-length 64 \
   --height 8 \
   --width 8 \
+  --seed 42 \
   --num-samples 2 \
   --convlstm-layer 8 3 3 \
   --convlstm-layer 16 3 3
@@ -177,6 +187,10 @@ Train the same reference without augmentation (starts a full training run):
 .venv/bin/python -m src.train \
   --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
   --runs_dir "runs" \
+  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+  --seed 42 \
+  --train_ratio 0.7 \
+  --val_ratio 0.15 \
   --convlstm-layer 8 3 3 \
   --convlstm-layer 16 3 3 \
   --batch_size 32 \
@@ -198,6 +212,10 @@ Train with one online augmented view per sample (starts a full training run):
 .venv/bin/python -m src.train \
   --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
   --runs_dir "runs" \
+  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+  --seed 42 \
+  --train_ratio 0.7 \
+  --val_ratio 0.15 \
   --convlstm-layer 8 3 3 \
   --convlstm-layer 16 3 3 \
   --batch_size 32 \
@@ -226,6 +244,10 @@ Run the registered AAD comparisons (starts a full experiment):
 .venv/bin/python -m src.experiments \
   --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
   --runs_dir "runs" \
+  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+  --seed 42 \
+  --train_ratio 0.7 \
+  --val_ratio 0.15 \
   --epochs 24 \
   --batch_size 16 \
   --sequence_length 16 \
@@ -245,6 +267,10 @@ metrics, a confusion matrix, and prediction clips):
   --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
   --checkpoint_path "models/abnormal-activities-dataset_best_model.pth" \
   --runs_dir "runs" \
+  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
+  --seed 42 \
+  --train_ratio 0.7 \
+  --val_ratio 0.15 \
   --convlstm-layer 8 3 3 \
   --convlstm-layer 16 3 3 \
   --batch_size 32 \
@@ -260,5 +286,5 @@ Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
 copied or overwritten by evaluation.
 
 The current training and experiment scripts remain exploratory until tasks
-015–017 are complete. Random-weight smoke outputs are pipeline checks, not
+016–017 are complete. Random-weight smoke outputs are pipeline checks, not
 research evidence.

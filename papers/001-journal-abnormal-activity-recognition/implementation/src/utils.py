@@ -14,6 +14,7 @@ from time import perf_counter
 from typing import Optional, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix as sk_cm
 import torchvision
@@ -22,6 +23,69 @@ from torchvision.utils import save_image
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.io")
 
 TARGET_FPS: int = 16
+
+
+def seed_everything(seed: int) -> dict[str, object]:
+    """Seed supported random sources and request deterministic PyTorch behavior.
+
+    Parameters:
+        seed: Non-negative experiment seed.
+
+    Returns:
+        The deterministic settings applied to the current process.
+    """
+    if not isinstance(seed, int) or isinstance(seed, bool) or seed < 0:
+        raise ValueError("seed must be a non-negative integer")
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+    torch.use_deterministic_algorithms(True, warn_only=True)
+    return {
+        "seed": seed,
+        "python_random": True,
+        "numpy": True,
+        "pytorch_cpu": True,
+        "pytorch_cuda": torch.cuda.is_available(),
+        "cudnn_benchmark": False,
+        "cudnn_deterministic": True,
+        "deterministic_algorithms": True,
+        "deterministic_warn_only": True,
+    }
+
+
+def seed_data_loader_worker(worker_id: int) -> None:
+    """Seed Python and NumPy from PyTorch's deterministic worker seed.
+
+    Parameters:
+        worker_id: Worker identifier supplied by `DataLoader`.
+
+    Returns:
+        None.
+    """
+    del worker_id
+    worker_seed = torch.initial_seed() % (2**32)
+    random.seed(worker_seed)
+    np.random.seed(worker_seed)
+
+
+def data_loader_generator(seed: int) -> torch.Generator:
+    """Create a seeded generator for data-loader order and worker seeds.
+
+    Parameters:
+        seed: Non-negative experiment seed.
+
+    Returns:
+        A seeded PyTorch generator.
+    """
+    if not isinstance(seed, int) or isinstance(seed, bool) or seed < 0:
+        raise ValueError("seed must be a non-negative integer")
+    generator = torch.Generator()
+    generator.manual_seed(seed)
+    return generator
 
 
 def safe_filename(value: str) -> str:
