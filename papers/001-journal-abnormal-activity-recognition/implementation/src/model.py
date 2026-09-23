@@ -17,6 +17,10 @@ from sklearn.metrics import confusion_matrix
 from .dataset import AHARDataset
 from .utils import plot_confusion_matrix, write_video_torchvision
 
+PAPER_SOURCE_URL = "https://www.mdpi.com/1424-8220/22/8/2946"
+PAPER_TRAINABLE_PARAMETERS = 512_197_467
+PAPER_NON_TRAINABLE_STATE = 128
+
 
 def _normalise_kernel_size(
     kernel_size: int | tuple[int, int], field_name: str = "kernel_size"
@@ -112,6 +116,20 @@ def count_trainable_parameters(model: nn.Module) -> int:
     )
 
 
+def _initialise_keras_linear_layer(layer: nn.Conv2d | nn.Linear) -> None:
+    """Apply the Keras defaults used by the published baseline.
+
+    Parameters:
+        layer: Convolutional or linear layer to initialise.
+
+    Returns:
+        None.
+    """
+    nn.init.xavier_uniform_(layer.weight)
+    if layer.bias is not None:
+        nn.init.zeros_(layer.bias)
+
+
 class _ConvLSTMCell(nn.Module):
     """Process one timestep with ConvLSTM gates.
 
@@ -119,6 +137,8 @@ class _ConvLSTMCell(nn.Module):
         in_channels: Channels in one input frame.
         filters: Channels in the hidden and cell states.
         kernel_size: Integer kernel size or `(height, width)` pair.
+        recurrent_activation: Gate activation: `sigmoid` or `hard_sigmoid`.
+        keras_initialisation: Use the Keras ConvLSTM2D default initialisation.
 
     Returns:
         A ConvLSTM cell module.
@@ -129,16 +149,69 @@ class _ConvLSTMCell(nn.Module):
         in_channels: int,
         filters: int,
         kernel_size: int | tuple[int, int] = 3,
+        recurrent_activation: str = "sigmoid",
+        keras_initialisation: bool = False,
     ) -> None:
         super().__init__()
+        if recurrent_activation not in {"sigmoid", "hard_sigmoid"}:
+            raise ValueError("recurrent_activation must be 'sigmoid' or 'hard_sigmoid'")
         kernel = _normalise_kernel_size(kernel_size)
         padding = tuple(value // 2 for value in kernel)
+        self.in_channels = in_channels
+        self.filters = filters
+        self.recurrent_activation = recurrent_activation
         self.gates = nn.Conv2d(
             in_channels + filters,
             filters * 4,
             kernel_size=kernel,
             padding=padding,
         )
+        if keras_initialisation:
+            self._initialise_like_keras()
+
+    def _initialise_like_keras(self) -> None:
+        """Match the separate Keras input and recurrent initialisers.
+
+        Parameters:
+            None.
+
+        Returns:
+            None.
+        """
+        with torch.no_grad():
+            input_weights = self.gates.weight[:, : self.in_channels]
+            recurrent_weights = self.gates.weight[:, self.in_channels :]
+            nn.init.xavier_uniform_(input_weights)
+            kernel_height, kernel_width = recurrent_weights.shape[-2:]
+            recurrent_matrix = recurrent_weights.new_empty(
+                kernel_height * kernel_width * self.filters,
+                4 * self.filters,
+            )
+            nn.init.orthogonal_(recurrent_matrix)
+            recurrent_weights.copy_(
+                recurrent_matrix.reshape(
+                    kernel_height,
+                    kernel_width,
+                    self.filters,
+                    4 * self.filters,
+                ).permute(3, 2, 0, 1)
+            )
+            if self.gates.bias is not None:
+                nn.init.zeros_(self.gates.bias)
+                self.gates.bias[self.filters : 2 * self.filters].fill_(1.0)
+
+    def _activate_gate(self, gate: torch.Tensor) -> torch.Tensor:
+        """Apply the configured recurrent gate activation.
+
+        Parameters:
+            gate: Unactivated gate values.
+
+        Returns:
+            Activated gate values.
+        """
+        if self.recurrent_activation == "hard_sigmoid":
+            return torch.clamp(gate * 0.2 + 0.5, min=0.0, max=1.0)
+        return torch.sigmoid(gate)
 
     def forward(
         self, x: torch.Tensor, hidden: torch.Tensor, cell: torch.Tensor
@@ -155,10 +228,10 @@ class _ConvLSTMCell(nn.Module):
         """
         gates = self.gates(torch.cat([x, hidden], dim=1))
         input_gate, forget_gate, candidate, output_gate = gates.chunk(4, dim=1)
-        input_gate = torch.sigmoid(input_gate)
-        forget_gate = torch.sigmoid(forget_gate)
+        input_gate = self._activate_gate(input_gate)
+        forget_gate = self._activate_gate(forget_gate)
         candidate = torch.tanh(candidate)
-        output_gate = torch.sigmoid(output_gate)
+        output_gate = self._activate_gate(output_gate)
         next_cell = forget_gate * cell + input_gate * candidate
         next_hidden = output_gate * torch.tanh(next_cell)
         return next_hidden, next_cell
@@ -172,6 +245,8 @@ class ConvLSTM(nn.Module):
         filters: Channels in the hidden state.
         kernel_size: Integer kernel size or `(height, width)` pair.
         return_sequences: Return every hidden state instead of only the last.
+        recurrent_activation: Gate activation: `sigmoid` or `hard_sigmoid`.
+        keras_initialisation: Use Keras ConvLSTM2D default initialisation.
 
     Returns:
         A ConvLSTM sequence layer.
@@ -183,11 +258,19 @@ class ConvLSTM(nn.Module):
         filters: int,
         kernel_size: int | tuple[int, int] = 3,
         return_sequences: bool = False,
+        recurrent_activation: str = "sigmoid",
+        keras_initialisation: bool = False,
     ) -> None:
         super().__init__()
         self.filters = filters
         self.return_sequences = return_sequences
-        self.cell = _ConvLSTMCell(in_channels, filters, kernel_size)
+        self.cell = _ConvLSTMCell(
+            in_channels,
+            filters,
+            kernel_size,
+            recurrent_activation=recurrent_activation,
+            keras_initialisation=keras_initialisation,
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Run the ConvLSTM over all timesteps.
@@ -217,7 +300,7 @@ class ConvLSTM(nn.Module):
 
 
 class PaperConvLSTM(nn.Module):
-    """Reproduce the published ConvLSTM topology without simplifying its head.
+    """Implement the ConvLSTM topology reported in the 2022 source paper.
 
     Parameters:
         num_classes: Number of output classes.
@@ -228,11 +311,12 @@ class PaperConvLSTM(nn.Module):
         The paper-topology classification model.
 
     Notes:
-        Published shapes imply same padding and full sequence output. The paper
-        does not fully report convolution activations, gate initialisation, or
-        channel-first batch-normalisation details. This translation adds no
-        unreported ReLU, keeps the project's ConvLSTM gates, normalises the
-        combined batch/time dimension, and returns logits for the loss function.
+        Tables 1 and 2 in the source fix the full-sequence shapes and parameter
+        counts. The paper's pseudo-code supplies the layer order but omits
+        padding, temporal return mode, activations, and initialisers. Same
+        padding and full-sequence output are required by its reported shapes;
+        other omitted settings follow the cited Keras defaults. The classifier
+        returns logits because PyTorch cross-entropy applies softmax internally.
     """
 
     def __init__(
@@ -264,14 +348,44 @@ class PaperConvLSTM(nn.Module):
         self.input_shape = input_shape
         self.sequence_length = sequence_length
         self.frame_conv = nn.Conv2d(channels, 16, 3, padding=1)
-        self.convlstm = ConvLSTM(16, 64, 3, return_sequences=True)
-        self.batch_norm = nn.BatchNorm2d(64)
+        self.convlstm = ConvLSTM(
+            16,
+            64,
+            3,
+            return_sequences=True,
+            recurrent_activation="hard_sigmoid",
+            keras_initialisation=True,
+        )
+        self.batch_norm = nn.BatchNorm2d(64, eps=0.001, momentum=0.01)
         self.post_conv = nn.Conv2d(64, 16, 3, padding=1)
         self.feature_dropout = nn.Dropout(0.5)
         self.flatten = nn.Flatten()
         self.hidden = nn.Linear(sequence_length * 16 * height * width, 256)
         self.hidden_dropout = nn.Dropout(0.5)
         self.classifier = nn.Linear(256, num_classes)
+        _initialise_keras_linear_layer(self.frame_conv)
+        _initialise_keras_linear_layer(self.post_conv)
+        _initialise_keras_linear_layer(self.hidden)
+        _initialise_keras_linear_layer(self.classifier)
+
+    def parameter_summary(self) -> dict[str, int]:
+        """Return trainable and batch-normalization state counts.
+
+        Parameters:
+            None.
+
+        Returns:
+            Counts matching the source paper's parameter categories.
+        """
+        trainable = count_trainable_parameters(self)
+        batch_norm_state = (
+            self.batch_norm.running_mean.numel() + self.batch_norm.running_var.numel()
+        )
+        return {
+            "trainable": trainable,
+            "non_trainable_state": batch_norm_state,
+            "total": trainable + batch_norm_state,
+        }
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Return class logits for a video batch.

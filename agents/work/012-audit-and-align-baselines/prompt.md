@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `012-audit-and-align-baselines`
-- Status: Ready
+- Status: Done
 - Aim: Verify the published ConvLSTM baseline against its primary paper and
   clearly separate it from this study's three practical 18-layer 3D-CNN
   baselines before any comparison training.

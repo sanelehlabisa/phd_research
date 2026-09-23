@@ -9,14 +9,33 @@ hyperparameter grid.
 `ConvLSTM` returns either its full sequence or final hidden state.
 `CustomConvLSTM` stacks explicit recurrent layers and uses a
 resolution-independent adaptive-pooling head. `PaperConvLSTM` remains separate
-because it preserves the published full-sequence, flattened classification
+because it preserves the source paper's full-sequence, flattened classification
 topology. Legacy architecture names and compatibility wrappers are removed.
 
 The [2022 source paper](https://www.mdpi.com/1424-8220/22/8/2946) instead reports
 50 RGB frames at `50×50`, keeps the full sequence through `ConvLSTM2D(64)` and
 the second `Conv2D(16)`, then flattens `(50, 50, 50, 16)` into `Dense(256)`.
-That produces over 512 million parameters and must remain a separate faithful
-baseline rather than being silently made lightweight.
+The default 11-class implementation has `512,197,467` trainable parameters and
+`128` Batch Normalization state values, matching the paper's reported
+`512,197,595` total. This model must remain separate rather than being silently
+made lightweight.
+
+### Published-model audit
+
+- The paper reports the layer order, `50×50×3` input, 50 frames, filters,
+  kernels, dropout `0.5`, flattened shape, `Dense(256)`, 11-class output, and
+  parameter counts. Its reported shapes require same padding and full-sequence
+  ConvLSTM output.
+- Where the pseudo-code is silent, the implementation follows the documented
+  Keras defaults used by the paper: linear Conv/Dense layers, ConvLSTM `tanh`
+  state activation, hard-sigmoid gates, Glorot input kernels, orthogonal
+  recurrent kernels, unit forget bias, and Batch Normalization defaults.
+- PyTorch Batch Normalization uses `eps=0.001` and `momentum=0.01`, equivalent
+  to Keras moving-statistic momentum `0.99`. The final layer returns logits
+  instead of applying the paper's softmax because cross-entropy applies it.
+- The paper does not disclose random seeds or every training/runtime detail.
+  Those omissions remain limitations; matching topology and framework defaults
+  does not claim bit-for-bit reproduction.
 
 The custom family uses explicit recurrent layer specifications:
 
@@ -36,10 +55,16 @@ model uses it and the results are labelled preliminary.
 
 ## Baseline warning
 
-The current comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` as
-this study's practical 3D-CNN baselines. The source paper reports 3D ResNet-50,
-3D ResNet-101, and 3D ResNet-152. These groups are not architecture-equivalent;
-ticket 012 audits and labels them clearly before a paper comparison.
+The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
+`weights=None` as this study's practical 18-layer 3D-CNN baselines. The source
+paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
+not architecture-equivalent reproductions.
+
+Inspect the five approved entries without a dataset or model allocation:
+
+```bash
+.venv/bin/python -m src.experiments --list-models
+```
 
 ## Experiment protocol
 
@@ -60,10 +85,10 @@ ticket 012 audits and labels them clearly before a paper comparison.
    lightweight adaptive-pooling head, and parameter counting.
 2. [x] **Model API cleanup (`011`).** Kept `ConvLSTM`, `PaperConvLSTM`, and
    `CustomConvLSTM`; removed obsolete classes and migrated all active callers.
-3. [ ] **Baseline audit and alignment (`012`, ready).** Verify the published
-   ConvLSTM and distinguish the source paper's deeper comparisons from this
-   study's three practical 18-layer 3D-CNN baselines.
-4. [ ] **Reproducible data (`013`).** Seed the full pipeline and reuse a
+3. [x] **Baseline audit and alignment (`012`).** Verified the source-paper
+   topology and separated its deeper comparisons from this study's three
+   practical 18-layer 3D-CNN baselines.
+4. [ ] **Reproducible data (`013`, next).** Seed the full pipeline and reuse a
    stratified, group-aware 70:15:15 split manifest.
 5. [ ] **Valid selection and metrics (`014`).** Isolate full-partition metrics,
    restore the validation-selected checkpoint, and separate final test access.
@@ -94,5 +119,5 @@ python -m src.model \
 ```
 
 Run commands from this directory. The current training and experiment scripts
-remain exploratory until tasks 012–016 are complete. The model smoke command
+remain exploratory until tasks 013–016 are complete. The model smoke command
 uses random weights and its outputs are pipeline checks, not research evidence.

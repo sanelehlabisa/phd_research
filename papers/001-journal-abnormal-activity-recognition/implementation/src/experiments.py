@@ -52,6 +52,11 @@ parser.add_argument("--val_ratio", type=float, default=0.1)
 parser.add_argument("--num_workers", type=int, default=2)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--weight_decay", type=float, default=1e-3)
+parser.add_argument(
+    "--list-models",
+    action="store_true",
+    help="List approved baseline roles without loading data or starting training",
+)
 
 
 class Video3DModelWrapper(nn.Module):
@@ -68,6 +73,109 @@ class Video3DModelWrapper(nn.Module):
         # x is (B, T, C, H, W) -> PyTorch 3D CNNs expect (B, C, T, H, W)
         x = x.permute(0, 2, 1, 3, 4)
         return self.model(x)
+
+
+def model_registry() -> list[dict[str, str]]:
+    """Describe the approved comparison models without allocating them.
+
+    Parameters:
+        None.
+
+    Returns:
+        Model names, families, classes, and comparison roles.
+    """
+    return [
+        {
+            "name": "paper_convlstm_published",
+            "family": "ConvLSTM",
+            "model_class": "PaperConvLSTM",
+            "role": "source-paper ConvLSTM topology baseline",
+        },
+        {
+            "name": "custom_convlstm_reference_8_k3",
+            "family": "ConvLSTM",
+            "model_class": "CustomConvLSTM",
+            "role": "study custom reference; not the selected final model",
+        },
+        {
+            "name": "r3d_18",
+            "family": "3D-CNN",
+            "model_class": "torchvision.models.video.r3d_18",
+            "role": "study practical baseline trained from scratch",
+        },
+        {
+            "name": "mc3_18",
+            "family": "3D-CNN",
+            "model_class": "torchvision.models.video.mc3_18",
+            "role": "study practical baseline trained from scratch",
+        },
+        {
+            "name": "r2plus1d_18",
+            "family": "3D-CNN",
+            "model_class": "torchvision.models.video.r2plus1d_18",
+            "role": "study practical baseline trained from scratch",
+        },
+    ]
+
+
+def build_registered_model(
+    model_name: str,
+    num_classes: int,
+    input_shape: tuple[int, int, int],
+    sequence_length: int,
+) -> nn.Module:
+    """Build one approved model by its registry name.
+
+    Parameters:
+        model_name: Exact name returned by `model_registry`.
+        num_classes: Number of dataset classes.
+        input_shape: Frame shape `(channels, height, width)`.
+        sequence_length: Frames supplied to the model.
+
+    Returns:
+        The requested untrained model.
+    """
+    if model_name == "paper_convlstm_published":
+        return PaperConvLSTM(
+            num_classes,
+            input_shape=input_shape,
+            sequence_length=sequence_length,
+        )
+    if model_name == "custom_convlstm_reference_8_k3":
+        return CustomConvLSTM(num_classes, layers=[(8, (3, 3))])
+    if model_name == "r3d_18":
+        return Video3DModelWrapper(
+            video_models.r3d_18(weights=None),
+            num_classes,
+        )
+    if model_name == "mc3_18":
+        return Video3DModelWrapper(
+            video_models.mc3_18(weights=None),
+            num_classes,
+        )
+    if model_name == "r2plus1d_18":
+        return Video3DModelWrapper(
+            video_models.r2plus1d_18(weights=None),
+            num_classes,
+        )
+    raise ValueError(f"unknown registered model: {model_name}")
+
+
+def print_model_registry() -> None:
+    """Print approved model names and roles without allocating models.
+
+    Parameters:
+        None.
+
+    Returns:
+        None.
+    """
+    print("Approved comparison models")
+    for entry in model_registry():
+        print(
+            f"- {entry['name']}: {entry['model_class']} | "
+            f"{entry['family']} | {entry['role']}"
+        )
 
 
 def _train(model, loader, criterion, optimizer, acc_fn, device):
@@ -136,6 +244,10 @@ def _overfit_score(train_accs: list[float], val_accs: list[float]) -> float:
 
 def main() -> None:
     args = parser.parse_args()
+    registry = model_registry()
+    if args.list_models:
+        print_model_registry()
+        return
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.backends.cudnn.benchmark = True
     print(f"Device: {device}")
@@ -218,41 +330,7 @@ def main() -> None:
 
     # ---- Model configs ----
     input_shape = (3, args.height, args.width)
-    paper_name = (
-        "paper_convlstm"
-        if (args.sequence_length, args.height, args.width) == (50, 50, 50)
-        else "paper_convlstm_reduced_input"
-    )
-
-    configs = [
-        (
-            paper_name,
-            PaperConvLSTM(
-                num_classes,
-                input_shape=input_shape,
-                sequence_length=args.sequence_length,
-            ),
-        ),
-        (
-            "custom_reference_8_k3",
-            CustomConvLSTM(num_classes, layers=[(8, (3, 3))]),
-        ),
-        # PyTorch 3D ResNet variants
-        (
-            "resnet_3d_18",
-            Video3DModelWrapper(video_models.r3d_18(weights=None), num_classes),
-        ),
-        (
-            "resnet_mc3_18",
-            Video3DModelWrapper(video_models.mc3_18(weights=None), num_classes),
-        ),
-        (
-            "resnet_r2plus1d_18",
-            Video3DModelWrapper(video_models.r2plus1d_18(weights=None), num_classes),
-        ),
-    ]
-
-    print(f"\nRunning {len(configs)} configurations...\n")
+    print(f"\nRunning {len(registry)} configurations...\n")
     all_results = []
 
     # Extra metrics tracker for final evaluation on test_set
@@ -271,10 +349,25 @@ def main() -> None:
         ).to(device),
     }
 
-    for i, (name, model) in enumerate(configs):
+    for i, entry in enumerate(registry):
+        name = entry["name"]
+        role = entry["role"]
+        if entry["model_class"] == "PaperConvLSTM" and (
+            args.sequence_length,
+            args.height,
+            args.width,
+        ) != (50, 50, 50):
+            name = f"{name}_reduced_input"
+            role = f"{role}; reduced-input topology check"
+        model = build_registered_model(
+            entry["name"],
+            num_classes,
+            input_shape,
+            args.sequence_length,
+        )
         model = model.to(device)
         num_params = count_trainable_parameters(model)
-        print(f"[{i+1}/{len(configs)}] {name} | params={num_params:,}")
+        print(f"[{i+1}/{len(registry)}] {name} | params={num_params:,}")
 
         opt = optim.Adam(
             model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
@@ -332,6 +425,9 @@ def main() -> None:
 
         result = {
             "name": name,
+            "family": entry["family"],
+            "model_class": entry["model_class"],
+            "role": role,
             "num_params": num_params,
             "best_val_loss": round(best_val_loss, 6),
             "best_val_acc": round(best_val_acc, 4),

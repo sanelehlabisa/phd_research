@@ -1,15 +1,15 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Aligning comparison baselines before controlled experiments
+- Status: Preparing reproducible data splits before controlled experiments
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
 from surveillance video. Earlier width experiments made `64-32-16-64` a useful
-candidate, but not a proven optimum. The revised study will compare a faithful
-paper baseline with narrow stacked ConvLSTM models before selecting a reference
-architecture for ablation.
+candidate, but not a proven optimum. The revised study will compare the audited
+source-paper topology with narrow stacked ConvLSTM models before selecting a
+reference architecture for ablation.
 
 ## Evidence plan
 
@@ -33,11 +33,11 @@ architecture for ablation.
   stacked model.
 - [x] `011-simplify-model-api` — kept one ConvLSTM layer plus the paper and
   custom models, removed obsolete architectures, and migrated every caller.
-- [ ] `012-audit-and-align-baselines` — **Ready:** verify the published
-  ConvLSTM and distinguish the source paper's 3D ResNet-50/101/152 comparisons
-  from this study's `r3d_18`, `mc3_18`, and `r2plus1d_18` baselines.
-- [ ] `013-make-splits-reproducible` — seed the full pipeline and create fixed,
-  stratified, group-aware split manifests.
+- [x] `012-audit-and-align-baselines` — verified the published ConvLSTM topology
+  and separated the source paper's 3D ResNet-50/101/152 comparisons from this
+  study's `r3d_18`, `mc3_18`, and `r2plus1d_18` practical baselines.
+- [ ] `013-make-splits-reproducible` — **Next:** seed the full pipeline and
+  create fixed, stratified, group-aware split manifests.
 - [ ] `014-fix-selection-and-metrics` — correct metrics, restore the best
   validation checkpoint, and keep test data out of model selection.
 - [ ] `015-standardize-run-artifacts` — save complete, versioned run evidence and
