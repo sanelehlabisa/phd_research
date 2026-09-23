@@ -78,9 +78,11 @@ Inspect the five approved entries without a dataset or model allocation:
 - Validation-only model and checkpoint selection; test data remains locked.
 - Seeds `42` and `2026` for reported confirmation runs; both reuse the same
   split created with split seed `42`.
-- Validation-loss early stopping with restoration of the selected checkpoint.
-- Accuracy, macro precision/recall/F1, confusion matrix, trainable parameters,
-  runtime, and uncertainty across confirmation seeds.
+- Validation-loss early stopping with patience `10` and restoration of the
+  selected checkpoint.
+- Sample-weighted loss plus full-partition accuracy and macro
+  precision/recall/F1, confusion matrix, trainable parameters, runtime, and
+  uncertainty across confirmation seeds.
 - One factor changed at a time with the split and training budget fixed.
 
 ## Implementation tasks
@@ -101,11 +103,12 @@ Inspect the five approved entries without a dataset or model allocation:
    plots, confusion matrices, and predictions.
 6. [x] **Reproducible data (`015`).** Seeded the full pipeline and added a
    fixed, stratified 70:15:15 clip manifest.
-7. [ ] **Valid selection and metrics (`016`, next).** Isolate full-partition
-   metrics, restore the validation-selected checkpoint, and separate final test
-   access.
-8. [ ] **Configuration integration (`017`).** Revise the stashed ticket-009 work
-   around the stable model layer specification and reconnect the runner.
+7. [x] **Valid selection and metrics (`016`).** Added full-partition metrics,
+   validation-loss selection and early stopping, restored selected checkpoints,
+   and reserved test access for evaluation.
+8. [ ] **Configuration integration (`017`, next).** Revise the stashed
+   ticket-009 work around the stable model layer specification and reconnect the
+   runner.
 9. [ ] **Architecture shortlist (`018–019`).** Audit historical runs, predeclare
    a small model set, and confirm it under one protocol.
 10. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
@@ -197,6 +200,7 @@ Train the same reference without augmentation (starts a full training run):
   --weight_decay 0.0001 \
   --learning_rate 0.001 \
   --epochs 64 \
+  --early_stopping_patience 10 \
   --sequence_length 16 \
   --height 32 \
   --width 32 \
@@ -204,7 +208,8 @@ Train the same reference without augmentation (starts a full training run):
   --pin_memory
 ```
 
-Output: `runs/train/<run>/`.
+Output: `runs/train/<run>/`. Training reports validation results from the
+restored lowest-loss checkpoint and does not access test clips.
 
 Train with one online augmented view per sample (starts a full training run):
 
@@ -222,6 +227,7 @@ Train with one online augmented view per sample (starts a full training run):
   --weight_decay 0.0001 \
   --learning_rate 0.001 \
   --epochs 64 \
+  --early_stopping_patience 10 \
   --sequence_length 16 \
   --height 32 \
   --width 32 \
@@ -230,7 +236,7 @@ Train with one online augmented view per sample (starts a full training run):
   --pin_memory
 ```
 
-Output: another unique `runs/train/<run>/`.
+Output: another unique `runs/train/<run>/`; test clips remain locked.
 
 Inspect the comparison registry without loading AAD or allocating models:
 
@@ -249,6 +255,7 @@ Run the registered AAD comparisons (starts a full experiment):
   --train_ratio 0.7 \
   --val_ratio 0.15 \
   --epochs 24 \
+  --early_stopping_patience 10 \
   --batch_size 16 \
   --sequence_length 16 \
   --height 32 \
@@ -257,15 +264,18 @@ Run the registered AAD comparisons (starts a full experiment):
   --num_workers 2
 ```
 
-Output: `runs/experiments/<run>/`, with one subdirectory per model.
+Output: `runs/experiments/<run>/`, with one validation-selected checkpoint per
+model. Ranking uses validation macro-F1, validation accuracy, then parameters;
+it does not use test results.
 
-Evaluate the augmented reference checkpoint (runs the AAD test split and writes
-metrics, a confusion matrix, and prediction clips):
+After freezing a configuration, deliberately evaluate its validation-selected
+checkpoint on the AAD test split (writes metrics, a confusion matrix, and
+prediction clips):
 
 ```bash
 .venv/bin/python -m src.evaluate \
   --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-  --checkpoint_path "models/abnormal-activities-dataset_best_model.pth" \
+  --checkpoint_path "runs/train/<run>/checkpoints/best_model.pth" \
   --runs_dir "runs" \
   --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
   --seed 42 \
@@ -285,6 +295,6 @@ metrics, a confusion matrix, and prediction clips):
 Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
 copied or overwritten by evaluation.
 
-The current training and experiment scripts remain exploratory until tasks
-016–017 are complete. Random-weight smoke outputs are pipeline checks, not
+The current training and experiment scripts remain exploratory until task 017
+is complete. Random-weight smoke outputs are pipeline checks, not
 research evidence.

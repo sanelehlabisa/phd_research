@@ -1,7 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Fixing selection metrics and test-set isolation before controlled
-  experiments
+- Status: Connecting the stable ablation configuration before controlled runs
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -43,10 +42,10 @@ reference architecture for ablation.
   and comparison evidence into local timestamped run directories.
 - [x] `015-make-splits-reproducible` — seeded the full pipeline and added a
   fixed, stratified 70:15:15 clip manifest.
-- [ ] `016-fix-selection-and-metrics` — **Next:** correct metrics, restore the
-  best validation checkpoint, and keep test data out of model selection.
-- [ ] `017-connect-ablation-config` — revise and resume ticket 009 so one config
-  controls the stable model, input, and training schema.
+- [x] `016-fix-selection-and-metrics` — added full-partition metrics, restored
+  validation-selected checkpoints, and isolated final test access.
+- [ ] `017-connect-ablation-config` — **Next:** revise and resume ticket 009 so
+  one config controls the stable model, input, and training schema.
 - [ ] `018-shortlist-architecture-results` — audit historical runs and predeclare
   a small candidate set for controlled confirmation.
 - [ ] `019-confirm-architecture-candidates` — compare the shortlist and approved

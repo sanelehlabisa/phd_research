@@ -20,8 +20,9 @@
   and augmentation is one optional, clip-consistent online view per training
   sample. Every model, training, evaluation, and experiment command now has its
   own local run folder. The split manifest and full-pipeline seeding are now
-  reproducible. The immediate priority is valid metrics, checkpoint selection,
-  and test-set isolation before controlled comparisons begin.
+  reproducible. Metrics now cover full partitions, validation loss selects and
+  restores checkpoints, and only the evaluation command opens the test split.
+  The immediate priority is connecting the stable ablation configuration.
 
 ## Research rules
 

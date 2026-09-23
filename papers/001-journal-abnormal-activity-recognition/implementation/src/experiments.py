@@ -14,6 +14,7 @@ python -m src.experiments \
     --train_ratio 0.7 \
     --val_ratio 0.15 \
     --epochs 24 \
+    --early_stopping_patience 10 \
     --batch_size 16 \
     --sequence_length 16 \
     --height 32 \
@@ -25,12 +26,13 @@ python -m src.experiments \
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
+from pathlib import Path
 from timeit import default_timer as timer
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchmetrics
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import torchvision.models.video as video_models
@@ -44,8 +46,17 @@ from .dataset import (
     resolve_split_manifest_path,
 )
 from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
+from .metrics import (
+    ValidationLossSelector,
+    evaluate_classifier,
+    metric_protocol,
+    rank_validation_results,
+    train_classifier_epoch,
+    validate_selected_checkpoint,
+)
 from .utils import (
     RunContext,
+    collect_predictions,
     data_loader_generator,
     plot_confusion_matrix,
     safe_filename,
@@ -60,6 +71,7 @@ parser.add_argument("--runs_dir", type=str, default="runs")
 parser.add_argument("--split_manifest", type=str, default=None)
 parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--epochs", type=int, default=24)
+parser.add_argument("--early_stopping_patience", type=int, default=10)
 parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--sequence_length", type=int, default=16)
 parser.add_argument("--height", type=int, default=32)
@@ -200,68 +212,64 @@ def print_model_registry() -> None:
         )
 
 
-def _train(model, loader, criterion, optimizer, acc_fn, device):
-    """
-    Runs a single training epoch and calculates the average loss and accuracy.
+def _save_selected_checkpoint(
+    model: nn.Module,
+    optimizer: optim.Optimizer,
+    checkpoint_path: str,
+    model_config: dict[str, object],
+    model_registry_entry: dict[str, str],
+    validation_metrics: dict[str, float],
+    selected_epoch: int,
+    dataset_name: str,
+    split_manifest_hash: str,
+    seed: int,
+) -> None:
+    """Save one experiment model selected by validation loss.
 
     Parameters:
-        model (torch.nn.Module): The neural network model being trained.
-        loader (DataLoader): The data loader providing batches of training data.
-        criterion (torch.nn.Module): The loss function used to calculate the error.
-        optimizer (torch.optim.Optimizer): The optimizer updating the model weights.
-        acc_fn (torchmetrics.Metric): The function used to calculate accuracy.
-        device (torch.device): The hardware device (CPU or GPU) running the calculations.
+        model: Model whose selected weights should be saved.
+        optimizer: Optimizer state associated with the selected epoch.
+        checkpoint_path: Destination checkpoint path.
+        model_config: Configuration identifying the model architecture.
+        model_registry_entry: Approved registry record for the model.
+        validation_metrics: Metrics from the full validation partition.
+        selected_epoch: One-based selected epoch.
+        dataset_name: Dataset used for the comparison.
+        split_manifest_hash: Exact split manifest hash used by the run.
+        seed: Experiment run seed.
 
     Returns:
-        metrics (tuple): A tuple containing the average loss and average accuracy for the epoch.
+        None.
     """
-    model.train()
-    total_loss = total_acc = 0.0
-    for X, y in loader:
-        X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
-        logits = model(X)
-        loss = criterion(logits, y)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        total_loss += loss.item()
-        total_acc += acc_fn(logits.argmax(dim=1), y).item()
-    return total_loss / len(loader), total_acc / len(loader)
-
-
-@torch.inference_mode()
-def _validate(model, loader, criterion, acc_fn, device):
-    """
-    Evaluates the model on a validation or test dataset without updating weights.
-
-    Parameters:
-        model (torch.nn.Module): The neural network model being evaluated.
-        loader (DataLoader): The data loader providing batches of evaluation data.
-        criterion (torch.nn.Module): The loss function used to calculate the error.
-        acc_fn (torchmetrics.Metric): The function used to calculate accuracy.
-        device (torch.device): The hardware device (CPU or GPU) running the calculations.
-
-    Returns:
-        metrics (tuple): A tuple containing the average loss and average accuracy.
-    """
-    model.eval()
-    total_loss = total_acc = 0.0
-    for X, y in loader:
-        X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
-        logits = model(X)
-        loss = criterion(logits, y)
-        total_loss += loss.item()
-        total_acc += acc_fn(logits.argmax(dim=1), y).item()
-    return total_loss / len(loader), total_acc / len(loader)
-
-
-def _overfit_score(train_accs: list[float], val_accs: list[float]) -> float:
-    """
-    Calculates an overfitting score by analyzing the gap between training and validation accuracy.
-    """
-    gaps = [t - v for t, v in zip(train_accs, val_accs)]
-    gradients = [gaps[i + 1] - gaps[i] for i in range(len(gaps) - 1)]
-    return sum(gradients) / len(gradients) if gradients else (gaps[-1] if gaps else 0.0)
+    path = Path(checkpoint_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    metadata: dict[str, object] = {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": validation_metrics["loss"],
+        "selected_epoch": selected_epoch,
+        "epoch": selected_epoch,
+        "loss": validation_metrics["loss"],
+        "validation_metrics": validation_metrics,
+        "metric_protocol": metric_protocol(),
+        "dataset_name": dataset_name,
+        "split_manifest_hash": split_manifest_hash,
+        "seed": seed,
+        "timestamp": datetime.now().isoformat(),
+        "trainable_parameters": count_trainable_parameters(model),
+        "model_config": model_config,
+        "model_registry_entry": model_registry_entry,
+    }
+    torch.save(
+        {
+            **metadata,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+        },
+        path,
+    )
+    write_json(path.with_suffix(".json"), metadata)
 
 
 def main() -> None:
@@ -270,11 +278,14 @@ def main() -> None:
     if args.list_models:
         print_model_registry()
         return
+    if args.epochs <= 0:
+        raise ValueError("epochs must be positive")
+    if args.early_stopping_patience <= 0:
+        raise ValueError("early_stopping_patience must be positive")
     deterministic_settings = seed_everything(args.seed)
     deterministic_settings["data_loader_seeds"] = {
         "train": args.seed,
         "validation": args.seed + 1,
-        "test": args.seed + 2,
     }
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
@@ -321,7 +332,7 @@ def main() -> None:
         f"Loaded {len(dataset)} samples | {num_classes} classes: {dataset.class_names}"
     )
 
-    train_set, val_set, test_set, split_metadata = load_split_subsets(
+    train_set, val_set, _, split_metadata = load_split_subsets(
         dataset,
         manifest_path,
         train_ratio=args.train_ratio,
@@ -329,7 +340,9 @@ def main() -> None:
         seed=DEFAULT_SPLIT_SEED,
     )
     n_total = len(dataset)
-    n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
+    n_train, n_val = len(train_set), len(val_set)
+    n_test = n_total - n_train - n_val
+    print(f"Train: {n_train} | Val: {n_val} | Test locked: {n_test}")
 
     train_data = (
         AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
@@ -358,13 +371,6 @@ def main() -> None:
         generator=data_loader_generator(args.seed + 1),
         **loader_kw,
     )
-    test_loader = DataLoader(
-        test_set,
-        shuffle=False,
-        generator=data_loader_generator(args.seed + 2),
-        **loader_kw,
-    )
-
     # ---- Model configs ----
     input_shape = (3, args.height, args.width)
     shared_configuration = {
@@ -387,6 +393,11 @@ def main() -> None:
             "weight_decay": args.weight_decay,
             "optimizer": "Adam",
             "loss": "CrossEntropyLoss(label_smoothing=0.1)",
+            "metric_protocol": metric_protocol(),
+            "checkpoint_selection": "lowest_validation_loss",
+            "early_stopping_patience": args.early_stopping_patience,
+            "ranking": ["validation_macro_f1", "validation_accuracy", "parameters"],
+            "test_access": "locked",
         },
         "augmentation": args.augment,
     }
@@ -401,23 +412,7 @@ def main() -> None:
         }
     )
     print(f"\nRunning {len(registry)} configurations...\n")
-    all_results = []
-
-    # Extra metrics tracker for final evaluation on test_set
-    test_metrics = {
-        "accuracy": torchmetrics.Accuracy(
-            task="multiclass", num_classes=num_classes
-        ).to(device),
-        "precision": torchmetrics.Precision(
-            task="multiclass", num_classes=num_classes, average="macro"
-        ).to(device),
-        "recall": torchmetrics.Recall(
-            task="multiclass", num_classes=num_classes, average="macro"
-        ).to(device),
-        "f1": torchmetrics.F1Score(
-            task="multiclass", num_classes=num_classes, average="macro"
-        ).to(device),
-    }
+    all_results: list[dict[str, object]] = []
 
     for i, entry in enumerate(registry):
         name = entry["name"]
@@ -444,66 +439,108 @@ def main() -> None:
             model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
         )
         criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-        acc_fn = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes).to(
-            device
+        model_config = (
+            model.configuration()
+            if isinstance(model, CustomConvLSTM)
+            else {
+                "model_name": entry["model_class"],
+                "registry_name": entry["name"],
+                "num_classes": num_classes,
+                "input_dimensions": shared_configuration["input_dimensions"],
+            }
         )
-
-        train_accs, val_accs, val_losses = [], [], []
+        selector = ValidationLossSelector(args.early_stopping_patience)
+        history: list[dict[str, object]] = []
+        selected_checkpoint_path = model_dir / "checkpoints" / "best_model.pth"
         t0 = timer()
 
         for epoch in tqdm(range(args.epochs), leave=False, desc=name):
-            _, tr_acc = _train(model, train_loader, criterion, opt, acc_fn, device)
-            vl_loss, vl_acc = _validate(
-                model, val_loader, criterion, acc_fn.clone(), device
+            training_metrics = train_classifier_epoch(
+                model,
+                train_loader,
+                criterion,
+                opt,
+                device,
+                num_classes,
             )
-            train_accs.append(tr_acc)
-            val_accs.append(vl_acc)
-            val_losses.append(vl_loss)
+            validation_metrics = evaluate_classifier(
+                model,
+                val_loader,
+                criterion,
+                device,
+                num_classes,
+            )
+            selected = selector.update(validation_metrics["loss"], epoch + 1)
+            history.append(
+                {
+                    "epoch": epoch + 1,
+                    "training_metrics": training_metrics,
+                    "validation_metrics": validation_metrics,
+                    "selected_checkpoint": selected,
+                }
+            )
+            if selected:
+                _save_selected_checkpoint(
+                    model,
+                    opt,
+                    str(selected_checkpoint_path),
+                    model_config,
+                    entry,
+                    validation_metrics,
+                    epoch + 1,
+                    dataset.dataset_dir.resolve().name,
+                    str(split_metadata["manifest_hash"]),
+                    args.seed,
+                )
+            if selector.should_stop:
+                break
 
         elapsed = timer() - t0
-        best_val_loss = min(val_losses)
-        best_val_acc = max(val_accs)
-        overfit = _overfit_score(train_accs, val_accs)
-
-        # Full test evaluation loop (collecting extra metrics and labels for the confusion matrix)
-        all_true, all_pred = [], []
-        model.eval()
-        for m in test_metrics.values():
-            m.reset()
-
-        with torch.inference_mode():
-            for X, y in test_loader:
-                X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
-                logits = model(X)
-                preds = logits.argmax(dim=1)
-                for m in test_metrics.values():
-                    m(preds, y)
-                all_pred.extend(preds.cpu().tolist())
-                all_true.extend(y.cpu().tolist())
-
-        t_res = {k: m.compute().item() for k, m in test_metrics.items()}
+        selection_state = selector.state(len(history))
+        checkpoint = torch.load(
+            selected_checkpoint_path,
+            map_location=device,
+            weights_only=True,
+        )
+        checkpoint["early_stopping"] = selection_state
+        torch.save(checkpoint, selected_checkpoint_path)
+        write_json(
+            selected_checkpoint_path.with_suffix(".json"),
+            {
+                key: value
+                for key, value in checkpoint.items()
+                if key not in {"model_state_dict", "optimizer_state_dict"}
+            },
+        )
+        checkpoint_selection = validate_selected_checkpoint(
+            checkpoint,
+            dataset.dataset_dir.resolve().name,
+            str(split_metadata["manifest_hash"]),
+        )
+        model.load_state_dict(checkpoint["model_state_dict"])
+        selected_validation_metrics = evaluate_classifier(
+            model,
+            val_loader,
+            criterion,
+            device,
+            num_classes,
+        )
+        all_true, all_pred = collect_predictions(model, val_loader, device)
 
         confusion_artifacts = plot_confusion_matrix(
             all_true,
             all_pred,
             dataset.class_names,
-            dataset_name=name,
-            save_path=model_dir / "metrics" / "confusion_matrix.png",
+            dataset_name=f"{name}_validation",
+            save_path=model_dir / "metrics" / "validation_confusion_matrix.png",
         )
-
-        final_checkpoint_path = model_dir / "checkpoints" / "final_model.pth"
-        final_checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-        torch.save(
+        history_path = write_json(
+            model_dir / "metrics" / "history.json",
             {
-                "checkpoint_role": "final_epoch_not_validation_selected",
-                "model_name": name,
-                "model_registry_entry": entry,
-                "model_state_dict": model.state_dict(),
-                "num_classes": num_classes,
-                "input_dimensions": shared_configuration["input_dimensions"],
-                "epoch": args.epochs,
+                "metric_protocol": metric_protocol(),
+                "selection": selection_state,
+                "epochs": history,
             },
-            final_checkpoint_path,
         )
 
         result = {
@@ -512,28 +549,28 @@ def main() -> None:
             "model_class": entry["model_class"],
             "role": role,
             "num_params": num_params,
-            "best_val_loss": round(best_val_loss, 6),
-            "best_val_acc": round(best_val_acc, 4),
-            "test_acc": round(t_res["accuracy"], 4),
-            "test_precision": round(t_res["precision"], 4),
-            "test_recall": round(t_res["recall"], 4),
-            "test_f1": round(t_res["f1"], 4),
-            "overfit_score": round(overfit, 4),
+            "partition": "validation",
+            "metric_protocol": metric_protocol(),
+            "validation_metrics": selected_validation_metrics,
+            "checkpoint_selection": checkpoint_selection,
+            "early_stopping": selection_state,
             "train_time_s": round(elapsed, 1),
-            "confusion_matrix": confusion_artifacts,
-            "final_checkpoint": str(final_checkpoint_path),
-            "history": {
-                "train_accuracy": train_accs,
-                "validation_accuracy": val_accs,
-                "validation_loss": val_losses,
-            },
+            "validation_confusion_matrix": confusion_artifacts,
+            "selected_checkpoint": str(selected_checkpoint_path),
+            "selected_checkpoint_metadata": str(
+                selected_checkpoint_path.with_suffix(".json")
+            ),
+            "history": str(history_path),
+            "test_access": "locked",
         }
         metrics_path = write_json(model_dir / "metrics" / "metrics.json", result)
         result["metrics_path"] = str(metrics_path)
         all_results.append(result)
         print(
-            f"  val_acc={best_val_acc:.4f}  test_acc={t_res['accuracy']:.4f}  "
-            f"overfit={overfit:+.4f}  time={elapsed:.0f}s"
+            f"  val_f1={selected_validation_metrics['macro_f1']:.4f}  "
+            f"val_acc={selected_validation_metrics['accuracy']:.4f}  "
+            f"selected_epoch={checkpoint_selection['selected_epoch']}  "
+            f"time={elapsed:.0f}s"
         )
 
         del model
@@ -541,23 +578,40 @@ def main() -> None:
             torch.cuda.empty_cache()
 
     # ---- Rank and save ----
-    stable = [r for r in all_results if r["overfit_score"] < 0.05]
-    ranked = sorted(
-        stable if stable else all_results,
-        key=lambda r: (-r["best_val_acc"], r["num_params"]),
-    )
+    ranked = rank_validation_results(all_results)
+    shared_configuration["completed_models"] = {
+        str(result["name"]): {
+            "checkpoint_selection": result["checkpoint_selection"],
+            "early_stopping": result["early_stopping"],
+        }
+        for result in all_results
+    }
+    write_json(config_path, shared_configuration)
 
-    print(f"\nTop 5 (stable, best val acc, fewest params):")
+    print("\nTop 5 (validation macro-F1, accuracy, fewest parameters):")
     print("-" * 70)
     for r in ranked[:5]:
+        validation_metrics = r["validation_metrics"]
         print(
-            f"  {r['name']:<30} val_acc={r['best_val_acc']:.4f}  "
-            f"test_acc={r['test_acc']:.4f}  overfit={r['overfit_score']:+.4f}  "
+            f"  {r['name']:<30} val_f1={validation_metrics['macro_f1']:.4f}  "
+            f"val_acc={validation_metrics['accuracy']:.4f}  "
             f"params={r['num_params']:,}"
         )
 
     summary = {"ranked": ranked, "top_five": ranked[:5], "all": all_results}
     out_path = write_json(run_dir / "summary.json", summary)
+    run.update(
+        {
+            "metric_protocol": metric_protocol(),
+            "ranking": [
+                "validation_macro_f1",
+                "validation_accuracy",
+                "parameters",
+            ],
+            "completed_models": shared_configuration["completed_models"],
+            "test_access": "locked",
+        }
+    )
     run.complete(
         artifacts={
             "configuration": str(config_path),

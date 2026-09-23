@@ -18,6 +18,7 @@ python -m src.train \
     --weight_decay 0.0001 \
     --learning_rate 0.001 \
     --epochs 64 \
+    --early_stopping_patience 10 \
     --train_ratio 0.7 \
     --val_ratio 0.15 \
     --sequence_length 16 \
@@ -39,10 +40,7 @@ from timeit import default_timer as timer
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchmetrics
 from torch.utils.data import DataLoader
-
-from tqdm import tqdm
 
 from .dataset import (
     AHARDataset,
@@ -59,13 +57,19 @@ from .model import (
     custom_model_from_checkpoint,
     parse_layer_arguments,
 )
+from .metrics import (
+    ValidationLossSelector,
+    evaluate_classifier,
+    metric_protocol,
+    train_classifier_epoch,
+    validate_selected_checkpoint,
+)
 from .utils import (
     RunContext,
     collect_predictions,
     data_loader_generator,
     plot_confusion_matrix,
     plot_training_curves,
-    save_prediction_clips,
     seed_data_loader_worker,
     seed_everything,
     write_json,
@@ -94,6 +98,7 @@ parser.add_argument(
 )
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--epochs", type=int, default=16)
+parser.add_argument("--early_stopping_patience", type=int, default=10)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--weight_decay", type=float, default=1e-4)
 parser.add_argument("--sequence_length", type=int, default=32)
@@ -119,125 +124,72 @@ parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--pin_memory", action="store_true")
 
 
-def train_one_epoch(
-    model: nn.Module,
-    loader: DataLoader,
-    criterion: nn.Module,
-    optimizer: optim.Optimizer,
-    accuracy_fn: torchmetrics.Metric,
-    device: torch.device,
-) -> tuple[float, float]:
-    """
-    Trains the model for a single epoch and returns the average loss and accuracy.
-
-    Parameters:
-        model (nn.Module): The neural network model being trained.
-        loader (DataLoader): The DataLoader providing batches of training data.
-        criterion (nn.Module): The loss function used for optimization.
-        optimizer (optim.Optimizer): The optimizer updating the model weights.
-        accuracy_fn (torchmetrics.Metric): The function used to calculate accuracy.
-        device (torch.device): The hardware device running the calculations.
-
-    Returns:
-        metrics (tuple[float, float]): The average loss and average accuracy for the epoch.
-    """
-    model.train()
-
-    total_loss = total_acc = 0.0
-    for X, y in tqdm(loader, leave=False):
-        X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
-        logits: torch.Tensor = model(X)
-        loss: torch.Tensor = criterion(logits, y)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        total_loss += loss.item()
-        total_acc += accuracy_fn(logits.argmax(dim=1), y).item()
-    return total_loss / len(loader), total_acc / len(loader)
-
-
-@torch.inference_mode()
-def validate_one_epoch(
-    model: nn.Module,
-    loader: DataLoader,
-    criterion: nn.Module,
-    accuracy_fn: torchmetrics.Metric,
-    device: torch.device,
-) -> tuple[float, float]:
-    """
-    Evaluates the model on validation or test data for a single epoch.
-
-    Parameters:
-        model (nn.Module): The neural network model being evaluated.
-        loader (DataLoader): The DataLoader providing batches of evaluation data.
-        criterion (nn.Module): The loss function used to calculate the error.
-        accuracy_fn (torchmetrics.Metric): The function used to calculate accuracy.
-        device (torch.device): The hardware device running the calculations.
-
-    Returns:
-        metrics (tuple[float, float]): The average loss and average accuracy for the epoch.
-    """
-    model.eval()
-
-    total_loss = total_acc = 0.0
-    for X, y in loader:
-        X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
-        logits: torch.Tensor = model(X)
-        loss: torch.Tensor = criterion(logits, y)
-        total_loss += loss.item()
-        total_acc += accuracy_fn(logits.argmax(dim=1), y).item()
-    return total_loss / len(loader), total_acc / len(loader)
-
-
 def _save_custom_checkpoint(
     model: CustomConvLSTM,
     optimizer: optim.Optimizer,
     epoch: int,
-    loss: float,
+    validation_metrics: dict[str, float],
     checkpoint_path: Path,
+    dataset_name: str,
+    split_manifest_hash: str,
+    seed: int,
 ) -> None:
-    """Save weights with enough architecture metadata to rebuild the model.
+    """Save one validation-selected checkpoint with complete provenance.
 
     Parameters:
         model: Custom model being trained.
         optimizer: Optimizer whose state should be saved.
         epoch: Current training epoch.
-        loss: Current validation loss.
+        validation_metrics: Metrics from the complete validation partition.
         checkpoint_path: Destination checkpoint path.
+        dataset_name: Dataset used for training and validation.
+        split_manifest_hash: Exact split manifest hash used by the run.
+        seed: Training run seed.
 
     Returns:
         None.
     """
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     configuration = model.configuration()
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "model_config": configuration,
-            "epoch": epoch,
-            "loss": loss,
-        },
-        checkpoint_path,
-    )
-    metadata = {
+    metadata: dict[str, object] = {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": validation_metrics["loss"],
+        "selected_epoch": epoch,
         "epoch": epoch,
-        "loss": loss,
+        "loss": validation_metrics["loss"],
+        "validation_metrics": validation_metrics,
+        "metric_protocol": metric_protocol(),
+        "dataset_name": dataset_name,
+        "split_manifest_hash": split_manifest_hash,
+        "seed": seed,
         "timestamp": datetime.now().isoformat(),
         "trainable_parameters": count_trainable_parameters(model),
         "model_config": configuration,
     }
+    torch.save(
+        {
+            **metadata,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+        },
+        checkpoint_path,
+    )
     write_json(checkpoint_path.with_suffix(".json"), metadata)
     print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
 def main() -> None:
     args = parser.parse_args()
+    if args.epochs <= 0:
+        raise ValueError("epochs must be positive")
+    if args.early_stopping_patience <= 0:
+        raise ValueError("early_stopping_patience must be positive")
     deterministic_settings = seed_everything(args.seed)
     deterministic_settings["data_loader_seeds"] = {
         "train": args.seed,
         "validation": args.seed + 1,
-        "test": args.seed + 2,
     }
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"🖥  Using device: {device}")
@@ -293,7 +245,7 @@ def main() -> None:
     num_classes = dataset.num_classes
     print(f"{len(dataset)} samples | {num_classes} classes")
 
-    train_set, val_set, test_set, split_metadata = load_split_subsets(
+    train_set, val_set, _, split_metadata = load_split_subsets(
         dataset,
         manifest_path,
         train_ratio=args.train_ratio,
@@ -301,8 +253,9 @@ def main() -> None:
         seed=DEFAULT_SPLIT_SEED,
     )
     n_total = len(dataset)
-    n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
-    print(f"Train: {n_train} | Val: {n_val} | Test: {n_test}")
+    n_train, n_val = len(train_set), len(val_set)
+    n_test = n_total - n_train - n_val
+    print(f"Train: {n_train} | Val: {n_val} | Test locked: {n_test}")
 
     train_data = (
         AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
@@ -333,13 +286,6 @@ def main() -> None:
         generator=data_loader_generator(args.seed + 1),
         **loader_kw,
     )
-    test_loader = DataLoader(
-        test_set,
-        shuffle=False,
-        generator=data_loader_generator(args.seed + 2),
-        **loader_kw,
-    )
-
     layers = parse_layer_arguments(args.convlstm_layer)
     model = CustomConvLSTM(
         num_classes=num_classes,
@@ -419,6 +365,10 @@ def main() -> None:
             "weight_decay": args.weight_decay,
             "optimizer": "Adam",
             "scheduler": "ReduceLROnPlateau",
+            "metric_protocol": metric_protocol(),
+            "checkpoint_selection": "lowest_validation_loss",
+            "early_stopping_patience": args.early_stopping_patience,
+            "test_access": "locked",
         },
     }
     config_path = write_json(run_dir / "config.json", resolved_configuration)
@@ -440,15 +390,11 @@ def main() -> None:
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.9, patience=5
     )
-    acc_fn = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes).to(
-        device
-    )
-
     train_losses, val_losses, train_accs, val_accs = [], [], [], []
-    epoch_history: list[dict[str, float | int]] = []
-    best_val_loss = float("inf")
-    best_epoch: int | None = None
+    epoch_history: list[dict[str, object]] = []
+    selector = ValidationLossSelector(args.early_stopping_patience)
     history_path = run_dir / "metrics" / "history.json"
+    best_path = run_dir / "checkpoints" / "best_model.pth"
 
     print("🚀 Training...")
     start = timer()
@@ -457,45 +403,75 @@ def main() -> None:
         current_lr = optimizer.param_groups[0]["lr"]
         print(f"\n🧠 Epoch {epoch+1}/{args.epochs}  lr={current_lr:.2e}")
 
-        train_loss, train_acc = train_one_epoch(
-            model, train_loader, criterion, optimizer, acc_fn, device
+        train_metrics = train_classifier_epoch(
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            device,
+            num_classes,
         )
-        val_loss, val_acc = validate_one_epoch(
-            model, val_loader, criterion, acc_fn.clone(), device
+        validation_metrics = evaluate_classifier(
+            model,
+            val_loader,
+            criterion,
+            device,
+            num_classes,
         )
-        scheduler.step(val_loss)
+        scheduler.step(validation_metrics["loss"])
 
-        train_losses.append(train_loss)
-        val_losses.append(val_loss)
-        train_accs.append(train_acc)
-        val_accs.append(val_acc)
+        train_losses.append(train_metrics["loss"])
+        val_losses.append(validation_metrics["loss"])
+        train_accs.append(train_metrics["accuracy"])
+        val_accs.append(validation_metrics["accuracy"])
+        selected = selector.update(validation_metrics["loss"], epoch + 1)
         epoch_history.append(
             {
                 "epoch": epoch + 1,
                 "learning_rate": current_lr,
-                "train_loss": train_loss,
-                "validation_loss": val_loss,
-                "train_accuracy": train_acc,
-                "validation_accuracy": val_acc,
+                "training_metrics": train_metrics,
+                "validation_metrics": validation_metrics,
+                "selected_checkpoint": selected,
             }
         )
-        write_json(history_path, {"epochs": epoch_history})
+        write_json(
+            history_path,
+            {
+                "metric_protocol": metric_protocol(),
+                "selection": selector.state(len(epoch_history)),
+                "epochs": epoch_history,
+            },
+        )
         print(
-            f"  Loss → Train: {train_loss:.4f} Val: {val_loss:.4f} | Acc → Train: {train_acc:.4f} Val: {val_acc:.4f}"
+            "  Loss → "
+            f"Train: {train_metrics['loss']:.4f} "
+            f"Val: {validation_metrics['loss']:.4f} | Acc → "
+            f"Train: {train_metrics['accuracy']:.4f} "
+            f"Val: {validation_metrics['accuracy']:.4f} | "
+            f"Val macro-F1: {validation_metrics['macro_f1']:.4f}"
         )
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            best_epoch = epoch + 1
-            best_path = run_dir / "checkpoints" / "best_model.pth"
+        if selected:
             _save_custom_checkpoint(
                 model,
                 optimizer,
-                epoch,
-                val_loss,
+                epoch + 1,
+                validation_metrics,
                 checkpoint_path=best_path,
+                dataset_name=dataset_name,
+                split_manifest_hash=str(split_metadata["manifest_hash"]),
+                seed=args.seed,
             )
-            print(f"  ⭐ Best model updated (val_loss={val_loss:.4f})")
+            print(
+                "  ⭐ Best model updated "
+                f"(val_loss={validation_metrics['loss']:.4f})"
+            )
+        if selector.should_stop:
+            print(
+                "  🛑 Early stopping: "
+                f"{args.early_stopping_patience} epochs without improvement"
+            )
+            break
 
     print(f"\n⏱  Done in {timer() - start:.1f}s")
 
@@ -508,35 +484,60 @@ def main() -> None:
         show=False,
     )
 
-    test_loss, test_acc = validate_one_epoch(
-        model, test_loader, criterion, acc_fn.clone(), device
+    selection_state = selector.state(len(epoch_history))
+    checkpoint = torch.load(best_path, map_location=device, weights_only=True)
+    checkpoint["early_stopping"] = selection_state
+    torch.save(checkpoint, best_path)
+    write_json(
+        best_path.with_suffix(".json"),
+        {
+            key: value
+            for key, value in checkpoint.items()
+            if key not in {"model_state_dict", "optimizer_state_dict"}
+        },
     )
-    print(f"\n🏁 Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
-
-    true_labels, predicted_labels = collect_predictions(model, test_loader, device)
+    checkpoint_selection = validate_selected_checkpoint(
+        checkpoint,
+        dataset_name,
+        str(split_metadata["manifest_hash"]),
+    )
+    model.load_state_dict(checkpoint["model_state_dict"])
+    selected_validation_metrics = evaluate_classifier(
+        model,
+        val_loader,
+        criterion,
+        device,
+        num_classes,
+    )
+    true_labels, predicted_labels = collect_predictions(model, val_loader, device)
     confusion_artifacts = plot_confusion_matrix(
         true_labels,
         predicted_labels,
         dataset.class_names,
-        dataset_name=dataset_name,
-        save_path=run_dir / "metrics" / "confusion_matrix.png",
-    )
-    prediction_records = save_prediction_clips(
-        model,
-        test_set,
-        dataset.class_names,
-        device,
-        run_dir / "predictions",
-        num_samples=8,
+        dataset_name=f"{dataset_name}_validation",
+        save_path=run_dir / "metrics" / "validation_confusion_matrix.png",
     )
     final_metrics = {
-        "evaluated_model": "final_epoch",
-        "test_loss": test_loss,
-        "test_accuracy": test_acc,
-        "best_validation_loss": best_val_loss,
-        "best_epoch": best_epoch,
+        "evaluated_model": "validation_selected_checkpoint",
+        "partition": "validation",
+        "metric_protocol": metric_protocol(),
+        "validation_metrics": selected_validation_metrics,
+        "checkpoint_selection": checkpoint_selection,
+        "early_stopping": selection_state,
+        "test_access": "locked",
     }
     final_metrics_path = write_json(run_dir / "metrics" / "final.json", final_metrics)
+    resolved_configuration["checkpoint_selection"] = checkpoint_selection
+    resolved_configuration["early_stopping"] = selection_state
+    write_json(config_path, resolved_configuration)
+    run.update(
+        {
+            "metric_protocol": metric_protocol(),
+            "checkpoint_selection": checkpoint_selection,
+            "early_stopping": selection_state,
+            "test_access": "locked",
+        }
+    )
     run.complete(
         artifacts={
             "configuration": str(config_path),
@@ -547,8 +548,7 @@ def main() -> None:
             ),
             "training_curves": str(run_dir / "plots" / "training_curves.png"),
             "final_metrics": str(final_metrics_path),
-            "confusion_matrix": confusion_artifacts,
-            "prediction_videos": prediction_records,
+            "validation_confusion_matrix": confusion_artifacts,
         },
         results=final_metrics,
     )

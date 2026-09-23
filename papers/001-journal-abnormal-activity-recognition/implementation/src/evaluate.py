@@ -7,7 +7,7 @@ Author: Sanele Hlabisa
 
 python -m src.evaluate \
     --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-    --checkpoint_path "models/abnormal-activities-dataset_best_model.pth" \
+    --checkpoint_path "runs/train/<run>/checkpoints/best_model.pth" \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
     --runs_dir "runs" \
@@ -31,7 +31,6 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torchmetrics
 from torch.utils.data import DataLoader
 
 from .dataset import (
@@ -40,11 +39,8 @@ from .dataset import (
     load_split_subsets,
     resolve_split_manifest_path,
 )
-from .model import (
-    CustomConvLSTM,
-    custom_model_from_checkpoint,
-    parse_layer_arguments,
-)
+from .metrics import evaluate_classifier, metric_protocol, validate_selected_checkpoint
+from .model import custom_model_from_checkpoint, parse_layer_arguments
 from .utils import (
     RunContext,
     collect_predictions,
@@ -58,7 +54,7 @@ from .utils import (
 
 parser = argparse.ArgumentParser(description="Evaluate ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--checkpoint_path", type=str, default=None)
+parser.add_argument("--checkpoint_path", type=str, required=True)
 parser.add_argument("--runs_dir", type=str, default="runs")
 parser.add_argument("--split_manifest", type=str, default=None)
 parser.add_argument("--seed", type=int, default=42)
@@ -80,44 +76,6 @@ parser.add_argument("--val_ratio", type=float, default=0.15)
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--pin_memory", action="store_true")
 parser.add_argument("--num_samples", type=int, default=8)
-
-
-@torch.inference_mode()
-def evaluate(
-    model: torch.nn.Module,
-    loader: DataLoader,
-    criterion: torch.nn.Module,
-    metrics: dict,
-    device: torch.device,
-):
-    """
-    Evaluates the model performance on a given dataset loader using specified metrics.
-
-    Parameters:
-        model (torch.nn.Module): The trained PyTorch model to evaluate.
-        loader (DataLoader): The DataLoader providing the evaluation data batches.
-        criterion (torch.nn.Module): The loss function used to calculate the error.
-        metrics (dict): A dictionary of TorchMetrics objects to compute.
-        device (torch.device): The hardware device to run inference on.
-
-    Returns:
-        results (dict): A dictionary containing the computed loss and metric scores.
-    """
-    model.eval()
-    for m in metrics.values():
-        m.reset()
-    total_loss = 0.0
-    for X, y in loader:
-        X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
-        logits = model(X)
-        total_loss += criterion(logits, y).item()
-        preds = logits.argmax(dim=1)
-        for m in metrics.values():
-            m(preds, y)
-    results = {"loss": total_loss / len(loader)}
-    for name, m in metrics.items():
-        results[name] = m.compute().item()
-    return results
 
 
 def main() -> None:
@@ -178,6 +136,39 @@ def main() -> None:
     n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
     print(f"📊 Test split: {n_test} samples")
 
+    layers = parse_layer_arguments(args.convlstm_layer)
+    checkpoint_path = Path(args.checkpoint_path)
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
+    try:
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
+        checkpoint_selection = validate_selected_checkpoint(
+            checkpoint,
+            dataset_name,
+            str(split_metadata["manifest_hash"]),
+        )
+        model = custom_model_from_checkpoint(checkpoint).to(device)
+        if args.convlstm_layer is not None and model.layers != layers:
+            raise ValueError("checkpoint layers do not match --convlstm-layer values")
+        if (
+            args.hidden_classifier_width is not None
+            and model.hidden_classifier_width != args.hidden_classifier_width
+        ):
+            raise ValueError(
+                "checkpoint hidden width does not match --hidden-classifier-width"
+            )
+        if model.num_classes != num_classes:
+            raise ValueError(
+                "checkpoint class count does not match the dataset class count"
+            )
+    except (KeyError, RuntimeError, TypeError, ValueError) as error:
+        raise SystemExit(f"Checkpoint is incompatible: {error}") from error
+    print(
+        "📂 Validation-selected checkpoint → "
+        f"epoch={checkpoint_selection['selected_epoch']}, "
+        f"loss={checkpoint_selection['selection_value']:.4f}"
+    )
+
     test_loader = DataLoader(
         test_set,
         batch_size=args.batch_size,
@@ -188,51 +179,6 @@ def main() -> None:
         generator=data_loader_generator(args.seed + 2),
     )
 
-    layers = parse_layer_arguments(args.convlstm_layer)
-    model = CustomConvLSTM(
-        num_classes=num_classes,
-        layers=layers,
-        hidden_classifier_width=args.hidden_classifier_width,
-    ).to(device)
-
-    # Initialize defaults in case checkpoint loading is skipped or fails
-    epoch = 0
-    ckpt_loss = float("inf")
-
-    if args.checkpoint_path:
-        checkpoint_path = Path(args.checkpoint_path)
-        if not checkpoint_path.is_file():
-            raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
-        try:
-            checkpoint = torch.load(
-                checkpoint_path, map_location=device, weights_only=True
-            )
-            loaded_model = custom_model_from_checkpoint(checkpoint).to(device)
-            if args.convlstm_layer is not None and loaded_model.layers != layers:
-                raise ValueError(
-                    "checkpoint layers do not match --convlstm-layer values"
-                )
-            if (
-                args.hidden_classifier_width is not None
-                and loaded_model.hidden_classifier_width != args.hidden_classifier_width
-            ):
-                raise ValueError(
-                    "checkpoint hidden width does not match "
-                    "--hidden-classifier-width"
-                )
-            if loaded_model.num_classes != num_classes:
-                raise ValueError(
-                    "checkpoint class count does not match the dataset class count"
-                )
-            model = loaded_model
-            epoch = int(checkpoint.get("epoch", 0))
-            ckpt_loss = float(checkpoint.get("loss", float("inf")))
-            print(f"📂 Checkpoint → epoch={epoch}, loss={ckpt_loss:.4f}")
-        except (KeyError, RuntimeError, TypeError, ValueError) as error:
-            raise SystemExit(f"Checkpoint is incompatible: {error}") from error
-    else:
-        print("⚠️ No checkpoint provided. Using random weights.")
-
     configuration = {
         "model": model.configuration(),
         "class_names": dataset.class_names,
@@ -240,14 +186,11 @@ def main() -> None:
         "split_sizes": {"train": n_train, "validation": n_val, "test": n_test},
         "split": split_metadata,
         "deterministic_settings": deterministic_settings,
+        "metric_protocol": metric_protocol(),
+        "evaluation_partition": "test",
         "checkpoint": {
-            "path": (
-                str(Path(args.checkpoint_path).resolve())
-                if args.checkpoint_path
-                else None
-            ),
-            "epoch": epoch,
-            "saved_loss": ckpt_loss if ckpt_loss != float("inf") else None,
+            "path": str(checkpoint_path.resolve()),
+            **checkpoint_selection,
         },
     }
     config_path = write_json(run_dir / "config.json", configuration)
@@ -261,27 +204,21 @@ def main() -> None:
             "split_sizes": configuration["split_sizes"],
             "split": split_metadata,
             "deterministic_settings": deterministic_settings,
+            "metric_protocol": metric_protocol(),
+            "evaluation_partition": "test",
+            "checkpoint_selection": checkpoint_selection,
         }
     )
 
     criterion = nn.CrossEntropyLoss()
-    metrics = {
-        "accuracy": torchmetrics.Accuracy(
-            task="multiclass", num_classes=num_classes
-        ).to(device),
-        "precision": torchmetrics.Precision(
-            task="multiclass", num_classes=num_classes, average="macro"
-        ).to(device),
-        "recall": torchmetrics.Recall(
-            task="multiclass", num_classes=num_classes, average="macro"
-        ).to(device),
-        "f1": torchmetrics.F1Score(
-            task="multiclass", num_classes=num_classes, average="macro"
-        ).to(device),
-    }
-
-    results = evaluate(model, test_loader, criterion, metrics, device)
-    print("\n🏁 Results")
+    results = evaluate_classifier(
+        model,
+        test_loader,
+        criterion,
+        device,
+        num_classes,
+    )
+    print("\n🏁 Final test results")
     print("─" * 32)
     for name, value in results.items():
         print(f"  {name:<12}: {value:.4f}")
@@ -291,8 +228,8 @@ def main() -> None:
         all_true,
         all_pred,
         dataset.class_names,
-        dataset_name=dataset_name,
-        save_path=run_dir / "metrics" / "confusion_matrix.png",
+        dataset_name=f"{dataset_name}_test",
+        save_path=run_dir / "metrics" / "test_confusion_matrix.png",
     )
 
     print("\n🎬 Saving prediction clips...")
@@ -308,10 +245,12 @@ def main() -> None:
     report = {
         "dataset": dataset_name,
         "dataset_mode": "classification",
+        "partition": "test",
+        "metric_protocol": metric_protocol(),
         "classes": dataset.class_names,
         "checkpoint": {
-            "epoch": epoch,
-            "saved_loss": round(ckpt_loss, 6) if ckpt_loss != float("inf") else None,
+            "path": str(checkpoint_path.resolve()),
+            **checkpoint_selection,
         },
         "metrics": {k: round(v, 6) for k, v in results.items()},
         "artifacts": {
