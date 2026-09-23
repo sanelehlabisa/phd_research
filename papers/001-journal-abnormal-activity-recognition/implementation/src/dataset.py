@@ -6,8 +6,8 @@ Video and frames dataset classes for AHAR.
 Author: Sanele Hlabisa
 
 python -m src.dataset \
-    --dataset_dir "datasets/processed/videos_abnormal_activities" \
-    --frames \
+    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+    --augment \
     --num_samples 4
 """
 
@@ -16,16 +16,115 @@ from __future__ import annotations
 import argparse
 import json
 import random
+from collections.abc import Callable
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import torch
 import torch.nn.functional as F
 import torchvision
 from torch.utils.data import Dataset
-from torchvision import transforms
+from torchvision.transforms import InterpolationMode
+from torchvision.transforms import functional as transform_functional
 
 from .utils import read_video_torchvision, write_video_torchvision, TARGET_FPS
+
+
+class VideoAugmentation:
+    """Apply one conservative, temporally consistent transform to a video.
+
+    Parameters:
+        None.
+
+    Returns:
+        A callable video augmentation policy.
+    """
+
+    @staticmethod
+    def _chance(probability: float) -> bool:
+        """Draw one Boolean augmentation decision.
+
+        Parameters:
+            probability: Probability that the transform is applied.
+
+        Returns:
+            Whether to apply the transform.
+        """
+        return torch.rand(()).item() < probability
+
+    @staticmethod
+    def _uniform(lower: float, upper: float) -> float:
+        """Draw one floating-point value from a uniform range.
+
+        Parameters:
+            lower: Inclusive lower bound.
+            upper: Exclusive upper bound.
+
+        Returns:
+            A sampled value within the range.
+        """
+        return lower + (upper - lower) * torch.rand(()).item()
+
+    def __call__(self, video: torch.Tensor) -> torch.Tensor:
+        """Augment a complete clip using one parameter set for every frame.
+
+        Parameters:
+            video: Clip shaped `(T, C, H, W)` with values in `[0, 1]`.
+
+        Returns:
+            The augmented clip with the same shape and value range.
+        """
+        if video.ndim != 4:
+            raise ValueError("video must have shape (T, C, H, W)")
+        _, _, height, width = video.shape
+        augmented = video
+
+        if self._chance(0.5):
+            augmented = transform_functional.hflip(augmented)
+
+        if self._chance(0.3):
+            angle = self._uniform(-8.0, 8.0)
+            translate = [
+                round(self._uniform(-0.05, 0.05) * width),
+                round(self._uniform(-0.05, 0.05) * height),
+            ]
+            scale = self._uniform(0.95, 1.05)
+            augmented = torch.stack(
+                [
+                    transform_functional.affine(
+                        frame,
+                        angle=angle,
+                        translate=translate,
+                        scale=scale,
+                        shear=[0.0, 0.0],
+                        interpolation=InterpolationMode.BILINEAR,
+                    )
+                    for frame in augmented
+                ]
+            )
+
+        if self._chance(0.3):
+            brightness = self._uniform(0.85, 1.15)
+            contrast = self._uniform(0.85, 1.15)
+            augmented = torch.stack(
+                [
+                    transform_functional.adjust_contrast(
+                        transform_functional.adjust_brightness(frame, brightness),
+                        contrast,
+                    )
+                    for frame in augmented
+                ]
+            )
+
+        if self._chance(0.1):
+            sigma = self._uniform(0.1, 1.0)
+            augmented = transform_functional.gaussian_blur(
+                augmented,
+                kernel_size=[3, 3],
+                sigma=[sigma, sigma],
+            )
+
+        return augmented.clamp(0.0, 1.0)
 
 
 class AHARDataset(Dataset):
@@ -40,7 +139,7 @@ class AHARDataset(Dataset):
         dataset_dir: str | Path,
         sequence_length: int = 64,
         frame_size: tuple[int, int] = (112, 112),
-        transform: Optional[transforms.Compose] = None,
+        transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
         target_fps: int = TARGET_FPS,
     ) -> None:
         """
@@ -50,7 +149,7 @@ class AHARDataset(Dataset):
             dataset_dir (str | Path): Path to the dataset directory.
             sequence_length (int): Number of frames to sample per clip.
             frame_size (tuple[int, int]): Target spatial resolution for the frames.
-            transform (Optional[transforms.Compose]): Data augmentations to apply.
+            transform: Optional full-video transform to apply.
             target_fps (int): The consistent frame rate to sample clips at.
 
         Returns:
@@ -87,7 +186,6 @@ class AHARDataset(Dataset):
             f"| mode={self._mode} | {self.num_classes} classes: {self.class_names}"
         )
 
-
     def _detect_mode(self) -> str:
         """
         Checks the first class directory to determine if the dataset uses frames or videos.
@@ -123,7 +221,7 @@ class AHARDataset(Dataset):
         self, frames: torch.Tensor, source_fps: float
     ) -> torch.Tensor:
         """
-        Samples a fixed sequence of frames based on the target frames per second, 
+        Samples a fixed sequence of frames based on the target frames per second,
         preserving the natural speed of the motion regardless of video length.
 
         Parameters:
@@ -134,7 +232,7 @@ class AHARDataset(Dataset):
             sampled_frames (torch.Tensor): The reduced and padded frame sequence tensor.
         """
         T = frames.shape[0]
-        
+
         # Calculate stride to match target FPS
         stride = max(1, round(source_fps / self.target_fps))
         indices = list(range(0, T, stride))
@@ -219,12 +317,7 @@ class AHARDataset(Dataset):
             return self.__getitem__((index + 1) % len(self))
 
         if self.transform:
-            seed = torch.randint(0, 1_000_000, (1,)).item()
-            frames_out = []
-            for frame in video:
-                torch.manual_seed(seed)
-                frames_out.append(self.transform(frame))
-            video = torch.stack(frames_out)
+            video = self.transform(video)
 
         return video, label
 
@@ -275,12 +368,7 @@ class CachedAHARDataset(AHARDataset):
         """
         video, label = self._cache[index]
         if self.transform:
-            seed = torch.randint(0, 1_000_000, (1,)).item()
-            frames = []
-            for frame in video:
-                torch.manual_seed(seed)
-                frames.append(self.transform(frame))
-            video = torch.stack(frames)
+            video = self.transform(video)
         return video, label
 
 
@@ -295,9 +383,15 @@ def main() -> None:
     parser.add_argument("--num_samples", type=int, default=4)
     parser.add_argument("--fps", type=int, default=8)
     parser.add_argument("--cache", action="store_true", help="Use CachedAHARDataset")
+    parser.add_argument(
+        "--augment",
+        action="store_true",
+        help="Save a paired online-augmented preview beside each clean clip",
+    )
     args = parser.parse_args()
 
-    out_dir = Path("outputs") / "dataset_samples"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_dir = Path("outputs") / "dataset_samples" / timestamp
     out_dir.mkdir(parents=True, exist_ok=True)
 
     DatasetClass = CachedAHARDataset if args.cache else AHARDataset
@@ -306,27 +400,39 @@ def main() -> None:
     )
     indices = random.sample(range(len(dataset)), min(args.num_samples, len(dataset)))
 
-    print(f"\n🎬 Saving {len(indices)} clips → {out_dir}")
+    augmentation = VideoAugmentation() if args.augment else None
+    preview_label = "clean/augmented pairs" if augmentation else "clean clips"
+    print(f"\n🎬 Saving {len(indices)} {preview_label} → {out_dir}")
     for idx in indices:
         video, label = dataset[idx]
         stem = Path(dataset.samples[idx][0]).stem
-        fname = f"{stem}_class-{dataset.class_names[label]}.mp4"
-        write_video_torchvision(video, out_dir / fname, fps=args.fps)
-        print(f"  ✅ {fname}")
+        name = f"{stem}_class-{dataset.class_names[label]}"
+        clean_name = f"{name}_clean.mp4"
+        write_video_torchvision(video, out_dir / clean_name, fps=args.fps)
+        print(f"  ✅ {clean_name}")
+        if augmentation:
+            augmented_name = f"{name}_augmented.mp4"
+            write_video_torchvision(
+                augmentation(video),
+                out_dir / augmented_name,
+                fps=args.fps,
+            )
+            print(f"  ✅ {augmented_name}")
 
 
 class AugmentSubset(torch.utils.data.Dataset):
-    """
-    Dataset wrapper that dynamically applies transformations to a specific subset of data.
-    """
+    """Apply one online video transform without changing subset length."""
 
-    def __init__(self, subset, transform=None):
-        """
-        Initializes the augmentation wrapper.
+    def __init__(
+        self,
+        subset: Dataset,
+        transform: Callable[[torch.Tensor], torch.Tensor],
+    ) -> None:
+        """Initialize the online augmentation wrapper.
 
         Parameters:
-            subset (torch.utils.data.Subset): The underlying dataset subset to wrap.
-            transform (Optional[transforms.Compose]): Transformations to apply to the frames.
+            subset: Underlying training subset to wrap.
+            transform: Full-video transform applied once per sample access.
 
         Returns:
             None
@@ -334,9 +440,8 @@ class AugmentSubset(torch.utils.data.Dataset):
         self.subset = subset
         self.transform = transform
 
-    def __len__(self):
-        """
-        Returns the total number of samples in the subset.
+    def __len__(self) -> int:
+        """Return the unchanged number of underlying samples.
 
         Parameters:
             None
@@ -346,9 +451,8 @@ class AugmentSubset(torch.utils.data.Dataset):
         """
         return len(self.subset)
 
-    def __getitem__(self, idx):
-        """
-        Retrieves a transformed sample from the subset, ensuring temporal consistency.
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
+        """Return one freshly augmented view of an underlying sample.
 
         Parameters:
             idx (int): The index of the sample to retrieve.
@@ -356,16 +460,8 @@ class AugmentSubset(torch.utils.data.Dataset):
         Returns:
             sample (tuple): A tuple containing the transformed video tensor and its label.
         """
-        x, y = self.subset[idx]
-        if self.transform is not None:
-            # This ensures random augmentations (like flips/rotations) are applied identically across all frames in this specific clip.
-            seed = torch.randint(0, 2147483647, (1,)).item()
-            augmented_frames = []
-            for frame in x:
-                torch.manual_seed(seed)
-                augmented_frames.append(self.transform(frame))
-            x = torch.stack(augmented_frames)
-        return x, y
+        video, label = self.subset[idx]
+        return self.transform(video), label
 
 
 if __name__ == "__main__":

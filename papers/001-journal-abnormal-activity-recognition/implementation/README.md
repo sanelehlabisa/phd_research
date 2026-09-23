@@ -71,6 +71,8 @@ Inspect the five approved entries without a dataset or model allocation:
 - Fixed 70:15:15, stratified, group-aware split with a saved manifest.
 - AAD for architecture screening and most ablations; VDD for final
   generalisation evaluation.
+- `--augment` applies one fresh, clip-consistent online view per training
+  sample without changing dataset length; validation and test remain clean.
 - Validation-only model and checkpoint selection; test data remains locked.
 - Seeds `42` and `2026` for reported confirmation runs.
 - Validation-loss early stopping with restoration of the selected checkpoint.
@@ -88,36 +90,155 @@ Inspect the five approved entries without a dataset or model allocation:
 3. [x] **Baseline audit and alignment (`012`).** Verified the source-paper
    topology and separated its deeper comparisons from this study's three
    practical 18-layer 3D-CNN baselines.
-4. [ ] **Reproducible data (`013`, next).** Seed the full pipeline and reuse a
+4. [x] **Video augmentation (`013`).** Replaced augmented dataset copies with
+   one optional, clip-consistent online view per training sample and added AAD
+   commands for every executable module.
+5. [ ] **Reproducible data (`014`, next).** Seed the full pipeline and reuse a
    stratified, group-aware 70:15:15 split manifest.
-5. [ ] **Valid selection and metrics (`014`).** Isolate full-partition metrics,
+6. [ ] **Valid selection and metrics (`015`).** Isolate full-partition metrics,
    restore the validation-selected checkpoint, and separate final test access.
-6. [ ] **Run artifacts (`015`).** Save resolved configuration, split, seed,
+7. [ ] **Run artifacts (`016`).** Save resolved configuration, split, seed,
    revision, history, parameters, metrics, checkpoint, confusion matrix, and
    runtime under a unique experiment ID.
-7. [ ] **Configuration integration (`016`).** Revise the stashed ticket-009 work
+8. [ ] **Configuration integration (`017`).** Revise the stashed ticket-009 work
    around the stable model layer specification and reconnect the runner.
-8. [ ] **Architecture shortlist (`017–018`).** Audit historical runs, predeclare
+9. [ ] **Architecture shortlist (`018–019`).** Audit historical runs, predeclare
    a small model set, and confirm it under one protocol.
-9. [ ] **Focused ablations (`019`).** Test depth, width, kernel size, input size,
+10. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
    frame count, head design, augmentation, and regularisation one factor at a
    time—never as a Cartesian grid.
-10. [ ] **Validation and handoff (`020–021`).** Confirm the frozen model on VDD,
+11. [ ] **Validation and handoff (`021–022`).** Confirm the frozen model on VDD,
    aggregate evidence, and export paper-ready tables and figures.
 
 Generated datasets, environments, checkpoints, and experiment runs remain
 untracked. Do not change manuscript results until versioned evidence exists.
 
-## Setup
+## Setup and commands
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m src.model \
-  --dataset-dir datasets/violence-detection-dataset/violence-detection-dataset
 ```
 
-Run commands from this directory. The current training and experiment scripts
-remain exploratory until tasks 013–016 are complete. The model smoke command
-uses random weights and its outputs are pipeline checks, not research evidence.
+Run the following commands from this `implementation/` directory. They use the
+larger Abnormal Activities Dataset (AAD).
+
+Preview clean and online-augmented pairs (writes MP4 files under `outputs/`):
+
+```bash
+.venv/bin/python -m src.dataset \
+  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --sequence_length 32 \
+  --height 64 \
+  --width 64 \
+  --num_samples 2 \
+  --fps 8 \
+  --augment
+```
+
+Check source videos without creating a processed dataset (read-only, but slow):
+
+```bash
+.venv/bin/python -m src.preprocess_dataset \
+  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --output_name "abnormal-activities-dataset" \
+  --frame_size 256 \
+  --dry_run
+```
+
+Smoke-test both random-weight ConvLSTM models (writes sample predictions):
+
+```bash
+.venv/bin/python -m src.model \
+  --dataset-dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --sequence-length 64 \
+  --height 8 \
+  --width 8 \
+  --num-samples 2 \
+  --convlstm-layer 8 3 3 \
+  --convlstm-layer 16 3 3
+```
+
+Train the same reference without augmentation (starts a full training run):
+
+```bash
+.venv/bin/python -m src.train \
+  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --model_dir "models/aad-clean" \
+  --convlstm-layer 8 3 3 \
+  --convlstm-layer 16 3 3 \
+  --batch_size 32 \
+  --weight_decay 0.0001 \
+  --learning_rate 0.001 \
+  --epochs 64 \
+  --sequence_length 16 \
+  --height 32 \
+  --width 32 \
+  --num_workers 2 \
+  --pin_memory
+```
+
+Train with one online augmented view per sample (starts a full training run):
+
+```bash
+.venv/bin/python -m src.train \
+  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --model_dir "models/aad-augmented" \
+  --convlstm-layer 8 3 3 \
+  --convlstm-layer 16 3 3 \
+  --batch_size 32 \
+  --weight_decay 0.0001 \
+  --learning_rate 0.001 \
+  --epochs 64 \
+  --sequence_length 16 \
+  --height 32 \
+  --width 32 \
+  --augment \
+  --num_workers 2 \
+  --pin_memory
+```
+
+Inspect the comparison registry without loading AAD or allocating models:
+
+```bash
+.venv/bin/python -m src.experiments --list-models
+```
+
+Run the registered AAD comparisons (starts a full experiment):
+
+```bash
+.venv/bin/python -m src.experiments \
+  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --results_dir "experiments/aad-baselines" \
+  --epochs 24 \
+  --batch_size 16 \
+  --sequence_length 16 \
+  --height 32 \
+  --width 32 \
+  --augment \
+  --num_workers 2
+```
+
+Evaluate the augmented reference checkpoint (runs the AAD test split and writes
+metrics, a confusion matrix, and prediction clips):
+
+```bash
+.venv/bin/python -m src.evaluate \
+  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+  --checkpoint_path "models/aad-augmented/abnormal-activities-dataset_best_model.pth" \
+  --experiments_dir "experiments/aad-evaluation" \
+  --convlstm-layer 8 3 3 \
+  --convlstm-layer 16 3 3 \
+  --batch_size 32 \
+  --sequence_length 16 \
+  --height 32 \
+  --width 32 \
+  --num_workers 2 \
+  --pin_memory \
+  --num_samples 8
+```
+
+The current training and experiment scripts remain exploratory until tasks
+014–017 are complete. Random-weight smoke outputs are pipeline checks, not
+research evidence.

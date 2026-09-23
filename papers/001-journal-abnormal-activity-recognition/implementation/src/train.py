@@ -6,9 +6,8 @@ Training script for ConvLSTM-based Abnormal Human Activity Recognition (AHAR).
 Author: Sanele Hlabisa
 
 python -m src.train \
-    --dataset_dir "datasets/processed/videos_violence-detection-dataset" \
+    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
     --model_dir "models" \
-    --checkpoint_path "models/videos_violence-detection-dataset_best_model.pth" \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
     --resume \
@@ -17,10 +16,10 @@ python -m src.train \
     --weight_decay 0.0001 \
     --learning_rate 0.001 \
     --epochs 64 \
-    --sequence_length 64 \
-    --height 64 \
-    --width 64 \
-    --aug_copies 4 \
+    --sequence_length 16 \
+    --height 32 \
+    --width 32 \
+    --augment \
     --num_workers 2 \
     --pin_memory
     
@@ -38,12 +37,16 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchmetrics
-from torchvision import transforms
 from torch.utils.data import DataLoader, random_split
 
 from tqdm import tqdm
 
-from .dataset import AHARDataset, CachedAHARDataset, AugmentSubset
+from .dataset import (
+    AHARDataset,
+    AugmentSubset,
+    CachedAHARDataset,
+    VideoAugmentation,
+)
 from .model import (
     CustomConvLSTM,
     count_trainable_parameters,
@@ -87,7 +90,11 @@ parser.add_argument(
     help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
 )
 parser.add_argument("--hidden-classifier-width", type=int, default=None)
-parser.add_argument("--aug_copies", type=int, default=4)
+parser.add_argument(
+    "--augment",
+    action="store_true",
+    help="Apply one fresh, clip-consistent online augmentation per training sample",
+)
 parser.add_argument("--train_ratio", type=float, default=0.7)
 parser.add_argument("--val_ratio", type=float, default=0.1)
 parser.add_argument("--num_workers", type=int, default=0)
@@ -241,55 +248,14 @@ def main() -> None:
     )
     print(f"Train: {n_train} | Val: {n_val} | Test: {n_test}")
 
-    # Streamlined pipeline for linear probing/head fine-tuning
-    # Upgraded robust transform pipeline with TrivialAugmentWide compatibility
-    train_transform = transforms.Compose(
-        [
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.1),
-            transforms.RandomApply(
-                [
-                    transforms.RandomAffine(
-                        degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1)
-                    )
-                ],
-                p=0.5,
-            ),
-            transforms.RandomApply(
-                [
-                    transforms.RandomResizedCrop(
-                        size=(args.height, args.width), scale=(0.8, 1.0)
-                    )
-                ],
-                p=0.4,
-            ),
-            transforms.RandomPerspective(distortion_scale=0.2, p=0.3),
-            transforms.RandomApply(
-                [
-                    transforms.ColorJitter(
-                        brightness=0.5, contrast=0.5, saturation=0.4, hue=0.1
-                    )
-                ],
-                p=0.8,
-            ),
-            transforms.RandomGrayscale(p=0.1),
-            transforms.RandomApply(
-                [transforms.RandomAdjustSharpness(sharpness_factor=2)], p=0.3
-            ),
-            transforms.RandomApply([transforms.GaussianBlur(kernel_size=3)], p=0.3),
-            transforms.RandomErasing(
-                p=0.3, scale=(0.02, 0.15), ratio=(0.3, 3.0), value=0
-            ),
-        ]
+    train_data = (
+        AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
     )
-
-    train_indices = train_set.indices
-    clean_subset = torch.utils.data.Subset(dataset, train_indices)
-    aug_subsets = [
-        AugmentSubset(clean_subset, train_transform) for _ in range(args.aug_copies)
-    ]
-    combined_train = torch.utils.data.ConcatDataset([clean_subset] + aug_subsets)
-    print(f"📈 Train expanded: {len(train_indices)} → {len(combined_train)} samples")
+    augmentation_state = "enabled" if args.augment else "disabled"
+    print(
+        f"🎞️  Augmentation: {augmentation_state} | "
+        f"Train samples: {len(train_set)} → {len(train_data)}"
+    )
 
     loader_kw = dict(
         batch_size=args.batch_size,
@@ -298,7 +264,7 @@ def main() -> None:
         persistent_workers=args.num_workers > 0,
         prefetch_factor=2 if args.num_workers > 0 else None,
     )
-    train_loader = DataLoader(combined_train, shuffle=True, **loader_kw)
+    train_loader = DataLoader(train_data, shuffle=True, **loader_kw)
     val_loader = DataLoader(val_set, shuffle=False, **loader_kw)
     test_loader = DataLoader(test_set, shuffle=False, **loader_kw)
 

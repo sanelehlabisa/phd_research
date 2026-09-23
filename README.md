@@ -11,8 +11,8 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `012-audit-and-align-baselines` is complete. The next planned task is
-`013-make-splits-reproducible`, which will seed the pipeline and create a fixed,
+Ticket `013-fix-video-augmentation` is complete. The next planned task is
+`014-make-splits-reproducible`, which will seed the pipeline and create a fixed,
 documented data split before comparison training.
 
 ## Structure

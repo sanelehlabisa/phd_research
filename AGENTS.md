@@ -16,9 +16,10 @@
 - The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
   `CustomConvLSTM`. Express each custom recurrent layer as
   `(filters, (kernel_height, kernel_width))`; do not expand this into an
-  unrestricted hyperparameter search. The comparison baselines are now audited
-  and clearly labelled. The immediate priority is to make the data split and
-  random state reproducible before any comparison training.
+  unrestricted hyperparameter search. The comparison baselines are now audited,
+  and augmentation is one optional, clip-consistent online view per training
+  sample. The immediate priority is to make the split and random state
+  reproducible before comparison training.
 
 ## Research rules
 

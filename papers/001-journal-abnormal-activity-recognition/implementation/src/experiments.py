@@ -13,7 +13,7 @@ python -m src.experiments \
     --sequence_length 16 \
     --height 32 \
     --width 32 \
-    --aug_copies 1 \
+    --augment \
     --num_workers 2
 """
 
@@ -29,12 +29,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchmetrics
-from torchvision import transforms
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 import torchvision.models.video as video_models
 
-from .dataset import AHARDataset, AugmentSubset
+from .dataset import AHARDataset, AugmentSubset, VideoAugmentation
 from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
 from .utils import plot_confusion_matrix
 
@@ -46,7 +45,11 @@ parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--sequence_length", type=int, default=16)
 parser.add_argument("--height", type=int, default=32)
 parser.add_argument("--width", type=int, default=32)
-parser.add_argument("--aug_copies", type=int, default=1)
+parser.add_argument(
+    "--augment",
+    action="store_true",
+    help="Apply one fresh, clip-consistent online augmentation per training sample",
+)
 parser.add_argument("--train_ratio", type=float, default=0.7)
 parser.add_argument("--val_ratio", type=float, default=0.1)
 parser.add_argument("--num_workers", type=int, default=2)
@@ -274,57 +277,19 @@ def main() -> None:
         generator=torch.Generator().manual_seed(42),
     )
 
-    # ---- Augmentation (same pipeline as train.py) ----
-    train_transform = transforms.Compose(
-        [
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.1),
-            transforms.RandomApply(
-                [
-                    transforms.RandomAffine(
-                        degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1)
-                    )
-                ],
-                p=0.5,
-            ),
-            transforms.RandomApply(
-                [
-                    transforms.RandomResizedCrop(
-                        size=(args.height, args.width), scale=(0.8, 1.0)
-                    )
-                ],
-                p=0.4,
-            ),
-            transforms.RandomPerspective(distortion_scale=0.2, p=0.3),
-            transforms.RandomApply(
-                [
-                    transforms.ColorJitter(
-                        brightness=0.5, contrast=0.5, saturation=0.4, hue=0.1
-                    )
-                ],
-                p=0.8,
-            ),
-            transforms.RandomGrayscale(p=0.1),
-            transforms.RandomApply(
-                [transforms.RandomAdjustSharpness(sharpness_factor=2)], p=0.3
-            ),
-            transforms.RandomApply([transforms.GaussianBlur(kernel_size=3)], p=0.3),
-            transforms.RandomErasing(
-                p=0.3, scale=(0.02, 0.15), ratio=(0.3, 3.0), value=0
-            ),
-        ]
+    train_data = (
+        AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
     )
-
-    base_subset = torch.utils.data.Subset(dataset, train_set.indices)
-    aug_subsets = [
-        AugmentSubset(base_subset, train_transform) for _ in range(args.aug_copies)
-    ]
-    combined = torch.utils.data.ConcatDataset([base_subset] + aug_subsets)
+    augmentation_state = "enabled" if args.augment else "disabled"
+    print(
+        f"Augmentation: {augmentation_state} | "
+        f"Train samples: {len(train_set)} → {len(train_data)}"
+    )
 
     loader_kw = dict(
         batch_size=args.batch_size, num_workers=args.num_workers, pin_memory=True
     )
-    train_loader = DataLoader(combined, shuffle=True, **loader_kw)
+    train_loader = DataLoader(train_data, shuffle=True, **loader_kw)
     val_loader = DataLoader(val_set, shuffle=False, **loader_kw)
     test_loader = DataLoader(test_set, shuffle=False, **loader_kw)
 

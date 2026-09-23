@@ -6,15 +6,15 @@ Evaluation script for AHAR.
 Author: Sanele Hlabisa
 
 python -m src.evaluate \
-    --dataset_dir "datasets/processed/videos_violence-detection-dataset" \
-    --checkpoint_path "models/violence-detection-dataset_best_model.pth" \
+    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+    --checkpoint_path "models/abnormal-activities-dataset_best_model.pth" \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
     --experiments_dir "experiments" \
     --batch_size 32 \
-    --sequence_length 64 \
-    --height 64 \
-    --width 64 \
+    --sequence_length 16 \
+    --height 32 \
+    --width 32 \
     --num_workers 2 \
     --pin_memory \
     --num_samples 8

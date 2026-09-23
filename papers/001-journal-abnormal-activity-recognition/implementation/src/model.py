@@ -1,4 +1,14 @@
-"""ConvLSTM layers, models, and a small prediction smoke command."""
+"""ConvLSTM layers, models, and a small prediction smoke command.
+
+python -m src.model \
+    --dataset-dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+    --sequence-length 64 \
+    --height 8 \
+    --width 8 \
+    --num-samples 2 \
+    --convlstm-layer 8 3 3 \
+    --convlstm-layer 16 3 3
+"""
 
 from __future__ import annotations
 
