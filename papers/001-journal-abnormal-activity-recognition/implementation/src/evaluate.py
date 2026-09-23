@@ -10,7 +10,7 @@ python -m src.evaluate \
     --checkpoint_path "models/abnormal-activities-dataset_best_model.pth" \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
-    --experiments_dir "experiments" \
+    --runs_dir "runs" \
     --batch_size 32 \
     --sequence_length 16 \
     --height 32 \
@@ -23,8 +23,6 @@ python -m src.evaluate \
 from __future__ import annotations
 
 import argparse
-import json
-from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -38,12 +36,18 @@ from .model import (
     custom_model_from_checkpoint,
     parse_layer_arguments,
 )
-from .utils import plot_confusion_matrix, save_prediction_clips
+from .utils import (
+    RunContext,
+    collect_predictions,
+    plot_confusion_matrix,
+    save_prediction_clips,
+    write_json,
+)
 
 parser = argparse.ArgumentParser(description="Evaluate ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
 parser.add_argument("--checkpoint_path", type=str, default=None)
-parser.add_argument("--experiments_dir", type=str, default="experiments")
+parser.add_argument("--runs_dir", type=str, default="runs")
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--sequence_length", type=int, default=32)
 parser.add_argument("--width", type=int, default=128)
@@ -102,39 +106,38 @@ def evaluate(
     return results
 
 
-@torch.inference_mode()
-def _collect_preds(model: torch.nn.Module, loader: DataLoader, device: torch.device):
-    """
-    Runs inference over a dataloader to collect all true and predicted labels.
-
-    Parameters:
-        model (torch.nn.Module): The trained PyTorch model.
-        loader (DataLoader): The DataLoader providing the evaluation data.
-        device (torch.device): The hardware device to run inference on.
-
-    Returns:
-        labels (tuple): A tuple containing a list of true labels and a list of predicted labels.
-    """
-    model.eval()
-    all_true, all_pred = [], []
-    for X, y in loader:
-        X = X.to(device, non_blocking=True)
-        preds = model(X).argmax(dim=1).cpu().tolist()
-        all_pred.extend(preds)
-        all_true.extend(y.tolist())
-    return all_true, all_pred
-
-
 def main() -> None:
     args = parser.parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"🖥  Using device: {device}")
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     dataset_name = Path(args.dataset_dir).name
-    exp_dir = Path(args.experiments_dir) / timestamp
-    exp_dir.mkdir(parents=True, exist_ok=True)
-    print(f"📁 Experiment dir → {exp_dir}")
+    run = RunContext(
+        args.runs_dir,
+        purpose="evaluate",
+        dataset_path=args.dataset_dir,
+        label="custom-convlstm",
+        arguments=vars(args),
+        metadata={
+            "input_dimensions": {
+                "sequence_length": args.sequence_length,
+                "channels": 3,
+                "height": args.height,
+                "width": args.width,
+            },
+            "augmentation": False,
+            "split_ratios": {
+                "train": args.train_ratio,
+                "validation": args.val_ratio,
+                "test": 1.0 - args.train_ratio - args.val_ratio,
+            },
+            "seed": 42,
+            "device": str(device),
+            "input_checkpoint": args.checkpoint_path,
+        },
+    )
+    run_dir = run.run_dir
+    print(f"📁 Run directory → {run_dir}")
 
     dataset = AHARDataset(
         args.dataset_dir, args.sequence_length, (args.width, args.height)
@@ -206,6 +209,33 @@ def main() -> None:
     else:
         print("⚠️ No checkpoint provided. Using random weights.")
 
+    configuration = {
+        "model": model.configuration(),
+        "class_names": dataset.class_names,
+        "dataset_size": n_total,
+        "split_sizes": {"train": n_train, "validation": n_val, "test": n_test},
+        "checkpoint": {
+            "path": (
+                str(Path(args.checkpoint_path).resolve())
+                if args.checkpoint_path
+                else None
+            ),
+            "epoch": epoch,
+            "saved_loss": ckpt_loss if ckpt_loss != float("inf") else None,
+        },
+    }
+    config_path = write_json(run_dir / "config.json", configuration)
+    checkpoint_reference_path = write_json(
+        run_dir / "checkpoint.json", configuration["checkpoint"]
+    )
+    run.update(
+        {
+            "class_names": dataset.class_names,
+            "model_configuration": model.configuration(),
+            "split_sizes": configuration["split_sizes"],
+        }
+    )
+
     criterion = nn.CrossEntropyLoss()
     metrics = {
         "accuracy": torchmetrics.Accuracy(
@@ -228,23 +258,26 @@ def main() -> None:
     for name, value in results.items():
         print(f"  {name:<12}: {value:.4f}")
 
-    all_true, all_pred = _collect_preds(model, test_loader, device)
-    cm_path = str(exp_dir / "confusion_matrix.png")
-    plot_confusion_matrix(
+    all_true, all_pred = collect_predictions(model, test_loader, device)
+    confusion_artifacts = plot_confusion_matrix(
         all_true,
         all_pred,
         dataset.class_names,
         dataset_name=dataset_name,
-        save_path=cm_path,
+        save_path=run_dir / "metrics" / "confusion_matrix.png",
     )
 
     print("\n🎬 Saving prediction clips...")
     clip_records = save_prediction_clips(
-        model, test_set, dataset.class_names, device, exp_dir, args.num_samples
+        model,
+        test_set,
+        dataset.class_names,
+        device,
+        run_dir / "predictions",
+        args.num_samples,
     )
 
     report = {
-        "timestamp": timestamp,
         "dataset": dataset_name,
         "dataset_mode": "classification",
         "classes": dataset.class_names,
@@ -253,11 +286,22 @@ def main() -> None:
             "saved_loss": round(ckpt_loss, 6) if ckpt_loss != float("inf") else None,
         },
         "metrics": {k: round(v, 6) for k, v in results.items()},
-        "artifacts": {"confusion_matrix": cm_path, "prediction_clips": clip_records},
+        "artifacts": {
+            "confusion_matrix": confusion_artifacts,
+            "prediction_clips": clip_records,
+        },
     }
-    json_path = exp_dir / "metrics.json"
-    with open(json_path, "w") as f:
-        json.dump(report, f, indent=2)
+    json_path = write_json(run_dir / "metrics" / "final.json", report)
+    run.complete(
+        artifacts={
+            "configuration": str(config_path),
+            "checkpoint_reference": str(checkpoint_reference_path),
+            "metrics": str(json_path),
+            "confusion_matrix": confusion_artifacts,
+            "prediction_videos": clip_records,
+        },
+        results=report["metrics"],
+    )
     print(f"📄 Report → {json_path}")
 
 

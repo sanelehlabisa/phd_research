@@ -2,6 +2,7 @@
 
 python -m src.model \
     --dataset-dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+    --runs_dir "runs" \
     --sequence-length 64 \
     --height 8 \
     --width 8 \
@@ -13,19 +14,20 @@ python -m src.model \
 from __future__ import annotations
 
 import argparse
-import json
 import random
-import shutil
-from datetime import datetime
 from pathlib import Path
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sklearn.metrics import confusion_matrix
-
 from .dataset import AHARDataset
-from .utils import plot_confusion_matrix, write_video_torchvision
+from .utils import (
+    RunContext,
+    plot_confusion_matrix,
+    safe_filename,
+    write_json,
+    write_video_torchvision,
+)
 
 PAPER_SOURCE_URL = "https://www.mdpi.com/1424-8220/22/8/2946"
 PAPER_TRAINABLE_PARAMETERS = 512_197_467
@@ -619,34 +621,6 @@ def custom_model_from_checkpoint(checkpoint: dict[str, object]) -> CustomConvLST
     return model
 
 
-def _safe_name(value: str) -> str:
-    """Convert a label into a safe filename component.
-
-    Parameters:
-        value: Label or source name.
-
-    Returns:
-        A filesystem-safe name.
-    """
-    return "_".join(value.strip().replace("/", "_").split())
-
-
-def _clear_model_samples(output_root: Path) -> None:
-    """Remove only the fixed disposable model-sample directory.
-
-    Parameters:
-        output_root: Expected `outputs/model_samples` directory.
-
-    Returns:
-        None.
-    """
-    expected = (Path.cwd() / "outputs" / "model_samples").resolve()
-    if output_root.resolve() != expected:
-        raise ValueError(f"refusing to clear unexpected output path: {output_root}")
-    if output_root.exists():
-        shutil.rmtree(output_root)
-
-
 def _save_viewable_video(frames: torch.Tensor, path: Path, fps: int) -> None:
     """Upscale model frames and save them as a viewable MP4.
 
@@ -675,6 +649,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(description="Smoke-test both ConvLSTM models")
     parser.add_argument("--dataset-dir", required=True)
+    parser.add_argument("--runs_dir", default="runs")
     parser.add_argument("--sequence-length", type=int, default=64)
     parser.add_argument("--height", type=int, default=16)
     parser.add_argument("--width", type=int, default=16)
@@ -709,6 +684,27 @@ def main() -> None:
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     device = torch.device("cpu")
+    dataset_name = Path(args.dataset_dir).resolve().name
+    run = RunContext(
+        args.runs_dir,
+        purpose="model",
+        dataset_path=args.dataset_dir,
+        label="convlstm-smoke",
+        arguments=vars(args),
+        metadata={
+            "warning": "Random-weight smoke predictions; not experimental evidence.",
+            "input_dimensions": {
+                "sequence_length": args.sequence_length,
+                "channels": 3,
+                "height": args.height,
+                "width": args.width,
+            },
+            "augmentation": False,
+            "seed": args.seed,
+            "device": str(device),
+        },
+    )
+    run_dir = run.run_dir
     dataset = AHARDataset(
         args.dataset_dir,
         sequence_length=args.sequence_length,
@@ -742,17 +738,18 @@ def main() -> None:
         ),
         ("custom_convlstm", custom_model, custom_model.configuration()),
     ]
-    output_root = Path("outputs") / "model_samples"
-    _clear_model_samples(output_root)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dataset_name = _safe_name(Path(args.dataset_dir).resolve().name)
-    run_dir = output_root / timestamp / dataset_name
-    run_dir.mkdir(parents=True)
+    run.update(
+        {
+            "class_names": dataset.class_names,
+            "model_configurations": {
+                name: configuration for name, _, configuration in models
+            },
+        }
+    )
     summary: dict[str, object] = {
         "warning": "Random-weight smoke predictions; not experimental evidence.",
         "dataset": str(Path(args.dataset_dir).resolve()),
         "dataset_name": dataset_name,
-        "timestamp": timestamp,
         "seed": args.seed,
         "input": {
             "sequence_length": args.sequence_length,
@@ -786,10 +783,10 @@ def main() -> None:
                 is_correct = predicted_label == true_label
                 true_name = dataset.class_names[true_label]
                 predicted_name = dataset.class_names[predicted_label]
-                source_stem = _safe_name(Path(dataset.samples[index][0]).stem)
+                source_stem = safe_filename(Path(dataset.samples[index][0]).stem)
                 filename = (
-                    f"{source_stem}_true-{_safe_name(true_name)}_"
-                    f"pred-{_safe_name(predicted_name)}.mp4"
+                    f"{source_stem}_true-{safe_filename(true_name)}_"
+                    f"pred-{safe_filename(predicted_name)}.mp4"
                 )
                 category = "correct" if is_correct else "incorrect"
                 video_path = model_dir / category / filename
@@ -811,12 +808,7 @@ def main() -> None:
                     f"{model_name}: {source_stem} -> {predicted_name} "
                     f"(true: {true_name}, logits: {tuple(logits.shape)})"
                 )
-        matrix = confusion_matrix(
-            true_labels,
-            predicted_labels,
-            labels=list(range(dataset.num_classes)),
-        ).tolist()
-        plot_confusion_matrix(
+        confusion_artifacts = plot_confusion_matrix(
             true_labels,
             predicted_labels,
             dataset.class_names,
@@ -827,13 +819,21 @@ def main() -> None:
         model_summaries[model_name] = {
             "configuration": configuration,
             "trainable_parameters": parameter_count,
-            "confusion_matrix": matrix,
+            "confusion_matrix": confusion_artifacts,
             "predictions": prediction_records,
         }
         print(f"{model_name}: {parameter_count:,} trainable parameters")
     summary_path = run_dir / "summary.json"
-    with summary_path.open("w", encoding="utf-8") as handle:
-        json.dump(summary, handle, indent=2)
+    write_json(summary_path, summary)
+    run.complete(
+        artifacts={
+            "summary": str(summary_path),
+            "model_directories": {
+                model_name: str(run_dir / model_name) for model_name, _, _ in models
+            },
+        },
+        results={"models": model_summaries},
+    )
     print(f"Saved smoke artifacts to {run_dir}")
 
 

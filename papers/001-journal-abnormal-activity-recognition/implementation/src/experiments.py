@@ -7,7 +7,8 @@ Saves all results to JSON.
 Author: Sanele Hlabisa
 
 python -m src.experiments \
-    --dataset_dir "datasets/processed/frames_abnormal_activities" \
+    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+    --runs_dir "runs" \
     --epochs 24 \
     --batch_size 16 \
     --sequence_length 16 \
@@ -20,9 +21,6 @@ python -m src.experiments \
 from __future__ import annotations
 
 import argparse
-import json
-from datetime import datetime
-from pathlib import Path
 from timeit import default_timer as timer
 
 import torch
@@ -35,11 +33,11 @@ import torchvision.models.video as video_models
 
 from .dataset import AHARDataset, AugmentSubset, VideoAugmentation
 from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
-from .utils import plot_confusion_matrix
+from .utils import RunContext, plot_confusion_matrix, safe_filename, write_json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--results_dir", type=str, default="experiments/grid_search")
+parser.add_argument("--runs_dir", type=str, default="runs")
 parser.add_argument("--epochs", type=int, default=24)
 parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--sequence_length", type=int, default=16)
@@ -255,8 +253,31 @@ def main() -> None:
     torch.backends.cudnn.benchmark = True
     print(f"Device: {device}")
 
-    results_dir = Path(args.results_dir)
-    results_dir.mkdir(parents=True, exist_ok=True)
+    run = RunContext(
+        args.runs_dir,
+        purpose="experiments",
+        dataset_path=args.dataset_dir,
+        label="baseline-comparison",
+        arguments=vars(args),
+        metadata={
+            "input_dimensions": {
+                "sequence_length": args.sequence_length,
+                "channels": 3,
+                "height": args.height,
+                "width": args.width,
+            },
+            "augmentation": args.augment,
+            "split_ratios": {
+                "train": args.train_ratio,
+                "validation": args.val_ratio,
+                "test": 1.0 - args.train_ratio - args.val_ratio,
+            },
+            "seed": 42,
+            "device": str(device),
+        },
+    )
+    run_dir = run.run_dir
+    print(f"Run directory: {run_dir}")
 
     # ---- Dataset ----
     dataset = AHARDataset(
@@ -295,6 +316,35 @@ def main() -> None:
 
     # ---- Model configs ----
     input_shape = (3, args.height, args.width)
+    shared_configuration = {
+        "models": registry,
+        "class_names": dataset.class_names,
+        "dataset_size": n_total,
+        "split_sizes": {"train": n_train, "validation": n_val, "test": n_test},
+        "input_dimensions": {
+            "sequence_length": args.sequence_length,
+            "channels": 3,
+            "height": args.height,
+            "width": args.width,
+        },
+        "training": {
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "weight_decay": args.weight_decay,
+            "optimizer": "Adam",
+            "loss": "CrossEntropyLoss(label_smoothing=0.1)",
+        },
+        "augmentation": args.augment,
+    }
+    config_path = write_json(run_dir / "config.json", shared_configuration)
+    run.update(
+        {
+            "class_names": dataset.class_names,
+            "model_configuration": registry,
+            "split_sizes": shared_configuration["split_sizes"],
+        }
+    )
     print(f"\nRunning {len(registry)} configurations...\n")
     all_results = []
 
@@ -332,6 +382,7 @@ def main() -> None:
         )
         model = model.to(device)
         num_params = count_trainable_parameters(model)
+        model_dir = run_dir / "models" / safe_filename(name)
         print(f"[{i+1}/{len(registry)}] {name} | params={num_params:,}")
 
         opt = optim.Adam(
@@ -377,15 +428,27 @@ def main() -> None:
 
         t_res = {k: m.compute().item() for k, m in test_metrics.items()}
 
-        # Generates confusion matrix per architecture variant!
-        dataset_name_clean = args.dataset_dir.strip("/").split("/")[-1]
-        cm_path = str(results_dir / f"cm_{dataset_name_clean}_{name}.png")
-        plot_confusion_matrix(
+        confusion_artifacts = plot_confusion_matrix(
             all_true,
             all_pred,
             dataset.class_names,
             dataset_name=name,
-            save_path=cm_path,
+            save_path=model_dir / "metrics" / "confusion_matrix.png",
+        )
+
+        final_checkpoint_path = model_dir / "checkpoints" / "final_model.pth"
+        final_checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(
+            {
+                "checkpoint_role": "final_epoch_not_validation_selected",
+                "model_name": name,
+                "model_registry_entry": entry,
+                "model_state_dict": model.state_dict(),
+                "num_classes": num_classes,
+                "input_dimensions": shared_configuration["input_dimensions"],
+                "epoch": args.epochs,
+            },
+            final_checkpoint_path,
         )
 
         result = {
@@ -402,8 +465,16 @@ def main() -> None:
             "test_f1": round(t_res["f1"], 4),
             "overfit_score": round(overfit, 4),
             "train_time_s": round(elapsed, 1),
-            "cm_path": cm_path,
+            "confusion_matrix": confusion_artifacts,
+            "final_checkpoint": str(final_checkpoint_path),
+            "history": {
+                "train_accuracy": train_accs,
+                "validation_accuracy": val_accs,
+                "validation_loss": val_losses,
+            },
         }
+        metrics_path = write_json(model_dir / "metrics" / "metrics.json", result)
+        result["metrics_path"] = str(metrics_path)
         all_results.append(result)
         print(
             f"  val_acc={best_val_acc:.4f}  test_acc={t_res['accuracy']:.4f}  "
@@ -430,11 +501,19 @@ def main() -> None:
             f"params={r['num_params']:,}"
         )
 
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dataset_name_clean = args.dataset_dir.strip("/").split("/")[-1]
-    out_path = results_dir / f"grid_search_{dataset_name_clean}_{ts}.json"
-    with open(out_path, "w") as f:
-        json.dump({"best": ranked[:5], "all": all_results}, f, indent=2)
+    summary = {"ranked": ranked, "top_five": ranked[:5], "all": all_results}
+    out_path = write_json(run_dir / "summary.json", summary)
+    run.complete(
+        artifacts={
+            "configuration": str(config_path),
+            "ranked_summary": str(out_path),
+            "model_directories": {
+                result["name"]: str(run_dir / "models" / safe_filename(result["name"]))
+                for result in all_results
+            },
+        },
+        results={"ranked": ranked},
+    )
     print(f"\nFull results saved to {out_path}")
 
 

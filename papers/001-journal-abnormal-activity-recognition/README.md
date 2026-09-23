@@ -38,12 +38,12 @@ reference architecture for ablation.
   study's `r3d_18`, `mc3_18`, and `r2plus1d_18` practical baselines.
 - [x] `013-fix-video-augmentation` — replaced augmented copies with optional,
   clip-consistent online augmentation and documented runnable AAD commands.
-- [ ] `014-make-splits-reproducible` — **Next:** seed the full pipeline and
-  create fixed, stratified, group-aware split manifests.
-- [ ] `015-fix-selection-and-metrics` — correct metrics, restore the best
+- [x] `014-standardize-run-artifacts` — separated model, training, evaluation,
+  and comparison evidence into local timestamped run directories.
+- [ ] `015-make-splits-reproducible` — **Next:** seed the full pipeline and
+  create fixed, stratified 70:15:15 clip manifests.
+- [ ] `016-fix-selection-and-metrics` — correct metrics, restore the best
   validation checkpoint, and keep test data out of model selection.
-- [ ] `016-standardize-run-artifacts` — save complete, versioned run evidence and
-  add a CPU smoke run.
 - [ ] `017-connect-ablation-config` — revise and resume ticket 009 so one config
   controls the stable model, input, and training schema.
 - [ ] `018-shortlist-architecture-results` — audit historical runs and predeclare
@@ -59,6 +59,8 @@ reference architecture for ablation.
   section using only verified outputs.
 - [ ] `024-align-paper-claims` — align the abstract, contributions, methods,
   limitations, and conclusion with the final evidence.
+- [ ] `025-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
+  prediction to the custom model without changing the published baseline.
 
 ## Planned results-section flow
 

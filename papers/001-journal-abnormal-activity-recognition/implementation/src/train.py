@@ -7,7 +7,7 @@ Author: Sanele Hlabisa
 
 python -m src.train \
     --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-    --model_dir "models" \
+    --runs_dir "runs" \
     --convlstm-layer 8 3 3 \
     --convlstm-layer 16 3 3 \
     --resume \
@@ -28,7 +28,6 @@ python -m src.train \
 from __future__ import annotations
 
 import argparse
-import json
 from datetime import datetime
 from pathlib import Path
 from timeit import default_timer as timer
@@ -53,11 +52,18 @@ from .model import (
     custom_model_from_checkpoint,
     parse_layer_arguments,
 )
-from .utils import plot_training_curves, save_prediction_clips
+from .utils import (
+    RunContext,
+    collect_predictions,
+    plot_confusion_matrix,
+    plot_training_curves,
+    save_prediction_clips,
+    write_json,
+)
 
 parser = argparse.ArgumentParser(description="Train ConvLSTM for AHAR")
 parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--model_dir", type=str, default="models")
+parser.add_argument("--runs_dir", type=str, default="runs")
 parser.add_argument("--checkpoint_path", type=str, default=None)
 parser.add_argument(
     "--resume",
@@ -209,8 +215,7 @@ def _save_custom_checkpoint(
         "trainable_parameters": count_trainable_parameters(model),
         "model_config": configuration,
     }
-    with checkpoint_path.with_suffix(".json").open("w", encoding="utf-8") as handle:
-        json.dump(metadata, handle, indent=2)
+    write_json(checkpoint_path.with_suffix(".json"), metadata)
     print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
@@ -219,6 +224,33 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.backends.cudnn.benchmark = True
     print(f"🖥  Using device: {device}")
+
+    run = RunContext(
+        args.runs_dir,
+        purpose="train",
+        dataset_path=args.dataset_dir,
+        label="custom-convlstm",
+        arguments=vars(args),
+        metadata={
+            "input_dimensions": {
+                "sequence_length": args.sequence_length,
+                "channels": 3,
+                "height": args.height,
+                "width": args.width,
+            },
+            "augmentation": args.augment,
+            "split_ratios": {
+                "train": args.train_ratio,
+                "validation": args.val_ratio,
+                "test": 1.0 - args.train_ratio - args.val_ratio,
+            },
+            "seed": 42,
+            "device": str(device),
+            "input_checkpoint": args.checkpoint_path,
+        },
+    )
+    run_dir = run.run_dir
+    print(f"📁 Run directory → {run_dir}")
 
     _probe = AHARDataset(
         args.dataset_dir, args.sequence_length, (args.width, args.height)
@@ -328,6 +360,35 @@ def main() -> None:
             f"params={count_trainable_parameters(model):,}"
         )
 
+    resolved_configuration = {
+        "model": model.configuration(),
+        "trainable_parameters": count_trainable_parameters(model),
+        "class_names": dataset.class_names,
+        "dataset_size": n_total,
+        "split_sizes": {
+            "train": n_train,
+            "validation": n_val,
+            "test": n_test,
+        },
+        "training": {
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "weight_decay": args.weight_decay,
+            "optimizer": "Adam",
+            "scheduler": "ReduceLROnPlateau",
+        },
+    }
+    config_path = write_json(run_dir / "config.json", resolved_configuration)
+    run.update(
+        {
+            "class_names": dataset.class_names,
+            "model_configuration": model.configuration(),
+            "trainable_parameters": count_trainable_parameters(model),
+            "split_sizes": resolved_configuration["split_sizes"],
+        }
+    )
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
@@ -340,8 +401,10 @@ def main() -> None:
     )
 
     train_losses, val_losses, train_accs, val_accs = [], [], [], []
+    epoch_history: list[dict[str, float | int]] = []
     best_val_loss = float("inf")
-    Path(args.model_dir).mkdir(parents=True, exist_ok=True)
+    best_epoch: int | None = None
+    history_path = run_dir / "metrics" / "history.json"
 
     print("🚀 Training...")
     start = timer()
@@ -362,15 +425,25 @@ def main() -> None:
         val_losses.append(val_loss)
         train_accs.append(train_acc)
         val_accs.append(val_acc)
+        epoch_history.append(
+            {
+                "epoch": epoch + 1,
+                "learning_rate": current_lr,
+                "train_loss": train_loss,
+                "validation_loss": val_loss,
+                "train_accuracy": train_acc,
+                "validation_accuracy": val_acc,
+            }
+        )
+        write_json(history_path, {"epochs": epoch_history})
         print(
             f"  Loss → Train: {train_loss:.4f} Val: {val_loss:.4f} | Acc → Train: {train_acc:.4f} Val: {val_acc:.4f}"
         )
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            best_path = (
-                Path(args.model_dir) / f"{Path(args.dataset_dir).name}_best_model.pth"
-            )
+            best_epoch = epoch + 1
+            best_path = run_dir / "checkpoints" / "best_model.pth"
             _save_custom_checkpoint(
                 model,
                 optimizer,
@@ -387,8 +460,7 @@ def main() -> None:
         val_losses,
         train_accs,
         val_accs,
-        dataset_name=dataset_name,
-        save_dir=args.model_dir,
+        save_path=run_dir / "plots" / "training_curves.png",
         show=False,
     )
 
@@ -397,11 +469,46 @@ def main() -> None:
     )
     print(f"\n🏁 Test Loss: {test_loss:.4f} | Test Acc: {test_acc:.4f}")
 
-    out_dir = Path("outputs") / "train_samples"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    save_prediction_clips(
-        model, test_set, dataset.class_names, device, out_dir, num_samples=8
+    true_labels, predicted_labels = collect_predictions(model, test_loader, device)
+    confusion_artifacts = plot_confusion_matrix(
+        true_labels,
+        predicted_labels,
+        dataset.class_names,
+        dataset_name=dataset_name,
+        save_path=run_dir / "metrics" / "confusion_matrix.png",
     )
+    prediction_records = save_prediction_clips(
+        model,
+        test_set,
+        dataset.class_names,
+        device,
+        run_dir / "predictions",
+        num_samples=8,
+    )
+    final_metrics = {
+        "evaluated_model": "final_epoch",
+        "test_loss": test_loss,
+        "test_accuracy": test_acc,
+        "best_validation_loss": best_val_loss,
+        "best_epoch": best_epoch,
+    }
+    final_metrics_path = write_json(run_dir / "metrics" / "final.json", final_metrics)
+    run.complete(
+        artifacts={
+            "configuration": str(config_path),
+            "history": str(history_path),
+            "best_checkpoint": str(run_dir / "checkpoints" / "best_model.pth"),
+            "best_checkpoint_metadata": str(
+                run_dir / "checkpoints" / "best_model.json"
+            ),
+            "training_curves": str(run_dir / "plots" / "training_curves.png"),
+            "final_metrics": str(final_metrics_path),
+            "confusion_matrix": confusion_artifacts,
+            "prediction_videos": prediction_records,
+        },
+        results=final_metrics,
+    )
+    print(f"📁 Run artifacts → {run_dir}")
 
 
 if __name__ == "__main__":

@@ -1,23 +1,253 @@
 from __future__ import annotations
 
 import json
+import math
+import platform
 import random
+import re
+import subprocess
+import sys
 import warnings
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 from typing import Optional, Union
 
 import matplotlib.pyplot as plt
 import torch
-from mlxtend.evaluate import confusion_matrix as mlxt_cm
-from mlxtend.plotting import plot_confusion_matrix as mlxt_plot_cm
-from sklearn.metrics import confusion_matrix as sk_cm
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix as sk_cm
 import torchvision
 from torchvision.utils import save_image
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.io")
 
 TARGET_FPS: int = 16
+
+
+def safe_filename(value: str) -> str:
+    """Convert text into a concise filesystem-safe name.
+
+    Parameters:
+        value: Text to sanitize.
+
+    Returns:
+        A safe lowercase filename component.
+    """
+    cleaned = re.sub(r"[^a-zA-Z0-9._-]+", "-", value.strip()).strip("-._")
+    return cleaned.lower() or "unnamed"
+
+
+def _json_value(value: object) -> object:
+    """Convert common runtime objects into strict JSON values.
+
+    Parameters:
+        value: Value to convert.
+
+    Returns:
+        A JSON-compatible value.
+    """
+    if isinstance(value, dict):
+        return {str(key): _json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_value(item) for item in value]
+    if isinstance(value, set):
+        return [_json_value(item) for item in sorted(value, key=str)]
+    if isinstance(value, (Path, torch.device)):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
+def write_json(path: str | Path, data: object) -> Path:
+    """Write strict, human-readable JSON and create parent directories.
+
+    Parameters:
+        path: Destination JSON path.
+        data: JSON-compatible data or common runtime values.
+
+    Returns:
+        The destination path.
+    """
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_suffix(f"{destination.suffix}.tmp")
+    with temporary.open("w", encoding="utf-8") as handle:
+        json.dump(_json_value(data), handle, indent=2, allow_nan=False)
+        handle.write("\n")
+    temporary.replace(destination)
+    return destination
+
+
+def git_revision(start_dir: str | Path | None = None) -> str | None:
+    """Return the current Git revision when the directory is in a repository.
+
+    Parameters:
+        start_dir: Directory from which to query Git.
+
+    Returns:
+        The commit hash, or `None` when unavailable.
+    """
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=Path(start_dir) if start_dir is not None else Path.cwd(),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def runtime_environment() -> dict[str, object]:
+    """Capture available Python and PyTorch runtime details.
+
+    Parameters:
+        None.
+
+    Returns:
+        Runtime environment metadata.
+    """
+    return {
+        "python": sys.version.split()[0],
+        "platform": platform.platform(),
+        "pytorch": torch.__version__,
+        "torchvision": torchvision.__version__,
+        "cuda_available": torch.cuda.is_available(),
+        "cuda_version": torch.version.cuda,
+        "cudnn_version": torch.backends.cudnn.version(),
+    }
+
+
+def create_run_directory(
+    runs_dir: str | Path,
+    purpose: str,
+    dataset_name: str,
+    label: str,
+) -> Path:
+    """Create a unique purpose-specific run directory.
+
+    Parameters:
+        runs_dir: Common root for local runs.
+        purpose: One of model, train, evaluate, or experiments.
+        dataset_name: Dataset identifier for the leaf name.
+        label: Concise model or study identifier.
+
+    Returns:
+        The new unique run directory.
+    """
+    allowed_purposes = {"model", "train", "evaluate", "experiments"}
+    if purpose not in allowed_purposes:
+        raise ValueError(f"purpose must be one of {sorted(allowed_purposes)}")
+    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%f")
+    leaf = f"{timestamp}_{safe_filename(dataset_name)}_{safe_filename(label)}"
+    run_dir = Path(runs_dir) / purpose / leaf
+    suffix = 1
+    while True:
+        candidate = run_dir if suffix == 1 else run_dir.with_name(f"{leaf}_{suffix}")
+        try:
+            candidate.mkdir(parents=True, exist_ok=False)
+            return candidate
+        except FileExistsError:
+            suffix += 1
+
+
+class RunContext:
+    """Create and maintain one run directory and its lifecycle manifest.
+
+    Parameters:
+        runs_dir: Common root for local runs.
+        purpose: Purpose-specific directory name.
+        dataset_path: Dataset path supplied to the command.
+        label: Concise model or study label.
+        arguments: Exact parsed command-line arguments.
+        metadata: Available run metadata to add to the manifest.
+
+    Returns:
+        A run context with a unique directory and `run.json` file.
+    """
+
+    def __init__(
+        self,
+        runs_dir: str | Path,
+        purpose: str,
+        dataset_path: str | Path,
+        label: str,
+        arguments: dict[str, object],
+        metadata: dict[str, object] | None = None,
+    ) -> None:
+        self.started_at = datetime.now().astimezone()
+        self._timer = perf_counter()
+        dataset = Path(dataset_path)
+        self.run_dir = create_run_directory(
+            runs_dir,
+            purpose,
+            dataset.name,
+            label,
+        )
+        self.manifest: dict[str, object] = {
+            "purpose": purpose,
+            "status": "running",
+            "started_at": self.started_at,
+            "ended_at": None,
+            "duration_seconds": None,
+            "command": sys.argv,
+            "arguments": arguments,
+            "dataset_path": str(dataset.resolve()),
+            "dataset_name": dataset.name,
+            "environment": runtime_environment(),
+            "git_revision": git_revision(),
+            "artifacts": {},
+        }
+        if metadata:
+            self.manifest.update(metadata)
+        self._save()
+
+    def _save(self) -> None:
+        """Write the current lifecycle manifest to disk."""
+        write_json(self.run_dir / "run.json", self.manifest)
+
+    def update(self, metadata: dict[str, object]) -> None:
+        """Add newly available metadata to the run manifest.
+
+        Parameters:
+            metadata: Values to merge into the top level of `run.json`.
+
+        Returns:
+            None.
+        """
+        self.manifest.update(metadata)
+        self._save()
+
+    def complete(
+        self,
+        artifacts: dict[str, object],
+        results: dict[str, object] | None = None,
+    ) -> None:
+        """Mark the run complete and record artifacts and results.
+
+        Parameters:
+            artifacts: Paths to the run's reusable outputs.
+            results: Optional final metrics or summary values.
+
+        Returns:
+            None.
+        """
+        ended_at = datetime.now().astimezone()
+        self.manifest.update(
+            {
+                "status": "complete",
+                "ended_at": ended_at,
+                "duration_seconds": round(perf_counter() - self._timer, 6),
+                "artifacts": artifacts,
+            }
+        )
+        if results is not None:
+            self.manifest["results"] = results
+        self._save()
 
 
 def save_frames_dataset(
@@ -96,8 +326,7 @@ def plot_training_curves(
     val_losses: list[float],
     train_accs: list[float],
     val_accs: list[float],
-    dataset_name: str = "dataset",
-    save_dir: str = "outputs",
+    save_path: str | Path,
     show: bool = False,
 ) -> str:
     """
@@ -108,8 +337,7 @@ def plot_training_curves(
         val_losses (list[float]): List of validation loss values per epoch.
         train_accs (list[float]): List of training accuracy values per epoch.
         val_accs (list[float]): List of validation accuracy values per epoch.
-        dataset_name (str): Identifier used to name the output file.
-        save_dir (str): Directory path where the plot image will be saved.
+        save_path: Exact path for the output image.
         show (bool): If true, displays the plot interactively instead of closing it.
 
     Returns:
@@ -136,20 +364,17 @@ def plot_training_curves(
 
     plt.tight_layout()
 
-    # Timestamped subfolder so each run gets its own curves file
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    curve_dir = Path(save_dir) / "curves"
-    curve_dir.mkdir(parents=True, exist_ok=True)
-    save_path = str(curve_dir / f"training_curves_{dataset_name}_{ts}.png")
-    plt.savefig(save_path, dpi=150)
-    print(f"Saved training curves to {save_path}")
+    destination = Path(save_path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(destination, dpi=150)
+    print(f"Saved training curves to {destination}")
 
     if show:
         plt.show()
     else:
         plt.close()
 
-    return save_path
+    return str(destination)
 
 
 def plot_confusion_matrix(
@@ -157,9 +382,9 @@ def plot_confusion_matrix(
     y_pred: list[int],
     class_names: list[str],
     dataset_name: str = "dataset",
-    save_path: Optional[str] = None,
+    save_path: str | Path = "confusion_matrix.png",
     show: bool = False,
-) -> None:
+) -> dict[str, object]:
     """
     Generates and saves a confusion matrix visualization from model predictions.
 
@@ -168,36 +393,72 @@ def plot_confusion_matrix(
         y_pred (list[int]): Predicted class indices.
         class_names (list[str]): String labels for the classes.
         dataset_name (str): Identifier used for the plot title and filename.
-        save_path (Optional[str]): Target file path to save the generated image.
+        save_path: Exact target path for the generated image.
         show (bool): If true, displays the plot interactively.
 
     Returns:
-        None
+        Paths and raw labelled matrix values.
     """
-    cm = mlxt_cm(y_target=y_true, y_predicted=y_pred, binary=False, positive_label=1)
-    if cm.shape[0] != len(class_names):
-        cm = sk_cm(y_true, y_pred, labels=list(range(len(class_names))))
+    cm = sk_cm(y_true, y_pred, labels=list(range(len(class_names))))
 
-    fig, ax = mlxt_plot_cm(
-        conf_mat=cm,
-        class_names=class_names,
-        colorbar=True,
-        figsize=(max(6, len(class_names) * 1.5), max(5, len(class_names) * 1.4)),
+    fig, ax = plt.subplots(
+        figsize=(max(6, len(class_names) * 1.5), max(5, len(class_names) * 1.4))
     )
+    display = ConfusionMatrixDisplay(
+        confusion_matrix=cm,
+        display_labels=class_names,
+    )
+    display.plot(ax=ax, colorbar=True, xticks_rotation=45, values_format="d")
     ax.set_title(f"Confusion Matrix - {dataset_name}", fontsize=14, pad=12)
     plt.tight_layout()
 
-    if save_path:
-        # Inject dataset name into filename
-        p = Path(save_path)
-        final_path = str(p.parent / f"{p.stem}_{dataset_name}{p.suffix}")
-        plt.savefig(final_path, dpi=150)
-        print(f"📊 Saved confusion matrix to {final_path}")
+    image_path = Path(save_path)
+    image_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(image_path, dpi=150)
+    matrix_path = image_path.with_suffix(".json")
+    matrix_data = {
+        "class_names": class_names,
+        "matrix": cm.tolist(),
+        "sample_count": len(y_true),
+    }
+    write_json(matrix_path, matrix_data)
+    print(f"📊 Saved confusion matrix to {image_path} and {matrix_path}")
 
     if show:
         plt.show()
     else:
         plt.close(fig)
+    return {
+        "png": str(image_path),
+        "json": str(matrix_path),
+        **matrix_data,
+    }
+
+
+@torch.inference_mode()
+def collect_predictions(
+    model: torch.nn.Module,
+    loader: torch.utils.data.DataLoader,
+    device: torch.device,
+) -> tuple[list[int], list[int]]:
+    """Collect true and predicted class indices from a data loader.
+
+    Parameters:
+        model: Trained classification model.
+        loader: Data loader to classify.
+        device: Device used for inference.
+
+    Returns:
+        True labels followed by predicted labels.
+    """
+    model.eval()
+    true_labels: list[int] = []
+    predicted_labels: list[int] = []
+    for features, labels in loader:
+        predictions = model(features.to(device, non_blocking=True)).argmax(dim=1)
+        predicted_labels.extend(predictions.cpu().tolist())
+        true_labels.extend(labels.tolist())
+    return true_labels, predicted_labels
 
 
 def save_model(
@@ -344,8 +605,8 @@ def save_prediction_clips(
     Returns:
         results (list[dict]): A list of dictionaries tracking each clip's paths and prediction status.
     """
-    (exp_dir / "correct").mkdir(exist_ok=True)
-    (exp_dir / "wrong").mkdir(exist_ok=True)
+    (exp_dir / "correct").mkdir(parents=True, exist_ok=True)
+    (exp_dir / "wrong").mkdir(parents=True, exist_ok=True)
 
     model.eval()
     indices = random.sample(range(len(dataset)), min(num_samples, len(dataset)))
@@ -367,7 +628,10 @@ def save_prediction_clips(
             except Exception:
                 stem = f"sample_{idx:04d}"
 
-            fname = f"{stem}_true-{true_name}_pred-{pred_name}.mp4"
+            fname = (
+                f"{safe_filename(stem)}_true-{safe_filename(true_name)}_"
+                f"pred-{safe_filename(pred_name)}.mp4"
+            )
             out_path = (exp_dir / "correct" if correct else exp_dir / "wrong") / fname
             write_video_torchvision(frames, out_path, fps)
             saved.append(

@@ -18,16 +18,18 @@
   `(filters, (kernel_height, kernel_width))`; do not expand this into an
   unrestricted hyperparameter search. The comparison baselines are now audited,
   and augmentation is one optional, clip-consistent online view per training
-  sample. The immediate priority is to make the split and random state
-  reproducible before comparison training.
+  sample. Every model, training, evaluation, and experiment command now has its
+  own local run folder. The immediate priority is a fixed, stratified split
+  manifest and full pipeline seeding before controlled comparisons begin.
 
 ## Research rules
 
 - Never invent or silently alter results, citations, datasets, or claims.
 - Choose models and checkpoints using validation data only. Keep test data
   locked until a comparison or final configuration has been selected.
-- Use the same documented, stratified, group-aware split for comparable runs.
-  Prevent related clips or camera views from crossing splits.
+- Use the same documented, stratified split for comparable runs. Use source
+  grouping when the dataset supports it; never claim group independence when it
+  does not.
 - Seed Python, NumPy, PyTorch, CUDA, data loading, and augmentation where
   applicable. Record the seed and determinism settings.
 - Change one ablation factor at a time against a named reference configuration.
