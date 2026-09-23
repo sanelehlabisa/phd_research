@@ -11,9 +11,10 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `011-simplify-model-api` is complete. The next repository task is to
-plan `012-align-comparison-baselines`, which will resolve how the current
-18-layer 3D-CNN models relate to the deeper baselines named in the manuscript.
+Ticket `011-simplify-model-api` is complete. The next repository task is
+[`012-audit-and-align-baselines`](agents/work/012-audit-and-align-baselines/prompt.md),
+which audits the published ConvLSTM and distinguishes this study's three
+18-layer 3D-CNN baselines from the source paper's deeper comparisons.
 
 ## Structure
 

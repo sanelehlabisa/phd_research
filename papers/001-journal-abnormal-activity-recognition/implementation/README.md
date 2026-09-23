@@ -36,10 +36,10 @@ model uses it and the results are labelled preliminary.
 
 ## Baseline warning
 
-The current comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18`. The
-paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These are not
-architecture-equivalent baselines; ticket 012 must align or clearly distinguish
-them before a paper comparison.
+The current comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` as
+this study's practical 3D-CNN baselines. The source paper reports 3D ResNet-50,
+3D ResNet-101, and 3D ResNet-152. These groups are not architecture-equivalent;
+ticket 012 audits and labels them clearly before a paper comparison.
 
 ## Experiment protocol
 
@@ -60,8 +60,9 @@ them before a paper comparison.
    lightweight adaptive-pooling head, and parameter counting.
 2. [x] **Model API cleanup (`011`).** Kept `ConvLSTM`, `PaperConvLSTM`, and
    `CustomConvLSTM`; removed obsolete classes and migrated all active callers.
-3. [ ] **Baseline alignment (`012`, next).** Register the faithful ConvLSTM and
-   resolve the 3D ResNet-50/101/152 versus current 18-layer baseline mismatch.
+3. [ ] **Baseline audit and alignment (`012`, ready).** Verify the published
+   ConvLSTM and distinguish the source paper's deeper comparisons from this
+   study's three practical 18-layer 3D-CNN baselines.
 4. [ ] **Reproducible data (`013`).** Seed the full pipeline and reuse a
    stratified, group-aware 70:15:15 split manifest.
 5. [ ] **Valid selection and metrics (`014`).** Isolate full-partition metrics,

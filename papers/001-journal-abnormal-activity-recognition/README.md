@@ -33,9 +33,9 @@ architecture for ablation.
   stacked model.
 - [x] `011-simplify-model-api` — kept one ConvLSTM layer plus the paper and
   custom models, removed obsolete architectures, and migrated every caller.
-- [ ] `012-align-comparison-baselines` — **Next:** register the paper model and
-  decide how to implement or clearly distinguish 3D ResNet-50/101/152 from the
-  current 18-layer video baselines.
+- [ ] `012-audit-and-align-baselines` — **Ready:** verify the published
+  ConvLSTM and distinguish the source paper's 3D ResNet-50/101/152 comparisons
+  from this study's `r3d_18`, `mc3_18`, and `r2plus1d_18` baselines.
 - [ ] `013-make-splits-reproducible` — seed the full pipeline and create fixed,
   stratified, group-aware split manifests.
 - [ ] `014-fix-selection-and-metrics` — correct metrics, restore the best
