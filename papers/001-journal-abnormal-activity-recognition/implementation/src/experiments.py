@@ -6,21 +6,9 @@ Saves all results to JSON.
 
 Author: Sanele Hlabisa
 
-python -m src.experiments \
-    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-    --runs_dir "runs" \
-    --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-    --seed 42 \
-    --train_ratio 0.7 \
-    --val_ratio 0.15 \
-    --epochs 24 \
-    --early_stopping_patience 10 \
-    --batch_size 16 \
-    --sequence_length 16 \
-    --height 32 \
-    --width 32 \
-    --augment \
-    --num_workers 2
+.venv/bin/python -m src.experiments \
+    --config configs/aad_screening_reference.json \
+    --candidates-config configs/aad_architecture_candidates.json
 """
 
 from __future__ import annotations
@@ -45,6 +33,7 @@ from .dataset import (
     resolve_split_manifest_path,
 )
 from .experiment_config import (
+    CandidateManifest,
     ExperimentConfig,
     add_config_arguments,
     resolve_config_arguments,
@@ -89,19 +78,30 @@ parser.add_argument(
     default=False,
     help="List approved baseline roles without loading data or starting training",
 )
+parser.add_argument(
+    "--candidates-config",
+    type=Path,
+    help="Use a validated custom-only architecture candidate manifest",
+)
 
 
 def _resolved_arguments(
     values: dict[str, object],
-) -> tuple[argparse.Namespace, ExperimentConfig, bool]:
+) -> tuple[argparse.Namespace, ExperimentConfig, CandidateManifest | None, bool]:
     """Combine validated configuration with comparison-only flags."""
     config, operations, print_only, _ = resolve_config_arguments(
         values,
         EXPERIMENT_DEFAULT_CONFIG,
     )
+    candidates_path = operations.pop("candidates_config", None)
+    candidate_manifest = (
+        CandidateManifest.from_json(candidates_path)
+        if candidates_path is not None
+        else None
+    )
     combined = config.to_dict()
     combined.update(operations)
-    return argparse.Namespace(**combined), config, print_only
+    return argparse.Namespace(**combined), config, candidate_manifest, print_only
 
 
 class Video3DModelWrapper(nn.Module):
@@ -122,15 +122,31 @@ class Video3DModelWrapper(nn.Module):
 
 def model_registry(
     experiment_config: ExperimentConfig | None = None,
-) -> list[dict[str, str]]:
+    candidate_manifest: CandidateManifest | None = None,
+) -> list[dict[str, object]]:
     """Describe the approved comparison models without allocating them.
 
     Parameters:
         experiment_config: Optional settings for the custom reference entry.
+        candidate_manifest: Optional custom-only architecture screen.
 
     Returns:
         Model names, families, classes, and comparison roles.
     """
+    if candidate_manifest is not None:
+        return [
+            {
+                "name": candidate.name,
+                "family": "ConvLSTM",
+                "model_class": "CustomConvLSTM",
+                "role": "controlled custom architecture candidate",
+                "research_question": candidate.research_question,
+                "convlstm_layers": candidate.to_dict()["convlstm_layers"],
+                "hidden_classifier_width": candidate.hidden_classifier_width,
+            }
+            for candidate in candidate_manifest.candidates
+        ]
+
     custom_name = "custom_convlstm_reference_8_k3"
     if experiment_config is not None and experiment_config.convlstm_layers != (
         (8, (3, 3)),
@@ -176,6 +192,7 @@ def build_registered_model(
     input_shape: tuple[int, int, int],
     sequence_length: int,
     experiment_config: ExperimentConfig | None = None,
+    candidate_manifest: CandidateManifest | None = None,
 ) -> nn.Module:
     """Build one approved model by its registry name.
 
@@ -185,10 +202,23 @@ def build_registered_model(
         input_shape: Frame shape `(channels, height, width)`.
         sequence_length: Frames supplied to the model.
         experiment_config: Resolved settings for the custom reference.
+        candidate_manifest: Optional custom-only architecture screen.
 
     Returns:
         The requested untrained model.
     """
+    if candidate_manifest is not None:
+        candidate = next(
+            (item for item in candidate_manifest.candidates if item.name == model_name),
+            None,
+        )
+        if candidate is None:
+            raise ValueError(f"unknown candidate model: {model_name}")
+        return CustomConvLSTM(
+            num_classes,
+            layers=list(candidate.convlstm_layers),
+            hidden_classifier_width=candidate.hidden_classifier_width,
+        )
     if model_name == "paper_convlstm_published":
         return PaperConvLSTM(
             num_classes,
@@ -223,21 +253,42 @@ def build_registered_model(
     raise ValueError(f"unknown registered model: {model_name}")
 
 
-def print_model_registry(experiment_config: ExperimentConfig | None = None) -> None:
+def _format_layers(raw_layers: object) -> str:
+    """Format one validated layer stack for concise terminal output."""
+    if not isinstance(raw_layers, list):
+        return "configured by shared experiment config"
+    return " -> ".join(
+        f"{layer[0]}x{layer[1][0]}x{layer[1][1]}" for layer in raw_layers
+    )
+
+
+def print_model_registry(
+    experiment_config: ExperimentConfig | None = None,
+    candidate_manifest: CandidateManifest | None = None,
+) -> None:
     """Print approved model names and roles without allocating models.
 
     Parameters:
         experiment_config: Optional settings for the custom reference entry.
+        candidate_manifest: Optional custom-only architecture screen.
 
     Returns:
         None.
     """
-    print("Approved comparison models")
-    for entry in model_registry(experiment_config):
+    heading = (
+        "Approved custom architecture candidates"
+        if candidate_manifest is not None
+        else "Approved comparison models"
+    )
+    print(heading)
+    for entry in model_registry(experiment_config, candidate_manifest):
         print(
             f"- {entry['name']}: {entry['model_class']} | "
             f"{entry['family']} | {entry['role']}"
         )
+        if candidate_manifest is not None:
+            print(f"  architecture: {_format_layers(entry['convlstm_layers'])}")
+            print(f"  question: {entry['research_question']}")
 
 
 def _save_selected_checkpoint(
@@ -245,13 +296,14 @@ def _save_selected_checkpoint(
     optimizer: optim.Optimizer,
     checkpoint_path: str,
     model_config: dict[str, object],
-    model_registry_entry: dict[str, str],
+    model_registry_entry: dict[str, object],
     validation_metrics: dict[str, float],
     selected_epoch: int,
     dataset_name: str,
     split_manifest_hash: str,
     seed: int,
     experiment_config: dict[str, object],
+    candidate_manifest: dict[str, object] | None,
 ) -> None:
     """Save one experiment model selected by validation loss.
 
@@ -267,6 +319,7 @@ def _save_selected_checkpoint(
         split_manifest_hash: Exact split manifest hash used by the run.
         seed: Experiment run seed.
         experiment_config: Exact normalised experiment configuration.
+        candidate_manifest: Exact manifest content and hash, when supplied.
 
     Returns:
         None.
@@ -291,6 +344,7 @@ def _save_selected_checkpoint(
         "model_config": model_config,
         "model_registry_entry": model_registry_entry,
         "experiment_config": experiment_config,
+        "candidate_manifest": candidate_manifest,
     }
     torch.save(
         {
@@ -305,16 +359,19 @@ def _save_selected_checkpoint(
 
 def main(argv: list[str] | None = None) -> None:
     """Resolve configuration and run validation-only model comparisons."""
-    args, experiment_config, print_only = _resolved_arguments(
+    args, experiment_config, candidate_manifest, print_only = _resolved_arguments(
         vars(parser.parse_args(argv))
     )
     if print_only:
         print(experiment_config.to_json())
         return
-    registry = model_registry(experiment_config)
+    registry = model_registry(experiment_config, candidate_manifest)
     if args.list_models:
-        print_model_registry(experiment_config)
+        print_model_registry(experiment_config, candidate_manifest)
         return
+    candidate_provenance = (
+        candidate_manifest.provenance() if candidate_manifest is not None else None
+    )
     deterministic_settings = seed_everything(args.seed)
     deterministic_settings["data_loader_seeds"] = {
         "train": args.seed,
@@ -331,9 +388,11 @@ def main(argv: list[str] | None = None) -> None:
         args.runs_dir,
         purpose="experiments",
         dataset_path=args.dataset_dir,
-        label="baseline-comparison",
+        label=("architecture-screen" if candidate_manifest else "baseline-comparison"),
         arguments=vars(args),
         metadata={
+            "experiment_config": experiment_config.to_dict(),
+            "candidate_manifest": candidate_provenance,
             "input_dimensions": {
                 "sequence_length": args.sequence_length,
                 "channels": 3,
@@ -357,6 +416,12 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Run directory: {run_dir}")
 
     resolved_config_path = experiment_config.save_json(run_dir / "resolved_config.json")
+    resolved_candidates_path = None
+    if candidate_provenance is not None:
+        resolved_candidates_path = write_json(
+            run_dir / "resolved_candidates.json",
+            candidate_provenance,
+        )
 
     # ---- Dataset ----
     dataset = AHARDataset(
@@ -410,6 +475,7 @@ def main(argv: list[str] | None = None) -> None:
     input_shape = (3, args.height, args.width)
     shared_configuration = {
         "experiment_config": experiment_config.to_dict(),
+        "candidate_manifest": candidate_provenance,
         "models": registry,
         "class_names": dataset.class_names,
         "dataset_size": n_total,
@@ -443,6 +509,8 @@ def main(argv: list[str] | None = None) -> None:
         {
             "class_names": dataset.class_names,
             "model_configuration": registry,
+            "experiment_config": experiment_config.to_dict(),
+            "candidate_manifest": candidate_provenance,
             "split_sizes": shared_configuration["split_sizes"],
             "split": split_metadata,
             "deterministic_settings": deterministic_settings,
@@ -462,11 +530,12 @@ def main(argv: list[str] | None = None) -> None:
             name = f"{name}_reduced_input"
             role = f"{role}; reduced-input topology check"
         model = build_registered_model(
-            entry["name"],
+            str(entry["name"]),
             num_classes,
             input_shape,
             args.sequence_length,
             experiment_config,
+            candidate_manifest,
         )
         model = model.to(device)
         num_params = count_trainable_parameters(model)
@@ -539,6 +608,7 @@ def main(argv: list[str] | None = None) -> None:
                     str(split_metadata["manifest_hash"]),
                     args.seed,
                     experiment_config.to_dict(),
+                    candidate_provenance,
                 )
             if selector.should_stop:
                 break
@@ -597,6 +667,8 @@ def main(argv: list[str] | None = None) -> None:
             "model_class": entry["model_class"],
             "role": role,
             "num_params": num_params,
+            "experiment_config": experiment_config.to_dict(),
+            "candidate_manifest": candidate_provenance,
             "partition": "validation",
             "metric_protocol": metric_protocol(),
             "validation_metrics": selected_validation_metrics,
@@ -646,7 +718,18 @@ def main(argv: list[str] | None = None) -> None:
             f"params={r['num_params']:,}"
         )
 
-    summary = {"ranked": ranked, "top_five": ranked[:5], "all": all_results}
+    summary = {
+        "experiment_config": experiment_config.to_dict(),
+        "candidate_manifest": candidate_provenance,
+        "ranking": [
+            "validation_macro_f1",
+            "validation_accuracy",
+            "parameters",
+        ],
+        "ranked": ranked,
+        "top_five": ranked[:5],
+        "all": all_results,
+    }
     out_path = write_json(run_dir / "summary.json", summary)
     run.update(
         {
@@ -657,12 +740,17 @@ def main(argv: list[str] | None = None) -> None:
                 "parameters",
             ],
             "completed_models": shared_configuration["completed_models"],
+            "experiment_config": experiment_config.to_dict(),
+            "candidate_manifest": candidate_provenance,
             "test_access": "locked",
         }
     )
     run.complete(
         artifacts={
             "resolved_configuration": str(resolved_config_path),
+            "resolved_candidates": (
+                str(resolved_candidates_path) if resolved_candidates_path else None
+            ),
             "configuration": str(config_path),
             "ranked_summary": str(out_path),
             "model_directories": {
@@ -670,7 +758,11 @@ def main(argv: list[str] | None = None) -> None:
                 for result in all_results
             },
         },
-        results={"ranked": ranked},
+        results={
+            "experiment_config": experiment_config.to_dict(),
+            "candidate_manifest": candidate_provenance,
+            "ranked": ranked,
+        },
     )
     print(f"\nFull results saved to {out_path}")
 

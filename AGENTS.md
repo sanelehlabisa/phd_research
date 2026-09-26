@@ -7,10 +7,10 @@
   READMEs before changing anything.
 - Paper 001 studies lightweight ConvLSTM-based abnormal human-activity
   recognition from surveillance video. More than 30 earlier runs mainly varied
-  model width and dense-layer size. They are useful for shortlisting, but are
-  exploratory until their configurations, splits, seeds, and training protocol
-  are shown to be comparable.
-- The current candidate is the `64-32-16-64` custom ConvLSTM. Call it the
+  model width and dense-layer size. Their missing current split, seed, metric,
+  selection, and checkpoint provenance makes them non-comparable exploratory
+  evidence; never rank new candidates from their test metrics.
+- The current candidate is the `64-32-16` custom ConvLSTM. Call it the
   **selected lightweight ConvLSTM candidate**, not an optimal model, until the
   controlled evidence supports a stronger claim.
 - The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
@@ -24,7 +24,9 @@
   restores checkpoints, and only the evaluation command opens the test split.
   Training and comparisons now share a validated JSON configuration with
   explicit CLI overrides and complete checkpoint provenance. The immediate
-  priority is predeclaring the small architecture-screening set.
+  priority is running the predeclared six-model custom architecture screen;
+  ticket 019 will then compare the resulting shortlist with the audited
+  baselines.
 
 ## Research rules
 

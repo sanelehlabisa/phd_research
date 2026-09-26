@@ -5,7 +5,7 @@ Evaluation script for AHAR.
 
 Author: Sanele Hlabisa
 
-python -m src.evaluate \
+.venv/bin/python -m src.evaluate \
     --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
     --checkpoint_path "runs/train/<run>/checkpoints/best_model.pth" \
     --convlstm-layer 8 3 3 \

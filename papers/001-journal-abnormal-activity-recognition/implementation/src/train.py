@@ -5,29 +5,8 @@ Training script for ConvLSTM-based Abnormal Human Activity Recognition (AHAR).
 
 Author: Sanele Hlabisa
 
-python -m src.train \
-    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-    --runs_dir "runs" \
-    --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-    --seed 42 \
-    --convlstm-layer 8 3 3 \
-    --convlstm-layer 16 3 3 \
-    --resume \
-    --finetune_full \
-    --batch_size 32 \
-    --weight_decay 0.0001 \
-    --learning_rate 0.001 \
-    --epochs 64 \
-    --early_stopping_patience 10 \
-    --train_ratio 0.7 \
-    --val_ratio 0.15 \
-    --sequence_length 16 \
-    --height 32 \
-    --width 32 \
-    --augment \
-    --num_workers 2 \
-    --pin_memory
-    
+.venv/bin/python -m src.train \
+    --config configs/aad_screening_reference.json
 """
 
 from __future__ import annotations

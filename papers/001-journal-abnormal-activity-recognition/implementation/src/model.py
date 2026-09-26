@@ -1,6 +1,6 @@
 """ConvLSTM layers, models, and a small prediction smoke command.
 
-python -m src.model \
+.venv/bin/python -m src.model \
     --dataset-dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
     --runs_dir "runs" \
     --sequence-length 64 \

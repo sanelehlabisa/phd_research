@@ -11,9 +11,9 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `017-connect-ablation-config` is complete. The next planned task is
-`018-shortlist-architecture-results`, which will predeclare the small set of
-configurations to compare before expensive training.
+Ticket `018-shortlist-architecture-results` is complete. Its explicit six-model
+custom architecture screen is ready to run on AAD; ticket
+`019-confirm-architecture-candidates` follows after those runs are complete.
 
 ## Structure
 

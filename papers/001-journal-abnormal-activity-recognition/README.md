@@ -1,12 +1,12 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Predeclaring architecture configurations before controlled runs
+- Status: Ready to run the predeclared custom architecture screen on AAD
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
-from surveillance video. Earlier width experiments made `64-32-16-64` a useful
+from surveillance video. Earlier width experiments made `64-32-16` a useful
 candidate, but not a proven optimum. The revised study will compare the audited
 source-paper topology with narrow stacked ConvLSTM models before selecting a
 reference architecture for ablation.
@@ -47,10 +47,11 @@ reference architecture for ablation.
 - [x] `017-connect-ablation-config` — connected one validated JSON schema to
   training and comparisons with explicit CLI overrides and checkpoint
   provenance.
-- [ ] `018-shortlist-architecture-results` — **Next:** audit historical runs and
-  predeclare a small candidate set for controlled confirmation.
-- [ ] `019-confirm-architecture-candidates` — compare the shortlist and approved
-  baselines under one protocol.
+- [x] `018-shortlist-architecture-results` — marked historical outputs as
+  non-comparable and predeclared six named custom candidates with manifest
+  provenance.
+- [ ] `019-confirm-architecture-candidates` — **Next:** compare the completed
+  shortlist and approved baselines under one protocol.
 - [ ] `020-run-reference-ablations` — run approved one-factor comparisons on the
   selected reference model.
 - [ ] `021-validate-second-dataset` — evaluate the frozen configuration on VDD.

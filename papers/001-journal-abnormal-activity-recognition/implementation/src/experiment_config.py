@@ -3,11 +3,173 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
+import re
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any
+
+
+SAFE_CANDIDATE_NAME = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
+
+
+@dataclass(frozen=True, slots=True)
+class ArchitectureCandidate:
+    """Store one explicit custom architecture and its research question."""
+
+    name: str
+    research_question: str
+    convlstm_layers: tuple[tuple[int, tuple[int, int]], ...]
+    hidden_classifier_width: int | None
+
+    def __post_init__(self) -> None:
+        """Validate one candidate immediately after construction."""
+        _require_non_empty_string("candidate.name", self.name)
+        if SAFE_CANDIDATE_NAME.fullmatch(self.name) is None:
+            raise ValueError(
+                "candidate.name must use lowercase letters, numbers, and single "
+                "underscores"
+            )
+        _require_non_empty_string(
+            f"candidate {self.name}.research_question",
+            self.research_question,
+        )
+        _validate_layers(self.convlstm_layers, field_prefix=f"candidate {self.name}")
+        if self.hidden_classifier_width is not None and (
+            not isinstance(self.hidden_classifier_width, int)
+            or isinstance(self.hidden_classifier_width, bool)
+            or self.hidden_classifier_width <= 0
+        ):
+            raise ValueError(
+                f"candidate {self.name}.hidden_classifier_width must be null or a "
+                "positive integer"
+            )
+
+    @classmethod
+    def from_mapping(cls, values: dict[str, Any]) -> ArchitectureCandidate:
+        """Build one candidate from a strict JSON-compatible mapping."""
+        expected_fields = {
+            "name",
+            "research_question",
+            "convlstm_layers",
+            "hidden_classifier_width",
+        }
+        unknown_fields = sorted(set(values) - expected_fields)
+        if unknown_fields:
+            raise ValueError("unknown candidate field(s): " + ", ".join(unknown_fields))
+        missing_fields = sorted(expected_fields - set(values))
+        if missing_fields:
+            raise ValueError("missing candidate field(s): " + ", ".join(missing_fields))
+        name = values["name"]
+        if not isinstance(name, str):
+            raise ValueError("candidate.name must be a non-empty string")
+        layers = _normalise_layers(
+            values["convlstm_layers"],
+            field_prefix=f"candidate {name}",
+        )
+        return cls(
+            name=name,
+            research_question=values["research_question"],
+            convlstm_layers=layers,
+            hidden_classifier_width=values["hidden_classifier_width"],
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        """Return the candidate as JSON-compatible values."""
+        return {
+            "name": self.name,
+            "research_question": self.research_question,
+            "convlstm_layers": _layers_to_json(self.convlstm_layers),
+            "hidden_classifier_width": self.hidden_classifier_width,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CandidateManifest:
+    """Store and validate one explicit architecture-screening manifest."""
+
+    screening_id: str
+    candidates: tuple[ArchitectureCandidate, ...]
+
+    def __post_init__(self) -> None:
+        """Validate manifest-level fields and candidate uniqueness."""
+        _require_non_empty_string("screening_id", self.screening_id)
+        if SAFE_CANDIDATE_NAME.fullmatch(self.screening_id) is None:
+            raise ValueError(
+                "screening_id must use lowercase letters, numbers, and single "
+                "underscores"
+            )
+        if not self.candidates:
+            raise ValueError("candidates must contain at least one candidate")
+        names = [candidate.name for candidate in self.candidates]
+        duplicate_names = sorted({name for name in names if names.count(name) > 1})
+        if duplicate_names:
+            raise ValueError(
+                "duplicate candidate name(s): " + ", ".join(duplicate_names)
+            )
+
+    @classmethod
+    def from_mapping(cls, values: dict[str, Any]) -> CandidateManifest:
+        """Build a manifest from a strict JSON-compatible mapping."""
+        expected_fields = {"screening_id", "candidates"}
+        unknown_fields = sorted(set(values) - expected_fields)
+        if unknown_fields:
+            raise ValueError(
+                "unknown candidate manifest field(s): " + ", ".join(unknown_fields)
+            )
+        missing_fields = sorted(expected_fields - set(values))
+        if missing_fields:
+            raise ValueError(
+                "missing candidate manifest field(s): " + ", ".join(missing_fields)
+            )
+        screening_id = values["screening_id"]
+        if not isinstance(screening_id, str):
+            raise ValueError("screening_id must be a non-empty string")
+        raw_candidates = values["candidates"]
+        if not isinstance(raw_candidates, list) or not raw_candidates:
+            raise ValueError("candidates must contain at least one candidate")
+        candidates: list[ArchitectureCandidate] = []
+        for index, raw_candidate in enumerate(raw_candidates):
+            if not isinstance(raw_candidate, dict):
+                raise ValueError(f"candidates[{index}] must be a JSON object")
+            candidates.append(ArchitectureCandidate.from_mapping(raw_candidate))
+        return cls(
+            screening_id=screening_id,
+            candidates=tuple(candidates),
+        )
+
+    @classmethod
+    def from_json(cls, path: str | Path) -> CandidateManifest:
+        """Load and validate a candidate manifest from JSON."""
+        manifest_path = Path(path)
+        try:
+            values = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise ValueError(f"invalid JSON in {manifest_path}: {error.msg}") from error
+        if not isinstance(values, dict):
+            raise ValueError(f"candidate manifest in {manifest_path} must be an object")
+        return cls.from_mapping(values)
+
+    def to_dict(self) -> dict[str, object]:
+        """Return the complete manifest as JSON-compatible values."""
+        return {
+            "screening_id": self.screening_id,
+            "candidates": [candidate.to_dict() for candidate in self.candidates],
+        }
+
+    def to_json(self) -> str:
+        """Return deterministic, human-readable manifest JSON."""
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True)
+
+    def sha256(self) -> str:
+        """Return the SHA-256 hash of the deterministic manifest content."""
+        return hashlib.sha256(self.to_json().encode("utf-8")).hexdigest()
+
+    def provenance(self) -> dict[str, object]:
+        """Return exact manifest content together with its stable hash."""
+        return {"content": self.to_dict(), "sha256": self.sha256()}
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,10 +244,7 @@ class ExperimentConfig:
     def to_dict(self) -> dict[str, object]:
         """Return the complete configuration as JSON-compatible values."""
         values = asdict(self)
-        values["convlstm_layers"] = [
-            [filters, [kernel_height, kernel_width]]
-            for filters, (kernel_height, kernel_width) in self.convlstm_layers
-        ]
+        values["convlstm_layers"] = _layers_to_json(self.convlstm_layers)
         return values
 
     def to_json(self) -> str:
@@ -192,13 +351,27 @@ def _require_non_empty_string(field_name: str, value: object) -> None:
         raise ValueError(f"{field_name} must be a non-empty string")
 
 
-def _normalise_layers(value: object) -> tuple[tuple[int, tuple[int, int]], ...]:
+def _layers_to_json(
+    layers: tuple[tuple[int, tuple[int, int]], ...],
+) -> list[list[object]]:
+    """Return an immutable layer stack as JSON-compatible values."""
+    return [
+        [filters, [kernel_height, kernel_width]]
+        for filters, (kernel_height, kernel_width) in layers
+    ]
+
+
+def _normalise_layers(
+    value: object,
+    field_prefix: str = "",
+) -> tuple[tuple[int, tuple[int, int]], ...]:
     """Convert JSON or CLI layer values into immutable layer tuples."""
+    prefix = f"{field_prefix}." if field_prefix else ""
     if not isinstance(value, (list, tuple)) or not value:
-        raise ValueError("convlstm_layers must contain at least one layer")
+        raise ValueError(f"{prefix}convlstm_layers must contain at least one layer")
     normalised: list[tuple[int, tuple[int, int]]] = []
     for index, raw_layer in enumerate(value):
-        field_name = f"convlstm_layers[{index}]"
+        field_name = f"{prefix}convlstm_layers[{index}]"
         if not isinstance(raw_layer, (list, tuple)) or len(raw_layer) != 2:
             raise ValueError(
                 f"{field_name} must be [filters, [kernel_height, kernel_width]]"
@@ -212,12 +385,14 @@ def _normalise_layers(value: object) -> tuple[tuple[int, tuple[int, int]], ...]:
 
 def _validate_layers(
     layers: tuple[tuple[int, tuple[int, int]], ...],
+    field_prefix: str = "",
 ) -> None:
     """Validate all configured ConvLSTM layers."""
+    prefix = f"{field_prefix}." if field_prefix else ""
     if not isinstance(layers, tuple) or not layers:
-        raise ValueError("convlstm_layers must contain at least one layer")
+        raise ValueError(f"{prefix}convlstm_layers must contain at least one layer")
     for index, layer in enumerate(layers):
-        field_name = f"convlstm_layers[{index}]"
+        field_name = f"{prefix}convlstm_layers[{index}]"
         if not isinstance(layer, tuple) or len(layer) != 2:
             raise ValueError(
                 f"{field_name} must be (filters, (kernel_height, kernel_width))"

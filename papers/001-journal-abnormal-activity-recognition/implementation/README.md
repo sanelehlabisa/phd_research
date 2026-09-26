@@ -66,6 +66,29 @@ Inspect the five approved entries without a dataset or model allocation:
 .venv/bin/python -m src.experiments --list-models
 ```
 
+List the six custom AAD candidates without loading data or allocating models:
+
+```bash
+.venv/bin/python -m src.experiments \
+  --config configs/aad_screening_reference.json \
+  --candidates-config configs/aad_architecture_candidates.json \
+  --list-models
+```
+
+Start the full architecture screen only after reviewing that list:
+
+```bash
+# Expensive: trains six candidates on AAD.
+.venv/bin/python -m src.experiments \
+  --config configs/aad_screening_reference.json \
+  --candidates-config configs/aad_architecture_candidates.json
+```
+
+An interrupted screen leaves evidence only for models whose training completed;
+do not treat an incomplete ranking as the final shortlist. Historical local
+outputs lack the current complete protocol and remain non-comparable
+exploratory evidence.
+
 ## Experiment protocol
 
 - Fixed 70:15:15 stratified clip split using the committed
@@ -109,14 +132,17 @@ Inspect the five approved entries without a dataset or model allocation:
 8. [x] **Configuration integration (`017`).** Added one validated JSON schema,
    explicit CLI overrides, stable resolved artifacts, and configuration-aware
    checkpoints for training and comparisons.
-9. [ ] **Architecture shortlist (`018–019`, next).** Audit historical runs,
-   predeclare a small model set, and confirm it under one protocol.
-10. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
+9. [x] **Architecture shortlist preparation (`018`).** Marked historical outputs
+   non-comparable and added one validated six-model custom candidate manifest
+   with complete provenance.
+10. [ ] **Architecture confirmation (`019`, next).** Compare the completed
+    shortlist with the audited baselines under one protocol.
+11. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
    frame count, head design, augmentation, and regularisation one factor at a
    time—never as a Cartesian grid.
-11. [ ] **Validation and handoff (`021–022`).** Confirm the frozen model on VDD,
+12. [ ] **Validation and handoff (`021–022`).** Confirm the frozen model on VDD,
    aggregate evidence, and export paper-ready tables and figures.
-12. [ ] **Stateful streaming (`025`, later).** Carry custom ConvLSTM state across
+13. [ ] **Stateful streaming (`025`, later).** Carry custom ConvLSTM state across
     video chunks and predict after each chunk without altering `PaperConvLSTM`.
 
 Generated datasets, environments, checkpoints, and experiment runs remain
@@ -242,5 +268,6 @@ Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
 copied or overwritten by evaluation.
 
 The AAD JSON is a screening reference, not an optimal or final model. Ticket
-018 will predeclare the small architecture set to compare. Random-weight smoke
-outputs remain pipeline checks, not research evidence.
+018 predeclares the six custom architectures; ticket 019 will compare the
+completed shortlist with the audited baselines. Random-weight smoke outputs
+remain pipeline checks, not research evidence.

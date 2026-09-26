@@ -5,7 +5,7 @@ Video and frames dataset classes for AHAR.
 
 Author: Sanele Hlabisa
 
-python -m src.dataset \
+.venv/bin/python -m src.dataset \
     --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
     --seed 42 \
     --augment \

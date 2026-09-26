@@ -6,10 +6,11 @@ Handles flat structures and deeply nested structures (like Kinetics sub-director
 
 Author: Sanele Hlabisa
 
-python -m src.preprocess_dataset \
-    --dataset_dir "datasets/raw/.kinetics" \
-    --output_name "kinetics-dataset" \
-    --frame_size 256
+.venv/bin/python -m src.preprocess_dataset \
+    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
+    --output_name "abnormal-activities-dataset" \
+    --frame_size 256 \
+    --dry_run
 """
 
 from __future__ import annotations
@@ -57,7 +58,8 @@ def get_all_videos(dataset_dir: Path) -> list[Path]:
     Recursively discovers all supported video files within the dataset directory.
     """
     return [
-        v for v in sorted(dataset_dir.rglob("*"))
+        v
+        for v in sorted(dataset_dir.rglob("*"))
         if v.is_file() and v.suffix.lower() in SUPPORTED_EXTS
     ]
 
@@ -127,7 +129,9 @@ def fix_videos(videos: list[Path], dry_run: bool) -> None:
 
 
 # Step 2 - Build processed video dataset (resized, original fps)
-def make_video_dataset(videos: list[Path], video_out_dir: Path, frame_size: int) -> None:
+def make_video_dataset(
+    videos: list[Path], video_out_dir: Path, frame_size: int
+) -> None:
     """
     Re-encodes and resizes all videos to a uniform square resolution while keeping original fps.
     """
@@ -220,7 +224,7 @@ def make_frames_dataset(video_dir: Path, frames_out_dir: Path) -> None:
 def main() -> None:
     args = parser.parse_args()
     dataset_dir = Path(args.dataset_dir)
-    
+
     # Use explicit override name if given, else fall back to folder name
     dataset_name = args.output_name if args.output_name else dataset_dir.name
 
@@ -241,7 +245,7 @@ def main() -> None:
     processed_root = dataset_dir.absolute().parent
     while processed_root.name and processed_root.name != "datasets":
         processed_root = processed_root.parent
-    
+
     processed_root = processed_root / "processed"
     video_out_dir = processed_root / f"videos_{dataset_name}"
     frames_out_dir = processed_root / f"frames_{dataset_name}"

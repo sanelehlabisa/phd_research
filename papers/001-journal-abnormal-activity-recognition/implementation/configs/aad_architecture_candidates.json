@@ -1,0 +1,63 @@
+{
+  "screening_id": "aad_custom_architecture_screen",
+  "candidates": [
+    {
+      "name": "custom_reference_8",
+      "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+      "convlstm_layers": [
+        [8, [3, 3]]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_depth_8_8_8",
+      "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+      "convlstm_layers": [
+        [8, [3, 3]],
+        [8, [3, 3]],
+        [8, [3, 3]]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_capacity_early",
+      "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+      "convlstm_layers": [
+        [16, [3, 3]],
+        [8, [3, 3]],
+        [8, [3, 3]]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_capacity_middle",
+      "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+      "convlstm_layers": [
+        [8, [3, 3]],
+        [16, [3, 3]],
+        [8, [3, 3]]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_capacity_late",
+      "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+      "convlstm_layers": [
+        [8, [3, 3]],
+        [8, [3, 3]],
+        [16, [3, 3]]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_selected_64_32_16",
+      "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+      "convlstm_layers": [
+        [64, [3, 3]],
+        [32, [3, 3]],
+        [16, [3, 3]]
+      ],
+      "hidden_classifier_width": null
+    }
+  ]
+}
