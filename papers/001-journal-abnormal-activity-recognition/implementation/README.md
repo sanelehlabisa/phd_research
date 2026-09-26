@@ -106,11 +106,11 @@ Inspect the five approved entries without a dataset or model allocation:
 7. [x] **Valid selection and metrics (`016`).** Added full-partition metrics,
    validation-loss selection and early stopping, restored selected checkpoints,
    and reserved test access for evaluation.
-8. [ ] **Configuration integration (`017`, next).** Revise the stashed
-   ticket-009 work around the stable model layer specification and reconnect the
-   runner.
-9. [ ] **Architecture shortlist (`018–019`).** Audit historical runs, predeclare
-   a small model set, and confirm it under one protocol.
+8. [x] **Configuration integration (`017`).** Added one validated JSON schema,
+   explicit CLI overrides, stable resolved artifacts, and configuration-aware
+   checkpoints for training and comparisons.
+9. [ ] **Architecture shortlist (`018–019`, next).** Audit historical runs,
+   predeclare a small model set, and confirm it under one protocol.
 10. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
    frame count, head design, augmentation, and regularisation one factor at a
    time—never as a Cartesian grid.
@@ -184,89 +184,35 @@ Smoke-test both random-weight ConvLSTM models (writes sample predictions):
 
 Output: `runs/model/<run>/`.
 
-Train the same reference without augmentation (starts a full training run):
+Inspect the AAD screening reference without loading data or creating a run:
 
 ```bash
 .venv/bin/python -m src.train \
-  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-  --runs_dir "runs" \
-  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-  --seed 42 \
-  --train_ratio 0.7 \
-  --val_ratio 0.15 \
-  --convlstm-layer 8 3 3 \
-  --convlstm-layer 16 3 3 \
-  --batch_size 32 \
-  --weight_decay 0.0001 \
-  --learning_rate 0.001 \
-  --epochs 64 \
-  --early_stopping_patience 10 \
-  --sequence_length 16 \
-  --height 32 \
-  --width 32 \
-  --num_workers 2 \
-  --pin_memory
+  --config configs/aad_screening_reference.json \
+  --print-config
 ```
 
-Output: `runs/train/<run>/`. Training reports validation results from the
-restored lowest-loss checkpoint and does not access test clips.
-
-Train with one online augmented view per sample (starts a full training run):
+Train the configured custom reference. This starts expensive training:
 
 ```bash
 .venv/bin/python -m src.train \
-  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-  --runs_dir "runs" \
-  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-  --seed 42 \
-  --train_ratio 0.7 \
-  --val_ratio 0.15 \
-  --convlstm-layer 8 3 3 \
-  --convlstm-layer 16 3 3 \
-  --batch_size 32 \
-  --weight_decay 0.0001 \
-  --learning_rate 0.001 \
-  --epochs 64 \
-  --early_stopping_patience 10 \
-  --sequence_length 16 \
-  --height 32 \
-  --width 32 \
-  --augment \
-  --num_workers 2 \
-  --pin_memory
+  --config configs/aad_screening_reference.json
 ```
 
-Output: another unique `runs/train/<run>/`; test clips remain locked.
+Output: `runs/train/<run>/`. Training restores the lowest-validation-loss
+checkpoint and never opens the test split.
 
-Inspect the comparison registry without loading AAD or allocating models:
-
-```bash
-.venv/bin/python -m src.experiments --list-models
-```
-
-Run the registered AAD comparisons (starts a full experiment):
+Compare the configured custom reference with the four audited baselines. This
+also starts expensive training:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-  --runs_dir "runs" \
-  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-  --seed 42 \
-  --train_ratio 0.7 \
-  --val_ratio 0.15 \
-  --epochs 24 \
-  --early_stopping_patience 10 \
-  --batch_size 16 \
-  --sequence_length 16 \
-  --height 32 \
-  --width 32 \
-  --augment \
-  --num_workers 2
+  --config configs/aad_screening_reference.json
 ```
 
-Output: `runs/experiments/<run>/`, with one validation-selected checkpoint per
-model. Ranking uses validation macro-F1, validation accuracy, then parameters;
-it does not use test results.
+Output: `runs/experiments/<run>/`. Ranking uses validation macro-F1, validation
+accuracy, then parameter count; it never uses test results. Add `--list-models`
+to inspect the five entries without loading AAD or allocating models.
 
 After freezing a configuration, deliberately evaluate its validation-selected
 checkpoint on the AAD test split (writes metrics, a confusion matrix, and
@@ -295,6 +241,6 @@ prediction clips):
 Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
 copied or overwritten by evaluation.
 
-The current training and experiment scripts remain exploratory until task 017
-is complete. Random-weight smoke outputs are pipeline checks, not
-research evidence.
+The AAD JSON is a screening reference, not an optimal or final model. Ticket
+018 will predeclare the small architecture set to compare. Random-weight smoke
+outputs remain pipeline checks, not research evidence.

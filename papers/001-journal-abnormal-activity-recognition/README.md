@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Connecting the stable ablation configuration before controlled runs
+- Status: Predeclaring architecture configurations before controlled runs
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -26,8 +26,8 @@ reference architecture for ablation.
 
 ## Tasks
 
-- [ ] `009-define-ablation-config` — deferred; its WIP is stashed and its schema
-  must be revised after ticket 010.
+- [ ] `009-define-ablation-config` — superseded by ticket 017; its preserved WIP
+  remains stashed and must not be applied to the current runners.
 - [x] `010-prepare-architecture-search` — added the faithful paper baseline,
   sequence-returning ConvLSTM, explicit layer specifications, and lightweight
   stacked model.
@@ -44,10 +44,11 @@ reference architecture for ablation.
   fixed, stratified 70:15:15 clip manifest.
 - [x] `016-fix-selection-and-metrics` — added full-partition metrics, restored
   validation-selected checkpoints, and isolated final test access.
-- [ ] `017-connect-ablation-config` — **Next:** revise and resume ticket 009 so
-  one config controls the stable model, input, and training schema.
-- [ ] `018-shortlist-architecture-results` — audit historical runs and predeclare
-  a small candidate set for controlled confirmation.
+- [x] `017-connect-ablation-config` — connected one validated JSON schema to
+  training and comparisons with explicit CLI overrides and checkpoint
+  provenance.
+- [ ] `018-shortlist-architecture-results` — **Next:** audit historical runs and
+  predeclare a small candidate set for controlled confirmation.
 - [ ] `019-confirm-architecture-candidates` — compare the shortlist and approved
   baselines under one protocol.
 - [ ] `020-run-reference-ablations` — run approved one-factor comparisons on the

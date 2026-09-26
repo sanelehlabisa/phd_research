@@ -22,7 +22,9 @@
   own local run folder. The split manifest and full-pipeline seeding are now
   reproducible. Metrics now cover full partitions, validation loss selects and
   restores checkpoints, and only the evaluation command opens the test split.
-  The immediate priority is connecting the stable ablation configuration.
+  Training and comparisons now share a validated JSON configuration with
+  explicit CLI overrides and complete checkpoint provenance. The immediate
+  priority is predeclaring the small architecture-screening set.
 
 ## Research rules
 

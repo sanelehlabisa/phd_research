@@ -46,10 +46,14 @@ from .dataset import (
     AHARDataset,
     AugmentSubset,
     CachedAHARDataset,
-    DEFAULT_SPLIT_SEED,
     VideoAugmentation,
     load_split_subsets,
     resolve_split_manifest_path,
+)
+from .experiment_config import (
+    ExperimentConfig,
+    add_config_arguments,
+    resolve_config_arguments,
 )
 from .model import (
     CustomConvLSTM,
@@ -75,53 +79,51 @@ from .utils import (
     write_json,
 )
 
-parser = argparse.ArgumentParser(description="Train ConvLSTM for AHAR")
-parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--runs_dir", type=str, default="runs")
-parser.add_argument("--split_manifest", type=str, default=None)
-parser.add_argument("--seed", type=int, default=42)
+TRAIN_DEFAULT_CONFIG = ExperimentConfig()
+
+parser = argparse.ArgumentParser(
+    description="Train ConvLSTM for AHAR",
+    argument_default=argparse.SUPPRESS,
+)
+add_config_arguments(parser)
 parser.add_argument("--checkpoint_path", type=str, default=None)
 parser.add_argument(
     "--resume",
     action="store_true",
+    default=False,
     help="Resume training same dataset, no layer changes",
 )
 parser.add_argument(
     "--finetune_last",
     action="store_true",
+    default=False,
     help="Freeze all except the classifier",
 )
 parser.add_argument(
     "--finetune_full",
     action="store_true",
+    default=False,
     help="Load weights, unfreeze everything, train all layers",
 )
-parser.add_argument("--batch_size", type=int, default=8)
-parser.add_argument("--epochs", type=int, default=16)
-parser.add_argument("--early_stopping_patience", type=int, default=10)
-parser.add_argument("--learning_rate", type=float, default=1e-3)
-parser.add_argument("--weight_decay", type=float, default=1e-4)
-parser.add_argument("--sequence_length", type=int, default=32)
-parser.add_argument("--width", type=int, default=128)
-parser.add_argument("--height", type=int, default=128)
-parser.add_argument(
-    "--convlstm-layer",
-    action="append",
-    nargs=3,
-    type=int,
-    metavar=("FILTERS", "KERNEL_HEIGHT", "KERNEL_WIDTH"),
-    help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
-)
-parser.add_argument("--hidden-classifier-width", type=int, default=None)
-parser.add_argument(
-    "--augment",
-    action="store_true",
-    help="Apply one fresh, clip-consistent online augmentation per training sample",
-)
-parser.add_argument("--train_ratio", type=float, default=0.7)
-parser.add_argument("--val_ratio", type=float, default=0.15)
-parser.add_argument("--num_workers", type=int, default=0)
-parser.add_argument("--pin_memory", action="store_true")
+
+
+def _resolved_arguments(
+    values: dict[str, object],
+) -> tuple[argparse.Namespace, ExperimentConfig, bool]:
+    """Combine validated configuration with operational training flags."""
+    explicit_layers = "convlstm_layers" in values
+    config, operations, print_only, config_loaded = resolve_config_arguments(
+        values,
+        TRAIN_DEFAULT_CONFIG,
+    )
+    combined = config.to_dict()
+    combined["convlstm_layer"] = (
+        [[filters, kernel[0], kernel[1]] for filters, kernel in config.convlstm_layers]
+        if config_loaded or explicit_layers
+        else None
+    )
+    combined.update(operations)
+    return argparse.Namespace(**combined), config, print_only
 
 
 def _save_custom_checkpoint(
@@ -133,6 +135,7 @@ def _save_custom_checkpoint(
     dataset_name: str,
     split_manifest_hash: str,
     seed: int,
+    experiment_config: dict[str, object],
 ) -> None:
     """Save one validation-selected checkpoint with complete provenance.
 
@@ -145,6 +148,7 @@ def _save_custom_checkpoint(
         dataset_name: Dataset used for training and validation.
         split_manifest_hash: Exact split manifest hash used by the run.
         seed: Training run seed.
+        experiment_config: Exact normalised experiment configuration.
 
     Returns:
         None.
@@ -167,6 +171,7 @@ def _save_custom_checkpoint(
         "timestamp": datetime.now().isoformat(),
         "trainable_parameters": count_trainable_parameters(model),
         "model_config": configuration,
+        "experiment_config": experiment_config,
     }
     torch.save(
         {
@@ -180,12 +185,14 @@ def _save_custom_checkpoint(
     print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
-def main() -> None:
-    args = parser.parse_args()
-    if args.epochs <= 0:
-        raise ValueError("epochs must be positive")
-    if args.early_stopping_patience <= 0:
-        raise ValueError("early_stopping_patience must be positive")
+def main(argv: list[str] | None = None) -> None:
+    """Resolve configuration and run validation-selected training."""
+    args, experiment_config, print_only = _resolved_arguments(
+        vars(parser.parse_args(argv))
+    )
+    if print_only:
+        print(experiment_config.to_json())
+        return
     deterministic_settings = seed_everything(args.seed)
     deterministic_settings["data_loader_seeds"] = {
         "train": args.seed,
@@ -195,7 +202,7 @@ def main() -> None:
     print(f"🖥  Using device: {device}")
 
     manifest_path = resolve_split_manifest_path(
-        args.dataset_dir, args.split_manifest, DEFAULT_SPLIT_SEED
+        args.dataset_dir, args.split_manifest, args.split_seed
     )
 
     run = RunContext(
@@ -215,10 +222,10 @@ def main() -> None:
             "split_ratios": {
                 "train": args.train_ratio,
                 "validation": args.val_ratio,
-                "test": 1.0 - args.train_ratio - args.val_ratio,
+                "test": args.test_ratio,
             },
             "seed": args.seed,
-            "split_seed": DEFAULT_SPLIT_SEED,
+            "split_seed": args.split_seed,
             "split_manifest": str(manifest_path.resolve()),
             "deterministic_settings": deterministic_settings,
             "device": str(device),
@@ -227,6 +234,8 @@ def main() -> None:
     )
     run_dir = run.run_dir
     print(f"📁 Run directory → {run_dir}")
+
+    resolved_config_path = experiment_config.save_json(run_dir / "resolved_config.json")
 
     _probe = AHARDataset(
         args.dataset_dir, args.sequence_length, (args.width, args.height)
@@ -250,7 +259,7 @@ def main() -> None:
         manifest_path,
         train_ratio=args.train_ratio,
         val_ratio=args.val_ratio,
-        seed=DEFAULT_SPLIT_SEED,
+        seed=args.split_seed,
     )
     n_total = len(dataset)
     n_train, n_val = len(train_set), len(val_set)
@@ -347,6 +356,7 @@ def main() -> None:
         )
 
     resolved_configuration = {
+        "experiment_config": experiment_config.to_dict(),
         "model": model.configuration(),
         "trainable_parameters": count_trainable_parameters(model),
         "class_names": dataset.class_names,
@@ -364,7 +374,7 @@ def main() -> None:
             "learning_rate": args.learning_rate,
             "weight_decay": args.weight_decay,
             "optimizer": "Adam",
-            "scheduler": "ReduceLROnPlateau",
+            "scheduler": args.scheduler,
             "metric_protocol": metric_protocol(),
             "checkpoint_selection": "lowest_validation_loss",
             "early_stopping_patience": args.early_stopping_patience,
@@ -387,8 +397,12 @@ def main() -> None:
     optimizer = optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
     )
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.9, patience=5
+    scheduler = (
+        optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.9, patience=5
+        )
+        if args.scheduler == "reduce_on_plateau"
+        else None
     )
     train_losses, val_losses, train_accs, val_accs = [], [], [], []
     epoch_history: list[dict[str, object]] = []
@@ -418,7 +432,8 @@ def main() -> None:
             device,
             num_classes,
         )
-        scheduler.step(validation_metrics["loss"])
+        if scheduler is not None:
+            scheduler.step(validation_metrics["loss"])
 
         train_losses.append(train_metrics["loss"])
         val_losses.append(validation_metrics["loss"])
@@ -461,6 +476,7 @@ def main() -> None:
                 dataset_name=dataset_name,
                 split_manifest_hash=str(split_metadata["manifest_hash"]),
                 seed=args.seed,
+                experiment_config=experiment_config.to_dict(),
             )
             print(
                 "  ⭐ Best model updated "
@@ -540,6 +556,7 @@ def main() -> None:
     )
     run.complete(
         artifacts={
+            "resolved_configuration": str(resolved_config_path),
             "configuration": str(config_path),
             "history": str(history_path),
             "best_checkpoint": str(run_dir / "checkpoints" / "best_model.pth"),

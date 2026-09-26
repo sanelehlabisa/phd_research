@@ -40,10 +40,14 @@ import torchvision.models.video as video_models
 from .dataset import (
     AHARDataset,
     AugmentSubset,
-    DEFAULT_SPLIT_SEED,
     VideoAugmentation,
     load_split_subsets,
     resolve_split_manifest_path,
+)
+from .experiment_config import (
+    ExperimentConfig,
+    add_config_arguments,
+    resolve_config_arguments,
 )
 from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
 from .metrics import (
@@ -65,32 +69,39 @@ from .utils import (
     write_json,
 )
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--runs_dir", type=str, default="runs")
-parser.add_argument("--split_manifest", type=str, default=None)
-parser.add_argument("--seed", type=int, default=42)
-parser.add_argument("--epochs", type=int, default=24)
-parser.add_argument("--early_stopping_patience", type=int, default=10)
-parser.add_argument("--batch_size", type=int, default=16)
-parser.add_argument("--sequence_length", type=int, default=16)
-parser.add_argument("--height", type=int, default=32)
-parser.add_argument("--width", type=int, default=32)
-parser.add_argument(
-    "--augment",
-    action="store_true",
-    help="Apply one fresh, clip-consistent online augmentation per training sample",
+EXPERIMENT_DEFAULT_CONFIG = ExperimentConfig(
+    sequence_length=16,
+    height=32,
+    width=32,
+    epochs=24,
+    batch_size=16,
+    weight_decay=1e-3,
+    num_workers=2,
+    pin_memory=True,
+    scheduler="none",
 )
-parser.add_argument("--train_ratio", type=float, default=0.7)
-parser.add_argument("--val_ratio", type=float, default=0.15)
-parser.add_argument("--num_workers", type=int, default=2)
-parser.add_argument("--learning_rate", type=float, default=1e-3)
-parser.add_argument("--weight_decay", type=float, default=1e-3)
+
+parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
+add_config_arguments(parser)
 parser.add_argument(
     "--list-models",
     action="store_true",
+    default=False,
     help="List approved baseline roles without loading data or starting training",
 )
+
+
+def _resolved_arguments(
+    values: dict[str, object],
+) -> tuple[argparse.Namespace, ExperimentConfig, bool]:
+    """Combine validated configuration with comparison-only flags."""
+    config, operations, print_only, _ = resolve_config_arguments(
+        values,
+        EXPERIMENT_DEFAULT_CONFIG,
+    )
+    combined = config.to_dict()
+    combined.update(operations)
+    return argparse.Namespace(**combined), config, print_only
 
 
 class Video3DModelWrapper(nn.Module):
@@ -109,15 +120,22 @@ class Video3DModelWrapper(nn.Module):
         return self.model(x)
 
 
-def model_registry() -> list[dict[str, str]]:
+def model_registry(
+    experiment_config: ExperimentConfig | None = None,
+) -> list[dict[str, str]]:
     """Describe the approved comparison models without allocating them.
 
     Parameters:
-        None.
+        experiment_config: Optional settings for the custom reference entry.
 
     Returns:
         Model names, families, classes, and comparison roles.
     """
+    custom_name = "custom_convlstm_reference_8_k3"
+    if experiment_config is not None and experiment_config.convlstm_layers != (
+        (8, (3, 3)),
+    ):
+        custom_name = "custom_convlstm_configured"
     return [
         {
             "name": "paper_convlstm_published",
@@ -126,7 +144,7 @@ def model_registry() -> list[dict[str, str]]:
             "role": "source-paper ConvLSTM topology baseline",
         },
         {
-            "name": "custom_convlstm_reference_8_k3",
+            "name": custom_name,
             "family": "ConvLSTM",
             "model_class": "CustomConvLSTM",
             "role": "study custom reference; not the selected final model",
@@ -157,6 +175,7 @@ def build_registered_model(
     num_classes: int,
     input_shape: tuple[int, int, int],
     sequence_length: int,
+    experiment_config: ExperimentConfig | None = None,
 ) -> nn.Module:
     """Build one approved model by its registry name.
 
@@ -165,6 +184,7 @@ def build_registered_model(
         num_classes: Number of dataset classes.
         input_shape: Frame shape `(channels, height, width)`.
         sequence_length: Frames supplied to the model.
+        experiment_config: Resolved settings for the custom reference.
 
     Returns:
         The requested untrained model.
@@ -175,8 +195,16 @@ def build_registered_model(
             input_shape=input_shape,
             sequence_length=sequence_length,
         )
-    if model_name == "custom_convlstm_reference_8_k3":
-        return CustomConvLSTM(num_classes, layers=[(8, (3, 3))])
+    if model_name in {
+        "custom_convlstm_reference_8_k3",
+        "custom_convlstm_configured",
+    }:
+        config = experiment_config or EXPERIMENT_DEFAULT_CONFIG
+        return CustomConvLSTM(
+            num_classes,
+            layers=list(config.convlstm_layers),
+            hidden_classifier_width=config.hidden_classifier_width,
+        )
     if model_name == "r3d_18":
         return Video3DModelWrapper(
             video_models.r3d_18(weights=None),
@@ -195,17 +223,17 @@ def build_registered_model(
     raise ValueError(f"unknown registered model: {model_name}")
 
 
-def print_model_registry() -> None:
+def print_model_registry(experiment_config: ExperimentConfig | None = None) -> None:
     """Print approved model names and roles without allocating models.
 
     Parameters:
-        None.
+        experiment_config: Optional settings for the custom reference entry.
 
     Returns:
         None.
     """
     print("Approved comparison models")
-    for entry in model_registry():
+    for entry in model_registry(experiment_config):
         print(
             f"- {entry['name']}: {entry['model_class']} | "
             f"{entry['family']} | {entry['role']}"
@@ -223,6 +251,7 @@ def _save_selected_checkpoint(
     dataset_name: str,
     split_manifest_hash: str,
     seed: int,
+    experiment_config: dict[str, object],
 ) -> None:
     """Save one experiment model selected by validation loss.
 
@@ -237,6 +266,7 @@ def _save_selected_checkpoint(
         dataset_name: Dataset used for the comparison.
         split_manifest_hash: Exact split manifest hash used by the run.
         seed: Experiment run seed.
+        experiment_config: Exact normalised experiment configuration.
 
     Returns:
         None.
@@ -260,6 +290,7 @@ def _save_selected_checkpoint(
         "trainable_parameters": count_trainable_parameters(model),
         "model_config": model_config,
         "model_registry_entry": model_registry_entry,
+        "experiment_config": experiment_config,
     }
     torch.save(
         {
@@ -272,16 +303,18 @@ def _save_selected_checkpoint(
     write_json(path.with_suffix(".json"), metadata)
 
 
-def main() -> None:
-    args = parser.parse_args()
-    registry = model_registry()
-    if args.list_models:
-        print_model_registry()
+def main(argv: list[str] | None = None) -> None:
+    """Resolve configuration and run validation-only model comparisons."""
+    args, experiment_config, print_only = _resolved_arguments(
+        vars(parser.parse_args(argv))
+    )
+    if print_only:
+        print(experiment_config.to_json())
         return
-    if args.epochs <= 0:
-        raise ValueError("epochs must be positive")
-    if args.early_stopping_patience <= 0:
-        raise ValueError("early_stopping_patience must be positive")
+    registry = model_registry(experiment_config)
+    if args.list_models:
+        print_model_registry(experiment_config)
+        return
     deterministic_settings = seed_everything(args.seed)
     deterministic_settings["data_loader_seeds"] = {
         "train": args.seed,
@@ -291,7 +324,7 @@ def main() -> None:
     print(f"Device: {device}")
 
     manifest_path = resolve_split_manifest_path(
-        args.dataset_dir, args.split_manifest, DEFAULT_SPLIT_SEED
+        args.dataset_dir, args.split_manifest, args.split_seed
     )
 
     run = RunContext(
@@ -311,10 +344,10 @@ def main() -> None:
             "split_ratios": {
                 "train": args.train_ratio,
                 "validation": args.val_ratio,
-                "test": 1.0 - args.train_ratio - args.val_ratio,
+                "test": args.test_ratio,
             },
             "seed": args.seed,
-            "split_seed": DEFAULT_SPLIT_SEED,
+            "split_seed": args.split_seed,
             "split_manifest": str(manifest_path.resolve()),
             "deterministic_settings": deterministic_settings,
             "device": str(device),
@@ -322,6 +355,8 @@ def main() -> None:
     )
     run_dir = run.run_dir
     print(f"Run directory: {run_dir}")
+
+    resolved_config_path = experiment_config.save_json(run_dir / "resolved_config.json")
 
     # ---- Dataset ----
     dataset = AHARDataset(
@@ -337,7 +372,7 @@ def main() -> None:
         manifest_path,
         train_ratio=args.train_ratio,
         val_ratio=args.val_ratio,
-        seed=DEFAULT_SPLIT_SEED,
+        seed=args.split_seed,
     )
     n_total = len(dataset)
     n_train, n_val = len(train_set), len(val_set)
@@ -356,7 +391,7 @@ def main() -> None:
     loader_kw = dict(
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        pin_memory=True,
+        pin_memory=args.pin_memory,
         worker_init_fn=seed_data_loader_worker,
     )
     train_loader = DataLoader(
@@ -374,6 +409,7 @@ def main() -> None:
     # ---- Model configs ----
     input_shape = (3, args.height, args.width)
     shared_configuration = {
+        "experiment_config": experiment_config.to_dict(),
         "models": registry,
         "class_names": dataset.class_names,
         "dataset_size": n_total,
@@ -393,6 +429,7 @@ def main() -> None:
             "weight_decay": args.weight_decay,
             "optimizer": "Adam",
             "loss": "CrossEntropyLoss(label_smoothing=0.1)",
+            "scheduler": args.scheduler,
             "metric_protocol": metric_protocol(),
             "checkpoint_selection": "lowest_validation_loss",
             "early_stopping_patience": args.early_stopping_patience,
@@ -429,6 +466,7 @@ def main() -> None:
             num_classes,
             input_shape,
             args.sequence_length,
+            experiment_config,
         )
         model = model.to(device)
         num_params = count_trainable_parameters(model)
@@ -437,6 +475,13 @@ def main() -> None:
 
         opt = optim.Adam(
             model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
+        )
+        scheduler = (
+            optim.lr_scheduler.ReduceLROnPlateau(
+                opt, mode="min", factor=0.9, patience=5
+            )
+            if args.scheduler == "reduce_on_plateau"
+            else None
         )
         criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
         model_config = (
@@ -470,6 +515,8 @@ def main() -> None:
                 device,
                 num_classes,
             )
+            if scheduler is not None:
+                scheduler.step(validation_metrics["loss"])
             selected = selector.update(validation_metrics["loss"], epoch + 1)
             history.append(
                 {
@@ -491,6 +538,7 @@ def main() -> None:
                     dataset.dataset_dir.resolve().name,
                     str(split_metadata["manifest_hash"]),
                     args.seed,
+                    experiment_config.to_dict(),
                 )
             if selector.should_stop:
                 break
@@ -614,6 +662,7 @@ def main() -> None:
     )
     run.complete(
         artifacts={
+            "resolved_configuration": str(resolved_config_path),
             "configuration": str(config_path),
             "ranked_summary": str(out_path),
             "model_directories": {
