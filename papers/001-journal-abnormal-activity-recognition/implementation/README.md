@@ -126,21 +126,12 @@ research logic.
 2. Set `RUN_COLAB_SETUP=True` once. It clones the repository, installs missing
    packages, and downloads the public
    [`sanelehlabisa/abnormal-activities-dataset`](https://www.kaggle.com/datasets/sanelehlabisa/abnormal-activities-dataset)
-   into the paper implementation's `datasets/` directory. If Kaggle requests
-   authentication, put the token in a Colab secret named `KAGGLE_API_TOKEN`;
-   never paste it into a cell.
-3. Set `RUN_COLAB_SETUP=False`, validate paths, and enable only the stage needed.
+   through KaggleHub's cache.
+3. Set `RUN_COLAB_SETUP=False`, then run the dataset check, model check, and one
+   controlled experiment stage in order.
 
-The cloud tree mirrors the repository: dataset files live under
-`implementation/datasets/` and artifacts under `implementation/runs/`.
-
-Every setup, preview, experiment, training, evaluation, and archive flag
-defaults to `False`. Colab paths under `/content`
-are temporary, so download or archive important runs before the runtime ends.
-The notebook never mounts storage or exposes credentials automatically.
-
-Final test evaluation remains disabled until both its explicit unlock and run
-flags are enabled and a validation-selected checkpoint path is supplied.
+The notebook has only four opt-in switches and streams complete command output.
+Artifacts are written under `implementation/runs/`; test evaluation is omitted.
 
 ## Implementation tasks
 
