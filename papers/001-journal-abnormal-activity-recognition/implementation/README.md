@@ -126,16 +126,22 @@ inference checks, then adds guarded experiment execution without duplicating res
 
 1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
-   once, installs missing packages quietly, and reuses cached AAD or downloads
-   the public KaggleHub dataset once when a fresh runtime has no copy.
+   once or fast-forwards an existing clean checkout, reloads local `src`
+   modules, installs missing packages quietly, and reuses cached AAD or
+   downloads the public KaggleHub dataset when a fresh runtime has no copy.
 3. Inspect the split summary, class balance, sample metadata, a side-by-side
    native/model-ready comparison, and the augmented model input.
 4. Inspect all custom candidates and comparison roles, then run three labelled
    random-weight A100 checks with tensor shapes and playable prediction cards.
 
+5. Optionally enable the bounded 64-step training check. It saves a checkpoint
+   and JSON history, plots training and validation loss, and shows three
+   validation-video predictions while keeping the test split locked.
+
 The notebook uses normal Python cells for interactive tables and embedded video.
-It allocates one lightweight model only for untrained software checks; it does
-not run an experiment, rank models, or access test clips.
+Its bounded training section is a pipeline smoke test, not evidence for ranking
+or selecting a model. The controlled experiment runner remains the source of
+research evidence, and no notebook inspection opens test clips.
 
 ## Implementation tasks
 
@@ -177,8 +183,8 @@ not run an experiment, rank models, or access test clips.
 14. [x] **Model inspection (`023`).** Added inline clean and augmented videos,
     manifest-driven candidate and role tables, a readable lightweight reference,
     and one labelled random-weight GPU prediction with cleanup.
-15. [ ] **Experiment notebook (`024`, next).** Add guarded plan-stage execution and
-    validation-only result displays at the end of the notebook.
+15. [ ] **Experiment notebook (`024`, next).** Add the bounded training check,
+    guarded plan-stage execution, and validation-only result displays.
 16. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
     completed notebook and retain complete validation evidence.
 17. [ ] **Validation and handoff (`025–026`).** Confirm the frozen model on VDD,

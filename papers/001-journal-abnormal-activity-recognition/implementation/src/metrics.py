@@ -145,6 +145,61 @@ def train_classifier_epoch(
     )
 
 
+def train_classifier_steps(
+    model: nn.Module,
+    loader: DataLoader,
+    criterion: nn.Module,
+    optimizer: optim.Optimizer,
+    device: torch.device,
+    max_steps: int,
+) -> list[dict[str, float | int]]:
+    """Train for an exact number of optimizer steps.
+
+    Parameters:
+        model: Classification model to train.
+        loader: Reusable training data loader.
+        criterion: Per-batch mean loss function.
+        optimizer: Optimizer used to update the model.
+        device: Device used for forward and backward passes.
+        max_steps: Positive number of optimizer updates.
+
+    Returns:
+        Per-step loss, accuracy, and batch-size records.
+    """
+    if not isinstance(max_steps, int) or isinstance(max_steps, bool) or max_steps <= 0:
+        raise ValueError("max_steps must be a positive integer")
+    if len(loader) == 0:
+        raise ValueError("loader must contain at least one batch")
+
+    model.train()
+    records: list[dict[str, float | int]] = []
+    iterator = iter(loader)
+    for step in range(1, max_steps + 1):
+        try:
+            inputs, labels = next(iterator)
+        except StopIteration:
+            iterator = iter(loader)
+            inputs, labels = next(iterator)
+
+        inputs = inputs.to(device, non_blocking=True)
+        labels = labels.to(device, non_blocking=True)
+        optimizer.zero_grad(set_to_none=True)
+        logits = model(inputs)
+        loss = criterion(logits, labels)
+        loss.backward()
+        optimizer.step()
+        predictions = logits.detach().argmax(dim=1)
+        records.append(
+            {
+                "step": step,
+                "loss": float(loss.item()),
+                "accuracy": float((predictions == labels).float().mean().item()),
+                "batch_size": labels.size(0),
+            }
+        )
+    return records
+
+
 @torch.inference_mode()
 def evaluate_classifier(
     model: nn.Module,
