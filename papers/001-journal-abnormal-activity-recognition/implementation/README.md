@@ -119,18 +119,18 @@ exploratory evidence.
 ## Colab VS Code notebook
 
 Use [the AAD workflow](notebooks/aad_experiment_workflow.ipynb) from VS Code
-connected to an A100 through the official Google Colab extension. Tickets
-022–024 will refine it serially from dataset inspection through guarded
-experiment execution without duplicating research logic.
+connected to an A100 through the official Google Colab extension. Ticket 022
+provides the runtime and AAD-inspection foundation; tickets 023–024 add model
+inspection and guarded experiment execution without duplicating research logic.
 
 1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
    once, installs missing packages quietly, and reuses the cached AAD dataset.
-3. Inspect the displayed video frames and model candidates, then run the
-   architecture screen and display its ranking.
+3. Inspect the split summary, class balance, reproducible training samples, and
+   clean-versus-augmented frames.
 
 The notebook uses normal Python cells for interactive tables and figures.
-Artifacts are written under `implementation/runs/`; test evaluation is omitted.
+It does not yet allocate a model, run an experiment, or access test clips.
 
 ## Implementation tasks
 
@@ -166,13 +166,17 @@ Artifacts are written under `implementation/runs/`; test evaluation is omitted.
     validated one-factor ablation plan to the Colab workflow.
 12. [ ] **Optional cloud expansion (`021`, pre-screen decision).** Before screening, add the
     entire predeclared five-model block when a timing check shows enough runtime.
-13. [ ] **Interactive notebook (`022–024`, next).** Build the Colab VS Code data,
-    model, experiment, and validation-result walkthrough in three serial tickets.
-14. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
+13. [x] **Notebook foundation (`022`).** Added the Colab VS Code runtime,
+    committed-split, class-balance, training-sample, and augmentation walkthrough.
+14. [ ] **Model inspection (`023`, next).** Display model roles, candidates,
+    parameter counts, and one labelled random-weight smoke prediction.
+15. [ ] **Experiment notebook (`024`).** Add guarded plan-stage execution and
+    validation-only result displays at the end of the notebook.
+16. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
     completed notebook and retain complete validation evidence.
-15. [ ] **Validation and handoff (`025–026`).** Confirm the frozen model on VDD,
+17. [ ] **Validation and handoff (`025–026`).** Confirm the frozen model on VDD,
     aggregate evidence, and export paper-ready tables and figures.
-16. [ ] **Stateful streaming (`029`, later).** Carry custom ConvLSTM state across
+18. [ ] **Stateful streaming (`029`, later).** Carry custom ConvLSTM state across
     video chunks and predict after each chunk without altering `PaperConvLSTM`.
 
 Generated datasets, environments, checkpoints, and experiment runs remain

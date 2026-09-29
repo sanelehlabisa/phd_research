@@ -11,9 +11,9 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Tickets `022–024` will rebuild the Paper 001 notebook for a serial, interactive
-Colab VS Code workflow. Ticket 021's optional candidate-block decision remains
-required before starting the full architecture screen.
+Ticket `022` completed the Colab VS Code runtime and interactive AAD
+inspection. Ticket `023` adds model inspection next; ticket 021's optional
+candidate-block decision remains required before the full architecture screen.
 
 ## Structure
 

@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `022-interactive-notebook-foundation`
-- Status: Ready
+- Status: Done
 - Aim: Turn the Paper 001 notebook into a clear Colab-only VS Code walkthrough
   that verifies the runtime and visually inspects AAD before any experiment runs.
 - Scope:
