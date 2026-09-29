@@ -8,7 +8,10 @@ import pytest
 
 from src.experiment_config import CandidateManifest, ExperimentConfig
 from src.experiments import (
+    build_experiment_criterion,
     build_plan_commands,
+    controlled_plan_rows,
+    inspect_experiment_run_directories,
     load_controlled_plan,
     main,
     model_registry,
@@ -110,6 +113,77 @@ def test_plan_has_one_factor_trials_and_fixed_learning_rate() -> None:
     )
     assert reference.learning_rate == 0.001
     assert reference.epochs == 64
+
+
+def test_plan_rows_expose_every_controlled_factor() -> None:
+    """Provide a complete notebook table without allocating data or models."""
+    rows = controlled_plan_rows(PLAN_PATH)
+
+    assert len(rows) == 9
+    assert sum(int(row["expected_runs"]) for row in rows) == 16
+    assert rows[0]["stage"] == "architecture-screen"
+    assert rows[0]["model_role"] == "11 custom candidates"
+    by_trial = {str(row["trial"]): row for row in rows}
+    assert by_trial["augmentation_off"]["augmentation"] is False
+    assert by_trial["spatial_64"]["input_size"] == "T=16, 64x64"
+    assert by_trial["sequence_32"]["input_size"] == "T=32, 32x32"
+    assert by_trial["weight_decay_0"]["weight_decay"] == 0.0
+    assert by_trial["weight_decay_0_0001"]["weight_decay"] == 0.0001
+
+
+def test_experiment_loss_matches_plain_cross_entropy_config() -> None:
+    """Do not silently add label smoothing to the controlled protocol."""
+    criterion = build_experiment_criterion()
+
+    assert criterion.label_smoothing == 0.0
+
+
+def test_run_inspection_distinguishes_missing_partial_and_complete(
+    tmp_path: Path,
+) -> None:
+    """Describe exact requested runs without treating partial output as evidence."""
+    missing = tmp_path / "missing"
+    partial = tmp_path / "partial"
+    complete = tmp_path / "complete"
+    partial.mkdir()
+    complete.mkdir()
+    (partial / "run.json").write_text(
+        json.dumps({"status": "running"}),
+        encoding="utf-8",
+    )
+    (complete / "run.json").write_text(
+        json.dumps({"status": "complete"}),
+        encoding="utf-8",
+    )
+    (complete / "summary.json").write_text(
+        json.dumps({"ranked": [{"partition": "validation"}]}),
+        encoding="utf-8",
+    )
+
+    records = inspect_experiment_run_directories([missing, partial, complete])
+
+    assert [record["evidence_state"] for record in records] == [
+        "missing",
+        "partial",
+        "complete",
+    ]
+
+
+def test_run_inspection_rejects_test_rankings(tmp_path: Path) -> None:
+    """Never present test-ranked output as controlled selection evidence."""
+    invalid = tmp_path / "invalid"
+    invalid.mkdir()
+    (invalid / "run.json").write_text(
+        json.dumps({"status": "complete"}),
+        encoding="utf-8",
+    )
+    (invalid / "summary.json").write_text(
+        json.dumps({"ranked": [{"partition": "test"}]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="must rank validation results"):
+        inspect_experiment_run_directories([invalid])
 
 
 def test_plan_rejects_multi_factor_trial(tmp_path: Path) -> None:

@@ -25,6 +25,10 @@
   - Reuse the validated plan and `src.experiments` command path as the source of
     truth. Do not copy training loops, metrics, checkpoint selection, splitting,
     augmentation, or model construction into the notebook.
+  - Align the comparison runner with the configs' declared plain
+    cross-entropy loss. Expose validated plan-table rows and exact
+    missing/partial/complete run inspection for notebook display; reject any
+    summary that ranks test results.
   - First display a readable plan table containing stage, trial, model role,
     changed factor, seed, input size, training budget, and expected run count.
     Preserve the separate architecture-screen, practical-baseline,
@@ -55,6 +59,9 @@
     plus JSON history, plots losses, and displays three validation predictions
     without opening the test split.
   - Safe plan inspection works without loading AAD or allocating a model.
+  - The runner uses plain cross-entropy as declared, the plan table exposes all
+    16 expected leaf runs and controlled factors, and result inspection never
+    presents test-ranked or partial output as complete evidence.
   - No experiment starts until the explicit flag is enabled and a valid stage
     is selected; the exact command and resolved paths are shown first.
   - Experiment progress appears in the VS Code notebook while the existing

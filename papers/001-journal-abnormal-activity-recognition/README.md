@@ -66,16 +66,24 @@ reference architecture for ablation.
   random-weight GPU check.
 - [ ] `024-notebook-experiment-workflow` — add guarded plan-stage execution and
   visual validation-only result inspection at the end of the notebook.
-- [ ] **Architecture and baseline runs:** execute the frozen ticket-020/021 plan;
-  notebook availability alone is not confirmation evidence.
-- [ ] `025-validate-second-dataset` — evaluate the frozen configuration on VDD.
-- [ ] `026-aggregate-ablation-evidence` — produce paper-ready tables, figures,
+- [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
+  baselines, published topology, and one-factor ablations; select by validation.
+- [ ] `026-train-selected-model` — confirm and freeze the selected architecture,
+  input size, augmentation, and regularisation across both planned seeds.
+- [ ] `027-evaluate-selected-model` — perform the one-time final AAD test and
+  export complete metrics, confusion output, and playable prediction examples.
+- [ ] `028-validate-second-dataset` — define and run the frozen VDD
+  generalisation protocol without changing the selected AAD model.
+- [ ] `029-aggregate-ablation-evidence` — produce paper-ready tables, figures,
   uncertainty, efficiency comparisons, and error-analysis inputs.
-- [ ] `027-rewrite-experimental-results` — revise the experiment and discussion
+- [ ] `030-rewrite-experimental-results` — revise the experiment and discussion
   section using only verified outputs.
-- [ ] `028-align-paper-claims` — align the abstract, contributions, methods,
+- [ ] `031-align-paper-claims` — align the abstract, contributions, methods,
   limitations, and conclusion with the final evidence.
-- [ ] `029-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
+- [ ] `032-assess-kinetics-transfer` — conditional only if frozen AAD/VDD
+  evidence remains weak; define the exact Kinetics variant and use it for
+  pretraining/transfer rather than silently replacing the 11-class task.
+- [ ] `033-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
   prediction to the custom model without changing the published baseline.
 
 ## Planned results-section flow

@@ -444,6 +444,153 @@ def build_plan_commands(
     return commands
 
 
+def controlled_plan_rows(plan_path: str | Path) -> list[dict[str, object]]:
+    """Return readable rows for every approved controlled-plan stage.
+
+    Parameters:
+        plan_path: Path to the validated controlled experiment plan.
+
+    Returns:
+        Stage, trial, model role, factor, protocol, and expected-run rows.
+    """
+    resolved_plan_path = Path(plan_path).expanduser().resolve()
+    plan, candidate_manifest = load_controlled_plan(resolved_plan_path)
+
+    def load_config(section: dict[str, object]) -> ExperimentConfig:
+        return ExperimentConfig.from_json(
+            _resolve_plan_path(resolved_plan_path, section["config"])
+        )
+
+    def input_size(config: ExperimentConfig) -> str:
+        return f"T={config.sequence_length}, {config.height}x{config.width}"
+
+    screening = plan["screening"]
+    confirmation = plan["confirmation"]
+    published = plan["published_topology"]
+    ablations = plan["ablations"]
+    screening_config = load_config(screening)
+    confirmation_config = load_config(confirmation)
+    published_config = load_config(published)
+    ablation_config = load_config(ablations)
+    reference = str(plan["reference_candidate"])
+
+    rows: list[dict[str, object]] = [
+        {
+            "stage": "architecture-screen",
+            "trial": "all_custom_candidates",
+            "model_role": f"{len(candidate_manifest.candidates)} custom candidates",
+            "changed_factor": "architecture width/depth",
+            "seeds": str(screening_config.seed),
+            "input_size": input_size(screening_config),
+            "epochs": screening_config.epochs,
+            "augmentation": screening_config.augment,
+            "weight_decay": screening_config.weight_decay,
+            "expected_runs": 1,
+        },
+        {
+            "stage": "baseline-confirmation",
+            "trial": "reference_and_practical_baselines",
+            "model_role": (f"{reference} + r3d_18 + mc3_18 + r2plus1d_18"),
+            "changed_factor": "model family",
+            "seeds": ", ".join(str(seed) for seed in confirmation["seeds"]),
+            "input_size": input_size(confirmation_config),
+            "epochs": confirmation_config.epochs,
+            "augmentation": confirmation_config.augment,
+            "weight_decay": confirmation_config.weight_decay,
+            "expected_runs": len(confirmation["seeds"]),
+        },
+        {
+            "stage": "published-topology",
+            "trial": "source_paper_topology",
+            "model_role": "PaperConvLSTM (separate protocol)",
+            "changed_factor": "published topology",
+            "seeds": str(published_config.seed),
+            "input_size": input_size(published_config),
+            "epochs": published_config.epochs,
+            "augmentation": published_config.augment,
+            "weight_decay": published_config.weight_decay,
+            "expected_runs": 1,
+        },
+    ]
+    for trial in ablations["trials"]:
+        resolved_values = ablation_config.to_dict()
+        resolved_values.update(trial["overrides"])
+        trial_config = ExperimentConfig.from_mapping(resolved_values)
+        rows.append(
+            {
+                "stage": "focused-ablations",
+                "trial": trial["name"],
+                "model_role": reference,
+                "changed_factor": trial["changed_factor"] or "reference",
+                "seeds": ", ".join(str(seed) for seed in ablations["seeds"]),
+                "input_size": input_size(trial_config),
+                "epochs": trial_config.epochs,
+                "augmentation": trial_config.augment,
+                "weight_decay": trial_config.weight_decay,
+                "expected_runs": len(ablations["seeds"]),
+            }
+        )
+    return rows
+
+
+def inspect_experiment_run_directories(
+    run_directories: list[str | Path],
+) -> list[dict[str, object]]:
+    """Inspect exact experiment run directories without selecting results.
+
+    Parameters:
+        run_directories: Explicit run directories created by one requested stage.
+
+    Returns:
+        Missing, partial, or complete manifest and validation-summary records.
+    """
+    records: list[dict[str, object]] = []
+    for value in run_directories:
+        run_dir = Path(value).expanduser().resolve()
+        manifest_path = run_dir / "run.json"
+        summary_path = run_dir / "summary.json"
+        if not manifest_path.is_file():
+            records.append(
+                {
+                    "run_dir": str(run_dir),
+                    "evidence_state": "missing",
+                    "manifest": None,
+                    "summary": None,
+                }
+            )
+            continue
+
+        manifest = _load_json_object(manifest_path, "run manifest")
+        summary = (
+            _load_json_object(summary_path, "experiment summary")
+            if summary_path.is_file()
+            else None
+        )
+        if summary is not None:
+            ranked = summary.get("ranked", [])
+            if not isinstance(ranked, list) or any(
+                not isinstance(result, dict) or result.get("partition") != "validation"
+                for result in ranked
+            ):
+                raise ValueError(
+                    f"experiment summary must rank validation results: {summary_path}"
+                )
+        evidence_state = (
+            "complete"
+            if manifest.get("status") == "complete" and summary is not None
+            else "partial"
+        )
+        records.append(
+            {
+                "run_dir": str(run_dir),
+                "evidence_state": evidence_state,
+                "manifest": manifest,
+                "summary": summary,
+            }
+        )
+    return records
+
+
 def print_controlled_plan(plan_path: str | Path) -> None:
     """Print every approved stage and leaf command without starting a run."""
     plan, candidate_manifest = load_controlled_plan(plan_path)
@@ -811,6 +958,18 @@ def _save_selected_checkpoint(
     write_json(path.with_suffix(".json"), metadata)
 
 
+def build_experiment_criterion() -> nn.CrossEntropyLoss:
+    """Build the loss declared by the controlled experiment configurations.
+
+    Parameters:
+        None.
+
+    Returns:
+        Plain cross-entropy without label smoothing.
+    """
+    return nn.CrossEntropyLoss()
+
+
 def main(argv: list[str] | None = None) -> None:
     """Resolve configuration and run validation-only model comparisons."""
     args, experiment_config, candidate_manifest, print_only = _resolved_arguments(
@@ -1001,7 +1160,7 @@ def main(argv: list[str] | None = None) -> None:
             "learning_rate": args.learning_rate,
             "weight_decay": args.weight_decay,
             "optimizer": "Adam",
-            "loss": "CrossEntropyLoss(label_smoothing=0.1)",
+            "loss": "CrossEntropyLoss",
             "scheduler": args.scheduler,
             "metric_protocol": metric_protocol(),
             "checkpoint_selection": "lowest_validation_loss",
@@ -1054,7 +1213,7 @@ def main(argv: list[str] | None = None) -> None:
             if args.scheduler == "reduce_on_plateau"
             else None
         )
-        criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+        criterion = build_experiment_criterion()
         model_config = (
             model.configuration()
             if isinstance(model, CustomConvLSTM)

@@ -186,11 +186,19 @@ source of research evidence, and no notebook inspection opens test clips.
     and one labelled random-weight GPU prediction with cleanup.
 15. [ ] **Experiment notebook (`024`, next).** Add the bounded training check,
     guarded plan-stage execution, and validation-only result displays.
-16. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
-    completed notebook and retain complete validation evidence.
-17. [ ] **Validation and handoff (`025–026`).** Confirm the frozen model on VDD,
-    aggregate evidence, and export paper-ready tables and figures.
-18. [ ] **Stateful streaming (`029`, later).** Carry custom ConvLSTM state across
+16. [ ] **Controlled AAD runs (`025`).** Run the frozen screen, baselines,
+    published topology, and ablations; select from validation only.
+17. [ ] **Selected-model training (`026`).** Confirm the selected architecture
+    and validated input/regularisation choices across both seeds.
+18. [ ] **Final AAD evaluation (`027`).** Open test once for the frozen
+    checkpoint and export complete metrics plus prediction examples.
+19. [ ] **VDD and evidence (`028–029`).** Validate generalisation, then export
+    paper-ready aggregate tables and figures.
+20. [ ] **Manuscript alignment (`030–031`).** Rewrite results and align all
+    affected claims only from versioned evidence.
+21. [ ] **Kinetics transfer decision (`032`, conditional).** Consider an exact
+    pretraining/transfer protocol only if frozen AAD/VDD evidence remains weak.
+22. [ ] **Stateful streaming (`033`, later).** Carry custom ConvLSTM state across
     video chunks and predict after each chunk without altering `PaperConvLSTM`.
 
 Generated datasets, environments, checkpoints, and experiment runs remain
@@ -342,5 +350,5 @@ copied or overwritten by evaluation.
 The AAD plan names `custom_depth_8_8_8` only as the preliminary reference used
 to make the plan executable; replace it only with validation-screen evidence
 before confirmation or ablation. The 24-epoch screen and 64-epoch confirmation
-are compute stages, not an epoch ablation. Random-weight smoke outputs remain
-pipeline checks, not research evidence.
+are compute stages, not an epoch ablation. Random-weight inference and the
+512-step learning sanity check remain pipeline checks, not research evidence.

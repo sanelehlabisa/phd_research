@@ -11,9 +11,10 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `023` completed interactive data and model inspection in the Colab VS Code
-workflow. Ticket `024` adds guarded experiment execution next; ticket 021's
-optional candidate-block decision remains required before the full screen.
+Ticket `024` is adding guarded experiment execution. Ticket `021` remains the
+required pre-screen candidate-block decision; tickets `025`–`027` then run
+the controlled AAD suite, train the selected configuration, and perform its
+one-time final AAD evaluation.
 
 ## Structure
 
