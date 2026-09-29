@@ -116,23 +116,21 @@ exploratory evidence.
   uncertainty across confirmation seeds.
 - One factor changed at a time with the split and training budget fixed.
 
-## Cloud notebook
+## Colab VS Code notebook
 
-Use [the AAD cloud workflow](notebooks/aad_experiment_workflow.ipynb) in Colab.
-It calls the same `src.*` commands documented below and does not duplicate
-research logic.
+Use [the AAD workflow](notebooks/aad_experiment_workflow.ipynb) from VS Code
+connected to an A100 through the official Google Colab extension. Tickets
+022–024 will refine it serially from dataset inspection through guarded
+experiment execution without duplicating research logic.
 
-1. Upload the notebook to Colab and select a GPU runtime.
-2. Set `RUN_COLAB_SETUP=True` once. It clones the repository, installs missing
-   packages, and downloads the public
-   [`sanelehlabisa/abnormal-activities-dataset`](https://www.kaggle.com/datasets/sanelehlabisa/abnormal-activities-dataset)
-   through KaggleHub's cache.
-3. Run the dataset check, model check, and architecture-screen command cells in
-   order.
+1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
+2. Run the Python setup cell. It clones the code into `/content/phd_research`
+   once, installs missing packages quietly, and reuses the cached AAD dataset.
+3. Inspect the displayed video frames and model candidates, then run the
+   architecture screen and display its ranking.
 
-The notebook uses direct Linux-command cells, so failures appear without a
-subprocess wrapper. Artifacts are written under `implementation/runs/`; test
-evaluation is omitted.
+The notebook uses normal Python cells for interactive tables and figures.
+Artifacts are written under `implementation/runs/`; test evaluation is omitted.
 
 ## Implementation tasks
 
@@ -166,13 +164,15 @@ evaluation is omitted.
 11. [x] **Controlled experiment expansion (`020`).** Added the approved 11-model
     screen, practical-baseline confirmation, separate published topology, and
     validated one-factor ablation plan to the Colab workflow.
-12. [ ] **Optional cloud expansion (`021`, next decision).** Before screening, add the
+12. [ ] **Optional cloud expansion (`021`, pre-screen decision).** Before screening, add the
     entire predeclared five-model block when a timing check shows enough runtime.
-13. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
-    ticket-019 notebook and retain complete validation evidence.
-14. [ ] **Validation and handoff (`022–023`).** Confirm the frozen model on VDD,
+13. [ ] **Interactive notebook (`022–024`, next).** Build the Colab VS Code data,
+    model, experiment, and validation-result walkthrough in three serial tickets.
+14. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
+    completed notebook and retain complete validation evidence.
+15. [ ] **Validation and handoff (`025–026`).** Confirm the frozen model on VDD,
     aggregate evidence, and export paper-ready tables and figures.
-15. [ ] **Stateful streaming (`026`, later).** Carry custom ConvLSTM state across
+16. [ ] **Stateful streaming (`029`, later).** Carry custom ConvLSTM state across
     video chunks and predict after each chunk without altering `PaperConvLSTM`.
 
 Generated datasets, environments, checkpoints, and experiment runs remain

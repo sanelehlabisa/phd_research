@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Controlled 11-model suite ready; ticket-021 timing decision is next
+- Status: Controlled suite ready; interactive Colab VS Code notebook is next
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -59,16 +59,22 @@ reference architecture for ablation.
 - [ ] `021-optional-cloud-architecture-expansion` — **Next decision, before screening:**
   optionally add the complete predeclared five-model block when a Colab timing
   check shows sufficient runtime.
+- [ ] `022-interactive-notebook-foundation` — **Next implementation:** simplify
+  the Colab VS Code setup and display AAD metadata, balance, frames, and augmentation.
+- [ ] `023-interactive-model-inspection` — display model roles, architecture
+  candidates, parameter counts, and one labelled random-weight smoke prediction.
+- [ ] `024-notebook-experiment-workflow` — add guarded plan-stage execution and
+  visual validation-only result inspection at the end of the notebook.
 - [ ] **Architecture and baseline runs:** execute the frozen ticket-020/021 plan;
   notebook availability alone is not confirmation evidence.
-- [ ] `022-validate-second-dataset` — evaluate the frozen configuration on VDD.
-- [ ] `023-aggregate-ablation-evidence` — produce paper-ready tables, figures,
+- [ ] `025-validate-second-dataset` — evaluate the frozen configuration on VDD.
+- [ ] `026-aggregate-ablation-evidence` — produce paper-ready tables, figures,
   uncertainty, efficiency comparisons, and error-analysis inputs.
-- [ ] `024-rewrite-experimental-results` — revise the experiment and discussion
+- [ ] `027-rewrite-experimental-results` — revise the experiment and discussion
   section using only verified outputs.
-- [ ] `025-align-paper-claims` — align the abstract, contributions, methods,
+- [ ] `028-align-paper-claims` — align the abstract, contributions, methods,
   limitations, and conclusion with the final evidence.
-- [ ] `026-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
+- [ ] `029-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
   prediction to the custom model without changing the published baseline.
 
 ## Planned results-section flow

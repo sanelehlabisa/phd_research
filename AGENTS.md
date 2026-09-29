@@ -24,11 +24,12 @@
   restores checkpoints, and only the evaluation command opens the test split.
   Training and comparisons now share a validated JSON configuration with
   explicit CLI overrides and complete checkpoint provenance. A portable cloud
-  notebook now orchestrates these commands without duplicating their logic. The
   approved 11-model screen, practical-baseline confirmation, native published
-  topology, and focused ablations now share one validated plan. The immediate
-  decision is whether ticket 021's complete optional block fits the Colab
-  runtime; decide before starting the screen and never from favourable results.
+  topology, and focused ablations share one validated plan. Tickets 022–024 now
+  rebuild the notebook specifically for the Colab VS Code extension, progressing
+  from interactive data inspection to model inspection and finally guarded
+  experiment execution. Ticket 021's optional candidate-block decision must
+  still occur before the full screen and never from favourable results.
 
 ## Research rules
 
