@@ -6,6 +6,8 @@
   that verifies the runtime and visually inspects AAD before any experiment runs.
 - Scope:
   - `papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_experiment_workflow.ipynb`
+  - the shared video reader in `implementation/src/utils.py` only where required
+    for the Colab torchvision version used by the approved notebook stage
   - concise notebook guidance in the root, Paper 001, and implementation READMEs
   - focused notebook validation tests only when useful
 - Changes:
@@ -23,13 +25,15 @@
        absent and pulling only when the remote checkout is clean;
     4. installs only missing non-PyTorch dependencies with the active kernel's
        Python; and
-    5. locates an already available AAD directory and fails clearly when none
-       exists, without downloading or copying the dataset.
+    5. reuses an already cached AAD directory, or downloads the public dataset
+       once with KaggleHub when the current Colab runtime has no cached copy.
   - Use normal Python notebook cells. Do not use notebook shell magic or wrap
     basic inspection in Linux commands when Python provides a clearer result.
   - Import and reuse `AHARDataset`, `VideoAugmentation`, seeding, and related
     helpers from `src.dataset`, following the working examples in its `main()`.
     Do not duplicate video loading, frame sampling, or augmentation logic.
+  - Preserve the shared video-reader API but use PyAV directly when torchvision
+    does not provide its removed `io.read_video` function.
   - Add a concise dataset overview showing dataset path, sample count, class
     names, class counts, tensor shape, value range, and the committed split
     counts without opening the locked test samples for model selection.
@@ -44,28 +48,33 @@
 - Acceptance criteria:
   - From a VS Code notebook connected to an A100 Colab runtime, the setup and
     dataset sections run top-to-bottom without browser-only Colab APIs.
-  - An existing repository and dataset are reused; no redundant clone, pull,
-    dataset download, or dependency installation occurs.
+  - An existing repository and dataset are reused without redundant clone,
+    pull, download, or dependency installation; a missing dataset is downloaded
+    once into KaggleHub's normal cache and then reused.
   - The notebook visibly presents dataset metadata, class balance, real frames,
     and a clean/augmented example using the repository's dataset code.
+  - A real AAD clip decodes to a `(T, H, W, C)` uint8 tensor with a positive
+    frame rate on torchvision versions that omit `io.read_video`.
   - No training, experiment stage, checkpoint evaluation, test-set access, or
     result claim occurs in this ticket.
   - The notebook remains valid nbformat 4 with unique cell IDs, null execution
     counts, empty outputs, and Python cells that compile.
 - Out of scope:
-  - Kaggle, browser-only Colab, local Jupyter, Google Drive, dataset download,
-    model inspection, training, experiments, final evaluation, and manuscript
-    changes.
-  - Refactoring working dataset or experiment modules merely for notebook style.
-- Open questions: None. The approved target is the Colab-only VS Code extension,
-  using the existing remote checkout and AAD data.
+  - Kaggle notebooks, browser-only Colab, local Jupyter, Google Drive, repeated
+    or custom dataset copying, model inspection, training, experiments, final
+    evaluation, and manuscript changes.
+  - Refactoring unrelated dataset, writer, preprocessing, or experiment logic.
+- Open questions: None. The approved target is the Colab-only VS Code extension;
+  reuse cached AAD first and call the public KaggleHub download only when absent.
 - Verification:
   - Parse the notebook as JSON and verify nbformat, unique IDs, empty outputs,
     null execution counts, and compilation of every Python cell.
-  - Statically verify the absence of Kaggle, Drive, upload, browser-Colab, and
-    dataset-download paths and the presence of guarded checkout/data detection.
+  - Statically verify the absence of Drive, upload, and browser-Colab paths and
+    verify that the KaggleHub download is guarded by cache detection.
   - Exercise reusable dataset-display logic locally against a minimal sample or
     the existing dataset without starting training.
+  - Decode one real AAD clip through the shared reader and verify shape, dtype,
+    frame count, and frame rate without using `torchvision.io.read_video`.
   - Run the focused test suite, `git diff --check`, and a scope/status review.
 
 ## Execution Prompt

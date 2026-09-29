@@ -13,6 +13,7 @@ from pathlib import Path
 from time import perf_counter
 from typing import Optional, Union
 
+import av
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -610,7 +611,7 @@ def load_model(
 
 def read_video_torchvision(path: Path) -> tuple[torch.Tensor, float]:
     """
-    Reads a video file using the PyAV backend and formats it for the model pipeline.
+    Read a video with PyAV and format it for the model pipeline.
 
     Parameters:
         path (Path): Path to the source video file.
@@ -618,13 +619,20 @@ def read_video_torchvision(path: Path) -> tuple[torch.Tensor, float]:
     Returns:
         video_data (tuple): A tuple containing the video tensor (T, H, W, C) and frames per second.
     """
-    video, _, info = torchvision.io.read_video(
-        str(path), pts_unit="sec", output_format="TCHW"
-    )
-    # read_video returns (T, C, H, W) - permute to (T, H, W, C) to match our pipeline
-    video = video.permute(0, 2, 3, 1)  # (T, C, H, W) -> (T, H, W, C)
-    fps = info.get("video_fps", 30.0)
-    return video, fps
+    with av.open(str(path)) as container:
+        if not container.streams.video:
+            raise ValueError(f"video has no decodable stream: {path}")
+        video_stream = container.streams.video[0]
+        frame_rate = video_stream.average_rate or video_stream.guessed_rate
+        frames = [
+            torch.from_numpy(frame.to_ndarray(format="rgb24"))
+            for frame in container.decode(video_stream)
+        ]
+
+    if not frames:
+        raise ValueError(f"video contains no decodable frames: {path}")
+    fps = float(frame_rate) if frame_rate else 30.0
+    return torch.stack(frames), fps
 
 
 def write_video_torchvision(frames: torch.Tensor, path: Path, fps: int = 8) -> None:

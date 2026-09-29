@@ -125,7 +125,8 @@ inspection and guarded experiment execution without duplicating research logic.
 
 1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
-   once, installs missing packages quietly, and reuses the cached AAD dataset.
+   once, installs missing packages quietly, and reuses cached AAD or downloads
+   the public KaggleHub dataset once when a fresh runtime has no copy.
 3. Inspect the split summary, class balance, reproducible training samples, and
    clean-versus-augmented frames.
 
