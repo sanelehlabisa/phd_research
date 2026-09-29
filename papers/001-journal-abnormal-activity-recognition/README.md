@@ -64,8 +64,8 @@ reference architecture for ablation.
 - [x] `023-interactive-model-inspection` — added playable native, model-ready,
   and augmented clips, manifest-driven model tables, and one labelled
   random-weight GPU check.
-- [ ] `024-notebook-experiment-workflow` — add guarded plan-stage execution and
-  visual validation-only result inspection at the end of the notebook.
+- [x] `024-notebook-experiment-workflow` — added guarded single-stage execution
+  and visual validation-only result inspection to the Colab notebook.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,

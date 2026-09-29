@@ -11,8 +11,8 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `024` is adding guarded experiment execution. Ticket `021` remains the
-required pre-screen candidate-block decision; tickets `025`–`027` then run
+Ticket `024` completed guarded experiment execution. Ticket `021` remains the
+required pre-screen candidate-block decision; tickets `025`–`027` next run
 the controlled AAD suite, train the selected configuration, and perform its
 one-time final AAD evaluation.
 

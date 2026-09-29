@@ -184,8 +184,8 @@ source of research evidence, and no notebook inspection opens test clips.
 14. [x] **Model inspection (`023`).** Added inline clean and augmented videos,
     manifest-driven candidate and role tables, a readable lightweight reference,
     and one labelled random-weight GPU prediction with cleanup.
-15. [ ] **Experiment notebook (`024`, next).** Add the bounded training check,
-    guarded plan-stage execution, and validation-only result displays.
+15. [x] **Experiment notebook (`024`).** Added bounded learning checks, guarded
+    single-stage execution, and validation-only result displays.
 16. [ ] **Controlled AAD runs (`025`).** Run the frozen screen, baselines,
     published topology, and ablations; select from validation only.
 17. [ ] **Selected-model training (`026`).** Confirm the selected architecture
