@@ -10,6 +10,10 @@
     presented cleanly from the notebook
   - focused tests and concise root, paper, and implementation guidance
 - Changes:
+  - Before adding experiment controls, expand the existing random-weight check to
+    three reproducible training clips. Show input/output shapes, class mappings,
+    confidence values, top-three classes, and playable model-input videos in
+    separate markdown sections. Keep all predictions labelled untrained.
   - Execute only after tickets 022 and 023. Keep all dataset/model inspection
     sections intact and place experiment execution at the end.
   - Reuse the validated plan and `src.experiments` command path as the source of
@@ -38,6 +42,8 @@
     structure. Do not save notebook-only copies as research evidence.
   - End with the next research action and keep final-test evaluation absent.
 - Acceptance criteria:
+  - Three real training clips complete untrained inference with expected tensor
+    shapes and playable prediction cards without accessing the test split.
   - Safe plan inspection works without loading AAD or allocating a model.
   - No experiment starts until the explicit flag is enabled and a valid stage
     is selected; the exact command and resolved paths are shown first.

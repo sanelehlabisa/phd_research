@@ -121,8 +121,8 @@ exploratory evidence.
 Use [the AAD workflow](notebooks/aad_experiment_workflow.ipynb) from VS Code
 connected to an A100 through the official Google Colab extension.
 Tickets 022–023 provide the runtime, AAD walkthrough, playable augmentation
-preview, model tables, and random-weight software check. Ticket 024 adds guarded
-experiment execution without duplicating research logic.
+preview and model tables. Ticket 024 begins with three visual untrained
+inference checks, then adds guarded experiment execution without duplicating research logic.
 
 1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
@@ -130,11 +130,11 @@ experiment execution without duplicating research logic.
    the public KaggleHub dataset once when a fresh runtime has no copy.
 3. Inspect the split summary, class balance, sample metadata, a side-by-side
    native/model-ready comparison, and the augmented model input.
-4. Inspect all custom candidates, the separate comparison roles, the planned
-   lightweight reference, and its labelled random-weight A100 software check.
+4. Inspect all custom candidates and comparison roles, then run three labelled
+   random-weight A100 checks with tensor shapes and playable prediction cards.
 
 The notebook uses normal Python cells for interactive tables and embedded video.
-It allocates one lightweight model only for an untrained software check; it does
+It allocates one lightweight model only for untrained software checks; it does
 not run an experiment, rank models, or access test clips.
 
 ## Implementation tasks
