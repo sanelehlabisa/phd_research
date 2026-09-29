@@ -127,11 +127,12 @@ research logic.
    packages, and downloads the public
    [`sanelehlabisa/abnormal-activities-dataset`](https://www.kaggle.com/datasets/sanelehlabisa/abnormal-activities-dataset)
    through KaggleHub's cache.
-3. Set `RUN_COLAB_SETUP=False`, then run the dataset check, model check, and one
-   controlled experiment stage in order.
+3. Run the dataset check, model check, and architecture-screen command cells in
+   order.
 
-The notebook has only four opt-in switches and streams complete command output.
-Artifacts are written under `implementation/runs/`; test evaluation is omitted.
+The notebook uses direct Linux-command cells, so failures appear without a
+subprocess wrapper. Artifacts are written under `implementation/runs/`; test
+evaluation is omitted.
 
 ## Implementation tasks
 
