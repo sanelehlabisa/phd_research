@@ -109,6 +109,12 @@ class CandidateManifest:
             raise ValueError(
                 "duplicate candidate name(s): " + ", ".join(duplicate_names)
             )
+        questions = [candidate.research_question for candidate in self.candidates]
+        duplicate_questions = sorted(
+            {question for question in questions if questions.count(question) > 1}
+        )
+        if duplicate_questions:
+            raise ValueError("candidate research questions must be unique")
 
     @classmethod
     def from_mapping(cls, values: dict[str, Any]) -> CandidateManifest:

@@ -3,60 +3,68 @@
   "candidates": [
     {
       "name": "custom_reference_8",
-      "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
-      "convlstm_layers": [
-        [8, [3, 3]]
-      ],
+      "research_question": "How does one 8-filter ConvLSTM layer perform as the screening reference?",
+      "convlstm_layers": [[8, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_two_layer_8_16",
+      "research_question": "Does increasing capacity in the second layer improve the single-layer reference?",
+      "convlstm_layers": [[8, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_two_layer_16_8",
+      "research_question": "Does concentrating capacity in the first layer improve a two-layer stack?",
+      "convlstm_layers": [[16, [3, 3]], [8, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_two_layer_32_8",
+      "research_question": "Does a 32-filter first layer improve the descending two-layer design?",
+      "convlstm_layers": [[32, [3, 3]], [8, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_two_layer_64_8",
+      "research_question": "Does a 64-filter first layer provide useful extra early capacity?",
+      "convlstm_layers": [[64, [3, 3]], [8, [3, 3]]],
       "hidden_classifier_width": null
     },
     {
       "name": "custom_depth_8_8_8",
       "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
-      "convlstm_layers": [
-        [8, [3, 3]],
-        [8, [3, 3]],
-        [8, [3, 3]]
-      ],
+      "convlstm_layers": [[8, [3, 3]], [8, [3, 3]], [8, [3, 3]]],
       "hidden_classifier_width": null
     },
     {
       "name": "custom_capacity_early",
-      "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
-      "convlstm_layers": [
-        [16, [3, 3]],
-        [8, [3, 3]],
-        [8, [3, 3]]
-      ],
+      "research_question": "Does placing extra capacity at the start of a three-layer stack help?",
+      "convlstm_layers": [[16, [3, 3]], [8, [3, 3]], [8, [3, 3]]],
       "hidden_classifier_width": null
     },
     {
       "name": "custom_capacity_middle",
-      "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
-      "convlstm_layers": [
-        [8, [3, 3]],
-        [16, [3, 3]],
-        [8, [3, 3]]
-      ],
+      "research_question": "Does placing extra capacity in the middle of a three-layer stack help?",
+      "convlstm_layers": [[8, [3, 3]], [16, [3, 3]], [8, [3, 3]]],
       "hidden_classifier_width": null
     },
     {
       "name": "custom_capacity_late",
-      "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
-      "convlstm_layers": [
-        [8, [3, 3]],
-        [8, [3, 3]],
-        [16, [3, 3]]
-      ],
+      "research_question": "Does placing extra capacity at the end of a three-layer stack help?",
+      "convlstm_layers": [[8, [3, 3]], [8, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_funnel_64_16_8",
+      "research_question": "Does a moderate descending 64-16-8 funnel balance capacity and compression?",
+      "convlstm_layers": [[64, [3, 3]], [16, [3, 3]], [8, [3, 3]]],
       "hidden_classifier_width": null
     },
     {
       "name": "custom_selected_64_32_16",
-      "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
-      "convlstm_layers": [
-        [64, [3, 3]],
-        [32, [3, 3]],
-        [16, [3, 3]]
-      ],
+      "research_question": "Does the earlier 64-32-16 candidate remain competitive under the controlled protocol?",
+      "convlstm_layers": [[64, [3, 3]], [32, [3, 3]], [16, [3, 3]]],
       "hidden_classifier_width": null
     }
   ]

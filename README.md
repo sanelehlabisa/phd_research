@@ -11,9 +11,9 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `019-cloud-experiment-notebook` is complete. The next action is running
-its controlled architecture and audited-baseline confirmation stages; ticket
-020 ablations begin only after that validation evidence is reviewed.
+Ticket `020-expand-controlled-experiments` is complete. Before starting the
+11-model screen, decide from a Colab timing check whether to execute the whole
+optional ticket-021 candidate block or skip it.
 
 ## Structure
 

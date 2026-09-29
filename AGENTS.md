@@ -10,9 +10,9 @@
   model width and dense-layer size. Their missing current split, seed, metric,
   selection, and checkpoint provenance makes them non-comparable exploratory
   evidence; never rank new candidates from their test metrics.
-- The current candidate is the `64-32-16` custom ConvLSTM. Call it the
-  **selected lightweight ConvLSTM candidate**, not an optimal model, until the
-  controlled evidence supports a stronger claim.
+- The earlier `64-32-16` model and preliminary `8-8-8` screen leader are both
+  candidates, not an optimum. Use **validation-screen candidate** until the
+  controlled 11-model evidence selects a reference.
 - The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
   `CustomConvLSTM`. Express each custom recurrent layer as
   `(filters, (kernel_height, kernel_width))`; do not expand this into an
@@ -25,8 +25,10 @@
   Training and comparisons now share a validated JSON configuration with
   explicit CLI overrides and complete checkpoint provenance. A portable cloud
   notebook now orchestrates these commands without duplicating their logic. The
-  immediate priority is using it to confirm the validation-screen candidate
-  against the audited baselines before ticket 020 ablations.
+  approved 11-model screen, practical-baseline confirmation, native published
+  topology, and focused ablations now share one validated plan. The immediate
+  decision is whether ticket 021's complete optional block fits the Colab
+  runtime; decide before starting the screen and never from favourable results.
 
 ## Research rules
 

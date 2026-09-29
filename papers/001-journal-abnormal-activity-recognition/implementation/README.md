@@ -66,7 +66,7 @@ Inspect the five approved entries without a dataset or model allocation:
 .venv/bin/python -m src.experiments --list-models
 ```
 
-List the six custom AAD candidates without loading data or allocating models:
+List the eleven custom AAD candidates without loading data or allocating models:
 
 ```bash
 .venv/bin/python -m src.experiments \
@@ -75,13 +75,21 @@ List the six custom AAD candidates without loading data or allocating models:
   --list-models
 ```
 
-Start the full architecture screen only after reviewing that list:
+Inspect every controlled stage, model, protocol, factor, run count, and command:
 
 ```bash
-# Expensive: trains six candidates on AAD.
 .venv/bin/python -m src.experiments \
-  --config configs/aad_screening_reference.json \
-  --candidates-config configs/aad_architecture_candidates.json
+  --plan-config configs/aad_controlled_experiment_plan.json \
+  --list-plan
+```
+
+Start the full architecture screen only after reviewing both safe listings:
+
+```bash
+# Expensive: trains eleven candidates on AAD.
+.venv/bin/python -m src.experiments \
+  --plan-config configs/aad_controlled_experiment_plan.json \
+  --run-plan-stage architecture-screen
 ```
 
 An interrupted screen leaves evidence only for models whose training completed;
@@ -110,21 +118,24 @@ exploratory evidence.
 
 ## Cloud notebook
 
-Use [the AAD cloud workflow](notebooks/aad_experiment_workflow.ipynb) primarily
-in Colab; it also supports local Jupyter and Kaggle. It calls the same `src.*`
-commands documented below and does not duplicate research logic.
+Use [the AAD cloud workflow](notebooks/aad_experiment_workflow.ipynb) in Colab.
+It calls the same `src.*` commands documented below and does not duplicate
+research logic.
 
 1. Upload the notebook to Colab and select a GPU runtime.
-2. Review the Colab-ready repository, dataset, and runs paths in its parameter
-   cell; enable repository cloning only when the checkout is absent.
-3. Enable the guarded KaggleHub download to fetch the public
+2. Set `RUN_COLAB_SETUP=True` once. It clones the repository, installs missing
+   packages, and downloads the public
    [`sanelehlabisa/abnormal-activities-dataset`](https://www.kaggle.com/datasets/sanelehlabisa/abnormal-activities-dataset)
-   folder into `/content/datasets`. If Kaggle requests authentication, put the
-   token in a Colab secret named `KAGGLE_API_TOKEN`; never paste it into a cell.
-4. Run environment and path checks, then enable only the stage you need.
+   into the paper implementation's `datasets/` directory. If Kaggle requests
+   authentication, put the token in a Colab secret named `KAGGLE_API_TOKEN`;
+   never paste it into a cell.
+3. Set `RUN_COLAB_SETUP=False`, validate paths, and enable only the stage needed.
 
-Every clone, dataset download, install, preview, experiment, training,
-evaluation, and archive flag defaults to `False`. Colab paths under `/content`
+The cloud tree mirrors the repository: dataset files live under
+`implementation/datasets/` and artifacts under `implementation/runs/`.
+
+Every setup, preview, experiment, training, evaluation, and archive flag
+defaults to `False`. Colab paths under `/content`
 are temporary, so download or archive important runs before the runtime ends.
 The notebook never mounts storage or exposes credentials automatically.
 
@@ -156,18 +167,20 @@ flags are enabled and a validation-selected checkpoint path is supplied.
    explicit CLI overrides, stable resolved artifacts, and configuration-aware
    checkpoints for training and comparisons.
 9. [x] **Architecture shortlist preparation (`018`).** Marked historical outputs
-   non-comparable and added one validated six-model custom candidate manifest
+   non-comparable and added one validated initial custom candidate manifest
    with complete provenance.
 10. [x] **Cloud experiment workflow (`019`).** Added one guarded local/Colab/
     Kaggle notebook that calls the existing CLIs and preserves test isolation.
-11. [ ] **Architecture confirmation runs (next).** Use the ticket 019 notebook
-    to compare the chosen validation-screen candidate with the audited baselines.
-12. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
-   frame count, head design, augmentation, and regularisation one factor at a
-   time—never as a Cartesian grid.
-13. [ ] **Validation and handoff (`021–022`).** Confirm the frozen model on VDD,
-   aggregate evidence, and export paper-ready tables and figures.
-14. [ ] **Stateful streaming (`025`, later).** Carry custom ConvLSTM state across
+11. [x] **Controlled experiment expansion (`020`).** Added the approved 11-model
+    screen, practical-baseline confirmation, separate published topology, and
+    validated one-factor ablation plan to the Colab workflow.
+12. [ ] **Optional cloud expansion (`021`, next decision).** Before screening, add the
+    entire predeclared five-model block when a timing check shows enough runtime.
+13. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
+    ticket-019 notebook and retain complete validation evidence.
+14. [ ] **Validation and handoff (`022–023`).** Confirm the frozen model on VDD,
+    aggregate evidence, and export paper-ready tables and figures.
+15. [ ] **Stateful streaming (`026`, later).** Carry custom ConvLSTM state across
     video chunks and predict after each chunk without altering `PaperConvLSTM`.
 
 Generated datasets, environments, checkpoints, and experiment runs remain
@@ -253,17 +266,41 @@ Train the configured custom reference. This starts expensive training:
 Output: `runs/train/<run>/`. Training restores the lowest-validation-loss
 checkpoint and never opens the test split.
 
-Compare the configured custom reference with the four audited baselines. This
-also starts expensive training:
+Run practical-baseline confirmation only after replacing `REFERENCE` with the
+validation-selected custom candidate. This runs both confirmation seeds and
+starts expensive training:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --config configs/aad_screening_reference.json
+  --plan-config configs/aad_controlled_experiment_plan.json \
+  --run-plan-stage baseline-confirmation \
+  --reference-candidate REFERENCE
 ```
 
-Output: `runs/experiments/<run>/`. Ranking uses validation macro-F1, validation
-accuracy, then parameter count; it never uses test results. Add `--list-models`
-to inspect the five entries without loading AAD or allocating models.
+Run the focused weight-decay, augmentation, spatial-size, and sequence-length
+comparisons after freezing the same reference. Each non-reference run changes
+one factor and both seeds are run:
+
+```bash
+.venv/bin/python -m src.experiments \
+  --plan-config configs/aad_controlled_experiment_plan.json \
+  --run-plan-stage focused-ablations \
+  --reference-candidate REFERENCE
+```
+
+The audited published topology is a separate, very expensive native-input run:
+
+```bash
+.venv/bin/python -m src.experiments \
+  --plan-config configs/aad_controlled_experiment_plan.json \
+  --run-plan-stage published-topology
+```
+
+It uses 50 frames at `50x50` and is not a one-factor comparison with the
+lightweight models. If resources are insufficient, record that limitation; do
+not reduce the model and still call it faithful. All comparison outputs live
+under `runs/experiments/<run>/`, rank validation evidence only, and keep test
+access locked.
 
 After freezing a configuration, deliberately evaluate its validation-selected
 checkpoint on the AAD test split (writes metrics, a confusion matrix, and
@@ -292,7 +329,8 @@ prediction clips):
 Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
 copied or overwritten by evaluation.
 
-The AAD JSON is a screening reference, not an optimal or final model. Ticket
-018 predeclares the six custom architectures; ticket 019 provides the guarded
-cloud workflow for user-operated confirmation against the audited baselines.
-Random-weight smoke outputs remain pipeline checks, not research evidence.
+The AAD plan names `custom_depth_8_8_8` only as the preliminary reference used
+to make the plan executable; replace it only with validation-screen evidence
+before confirmation or ablation. The 24-epoch screen and 64-epoch confirmation
+are compute stages, not an epoch ablation. Random-weight smoke outputs remain
+pipeline checks, not research evidence.

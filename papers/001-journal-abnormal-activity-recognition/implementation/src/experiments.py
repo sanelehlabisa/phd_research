@@ -7,15 +7,19 @@ Saves all results to JSON.
 Author: Sanele Hlabisa
 
 .venv/bin/python -m src.experiments \
-    --config configs/aad_screening_reference.json \
-    --candidates-config configs/aad_architecture_candidates.json
+    --plan-config configs/aad_controlled_experiment_plan.json \
+    --list-plan
 """
 
 from __future__ import annotations
 
 import argparse
 from datetime import datetime
+import json
 from pathlib import Path
+import shlex
+import subprocess
+import sys
 from timeit import default_timer as timer
 
 import torch
@@ -83,6 +87,415 @@ parser.add_argument(
     type=Path,
     help="Use a validated custom-only architecture candidate manifest",
 )
+parser.add_argument(
+    "--model",
+    dest="models",
+    action="append",
+    help="Repeat to run only explicitly named registered models",
+)
+parser.add_argument(
+    "--confirmation-candidate",
+    help="Compare one named custom candidate with the three practical baselines",
+)
+parser.add_argument("--plan-config", type=Path)
+parser.add_argument("--list-plan", action="store_true", default=False)
+parser.add_argument(
+    "--run-plan-stage",
+    choices=(
+        "architecture-screen",
+        "baseline-confirmation",
+        "published-topology",
+        "focused-ablations",
+    ),
+)
+parser.add_argument("--plan-dataset-dir")
+parser.add_argument("--plan-runs-dir")
+parser.add_argument("--reference-candidate")
+parser.add_argument("--run-label")
+parser.add_argument("--trial-name")
+parser.add_argument("--changed-factor")
+
+
+def _require_exact_fields(
+    values: dict[str, object],
+    expected: set[str],
+    label: str,
+) -> None:
+    """Reject missing or unknown fields in one controlled-plan section."""
+    missing = sorted(expected - set(values))
+    unknown = sorted(set(values) - expected)
+    if missing:
+        raise ValueError(f"{label} missing field(s): {', '.join(missing)}")
+    if unknown:
+        raise ValueError(f"{label} unknown field(s): {', '.join(unknown)}")
+
+
+def _resolve_plan_path(plan_path: Path, configured_path: object) -> Path:
+    """Resolve one implementation-relative path from the controlled plan."""
+    if not isinstance(configured_path, str) or not configured_path.strip():
+        raise ValueError("controlled plan paths must be non-empty strings")
+    path = Path(configured_path).expanduser()
+    if not path.is_absolute():
+        path = plan_path.resolve().parent.parent / path
+    return path.resolve()
+
+
+def _load_json_object(path: Path, label: str) -> dict[str, object]:
+    """Load one JSON object with a concise validation error."""
+    try:
+        values = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise ValueError(f"invalid JSON in {path}: {error.msg}") from error
+    if not isinstance(values, dict):
+        raise ValueError(f"{label} must be a JSON object")
+    return values
+
+
+def _validate_protocol(
+    config: ExperimentConfig,
+    *,
+    epochs: int,
+    sequence_length: int,
+    height: int,
+    width: int,
+    batch_size: int | None = None,
+) -> None:
+    """Validate fixed settings shared by one approved study stage."""
+    expected = {
+        "epochs": epochs,
+        "sequence_length": sequence_length,
+        "height": height,
+        "width": width,
+        "learning_rate": 0.001,
+        "weight_decay": 0.001,
+        "augment": True,
+        "early_stopping_patience": 10,
+        "split_seed": 42,
+        "scheduler": "reduce_on_plateau",
+    }
+    if batch_size is not None:
+        expected["batch_size"] = batch_size
+    for field_name, expected_value in expected.items():
+        if getattr(config, field_name) != expected_value:
+            raise ValueError(
+                f"controlled {field_name} must be {expected_value!r}, got "
+                f"{getattr(config, field_name)!r}"
+            )
+
+
+def load_controlled_plan(
+    plan_path: str | Path,
+) -> tuple[dict[str, object], CandidateManifest]:
+    """Load and strictly validate the approved controlled experiment plan."""
+    resolved_plan_path = Path(plan_path).expanduser().resolve()
+    plan = _load_json_object(resolved_plan_path, "controlled plan")
+    _require_exact_fields(
+        plan,
+        {
+            "plan_id",
+            "candidate_manifest",
+            "reference_candidate",
+            "screening",
+            "confirmation",
+            "published_topology",
+            "ablations",
+        },
+        "controlled plan",
+    )
+    if plan["plan_id"] != "aad_controlled_experiment_suite":
+        raise ValueError("unexpected controlled plan_id")
+
+    candidate_path = _resolve_plan_path(resolved_plan_path, plan["candidate_manifest"])
+    candidate_manifest = CandidateManifest.from_json(candidate_path)
+    candidate_names = [candidate.name for candidate in candidate_manifest.candidates]
+    reference_candidate = plan["reference_candidate"]
+    if reference_candidate not in candidate_names:
+        raise ValueError("reference_candidate must name a declared custom candidate")
+
+    screening = plan["screening"]
+    confirmation = plan["confirmation"]
+    published = plan["published_topology"]
+    ablations = plan["ablations"]
+    for label, section in (
+        ("screening", screening),
+        ("confirmation", confirmation),
+        ("published_topology", published),
+        ("ablations", ablations),
+    ):
+        if not isinstance(section, dict):
+            raise ValueError(f"{label} must be a JSON object")
+
+    _require_exact_fields(screening, {"config", "model_scope"}, "screening")
+    _require_exact_fields(confirmation, {"config", "seeds", "models"}, "confirmation")
+    _require_exact_fields(
+        published,
+        {"config", "models", "comparable_to_confirmation", "resource_note"},
+        "published_topology",
+    )
+    _require_exact_fields(ablations, {"config", "seeds", "trials"}, "ablations")
+
+    if screening["model_scope"] != "all_custom_candidates":
+        raise ValueError("screening must include all custom candidates")
+    if confirmation["seeds"] != [42, 2026] or ablations["seeds"] != [42, 2026]:
+        raise ValueError("confirmation and ablation seeds must be [42, 2026]")
+    if confirmation["models"] != [
+        "reference_candidate",
+        "r3d_18",
+        "mc3_18",
+        "r2plus1d_18",
+    ]:
+        raise ValueError("confirmation models must be the reference and 3D CNNs")
+    if published["models"] != ["paper_convlstm_published"]:
+        raise ValueError("published_topology must contain only PaperConvLSTM")
+    if published["comparable_to_confirmation"] is not False:
+        raise ValueError("published topology must be marked non-comparable")
+    if (
+        not isinstance(published["resource_note"], str)
+        or not published["resource_note"].strip()
+    ):
+        raise ValueError("published_topology.resource_note must be non-empty")
+
+    screening_config = ExperimentConfig.from_json(
+        _resolve_plan_path(resolved_plan_path, screening["config"])
+    )
+    confirmation_config = ExperimentConfig.from_json(
+        _resolve_plan_path(resolved_plan_path, confirmation["config"])
+    )
+    paper_config = ExperimentConfig.from_json(
+        _resolve_plan_path(resolved_plan_path, published["config"])
+    )
+    ablation_config = ExperimentConfig.from_json(
+        _resolve_plan_path(resolved_plan_path, ablations["config"])
+    )
+    _validate_protocol(
+        screening_config,
+        epochs=24,
+        sequence_length=16,
+        height=32,
+        width=32,
+        batch_size=16,
+    )
+    _validate_protocol(
+        confirmation_config,
+        epochs=64,
+        sequence_length=16,
+        height=32,
+        width=32,
+        batch_size=16,
+    )
+    _validate_protocol(
+        ablation_config,
+        epochs=64,
+        sequence_length=16,
+        height=32,
+        width=32,
+        batch_size=16,
+    )
+    _validate_protocol(
+        paper_config,
+        epochs=64,
+        sequence_length=50,
+        height=50,
+        width=50,
+        batch_size=1,
+    )
+
+    reference = next(
+        candidate
+        for candidate in candidate_manifest.candidates
+        if candidate.name == reference_candidate
+    )
+    if confirmation_config.convlstm_layers != reference.convlstm_layers:
+        raise ValueError("confirmation config must match the named reference candidate")
+    if ablation_config.to_dict() != confirmation_config.to_dict():
+        raise ValueError("ablation and confirmation reference configs must match")
+
+    expected_trials = {
+        "reference": (None, {}),
+        "weight_decay_0": ("weight_decay", {"weight_decay": 0.0}),
+        "weight_decay_0_0001": ("weight_decay", {"weight_decay": 0.0001}),
+        "augmentation_off": ("augmentation", {"augment": False}),
+        "spatial_64": ("spatial_size", {"height": 64, "width": 64}),
+        "sequence_32": ("sequence_length", {"sequence_length": 32}),
+    }
+    trials = ablations["trials"]
+    if not isinstance(trials, list) or len(trials) != len(expected_trials):
+        raise ValueError("ablations must contain the six approved trials")
+    seen_trials: set[str] = set()
+    for trial in trials:
+        if not isinstance(trial, dict):
+            raise ValueError("each ablation trial must be a JSON object")
+        _require_exact_fields(
+            trial, {"name", "changed_factor", "overrides"}, "ablation trial"
+        )
+        name = trial["name"]
+        if name not in expected_trials or name in seen_trials:
+            raise ValueError("ablation trial names must be unique and approved")
+        seen_trials.add(name)
+        expected_factor, expected_overrides = expected_trials[name]
+        if (
+            trial["changed_factor"] != expected_factor
+            or trial["overrides"] != expected_overrides
+        ):
+            raise ValueError(
+                f"ablation trial {name} must change exactly its approved factor"
+            )
+        resolved_values = ablation_config.to_dict()
+        resolved_values.update(expected_overrides)
+        resolved_trial = ExperimentConfig.from_mapping(resolved_values)
+        if resolved_trial.learning_rate != 0.001 or resolved_trial.epochs != 64:
+            raise ValueError("ablation learning rate and epoch budget must stay fixed")
+    if seen_trials != set(expected_trials):
+        raise ValueError("ablations must include every approved trial")
+    return plan, candidate_manifest
+
+
+def _append_config_overrides(command: list[str], overrides: dict[str, object]) -> None:
+    """Append explicit experiment overrides to one command."""
+    for field_name, value in overrides.items():
+        option = f"--{field_name}"
+        if isinstance(value, bool):
+            command.append(option if value else f"--no-{field_name.replace('_', '-')}")
+        else:
+            command.extend([option, str(value)])
+
+
+def build_plan_commands(
+    plan_path: str | Path,
+    stage: str,
+    reference_candidate: str | None = None,
+    dataset_dir: str | None = None,
+    runs_dir: str | None = None,
+) -> list[tuple[str, list[str]]]:
+    """Build exact leaf commands for one approved controlled-plan stage."""
+    resolved_plan_path = Path(plan_path).expanduser().resolve()
+    plan, candidate_manifest = load_controlled_plan(resolved_plan_path)
+    reference = reference_candidate or str(plan["reference_candidate"])
+    candidate_names = [candidate.name for candidate in candidate_manifest.candidates]
+    if reference not in candidate_names:
+        raise ValueError("reference candidate is not present in the manifest")
+    candidate_path = _resolve_plan_path(resolved_plan_path, plan["candidate_manifest"])
+
+    def base_command(config_value: object, label: str) -> list[str]:
+        command = [
+            sys.executable,
+            "-m",
+            "src.experiments",
+            "--config",
+            str(_resolve_plan_path(resolved_plan_path, config_value)),
+            "--run-label",
+            label,
+        ]
+        if dataset_dir:
+            command.extend(["--dataset_dir", dataset_dir])
+        if runs_dir:
+            command.extend(["--runs_dir", runs_dir])
+        return command
+
+    commands: list[tuple[str, list[str]]] = []
+    if stage == "architecture-screen":
+        screening = plan["screening"]
+        command = base_command(screening["config"], "architecture-screen")
+        command.extend(["--candidates-config", str(candidate_path)])
+        commands.append(("architecture_screen", command))
+    elif stage == "baseline-confirmation":
+        confirmation = plan["confirmation"]
+        for seed in confirmation["seeds"]:
+            command = base_command(confirmation["config"], "baseline-confirmation")
+            command.extend(
+                [
+                    "--candidates-config",
+                    str(candidate_path),
+                    "--confirmation-candidate",
+                    reference,
+                    "--seed",
+                    str(seed),
+                ]
+            )
+            commands.append((f"baseline_confirmation_seed_{seed}", command))
+    elif stage == "published-topology":
+        published = plan["published_topology"]
+        command = base_command(published["config"], "published-topology")
+        command.extend(["--model", "paper_convlstm_published"])
+        commands.append(("published_topology", command))
+    elif stage == "focused-ablations":
+        ablations = plan["ablations"]
+        for trial in ablations["trials"]:
+            for seed in ablations["seeds"]:
+                command = base_command(ablations["config"], "focused-ablation")
+                command.extend(
+                    [
+                        "--candidates-config",
+                        str(candidate_path),
+                        "--model",
+                        reference,
+                        "--seed",
+                        str(seed),
+                        "--trial-name",
+                        str(trial["name"]),
+                        "--changed-factor",
+                        str(trial["changed_factor"] or "reference"),
+                    ]
+                )
+                _append_config_overrides(command, trial["overrides"])
+                commands.append((f"{trial['name']}_seed_{seed}", command))
+    else:
+        raise ValueError(f"unknown controlled plan stage: {stage}")
+    return commands
+
+
+def print_controlled_plan(plan_path: str | Path) -> None:
+    """Print every approved stage and leaf command without starting a run."""
+    plan, candidate_manifest = load_controlled_plan(plan_path)
+    print(f"Controlled plan: {plan['plan_id']}")
+    print(f"Reference candidate: {plan['reference_candidate']}")
+    print(f"Custom candidates: {len(candidate_manifest.candidates)}")
+    print(
+        "Screening models: "
+        + ", ".join(candidate.name for candidate in candidate_manifest.candidates)
+    )
+    print(
+        "Screening protocol: seed=42, T=16, 32x32, epochs=24, lr=0.001, wd=0.001, augment=on"
+    )
+    print("Confirmation models: reference_candidate, r3d_18, mc3_18, " "r2plus1d_18")
+    print("Confirmation protocol: seeds=42/2026, T=16, 32x32, epochs=64")
+    print("Published topology: PaperConvLSTM only, T=50, 50x50, separate protocol")
+    print(
+        "Ablation factors: weight_decay=0/0.0001/0.001, augmentation=off/on, "
+        "spatial_size=32x32/64x64, sequence_length=16/32"
+    )
+    print("Selection: validation only; test access: locked")
+    for stage in (
+        "architecture-screen",
+        "baseline-confirmation",
+        "published-topology",
+        "focused-ablations",
+    ):
+        commands = build_plan_commands(plan_path, stage)
+        print(f"\n{stage} ({len(commands)} run(s))")
+        for name, command in commands:
+            print(f"- {name}: {shlex.join(command)}")
+
+
+def execute_plan_stage(
+    plan_path: str | Path,
+    stage: str,
+    reference_candidate: str | None,
+    dataset_dir: str | None,
+    runs_dir: str | None,
+) -> None:
+    """Execute one explicitly requested controlled stage as checked leaf runs."""
+    implementation_dir = Path(plan_path).expanduser().resolve().parent.parent
+    commands = build_plan_commands(
+        plan_path,
+        stage,
+        reference_candidate=reference_candidate,
+        dataset_dir=dataset_dir,
+        runs_dir=runs_dir,
+    )
+    for name, command in commands:
+        print(f"\n[{name}] $ {shlex.join(command)}", flush=True)
+        subprocess.run(command, cwd=implementation_dir, check=True)
 
 
 def _resolved_arguments(
@@ -123,18 +536,23 @@ class Video3DModelWrapper(nn.Module):
 def model_registry(
     experiment_config: ExperimentConfig | None = None,
     candidate_manifest: CandidateManifest | None = None,
+    confirmation_candidate: str | None = None,
+    selected_models: list[str] | None = None,
 ) -> list[dict[str, object]]:
     """Describe the approved comparison models without allocating them.
 
     Parameters:
         experiment_config: Optional settings for the custom reference entry.
         candidate_manifest: Optional custom-only architecture screen.
+        confirmation_candidate: Custom candidate compared with practical baselines.
+        selected_models: Optional ordered subset of registered model names.
 
     Returns:
         Model names, families, classes, and comparison roles.
     """
+    custom_entries: list[dict[str, object]] = []
     if candidate_manifest is not None:
-        return [
+        custom_entries = [
             {
                 "name": candidate.name,
                 "family": "ConvLSTM",
@@ -146,13 +564,12 @@ def model_registry(
             }
             for candidate in candidate_manifest.candidates
         ]
-
     custom_name = "custom_convlstm_reference_8_k3"
     if experiment_config is not None and experiment_config.convlstm_layers != (
         (8, (3, 3)),
     ):
         custom_name = "custom_convlstm_configured"
-    return [
+    standard_entries = [
         {
             "name": "paper_convlstm_published",
             "family": "ConvLSTM",
@@ -184,6 +601,34 @@ def model_registry(
             "role": "study practical baseline trained from scratch",
         },
     ]
+    if candidate_manifest is None:
+        registry = standard_entries
+    elif confirmation_candidate is None:
+        registry = custom_entries
+    else:
+        selected_candidate = next(
+            (
+                entry
+                for entry in custom_entries
+                if entry["name"] == confirmation_candidate
+            ),
+            None,
+        )
+        if selected_candidate is None:
+            raise ValueError(
+                f"unknown confirmation candidate: {confirmation_candidate}"
+            )
+        registry = [selected_candidate, *standard_entries[2:]]
+
+    if selected_models is None:
+        return registry
+    if len(selected_models) != len(set(selected_models)):
+        raise ValueError("--model names must be unique")
+    by_name = {str(entry["name"]): entry for entry in registry}
+    unknown = [name for name in selected_models if name not in by_name]
+    if unknown:
+        raise ValueError("unknown selected model(s): " + ", ".join(unknown))
+    return [by_name[name] for name in selected_models]
 
 
 def build_registered_model(
@@ -212,13 +657,12 @@ def build_registered_model(
             (item for item in candidate_manifest.candidates if item.name == model_name),
             None,
         )
-        if candidate is None:
-            raise ValueError(f"unknown candidate model: {model_name}")
-        return CustomConvLSTM(
-            num_classes,
-            layers=list(candidate.convlstm_layers),
-            hidden_classifier_width=candidate.hidden_classifier_width,
-        )
+        if candidate is not None:
+            return CustomConvLSTM(
+                num_classes,
+                layers=list(candidate.convlstm_layers),
+                hidden_classifier_width=candidate.hidden_classifier_width,
+            )
     if model_name == "paper_convlstm_published":
         return PaperConvLSTM(
             num_classes,
@@ -265,28 +709,38 @@ def _format_layers(raw_layers: object) -> str:
 def print_model_registry(
     experiment_config: ExperimentConfig | None = None,
     candidate_manifest: CandidateManifest | None = None,
+    confirmation_candidate: str | None = None,
+    selected_models: list[str] | None = None,
 ) -> None:
     """Print approved model names and roles without allocating models.
 
     Parameters:
         experiment_config: Optional settings for the custom reference entry.
         candidate_manifest: Optional custom-only architecture screen.
+        confirmation_candidate: Custom candidate compared with practical baselines.
+        selected_models: Optional ordered subset of registered model names.
 
     Returns:
         None.
     """
-    heading = (
-        "Approved custom architecture candidates"
-        if candidate_manifest is not None
-        else "Approved comparison models"
-    )
+    if confirmation_candidate is not None:
+        heading = "Approved practical-baseline confirmation models"
+    elif candidate_manifest is not None:
+        heading = "Approved custom architecture candidates"
+    else:
+        heading = "Approved comparison models"
     print(heading)
-    for entry in model_registry(experiment_config, candidate_manifest):
+    for entry in model_registry(
+        experiment_config,
+        candidate_manifest,
+        confirmation_candidate,
+        selected_models,
+    ):
         print(
             f"- {entry['name']}: {entry['model_class']} | "
             f"{entry['family']} | {entry['role']}"
         )
-        if candidate_manifest is not None:
+        if "research_question" in entry:
             print(f"  architecture: {_format_layers(entry['convlstm_layers'])}")
             print(f"  question: {entry['research_question']}")
 
@@ -365,10 +819,53 @@ def main(argv: list[str] | None = None) -> None:
     if print_only:
         print(experiment_config.to_json())
         return
-    registry = model_registry(experiment_config, candidate_manifest)
+    plan_path = getattr(args, "plan_config", None)
+    list_plan = getattr(args, "list_plan", False)
+    plan_stage = getattr(args, "run_plan_stage", None)
+    if plan_path is not None:
+        if list_plan:
+            print_controlled_plan(plan_path)
+            return
+        if plan_stage is not None:
+            execute_plan_stage(
+                plan_path,
+                plan_stage,
+                getattr(args, "reference_candidate", None),
+                getattr(args, "plan_dataset_dir", None),
+                getattr(args, "plan_runs_dir", None),
+            )
+            return
+        raise ValueError("--plan-config requires --list-plan or --run-plan-stage")
+    if list_plan or plan_stage is not None:
+        raise ValueError("--list-plan and --run-plan-stage require --plan-config")
+
+    confirmation_candidate = getattr(args, "confirmation_candidate", None)
+    selected_models = getattr(args, "models", None)
+    if confirmation_candidate is not None and candidate_manifest is None:
+        raise ValueError("--confirmation-candidate requires --candidates-config")
+    registry = model_registry(
+        experiment_config,
+        candidate_manifest,
+        confirmation_candidate,
+        selected_models,
+    )
     if args.list_models:
-        print_model_registry(experiment_config, candidate_manifest)
+        print_model_registry(
+            experiment_config,
+            candidate_manifest,
+            confirmation_candidate,
+            selected_models,
+        )
         return
+    if any(entry["model_class"] == "PaperConvLSTM" for entry in registry) and (
+        args.sequence_length,
+        args.height,
+        args.width,
+    ) != (50, 50, 50):
+        raise ValueError(
+            "PaperConvLSTM must use its native 50-frame 50x50 protocol; "
+            "run it as the separate published-topology stage"
+        )
     candidate_provenance = (
         candidate_manifest.provenance() if candidate_manifest is not None else None
     )
@@ -384,11 +881,20 @@ def main(argv: list[str] | None = None) -> None:
         args.dataset_dir, args.split_manifest, args.split_seed
     )
 
+    run_label = getattr(args, "run_label", None)
+    if run_label is None:
+        run_label = (
+            "architecture-screen" if candidate_manifest else "baseline-comparison"
+        )
+    trial_metadata = {
+        "trial_name": getattr(args, "trial_name", None),
+        "changed_factor": getattr(args, "changed_factor", None),
+    }
     run = RunContext(
         args.runs_dir,
         purpose="experiments",
         dataset_path=args.dataset_dir,
-        label=("architecture-screen" if candidate_manifest else "baseline-comparison"),
+        label=run_label,
         arguments=vars(args),
         metadata={
             "experiment_config": experiment_config.to_dict(),
@@ -410,6 +916,7 @@ def main(argv: list[str] | None = None) -> None:
             "split_manifest": str(manifest_path.resolve()),
             "deterministic_settings": deterministic_settings,
             "device": str(device),
+            "study_trial": trial_metadata,
         },
     )
     run_dir = run.run_dir
@@ -503,6 +1010,7 @@ def main(argv: list[str] | None = None) -> None:
             "test_access": "locked",
         },
         "augmentation": args.augment,
+        "study_trial": trial_metadata,
     }
     config_path = write_json(run_dir / "config.json", shared_configuration)
     run.update(
@@ -514,6 +1022,7 @@ def main(argv: list[str] | None = None) -> None:
             "split_sizes": shared_configuration["split_sizes"],
             "split": split_metadata,
             "deterministic_settings": deterministic_settings,
+            "study_trial": trial_metadata,
         }
     )
     print(f"\nRunning {len(registry)} configurations...\n")
@@ -522,13 +1031,6 @@ def main(argv: list[str] | None = None) -> None:
     for i, entry in enumerate(registry):
         name = entry["name"]
         role = entry["role"]
-        if entry["model_class"] == "PaperConvLSTM" and (
-            args.sequence_length,
-            args.height,
-            args.width,
-        ) != (50, 50, 50):
-            name = f"{name}_reduced_input"
-            role = f"{role}; reduced-input topology check"
         model = build_registered_model(
             str(entry["name"]),
             num_classes,
@@ -669,6 +1171,7 @@ def main(argv: list[str] | None = None) -> None:
             "num_params": num_params,
             "experiment_config": experiment_config.to_dict(),
             "candidate_manifest": candidate_provenance,
+            "study_trial": trial_metadata,
             "partition": "validation",
             "metric_protocol": metric_protocol(),
             "validation_metrics": selected_validation_metrics,
@@ -721,6 +1224,7 @@ def main(argv: list[str] | None = None) -> None:
     summary = {
         "experiment_config": experiment_config.to_dict(),
         "candidate_manifest": candidate_provenance,
+        "study_trial": trial_metadata,
         "ranking": [
             "validation_macro_f1",
             "validation_accuracy",
@@ -742,6 +1246,7 @@ def main(argv: list[str] | None = None) -> None:
             "completed_models": shared_configuration["completed_models"],
             "experiment_config": experiment_config.to_dict(),
             "candidate_manifest": candidate_provenance,
+            "study_trial": trial_metadata,
             "test_access": "locked",
         }
     )
@@ -761,6 +1266,7 @@ def main(argv: list[str] | None = None) -> None:
         results={
             "experiment_config": experiment_config.to_dict(),
             "candidate_manifest": candidate_provenance,
+            "study_trial": trial_metadata,
             "ranked": ranked,
         },
     )

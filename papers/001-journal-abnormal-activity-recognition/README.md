@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Cloud workflow ready; controlled confirmation runs remain pending
+- Status: Controlled 11-model suite ready; ticket-021 timing decision is next
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -53,19 +53,22 @@ reference architecture for ablation.
 - [x] `019-cloud-experiment-notebook` — added one guarded local/Colab/Kaggle
   workflow for preview, screening, confirmation, selected training, validation
   inspection, final evaluation, and artifact export.
-- [ ] **Architecture confirmation runs — Next:** use ticket 019's notebook to
-  compare the chosen validation-screen candidate with the approved baselines;
+- [x] `020-expand-controlled-experiments` — prepared the approved 11-model
+  screen, practical-baseline confirmation, separate published topology, and
+  one-factor weight-decay, augmentation, spatial-size, and sequence ablations.
+- [ ] `021-optional-cloud-architecture-expansion` — **Next decision, before screening:**
+  optionally add the complete predeclared five-model block when a Colab timing
+  check shows sufficient runtime.
+- [ ] **Architecture and baseline runs:** execute the frozen ticket-020/021 plan;
   notebook availability alone is not confirmation evidence.
-- [ ] `020-run-reference-ablations` — run approved one-factor comparisons on the
-  selected reference model.
-- [ ] `021-validate-second-dataset` — evaluate the frozen configuration on VDD.
-- [ ] `022-aggregate-ablation-evidence` — produce paper-ready tables, figures,
+- [ ] `022-validate-second-dataset` — evaluate the frozen configuration on VDD.
+- [ ] `023-aggregate-ablation-evidence` — produce paper-ready tables, figures,
   uncertainty, efficiency comparisons, and error-analysis inputs.
-- [ ] `023-rewrite-experimental-results` — revise the experiment and discussion
+- [ ] `024-rewrite-experimental-results` — revise the experiment and discussion
   section using only verified outputs.
-- [ ] `024-align-paper-claims` — align the abstract, contributions, methods,
+- [ ] `025-align-paper-claims` — align the abstract, contributions, methods,
   limitations, and conclusion with the final evidence.
-- [ ] `025-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
+- [ ] `026-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
   prediction to the custom model without changing the published baseline.
 
 ## Planned results-section flow

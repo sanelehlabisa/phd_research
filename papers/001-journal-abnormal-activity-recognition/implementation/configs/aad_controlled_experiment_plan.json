@@ -1,0 +1,32 @@
+{
+  "plan_id": "aad_controlled_experiment_suite",
+  "candidate_manifest": "configs/aad_architecture_candidates.json",
+  "reference_candidate": "custom_depth_8_8_8",
+  "screening": {
+    "config": "configs/aad_screening_reference.json",
+    "model_scope": "all_custom_candidates"
+  },
+  "confirmation": {
+    "config": "configs/aad_confirmation_reference.json",
+    "seeds": [42, 2026],
+    "models": ["reference_candidate", "r3d_18", "mc3_18", "r2plus1d_18"]
+  },
+  "published_topology": {
+    "config": "configs/aad_paper_topology_reference.json",
+    "models": ["paper_convlstm_published"],
+    "comparable_to_confirmation": false,
+    "resource_note": "Native 50-frame 50x50 topology; report an out-of-memory limitation instead of reducing the model."
+  },
+  "ablations": {
+    "config": "configs/aad_confirmation_reference.json",
+    "seeds": [42, 2026],
+    "trials": [
+      {"name": "reference", "changed_factor": null, "overrides": {}},
+      {"name": "weight_decay_0", "changed_factor": "weight_decay", "overrides": {"weight_decay": 0.0}},
+      {"name": "weight_decay_0_0001", "changed_factor": "weight_decay", "overrides": {"weight_decay": 0.0001}},
+      {"name": "augmentation_off", "changed_factor": "augmentation", "overrides": {"augment": false}},
+      {"name": "spatial_64", "changed_factor": "spatial_size", "overrides": {"height": 64, "width": 64}},
+      {"name": "sequence_32", "changed_factor": "sequence_length", "overrides": {"sequence_length": 32}}
+    ]
+  }
+}
