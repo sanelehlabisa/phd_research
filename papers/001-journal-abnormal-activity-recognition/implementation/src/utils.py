@@ -637,7 +637,7 @@ def read_video_torchvision(path: Path) -> tuple[torch.Tensor, float]:
 
 def write_video_torchvision(frames: torch.Tensor, path: Path, fps: int = 8) -> None:
     """
-    Encodes and writes a sequence of float tensors to an MP4 video file.
+    Encode float video frames as a browser-viewable MP4 with PyAV.
 
     Parameters:
         frames (torch.Tensor): The video frames tensor of shape (T, C, H, W) normalized [0, 1].
@@ -647,10 +647,33 @@ def write_video_torchvision(frames: torch.Tensor, path: Path, fps: int = 8) -> N
     Returns:
         None
     """
-    clip = (frames * 255).byte().permute(0, 2, 3, 1).cpu()
+    if frames.ndim != 4 or frames.shape[1] != 3:
+        raise ValueError("frames must have shape (T, 3, H, W)")
+    if not isinstance(fps, int) or isinstance(fps, bool) or fps <= 0:
+        raise ValueError("fps must be a positive integer")
+    clip = (
+        frames.detach()
+        .clamp(0.0, 1.0)
+        .mul(255)
+        .round()
+        .to(torch.uint8)
+        .permute(0, 2, 3, 1)
+        .cpu()
+        .numpy()
+    )
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    torchvision.io.write_video(str(path), clip, fps=fps, video_codec="libx264")
+    with av.open(str(path), mode="w") as container:
+        stream = container.add_stream("libx264", rate=fps)
+        stream.width = int(clip.shape[2])
+        stream.height = int(clip.shape[1])
+        stream.pix_fmt = "yuv420p"
+        for image in clip:
+            frame = av.VideoFrame.from_ndarray(image, format="rgb24")
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
 
 
 def save_prediction_clips(

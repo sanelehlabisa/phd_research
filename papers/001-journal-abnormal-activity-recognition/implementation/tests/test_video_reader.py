@@ -50,3 +50,19 @@ def test_read_video_uses_pyav_rgb_frames(monkeypatch) -> None:
     assert frames[0].sum().item() == 0
     assert frames[1].min().item() == 255
     assert fps == 25.0
+
+
+def test_write_and_read_video_with_pyav(tmp_path: Path) -> None:
+    """Round-trip a small normalized RGB clip through the shared MP4 helpers."""
+    source = torch.linspace(0.0, 1.0, steps=4 * 3 * 16 * 16).reshape(
+        4, 3, 16, 16
+    )
+    output_path = tmp_path / "preview.mp4"
+
+    utils.write_video_torchvision(source, output_path, fps=8)
+    decoded, fps = utils.read_video_torchvision(output_path)
+
+    assert output_path.stat().st_size > 0
+    assert decoded.shape == (4, 16, 16, 3)
+    assert decoded.dtype == torch.uint8
+    assert fps == 8.0

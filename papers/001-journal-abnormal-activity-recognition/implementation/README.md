@@ -119,19 +119,23 @@ exploratory evidence.
 ## Colab VS Code notebook
 
 Use [the AAD workflow](notebooks/aad_experiment_workflow.ipynb) from VS Code
-connected to an A100 through the official Google Colab extension. Ticket 022
-provides the runtime and AAD-inspection foundation; tickets 023–024 add model
-inspection and guarded experiment execution without duplicating research logic.
+connected to an A100 through the official Google Colab extension.
+Tickets 022–023 provide the runtime, AAD walkthrough, playable augmentation
+preview, model tables, and random-weight software check. Ticket 024 adds guarded
+experiment execution without duplicating research logic.
 
 1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
    once, installs missing packages quietly, and reuses cached AAD or downloads
    the public KaggleHub dataset once when a fresh runtime has no copy.
-3. Inspect the split summary, class balance, reproducible training samples, and
-   clean-versus-augmented frames.
+3. Inspect the split summary, class balance, sample metadata, a side-by-side
+   native/model-ready comparison, and the augmented model input.
+4. Inspect all custom candidates, the separate comparison roles, the planned
+   lightweight reference, and its labelled random-weight A100 software check.
 
-The notebook uses normal Python cells for interactive tables and figures.
-It does not yet allocate a model, run an experiment, or access test clips.
+The notebook uses normal Python cells for interactive tables and embedded video.
+It allocates one lightweight model only for an untrained software check; it does
+not run an experiment, rank models, or access test clips.
 
 ## Implementation tasks
 
@@ -165,13 +169,15 @@ It does not yet allocate a model, run an experiment, or access test clips.
 11. [x] **Controlled experiment expansion (`020`).** Added the approved 11-model
     screen, practical-baseline confirmation, separate published topology, and
     validated one-factor ablation plan to the Colab workflow.
-12. [ ] **Optional cloud expansion (`021`, pre-screen decision).** Before screening, add the
+12. [ ] **Optional cloud expansion (`021`, pre-screen decision).** Before
+    screening, add the
     entire predeclared five-model block when a timing check shows enough runtime.
 13. [x] **Notebook foundation (`022`).** Added the Colab VS Code runtime,
     committed-split, class-balance, training-sample, and augmentation walkthrough.
-14. [ ] **Model inspection (`023`, next).** Display model roles, candidates,
-    parameter counts, and one labelled random-weight smoke prediction.
-15. [ ] **Experiment notebook (`024`).** Add guarded plan-stage execution and
+14. [x] **Model inspection (`023`).** Added inline clean and augmented videos,
+    manifest-driven candidate and role tables, a readable lightweight reference,
+    and one labelled random-weight GPU prediction with cleanup.
+15. [ ] **Experiment notebook (`024`, next).** Add guarded plan-stage execution and
     validation-only result displays at the end of the notebook.
 16. [ ] **Architecture and baseline runs.** Execute the frozen plan through the
     completed notebook and retain complete validation evidence.

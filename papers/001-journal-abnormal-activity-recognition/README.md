@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Colab data inspection ready; interactive model inspection is next
+- Status: Colab data and model inspection ready; experiment workflow is next
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -61,8 +61,9 @@ reference architecture for ablation.
   check shows sufficient runtime.
 - [x] `022-interactive-notebook-foundation` — simplified the Colab VS Code
   setup and displayed AAD metadata, balance, training frames, and augmentation.
-- [ ] `023-interactive-model-inspection` — **Next implementation:** display model roles, architecture
-  candidates, parameter counts, and one labelled random-weight smoke prediction.
+- [x] `023-interactive-model-inspection` — added playable native, model-ready,
+  and augmented clips, manifest-driven model tables, and one labelled
+  random-weight GPU check.
 - [ ] `024-notebook-experiment-workflow` — add guarded plan-stage execution and
   visual validation-only result inspection at the end of the notebook.
 - [ ] **Architecture and baseline runs:** execute the frozen ticket-020/021 plan;

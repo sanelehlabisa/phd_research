@@ -1,17 +1,25 @@
 # Task Prompt
 
 - Ticket: `023-interactive-model-inspection`
-- Status: Ready
+- Status: Done
 - Aim: Extend the Colab VS Code notebook with understandable model, candidate,
   and random-weight prediction displays before expensive experiments begin.
 - Scope:
   - the Paper 001 Colab notebook
+  - the shared video writer in `implementation/src/utils.py` only where required
+    for inline playback and current Colab torchvision compatibility
   - model/candidate display helpers only if the notebook cannot reuse existing
     public functions cleanly
   - focused tests and concise notebook documentation
 - Changes:
   - Execute only after ticket 022. Preserve its Colab-only setup and dataset
     walkthrough without restoring multi-platform branches.
+  - Replace the clean-versus-augmented frame grid with two inline playable video
+    controls for the same reproducible training clip: one original and one
+    online-augmented example. Do not retain the static temporal-frame display.
+  - Reuse the shared video-writer API and make it use PyAV directly rather than
+    the removed torchvision video-writing function. Embed temporary MP4 data in
+    the notebook display and do not create persistent preview artifacts.
   - Reuse `CustomConvLSTM`, `PaperConvLSTM`, parameter counting, model registry,
     candidate-manifest parsing, and the safe patterns demonstrated by
     `src.model.main()` and `src.experiments.main()`; do not reimplement models.
@@ -32,6 +40,10 @@
   - End with a clear selected-reference placeholder for ticket 024; do not
     choose a model using random predictions or test data.
 - Acceptance criteria:
+  - The dataset section displays one original and one augmented clip as separate
+    playable inline videos and no longer presents them as static frame grids.
+  - The shared writer produces a viewable MP4 on current Colab torchvision
+    versions without relying on `torchvision.io.write_video`.
   - The notebook shows the custom candidates, practical baselines, and published
     topology with their comparison roles unambiguous.
   - One custom model successfully consumes a real dataset tensor on the A100
@@ -42,11 +54,14 @@
     training, access test samples for selection, or make a performance claim.
 - Out of scope:
   - Architecture selection, experiment execution, checkpoint evaluation,
-    model/module redesign, candidate expansion, or manuscript changes.
+    model redesign, persistent preview artifacts, candidate expansion, or
+    manuscript changes.
 - Open questions: None. Use one lightweight custom candidate for smoke inference
   and represent the published topology without its expensive forward pass.
 - Verification:
   - Parse and compile the notebook, then verify unique IDs and cleared outputs.
+  - Encode and decode a small real clip through the shared PyAV writer/reader,
+    then verify that both notebook video objects embed playable MP4 data.
   - Compare displayed candidates and roles with the validated manifests and
     safe model/plan listings.
   - Smoke-test the selected custom forward pass on the available device and

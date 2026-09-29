@@ -33,4 +33,6 @@
     experiment plan lists safely, and `compileall` passes for `src` and `tests`.
   - `.venv/bin/python -m pytest -q`: 8 passed.
   - `git diff --check`: passed.
+  - The user ran all six code cells successfully on the connected Colab A100
+    after pulling commit `7b595b9`.
 - Remaining issues: None.
