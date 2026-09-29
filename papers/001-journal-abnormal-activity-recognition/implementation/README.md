@@ -134,14 +134,15 @@ inference checks, then adds guarded experiment execution without duplicating res
 4. Inspect all custom candidates and comparison roles, then run three labelled
    random-weight A100 checks with tensor shapes and playable prediction cards.
 
-5. Optionally enable the bounded 64-step training check. It saves a checkpoint
-   and JSON history, plots training and validation loss, and shows three
+5. Optionally enable the 512-step learning sanity check (about 11 epochs). It
+   uses the controlled reference optimizer and loss settings, saves a checkpoint
+   and JSON history, plots training and validation loss, and shows three clean
    validation-video predictions while keeping the test split locked.
 
 The notebook uses normal Python cells for interactive tables and embedded video.
-Its bounded training section is a pipeline smoke test, not evidence for ranking
-or selecting a model. The controlled experiment runner remains the source of
-research evidence, and no notebook inspection opens test clips.
+Its bounded training section is a learning sanity check, not evidence for
+ranking or selecting a model. The controlled experiment runner remains the
+source of research evidence, and no notebook inspection opens test clips.
 
 ## Implementation tasks
 

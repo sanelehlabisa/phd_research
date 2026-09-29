@@ -14,12 +14,12 @@
     three reproducible training clips. Show input/output shapes, class mappings,
     confidence values, top-three classes, and playable model-input videos in
     separate markdown sections. Keep all predictions labelled untrained.
-  - Before the controlled suite, add one optional 64-optimizer-step smoke
-    training run for the planned reference candidate. Validate every 16 steps,
-    save its checkpoint and complete metric history in a normal timestamped
-    training run, plot train/validation loss, and show three reproducible
-    validation-clip predictions. Keep the test split locked and label all
-    outputs as pipeline-smoke evidence rather than model-selection evidence.
+  - Before the controlled suite, add one optional 512-optimizer-step learning
+    sanity run for the planned reference candidate (about 11 epochs). Validate
+    every 64 steps, use the controlled reference learning rate, weight decay,
+    augmentation, and plain cross-entropy settings, save its checkpoint and
+    complete metric history, plot losses, and show three validation clips. Keep
+    test locked and label outputs learning-sanity rather than selection evidence.
   - Execute only after tickets 022 and 023. Keep all dataset/model inspection
     sections intact and place experiment execution at the end.
   - Reuse the validated plan and `src.experiments` command path as the source of
@@ -50,10 +50,10 @@
 - Acceptance criteria:
   - Three real training clips complete untrained inference with expected tensor
     shapes and playable prediction cards without accessing the test split.
-  - Smoke training is disabled by default; when enabled it performs exactly 64
-    optimizer updates, validates at steps 16, 32, 48, and 64, saves a reusable
-    checkpoint plus JSON history, plots losses, and displays three validation
-    predictions without opening the test split.
+  - Sanity training is disabled by default; when enabled it performs exactly
+    512 optimizer updates, validates every 64 steps, saves a reusable checkpoint
+    plus JSON history, plots losses, and displays three validation predictions
+    without opening the test split.
   - Safe plan inspection works without loading AAD or allocating a model.
   - No experiment starts until the explicit flag is enabled and a valid stage
     is selected; the exact command and resolved paths are shown first.
