@@ -23,10 +23,10 @@
   reproducible. Metrics now cover full partitions, validation loss selects and
   restores checkpoints, and only the evaluation command opens the test split.
   Training and comparisons now share a validated JSON configuration with
-  explicit CLI overrides and complete checkpoint provenance. The immediate
-  priority is running the predeclared six-model custom architecture screen;
-  ticket 019 will then compare the resulting shortlist with the audited
-  baselines.
+  explicit CLI overrides and complete checkpoint provenance. A portable cloud
+  notebook now orchestrates these commands without duplicating their logic. The
+  immediate priority is using it to confirm the validation-screen candidate
+  against the audited baselines before ticket 020 ablations.
 
 ## Research rules
 

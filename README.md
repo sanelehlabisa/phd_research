@@ -11,9 +11,9 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `018-shortlist-architecture-results` is complete. Its explicit six-model
-custom architecture screen is ready to run on AAD; ticket
-`019-confirm-architecture-candidates` follows after those runs are complete.
+Ticket `019-cloud-experiment-notebook` is complete. The next action is running
+its controlled architecture and audited-baseline confirmation stages; ticket
+020 ablations begin only after that validation evidence is reviewed.
 
 ## Structure
 

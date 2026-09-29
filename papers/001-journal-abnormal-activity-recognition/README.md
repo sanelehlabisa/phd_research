@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Ready to run the predeclared custom architecture screen on AAD
+- Status: Cloud workflow ready; controlled confirmation runs remain pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -50,8 +50,12 @@ reference architecture for ablation.
 - [x] `018-shortlist-architecture-results` — marked historical outputs as
   non-comparable and predeclared six named custom candidates with manifest
   provenance.
-- [ ] `019-confirm-architecture-candidates` — **Next:** compare the completed
-  shortlist and approved baselines under one protocol.
+- [x] `019-cloud-experiment-notebook` — added one guarded local/Colab/Kaggle
+  workflow for preview, screening, confirmation, selected training, validation
+  inspection, final evaluation, and artifact export.
+- [ ] **Architecture confirmation runs — Next:** use ticket 019's notebook to
+  compare the chosen validation-screen candidate with the approved baselines;
+  notebook availability alone is not confirmation evidence.
 - [ ] `020-run-reference-ablations` — run approved one-factor comparisons on the
   selected reference model.
 - [ ] `021-validate-second-dataset` — evaluate the frozen configuration on VDD.

@@ -108,6 +108,29 @@ exploratory evidence.
   uncertainty across confirmation seeds.
 - One factor changed at a time with the split and training budget fixed.
 
+## Cloud notebook
+
+Use [the AAD cloud workflow](notebooks/aad_experiment_workflow.ipynb) primarily
+in Colab; it also supports local Jupyter and Kaggle. It calls the same `src.*`
+commands documented below and does not duplicate research logic.
+
+1. Upload the notebook to Colab and select a GPU runtime.
+2. Review the Colab-ready repository, dataset, and runs paths in its parameter
+   cell; enable repository cloning only when the checkout is absent.
+3. Enable the guarded KaggleHub download to fetch the public
+   [`sanelehlabisa/abnormal-activities-dataset`](https://www.kaggle.com/datasets/sanelehlabisa/abnormal-activities-dataset)
+   folder into `/content/datasets`. If Kaggle requests authentication, put the
+   token in a Colab secret named `KAGGLE_API_TOKEN`; never paste it into a cell.
+4. Run environment and path checks, then enable only the stage you need.
+
+Every clone, dataset download, install, preview, experiment, training,
+evaluation, and archive flag defaults to `False`. Colab paths under `/content`
+are temporary, so download or archive important runs before the runtime ends.
+The notebook never mounts storage or exposes credentials automatically.
+
+Final test evaluation remains disabled until both its explicit unlock and run
+flags are enabled and a validation-selected checkpoint path is supplied.
+
 ## Implementation tasks
 
 1. [x] **Architecture preparation (`010`).** Added the faithful paper model,
@@ -135,14 +158,16 @@ exploratory evidence.
 9. [x] **Architecture shortlist preparation (`018`).** Marked historical outputs
    non-comparable and added one validated six-model custom candidate manifest
    with complete provenance.
-10. [ ] **Architecture confirmation (`019`, next).** Compare the completed
-    shortlist with the audited baselines under one protocol.
-11. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
+10. [x] **Cloud experiment workflow (`019`).** Added one guarded local/Colab/
+    Kaggle notebook that calls the existing CLIs and preserves test isolation.
+11. [ ] **Architecture confirmation runs (next).** Use the ticket 019 notebook
+    to compare the chosen validation-screen candidate with the audited baselines.
+12. [ ] **Focused ablations (`020`).** Test depth, width, kernel size, input size,
    frame count, head design, augmentation, and regularisation one factor at a
    time—never as a Cartesian grid.
-12. [ ] **Validation and handoff (`021–022`).** Confirm the frozen model on VDD,
+13. [ ] **Validation and handoff (`021–022`).** Confirm the frozen model on VDD,
    aggregate evidence, and export paper-ready tables and figures.
-13. [ ] **Stateful streaming (`025`, later).** Carry custom ConvLSTM state across
+14. [ ] **Stateful streaming (`025`, later).** Carry custom ConvLSTM state across
     video chunks and predict after each chunk without altering `PaperConvLSTM`.
 
 Generated datasets, environments, checkpoints, and experiment runs remain
@@ -268,6 +293,6 @@ Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
 copied or overwritten by evaluation.
 
 The AAD JSON is a screening reference, not an optimal or final model. Ticket
-018 predeclares the six custom architectures; ticket 019 will compare the
-completed shortlist with the audited baselines. Random-weight smoke outputs
-remain pipeline checks, not research evidence.
+018 predeclares the six custom architectures; ticket 019 provides the guarded
+cloud workflow for user-operated confirmation against the audited baselines.
+Random-weight smoke outputs remain pipeline checks, not research evidence.
