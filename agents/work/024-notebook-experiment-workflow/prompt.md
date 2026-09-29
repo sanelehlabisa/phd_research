@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `024-notebook-experiment-workflow`
-- Status: Ready
+- Status: In progress
 - Aim: Finish the Colab VS Code notebook with a safe final section for running
   controlled experiment stages and visually reviewing validation evidence.
 - Scope:
