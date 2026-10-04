@@ -202,11 +202,13 @@ def _train_phase(
     learning_rate: float,
     weight_decay: float,
     stop_accuracy: float | None = None,
-) -> tuple[list[dict[str, object]], dict[str, object]]:
+) -> tuple[list[dict[str, object]], dict[str, object], dict[str, torch.Tensor]]:
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     history: list[dict[str, object]] = []
     diagnostics: dict[str, object] = {}
+    best_validation_loss = float("inf")
+    best_state: dict[str, torch.Tensor] = {}
     for epoch in range(1, epochs + 1):
         training = train_classifier_epoch(
             model, train_loader, criterion, optimizer, device, num_classes
@@ -217,6 +219,12 @@ def _train_phase(
         history.append(
             {"epoch": epoch, "training_metrics": training, "validation_metrics": validation}
         )
+        if validation["loss"] < best_validation_loss:
+            best_validation_loss = validation["loss"]
+            best_state = {
+                name: value.detach().cpu().clone()
+                for name, value in model.state_dict().items()
+            }
         diagnostics = _gradient_diagnostics(model)
         print(
             f"epoch={epoch:02d} train_loss={training['loss']:.4f} "
@@ -224,7 +232,7 @@ def _train_phase(
         )
         if stop_accuracy is not None and training["accuracy"] >= stop_accuracy:
             break
-    return history, diagnostics
+    return history, diagnostics, best_state
 
 
 def _arguments(argv: list[str] | None) -> argparse.Namespace:
@@ -324,7 +332,7 @@ def main(argv: list[str] | None = None) -> None:
     tiny_model = CustomConvLSTM(**model_config).to(device)
     tiny_loader = _loader(tiny_set, min(args.batch_size, len(tiny_set)), True, args.seed)
     tiny_eval_loader = _loader(tiny_set, min(args.batch_size, len(tiny_set)), False, args.seed + 1)
-    tiny_history, tiny_diagnostics = _train_phase(
+    tiny_history, tiny_diagnostics, _ = _train_phase(
         tiny_model,
         tiny_loader,
         tiny_eval_loader,
@@ -387,7 +395,7 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit("Tiny-subset accuracy did not reach 95%; bounded VDD run was not started")
 
     bounded_model = CustomConvLSTM(**model_config).to(device)
-    bounded_history, bounded_diagnostics = _train_phase(
+    bounded_history, bounded_diagnostics, selected_state = _train_phase(
         bounded_model,
         _loader(train_set, args.batch_size, True, args.seed),
         _loader(validation_set, args.batch_size, False, args.seed + 1),
@@ -397,7 +405,12 @@ def main(argv: list[str] | None = None) -> None:
         args.learning_rate,
         args.weight_decay,
     )
-    checkpoint_path = run.run_dir / "checkpoints" / "bounded_last_epoch.pth"
+    selected_epoch = min(
+        bounded_history,
+        key=lambda item: item["validation_metrics"]["loss"],
+    )["epoch"]
+    bounded_model.load_state_dict(selected_state)
+    checkpoint_path = run.run_dir / "checkpoints" / "bounded_validation_selected.pth"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
@@ -407,6 +420,9 @@ def main(argv: list[str] | None = None) -> None:
             "model_state_dict": bounded_model.state_dict(),
             "seed": args.seed,
             "split_manifest_hash": split["manifest_hash"],
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selected_epoch": selected_epoch,
         },
         checkpoint_path,
     )
@@ -414,6 +430,7 @@ def main(argv: list[str] | None = None) -> None:
         {
             "bounded_history": bounded_history,
             "bounded_diagnostics": bounded_diagnostics,
+            "bounded_selected_epoch": selected_epoch,
             "bounded_training_exceeded_70_percent": max(
                 item["training_metrics"]["accuracy"] for item in bounded_history
             ) >= 0.70,

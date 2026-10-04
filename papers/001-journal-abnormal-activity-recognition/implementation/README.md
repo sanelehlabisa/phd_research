@@ -118,11 +118,36 @@ exploratory evidence.
 
 ## Colab VS Code notebook
 
-Use [the AAD workflow](notebooks/aad_experiment_workflow.ipynb) from VS Code
-connected to an A100 through the official Google Colab extension.
-Tickets 022–023 provide the runtime, AAD walkthrough, playable augmentation
-preview and model tables. Ticket 024 begins with three visual untrained
-inference checks, then adds guarded experiment execution without duplicating research logic.
+The original [AAD workflow](notebooks/aad_experiment_workflow.ipynb) remains the
+complete reference. For routine work, open only the small notebook matching the
+task:
+
+| Notebook | Purpose | Delegates to |
+|---|---|---|
+| [`01_dataset_setup.ipynb`](notebooks/01_dataset_setup.ipynb) | Download, inventory, split, and inspect one training sample | `src.dataset`, `src.vdd_diagnostic` |
+| [`02_model_inspection.ipynb`](notebooks/02_model_inspection.ipynb) | Shapes, parameters, and labelled random-weight predictions | `src.model` |
+| [`03_model_training.ipynb`](notebooks/03_model_training.ipynb) | Tiny-overfit gate and bounded train/validation diagnostic | `src.vdd_diagnostic` |
+| [`04_controlled_experiments.ipynb`](notebooks/04_controlled_experiments.ipynb) | Fixed AAD plan listing and one guarded stage | `src.experiments` |
+
+Each modular notebook installs the pinned requirements and runs independently on
+a fresh Colab A100. Shared paths, downloads, formatting, and commands live in
+`src.notebook_utils`; training and experiment implementations remain in their
+existing modules.
+
+All three diagnostic notebooks read this single selection from
+`src/notebook_config.py`:
+
+```python
+SELECTED_DIAGNOSTIC_DATASET = "vdd"
+```
+
+VDD is ready by default. Kinetics remains disabled until ticket 036 declares
+its exact accepted class directories. The controlled-experiment notebook always
+uses the committed AAD plan and ignores the diagnostic selection.
+
+### Reference workflow
+
+The reference notebook retains the earlier end-to-end walkthrough:
 
 1. Connect the notebook to the named Colab A100 runtime and run its hardware check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
@@ -148,9 +173,7 @@ inference checks, then adds guarded experiment execution without duplicating res
    downloads `sanelehlabisa/violence-detection-dataset`, audits the files and
    split, then requires a fixed balanced training subset to reach 95% accuracy
    with decreasing loss before starting one 12-epoch train/validation run.
-   The configuration cell contains commented VDD and Kinetics choices plus an
-   optional `accepted_classes` list. Kinetics must use explicitly approved,
-   exact class-directory names; invalid names stop instead of loading all 400.
+   Invalid accepted-class names stop instead of loading every available class.
 
 The same diagnostic can be run from the implementation directory after the VDD
 dataset has been downloaded:
@@ -173,6 +196,33 @@ The notebook uses normal Python cells for interactive tables and embedded video.
 Its bounded training section is a learning sanity check, not evidence for
 ranking or selecting a model. The controlled experiment runner remains the
 source of research evidence, and no notebook inspection opens test clips.
+
+## Modular Colab notebooks
+
+The original [AAD workflow](notebooks/aad_experiment_workflow.ipynb) remains the
+complete reference. For routine work, open only the notebook matching the task:
+
+| Notebook | Purpose | Delegates to |
+|---|---|---|
+| [`01_dataset_setup.ipynb`](notebooks/01_dataset_setup.ipynb) | Download, inventory, split, and inspect one training sample | `src.dataset`, `src.vdd_diagnostic` |
+| [`02_model_inspection.ipynb`](notebooks/02_model_inspection.ipynb) | Shapes, parameters, and labelled random-weight predictions | `src.model` |
+| [`03_model_training.ipynb`](notebooks/03_model_training.ipynb) | Tiny-overfit gate and bounded train/validation diagnostic | `src.vdd_diagnostic` |
+| [`04_controlled_experiments.ipynb`](notebooks/04_controlled_experiments.ipynb) | Fixed AAD plan listing and one guarded stage | `src.experiments` |
+
+Each notebook installs the pinned requirements and runs independently on a fresh
+Colab A100. If pins change, the bootstrap stops once and asks for a runtime
+restart before any binary package is imported. Shared paths, downloads, formatting, and commands live in
+`src.notebook_utils`; training and experiment behavior stays in existing
+modules. All three diagnostic notebooks read one selection from
+`src/notebook_config.py`:
+
+```python
+SELECTED_DIAGNOSTIC_DATASET = "vdd"
+```
+
+VDD is ready by default. Kinetics remains disabled until ticket 036 declares
+its exact accepted class directories. Controlled experiments always use the
+committed AAD plan and ignore the diagnostic selection.
 
 ## Implementation tasks
 

@@ -71,6 +71,11 @@ reference architecture for ablation.
   bounded VDD train/validation check before resuming expensive AAD experiments.
 - [ ] `036-kinetics-subset-audit` — inventory the available Kinetics copy and
   propose a small relevant class subset and resource budget; do not train yet.
+- [x] `037-modular-colab-notebooks` — split routine Colab work into independent
+  dataset, model-inspection, training, and controlled-experiment notebooks while
+  preserving the original workflow as the reference.
+- [x] `037-modular-colab-notebooks` — added independent dataset, model-inspection,
+  training, and controlled-experiment notebooks while preserving the reference.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,
