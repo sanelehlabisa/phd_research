@@ -124,11 +124,15 @@ Tickets 022–023 provide the runtime, AAD walkthrough, playable augmentation
 preview and model tables. Ticket 024 begins with three visual untrained
 inference checks, then adds guarded experiment execution without duplicating research logic.
 
-1. Connect the notebook to the named Colab A100 runtime and run its GPU check.
+1. Connect the notebook to the named Colab A100 runtime and run its hardware check.
 2. Run the Python setup cell. It clones the code into `/content/phd_research`
    once or fast-forwards an existing clean checkout, reloads local `src`
-   modules, installs missing packages quietly, and reuses cached AAD or
-   downloads the public KaggleHub dataset when a fresh runtime has no copy.
+   modules, installs the strictly pinned direct dependencies from
+   `requirements.txt` on every run, verifies PyTorch, TorchVision,
+   TorchMetrics, and A100 CUDA access, and reuses cached AAD or downloads the
+   public KaggleHub dataset when a fresh runtime has no copy. The install may
+   replace Colab packages when its runtime versions differ from the pins; if
+   Colab asks for a runtime restart, restart it and rerun the notebook.
 3. Inspect the split summary, class balance, sample metadata, a side-by-side
    native/model-ready comparison, and the augmented model input.
 4. Inspect all custom candidates and comparison roles, then run three labelled
@@ -221,6 +225,10 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+`requirements.txt` contains only direct runtime dependencies and pins each one
+exactly. Pip resolves platform-specific transitive packages. Development tools
+remain separate in `pyproject.toml`; IPython is supplied by the notebook host.
 
 Run the following commands from this `implementation/` directory. They use the
 larger Abnormal Activities Dataset (AAD).
