@@ -124,10 +124,10 @@ task:
 
 | Notebook | Purpose | Delegates to |
 |---|---|---|
-| [`01_dataset_setup.ipynb`](notebooks/01_dataset_setup.ipynb) | Download, inventory, split, and inspect one training sample | `src.dataset`, `src.vdd_diagnostic` |
-| [`02_model_inspection.ipynb`](notebooks/02_model_inspection.ipynb) | Shapes, parameters, and labelled random-weight predictions | `src.model` |
-| [`03_model_training.ipynb`](notebooks/03_model_training.ipynb) | Tiny-overfit gate and bounded train/validation diagnostic | `src.vdd_diagnostic` |
-| [`04_controlled_experiments.ipynb`](notebooks/04_controlled_experiments.ipynb) | Fixed AAD plan listing and one guarded stage | `src.experiments` |
+| [`01_dataset_setup.ipynb`](notebooks/01_dataset_setup.ipynb) | Download, inventory, split, and show five reproducible training examples | `src.dataset`, `src.vdd_diagnostic` |
+| [`02_model_inspection.ipynb`](notebooks/02_model_inspection.ipynb) | Shapes, parameters, and five labelled random-weight predictions | `src.model` |
+| [`03_model_training.ipynb`](notebooks/03_model_training.ipynb) | Bounded training and five validation-selected-checkpoint predictions | `src.vdd_diagnostic` |
+| [`04_controlled_experiments.ipynb`](notebooks/04_controlled_experiments.ipynb) | Validation screen, longer confirmation, one-time final test, and five test examples | `src.experiments`, `src.evaluate` |
 
 Each modular notebook installs the pinned requirements and runs independently on
 a fresh Colab A100. Shared paths, downloads, formatting, and commands live in
@@ -223,6 +223,13 @@ SELECTED_DIAGNOSTIC_DATASET = "vdd"
 VDD is ready by default. Kinetics remains disabled until ticket 036 declares
 its exact accepted class directories. Controlled experiments always use the
 committed AAD plan and ignore the diagnostic selection.
+
+The controlled notebook never chooses a winner from test data. It reads the
+winner from a completed validation ranking, requires both longer confirmation
+seeds, freezes a compatible checkpoint, and only opens the final test after the
+explicit acknowledgement `OPEN FINAL AAD TEST`. A completed evaluation for the
+same checkpoint cannot be launched again; its saved metrics and five prediction
+clips should be reused.
 
 ## Implementation tasks
 

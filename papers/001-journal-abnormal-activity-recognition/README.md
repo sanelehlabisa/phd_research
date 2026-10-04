@@ -76,6 +76,9 @@ reference architecture for ablation.
   preserving the original workflow as the reference.
 - [x] `037-modular-colab-notebooks` — added independent dataset, model-inspection,
   training, and controlled-experiment notebooks while preserving the reference.
+- [x] `038-notebook-prediction-endings` — ended each modular notebook with five
+  partition-labelled examples and gated final test predictions behind validation
+  selection and longer confirmation.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,

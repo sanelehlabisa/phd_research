@@ -20,7 +20,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
 
 from .dataset import AHARDataset, create_split_manifest, load_split_subsets
-from .metrics import evaluate_classifier, train_classifier_epoch
+from .metrics import evaluate_classifier, metric_protocol, train_classifier_epoch
 from .model import CustomConvLSTM, count_trainable_parameters
 from .utils import (
     RunContext,
@@ -409,20 +409,34 @@ def main(argv: list[str] | None = None) -> None:
         bounded_history,
         key=lambda item: item["validation_metrics"]["loss"],
     )["epoch"]
+    selected_record = next(
+        item for item in bounded_history if item["epoch"] == selected_epoch
+    )
+    selected_validation_metrics = selected_record["validation_metrics"]
     bounded_model.load_state_dict(selected_state)
     checkpoint_path = run.run_dir / "checkpoints" / "bounded_validation_selected.pth"
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
             "evidence_role": EVIDENCE_ROLE,
+            "checkpoint_role": "validation_selected_lowest_loss",
             "test_access": "locked",
             "model_config": bounded_model.configuration(),
             "model_state_dict": bounded_model.state_dict(),
             "seed": args.seed,
+            "dataset_name": dataset.dataset_dir.resolve().name,
             "split_manifest_hash": split["manifest_hash"],
             "selection_partition": "validation",
             "selection_metric": "loss",
+            "selection_value": selected_validation_metrics["loss"],
             "selected_epoch": selected_epoch,
+            "validation_metrics": selected_validation_metrics,
+            "metric_protocol": metric_protocol(),
+            "early_stopping": {
+                "selected_epoch": selected_epoch,
+                "epochs_completed": len(bounded_history),
+                "stop_reason": "bounded_diagnostic_budget_completed",
+            },
         },
         checkpoint_path,
     )

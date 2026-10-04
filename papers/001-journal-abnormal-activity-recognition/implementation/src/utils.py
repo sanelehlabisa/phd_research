@@ -711,7 +711,9 @@ def save_prediction_clips(
         for idx in indices:
             frames, true_label = dataset[idx]
             logits = model(frames.unsqueeze(0).to(device))
-            pred_label = logits.argmax(dim=1).item()
+            probabilities = logits.softmax(dim=1)
+            pred_label = probabilities.argmax(dim=1).item()
+            confidence = float(probabilities[0, pred_label].item())
             correct = pred_label == true_label
 
             true_name = class_names[true_label]
@@ -734,6 +736,7 @@ def save_prediction_clips(
                     "path": str(out_path),
                     "true": true_name,
                     "pred": pred_name,
+                    "confidence": confidence,
                     "correct": correct,
                 }
             )
