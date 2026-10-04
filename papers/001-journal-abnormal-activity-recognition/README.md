@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Colab data and model inspection ready; experiment workflow is next
+- Status: VDD Run All diagnostic notebooks prepared; real Colab training pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -74,11 +74,12 @@ reference architecture for ablation.
 - [x] `037-modular-colab-notebooks` — split routine Colab work into independent
   dataset, model-inspection, training, and controlled-experiment notebooks while
   preserving the original workflow as the reference.
-- [x] `037-modular-colab-notebooks` — added independent dataset, model-inspection,
-  training, and controlled-experiment notebooks while preserving the reference.
 - [x] `038-notebook-prediction-endings` — ended each modular notebook with five
   partition-labelled examples and gated final test predictions behind validation
   selection and longer confirmation.
+- [x] `039-vdd-run-all-notebooks` — shared VDD defaults, playable previews,
+  live curves, validation-ranked screen and automatically guarded final testing;
+  separate from the controlled AAD study.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,

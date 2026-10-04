@@ -39,8 +39,9 @@ VIDEO_EXTENSIONS = AHARDataset.SUPPORTED_EXTS
 def resolve_vdd_root(download_root: str | Path) -> Path:
     """Find the shallowest directory containing at least two video classes."""
     root = Path(download_root).resolve()
-    candidates: list[Path] = []
-    for candidate in (root, *sorted(path for path in root.rglob("*") if path.is_dir())):
+    # Inspect each level before descending; never materialise the entire tree.
+    pending = [root]
+    for candidate in pending:
         class_dirs = [path for path in candidate.iterdir() if path.is_dir()]
         populated = [
             path
@@ -48,12 +49,11 @@ def resolve_vdd_root(download_root: str | Path) -> Path:
             if any(item.suffix.lower() in VIDEO_EXTENSIONS for item in path.iterdir())
         ]
         if len(populated) >= 2:
-            candidates.append(candidate)
-    if not candidates:
-        raise FileNotFoundError(
-            f"could not find a directory with at least two video class folders under {root}"
-        )
-    return min(candidates, key=lambda path: (len(path.parts), path.as_posix()))
+            return candidate
+        pending.extend(sorted(path for path in class_dirs if path not in populated))
+    raise FileNotFoundError(
+        f"could not find a directory with at least two video class folders under {root}"
+    )
 
 
 def _sha256(path: Path) -> str:

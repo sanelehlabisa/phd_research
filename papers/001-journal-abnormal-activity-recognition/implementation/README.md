@@ -116,120 +116,65 @@ exploratory evidence.
   uncertainty across confirmation seeds.
 - One factor changed at a time with the split and training budget fixed.
 
-## Colab VS Code notebook
-
-The original [AAD workflow](notebooks/aad_experiment_workflow.ipynb) remains the
-complete reference. For routine work, open only the small notebook matching the
-task:
-
-| Notebook | Purpose | Delegates to |
-|---|---|---|
-| [`01_dataset_setup.ipynb`](notebooks/01_dataset_setup.ipynb) | Download, inventory, split, and show five reproducible training examples | `src.dataset`, `src.vdd_diagnostic` |
-| [`02_model_inspection.ipynb`](notebooks/02_model_inspection.ipynb) | Shapes, parameters, and five labelled random-weight predictions | `src.model` |
-| [`03_model_training.ipynb`](notebooks/03_model_training.ipynb) | Bounded training and five validation-selected-checkpoint predictions | `src.vdd_diagnostic` |
-| [`04_controlled_experiments.ipynb`](notebooks/04_controlled_experiments.ipynb) | Validation screen, longer confirmation, one-time final test, and five test examples | `src.experiments`, `src.evaluate` |
-
-Each modular notebook installs the pinned requirements and runs independently on
-a fresh Colab A100. Shared paths, downloads, formatting, and commands live in
-`src.notebook_utils`; training and experiment implementations remain in their
-existing modules.
-
-All three diagnostic notebooks read this single selection from
-`src/notebook_config.py`:
-
-```python
-SELECTED_DIAGNOSTIC_DATASET = "vdd"
-```
-
-VDD is ready by default. Kinetics remains disabled until ticket 036 declares
-its exact accepted class directories. The controlled-experiment notebook always
-uses the committed AAD plan and ignores the diagnostic selection.
-
-### Reference workflow
-
-The reference notebook retains the earlier end-to-end walkthrough:
-
-1. Connect the notebook to the named Colab A100 runtime and run its hardware check.
-2. Run the Python setup cell. It clones the code into `/content/phd_research`
-   once or fast-forwards an existing clean checkout, reloads local `src`
-   modules, installs the strictly pinned direct dependencies from
-   `requirements.txt` on every run, verifies PyTorch, TorchVision,
-   TorchMetrics, and A100 CUDA access, and reuses cached AAD or downloads the
-   public KaggleHub dataset when a fresh runtime has no copy. When installation
-   changes a pinned package, the cell stops before importing binary libraries.
-   Restart the Colab runtime, reconnect to the A100, and rerun from the top;
-   the second pass verifies the pins and continues. This prevents a stale
-   in-memory NumPy from being mixed with newly installed SciPy components.
-3. Inspect the split summary, class balance, sample metadata, a side-by-side
-   native/model-ready comparison, and the augmented model input.
-4. Inspect all custom candidates and comparison roles, then run three labelled
-   random-weight A100 checks with tensor shapes and playable prediction cards.
-
-5. Optionally enable the 512-step learning sanity check (about 11 epochs). It
-   uses the controlled reference optimizer and loss settings, saves a checkpoint
-   and JSON history, plots training and validation loss, and shows three clean
-   validation-video predictions while keeping the test split locked.
-6. Run the enabled VDD diagnostic section before controlled AAD experiments. It
-   downloads `sanelehlabisa/violence-detection-dataset`, audits the files and
-   split, then requires a fixed balanced training subset to reach 95% accuracy
-   with decreasing loss before starting one 12-epoch train/validation run.
-   Invalid accepted-class names stop instead of loading every available class.
-
-The same diagnostic can be run from the implementation directory after the VDD
-dataset has been downloaded:
-
-```bash
-python -m src.vdd_diagnostic \
-  --dataset-dir /path/to/violence-detection-dataset \
-  --manifest runs/vdd_diagnostic_seed42.json \
-  --runs-dir runs
-```
-
-Repeat `--accepted-class CLASS_NAME` to restrict a larger dataset to a declared
-subset. Omitting it intentionally includes every class found under VDD.
-
-Its test partition is recorded in the manifest but never decoded for training
-or evaluation. Outputs are diagnostic only and use the evidence role
-`pipeline_learnability_diagnostic`.
-
-The notebook uses normal Python cells for interactive tables and embedded video.
-Its bounded training section is a learning sanity check, not evidence for
-ranking or selecting a model. The controlled experiment runner remains the
-source of research evidence, and no notebook inspection opens test clips.
-
 ## Modular Colab notebooks
 
-The original [AAD workflow](notebooks/aad_experiment_workflow.ipynb) remains the
-complete reference. For routine work, open only the notebook matching the task:
+Open one notebook and choose **Run All** on a Colab GPU. All four use
+`SELECTED_DIAGNOSTIC_DATASET = "vdd"` in [shared configuration](src/notebook_config.py),
+with `sanelehlabisa/violence-detection-dataset` and exact `non-violent` /
+`violent` class folders. There are no execution toggles or run-directory placeholders.
 
-| Notebook | Purpose | Delegates to |
-|---|---|---|
-| [`01_dataset_setup.ipynb`](notebooks/01_dataset_setup.ipynb) | Download, inventory, split, and inspect one training sample | `src.dataset`, `src.vdd_diagnostic` |
-| [`02_model_inspection.ipynb`](notebooks/02_model_inspection.ipynb) | Shapes, parameters, and labelled random-weight predictions | `src.model` |
-| [`03_model_training.ipynb`](notebooks/03_model_training.ipynb) | Tiny-overfit gate and bounded train/validation diagnostic | `src.vdd_diagnostic` |
-| [`04_controlled_experiments.ipynb`](notebooks/04_controlled_experiments.ipynb) | Fixed AAD plan listing and one guarded stage | `src.experiments` |
+| Notebook | End-to-end workflow |
+|---|---|
+| [01 Dataset](notebooks/01_dataset_setup.ipynb) | Split summary; the same training video at native FPS, sampled FPS, then augmented |
+| [02 Model](notebooks/02_model_inspection.ipynb) | Architecture, parameter count, one random-weight prediction, playable labelled video and probabilities |
+| [03 Training](notebooks/03_model_training.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
+| [04 Experiments](notebooks/04_controlled_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
 
-Each notebook installs the pinned requirements and runs independently on a fresh
-Colab A100. If pins change, the bootstrap stops once and asks for a runtime
-restart before any binary package is imported. Shared paths, downloads, formatting, and commands live in
-`src.notebook_utils`; training and experiment behavior stays in existing
-modules. All three diagnostic notebooks read one selection from
-`src/notebook_config.py`:
+Defaults: 16 frames at 16 FPS, batch 8, seed 42, 32×32 input. Notebook 03 trains
+for 12 epochs. Notebook 04 compares `8`, `8-16`, and `8-8-8` stacks for eight
+epochs each, then retrains the winning architecture **from scratch** for 24
+epochs at 64×64. Budgets and candidates live beside the dataset selection.
+Checkpoints use minimum validation loss; candidate ranking uses validation
+macro-F1, accuracy, parameter count, then name. Batch progress is printed,
+loss/accuracy plots update each epoch, and artifacts go under ignored `runs/`.
 
-```python
-SELECTED_DIAGNOSTIC_DATASET = "vdd"
-```
+These are **single-seed exploratory diagnostics**, not the paper's controlled
+AAD protocol or evidence of cross-dataset generalisation. Despite its retained
+filename, notebook 04 now follows the selected diagnostic dataset. The
+[original reference notebook](notebooks/aad_experiment_workflow.ipynb), controlled
+AAD configuration and `src.experiments` CLI remain unchanged.
 
-VDD is ready by default. Kinetics remains disabled until ticket 036 declares
-its exact accepted class directories. Controlled experiments always use the
-committed AAD plan and ignore the diagnostic selection.
+Preparation inventories filenames/classes and reuses the stratified 70:15:15
+manifest without opening test videos. The diagnostic loader decodes only the
+first input window, samples by timestamps and keeps a bounded 64 MiB cache.
+Corrupt clips fail explicitly instead of substituting another split's sample.
+This preprocessing is recorded separately from the legacy AAD loader.
+The split is clip-level; subject/source independence and near-duplicate absence
+are **not** established.
 
-The controlled notebook never chooses a winner from test data. It reads the
-winner from a completed validation ranking, requires both longer confirmation
-seeds, freezes a compatible checkpoint, and only opens the final test after the
-explicit acknowledgement `OPEN FINAL AAD TEST`. A completed evaluation for the
-same checkpoint cannot be launched again; its saved metrics and five prediction
-clips should be reused.
+Notebook 04 opens test automatically only after all candidates finish and a
+compatible longer-trained checkpoint is frozen. Metrics precede example videos;
+rerunning its final cell displays the saved report. Do not tune or rerank from
+test feedback. Notebooks 01–03 never evaluate test. No accuracy threshold is promised.
+
+Every setup cell safely fast-forwards its checkout, verifies the required source
+files and prints the code revision before installing `requirements.txt` and
+reloading modules. Git preserves unrelated edits and refuses updates that would
+overwrite conflicting edits; no reset, clean or automatic stash is used.
+If dependency versions change, restart the runtime once and
+rerun from the top. Updated local code must be pushed/synced before Colab can use it.
+`src.notebook_data` is a repository module, not a pip package: a kernel restart
+cannot download source files that have not been committed and pushed.
+The previous notebooks and saved outputs are preserved locally at
+`runs/notebook-backups/pre-039/`; revised cells start without stale outputs.
+
+### Later datasets
+
+All four notebooks follow the same selection. Kinetics remains disabled until
+ticket 036 identifies the **actual variant and exact accepted class directories**.
+Configure that subset in `DIAGNOSTIC_DATASETS`, then change the one selection.
+Class filtering limits training inputs, but a full Kaggle download may still be
+large. Do not silently use every class or call an unaudited copy official Kinetics.
 
 ## Implementation tasks
 

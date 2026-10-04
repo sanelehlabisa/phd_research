@@ -164,6 +164,179 @@ def _save_custom_checkpoint(
     print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
+def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoch=None):
+    """Train an exploratory model on explicit train/validation subsets only."""
+    from time import perf_counter
+    from .notebook_data import data_identity
+
+    deterministic = seed_everything(config.seed)
+    dataset = prepared["dataset"]
+    identity = data_identity(prepared)
+    if (config.height, config.width) != dataset.frame_size:
+        raise ValueError("configuration and dataset frame sizes differ")
+    if config.sequence_length != dataset.sequence_length or config.num_workers != 0:
+        raise ValueError(
+            "Notebook training requires the prepared frame count and num_workers=0"
+        )
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    run = RunContext(
+        config.runs_dir,
+        "train",
+        dataset.dataset_dir,
+        label,
+        config.to_dict(),
+        {
+            "evidence_role": "exploratory_diagnostic",
+            "data_identity": identity,
+            "determinism": deterministic,
+        },
+    )
+    config.save_json(run.run_dir / "config.json")
+    write_json(run.run_dir / "split.json", prepared["split"])
+    model = CustomConvLSTM(
+        num_classes=dataset.num_classes,
+        layers=list(config.convlstm_layers),
+        hidden_classifier_width=config.hidden_classifier_width,
+    ).to(device)
+    optimizer = optim.Adam(
+        model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
+    )
+    scheduler = (
+        optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3)
+        if config.scheduler == "reduce_on_plateau"
+        else None
+    )
+    criterion = nn.CrossEntropyLoss()
+    training = (
+        AugmentSubset(prepared["train"], VideoAugmentation())
+        if config.augment
+        else prepared["train"]
+    )
+    loader = DataLoader(
+        training,
+        batch_size=config.batch_size,
+        shuffle=True,
+        generator=data_loader_generator(config.seed),
+        num_workers=0,
+        pin_memory=config.pin_memory,
+    )
+    validation = DataLoader(
+        prepared["validation"],
+        batch_size=config.batch_size,
+        num_workers=0,
+        pin_memory=config.pin_memory,
+    )
+    selector = ValidationLossSelector(config.early_stopping_patience)
+    checkpoint_path = run.run_dir / "checkpoints" / "best_model.pth"
+    history = []
+    last_print = 0.0
+
+    def progress(done, total, loss):
+        nonlocal last_print
+        now = perf_counter()
+        if now - last_print >= 10 or done == total:
+            print(
+                f"  {label}: {done}/{total} clips | batch loss={loss:.4f}", flush=True
+            )
+            last_print = now
+
+    print(
+        f"Training {label} on {device}: {config.epochs} epochs, "
+        f"{config.height}x{config.width}, {config.convlstm_layers}",
+        flush=True,
+    )
+    print(f"Artifacts: {run.run_dir}", flush=True)
+    try:
+        for epoch in range(1, config.epochs + 1):
+            print(f"Epoch {epoch}/{config.epochs}", flush=True)
+            train_metrics = train_classifier_epoch(
+                model,
+                loader,
+                criterion,
+                optimizer,
+                device,
+                dataset.num_classes,
+                progress,
+            )
+            print("  Validating complete validation partition...", flush=True)
+            validation_metrics = evaluate_classifier(
+                model, validation, criterion, device, dataset.num_classes, progress
+            )
+            history.append(
+                dict(epoch=epoch, train=train_metrics, validation=validation_metrics)
+            )
+            if selector.update(validation_metrics["loss"], epoch):
+                _save_custom_checkpoint(
+                    model,
+                    optimizer,
+                    epoch,
+                    validation_metrics,
+                    checkpoint_path,
+                    dataset.dataset_dir.resolve().name,
+                    identity["split_manifest_hash"],
+                    config.seed,
+                    config.to_dict(),
+                )
+            write_json(run.run_dir / "history.json", history)
+            print(
+                f"  train loss={train_metrics['loss']:.4f}, acc={train_metrics['accuracy']:.1%} | "
+                f"val loss={validation_metrics['loss']:.4f}, acc={validation_metrics['accuracy']:.1%}",
+                flush=True,
+            )
+            if on_epoch is not None:
+                on_epoch(history, run.run_dir)
+            if scheduler is not None:
+                scheduler.step(validation_metrics["loss"])
+            if selector.should_stop:
+                break
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+        checkpoint.update(
+            early_stopping=selector.state(len(history)), data_identity=identity
+        )
+        torch.save(checkpoint, checkpoint_path)
+        write_json(
+            checkpoint_path.with_suffix(".json"),
+            {
+                k: v
+                for k, v in checkpoint.items()
+                if k not in {"model_state_dict", "optimizer_state_dict"}
+            },
+        )
+        result = dict(
+            name=label,
+            partition="validation",
+            run_dir=str(run.run_dir),
+            selected_checkpoint=str(checkpoint_path),
+            config=config.to_dict(),
+            data_identity=identity,
+            actual_epochs=len(history),
+            validation_metrics=checkpoint["validation_metrics"],
+            num_params=count_trainable_parameters(model),
+        )
+        run.complete(
+            {
+                "checkpoint": str(checkpoint_path),
+                "history": str(run.run_dir / "history.json"),
+            },
+            result,
+        )
+        return result
+    except BaseException as error:
+        run.update(
+            {
+                "status": (
+                    "interrupted" if isinstance(error, KeyboardInterrupt) else "failed"
+                ),
+                "error": f"{type(error).__name__}: {error}",
+            }
+        )
+        raise
+    finally:
+        del model, optimizer
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
+
+
 def main(argv: list[str] | None = None) -> None:
     """Resolve configuration and run validation-selected training."""
     args, experiment_config, print_only = _resolved_arguments(

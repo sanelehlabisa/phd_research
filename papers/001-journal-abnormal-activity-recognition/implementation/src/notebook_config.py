@@ -36,6 +36,23 @@ DIAGNOSTIC_DATASETS = {
 CONTROLLED_AAD_PLAN = "configs/aad_controlled_experiment_plan.json"
 CONTROLLED_AAD_DATASET_HANDLE = "sanelehlabisa/abnormal-activities-dataset"
 
+# Bounded exploratory budgets, not the paper's controlled AAD protocol.
+SEQUENCE_LENGTH = 16
+TARGET_FPS = 16
+FRAME_SIZE = 32
+FINAL_FRAME_SIZE = 64
+TRAIN_EPOCHS = 12
+SCREEN_EPOCHS = 8
+FINAL_EPOCHS = 24
+BATCH_SIZE = 8
+SEED = 42
+DEFAULT_LAYERS = ((8, (3, 3)), (16, (3, 3)))
+SCREEN_CANDIDATES = {
+    "width_8": ((8, (3, 3)),),
+    "depth_8_16": DEFAULT_LAYERS,
+    "depth_8_8_8": ((8, (3, 3)), (8, (3, 3)), (8, (3, 3))),
+}
+
 
 def selected_diagnostic_dataset() -> DiagnosticDataset:
     """Return the selected, runnable diagnostic dataset declaration."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 
 import torch
 import torch.nn as nn
@@ -103,6 +104,7 @@ def train_classifier_epoch(
     optimizer: optim.Optimizer,
     device: torch.device,
     num_classes: int,
+    on_batch: Callable[[int, int, float], None] | None = None,
 ) -> dict[str, float]:
     """Train one epoch and return sample-weighted partition metrics.
 
@@ -136,6 +138,8 @@ def train_classifier_epoch(
         total_samples += batch_size
         predictions.append(logits.detach().argmax(dim=1).cpu())
         targets.append(labels.detach().cpu())
+        if on_batch is not None:
+            on_batch(total_samples, len(loader.dataset), float(loss.item()))
     return _complete_partition_metrics(
         total_loss,
         total_samples,
@@ -207,6 +211,7 @@ def evaluate_classifier(
     criterion: nn.Module,
     device: torch.device,
     num_classes: int,
+    on_batch: Callable[[int, int, float], None] | None = None,
 ) -> dict[str, float]:
     """Evaluate one complete partition with fresh metric state.
 
@@ -236,6 +241,8 @@ def evaluate_classifier(
         total_samples += batch_size
         predictions.append(logits.argmax(dim=1).cpu())
         targets.append(labels.cpu())
+        if on_batch is not None:
+            on_batch(total_samples, len(loader.dataset), float(loss.item()))
     return _complete_partition_metrics(
         total_loss,
         total_samples,

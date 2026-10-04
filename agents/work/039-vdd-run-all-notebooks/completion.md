@@ -1,0 +1,22 @@
+# Completion
+
+- Status: Done
+- Summary: Notebooks 01–04 now run their complete diagnostic workflow with shared VDD defaults and visible progress.
+- Changes:
+  - Shared configuration: three 8-epoch screens at 32×32; winning architecture retrained for 24 epochs at 64×64. Single-model notebook: 12 epochs.
+  - Same-video native/sampled/augmented previews; architecture, probabilities and correctly labelled playable predictions; live epoch curves.
+  - Bounded decoding/cache, explicit corrupt-video failures and faster class-root discovery. No preparation-time test decoding or full-file hashing.
+  - Reused training/metrics helpers; validation-only selection and complete run/checkpoint provenance gate final test access. Repeated final cells reuse saved reports.
+  - Updated guides; controlled AAD configs/CLI and reference notebook preserved. Previous modular notebooks/outputs retained under ignored `runs/notebook-backups/pre-039/`.
+- Verification:
+  - `python -m pytest tests -q`: 38 passed, including real synthetic-video encoding, CPU training, checkpoint compatibility, test locks and report reuse.
+  - Final focused notebook rerun after display refinement: 5 passed.
+  - Import-fix follow-up: 12 bootstrap tests passed, including real local Git fast-forwards with unrelated edits and refusal to overwrite conflicting edits. Existing notebook outputs were preserved.
+  - Tests caught a native-preview FPS error; resetting frame timestamp/time-base together fixed it.
+  - `python -m pip check`: no broken requirements; pinned runtime packages installed in a short temporary Windows environment.
+  - Black checks, Python compilation, notebook syntax and `git diff --check` passed. Reference notebook SHA-256 unchanged: `cbe430531729e6d0444c783cea799b99467928ab5964a526adb58dad986b078b`.
+- Remaining issues:
+  - Follow-up import diagnosis: remote master was still `70e726d` and lacked the three untracked notebook helper modules. Added early source checks, checkout revision output and safe fast-forward handling for unrelated local edits.
+  - Real VDD/Colab A100 training and accuracy remain unverified; synthetic tests are not dataset results.
+  - Kinetics variant/classes remain ticket 036; no unrestricted download/training enabled.
+  - User approved publishing the complete update to master. Colab must rerun setup to fetch these source files before running experiments.
