@@ -144,6 +144,30 @@ inference checks, then adds guarded experiment execution without duplicating res
    uses the controlled reference optimizer and loss settings, saves a checkpoint
    and JSON history, plots training and validation loss, and shows three clean
    validation-video predictions while keeping the test split locked.
+6. Run the enabled VDD diagnostic section before controlled AAD experiments. It
+   downloads `sanelehlabisa/violence-detection-dataset`, audits the files and
+   split, then requires a fixed balanced training subset to reach 95% accuracy
+   with decreasing loss before starting one 12-epoch train/validation run.
+   The configuration cell contains commented VDD and Kinetics choices plus an
+   optional `accepted_classes` list. Kinetics must use explicitly approved,
+   exact class-directory names; invalid names stop instead of loading all 400.
+
+The same diagnostic can be run from the implementation directory after the VDD
+dataset has been downloaded:
+
+```bash
+python -m src.vdd_diagnostic \
+  --dataset-dir /path/to/violence-detection-dataset \
+  --manifest runs/vdd_diagnostic_seed42.json \
+  --runs-dir runs
+```
+
+Repeat `--accepted-class CLASS_NAME` to restrict a larger dataset to a declared
+subset. Omitting it intentionally includes every class found under VDD.
+
+Its test partition is recorded in the manifest but never decoded for training
+or evaluation. Outputs are diagnostic only and use the evidence role
+`pipeline_learnability_diagnostic`.
 
 The notebook uses normal Python cells for interactive tables and embedded video.
 Its bounded training section is a learning sanity check, not evidence for

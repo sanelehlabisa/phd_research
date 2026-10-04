@@ -153,6 +153,7 @@ class AHARDataset(Dataset):
         frame_size: tuple[int, int] = (112, 112),
         transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
         target_fps: int = TARGET_FPS,
+        accepted_classes: list[str] | tuple[str, ...] | None = None,
     ) -> None:
         """
         Initializes the dataset and automatically detects the data format.
@@ -163,6 +164,7 @@ class AHARDataset(Dataset):
             frame_size (tuple[int, int]): Target spatial resolution for the frames.
             transform: Optional full-video transform to apply.
             target_fps (int): The consistent frame rate to sample clips at.
+            accepted_classes: Optional exact class-directory names to include.
 
         Returns:
             None
@@ -173,9 +175,22 @@ class AHARDataset(Dataset):
         self.transform = transform
         self.target_fps = target_fps
 
-        self.class_names: list[str] = sorted(
+        available_classes = sorted(
             d.name for d in self.dataset_dir.iterdir() if d.is_dir()
         )
+        if accepted_classes is None:
+            self.class_names = available_classes
+        else:
+            requested = list(dict.fromkeys(accepted_classes))
+            if len(requested) < 2:
+                raise ValueError("accepted_classes must contain at least two classes")
+            missing = sorted(set(requested) - set(available_classes))
+            if missing:
+                raise ValueError(
+                    f"accepted classes not found under {self.dataset_dir}: {missing}; "
+                    f"available classes: {available_classes}"
+                )
+            self.class_names = sorted(requested)
         self.class_to_idx = {c: i for i, c in enumerate(self.class_names)}
         self.num_classes = len(self.class_names)
 

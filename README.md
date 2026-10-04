@@ -11,10 +11,11 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-Ticket `024` completed guarded experiment execution. Ticket `021` remains the
-required pre-screen candidate-block decision; tickets `025`–`027` next run
-the controlled AAD suite, train the selected configuration, and perform its
-one-time final AAD evaluation.
+Ticket `034` completed restart-safe Colab dependency setup. Ticket `035` is the
+next bounded diagnostic: establish learnability on VDD before spending time on
+the controlled AAD suite. Ticket `036` then audits a small relevant Kinetics
+subset without training it. Ticket `021` remains the required decision before
+the full AAD architecture screen.
 
 ## Structure
 

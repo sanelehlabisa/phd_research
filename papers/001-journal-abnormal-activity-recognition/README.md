@@ -66,6 +66,11 @@ reference architecture for ablation.
   random-weight GPU check.
 - [x] `024-notebook-experiment-workflow` — added guarded single-stage execution
   and visual validation-only result inspection to the Colab notebook.
+- [ ] `035-vdd-learnability-check` — **Next diagnostic:** verify that the current
+  model and optimizer can overfit a tiny balanced VDD subset, then run one
+  bounded VDD train/validation check before resuming expensive AAD experiments.
+- [ ] `036-kinetics-subset-audit` — inventory the available Kinetics copy and
+  propose a small relevant class subset and resource budget; do not train yet.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,
