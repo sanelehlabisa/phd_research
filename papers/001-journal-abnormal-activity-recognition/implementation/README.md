@@ -130,9 +130,11 @@ inference checks, then adds guarded experiment execution without duplicating res
    modules, installs the strictly pinned direct dependencies from
    `requirements.txt` on every run, verifies PyTorch, TorchVision,
    TorchMetrics, and A100 CUDA access, and reuses cached AAD or downloads the
-   public KaggleHub dataset when a fresh runtime has no copy. The install may
-   replace Colab packages when its runtime versions differ from the pins; if
-   Colab asks for a runtime restart, restart it and rerun the notebook.
+   public KaggleHub dataset when a fresh runtime has no copy. When installation
+   changes a pinned package, the cell stops before importing binary libraries.
+   Restart the Colab runtime, reconnect to the A100, and rerun from the top;
+   the second pass verifies the pins and continues. This prevents a stale
+   in-memory NumPy from being mixed with newly installed SciPy components.
 3. Inspect the split summary, class balance, sample metadata, a side-by-side
    native/model-ready comparison, and the augmented model input.
 4. Inspect all custom candidates and comparison roles, then run three labelled

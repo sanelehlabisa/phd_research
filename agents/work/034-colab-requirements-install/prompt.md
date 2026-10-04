@@ -10,12 +10,14 @@
   - Keep development and transitive packages out of the runtime requirements unless the implementation directly needs them.
   - Align `pyproject.toml` runtime dependencies with the direct dependency set where applicable.
   - Replace the notebook's hard-coded missing-package installer with an unconditional `python -m pip install -r requirements.txt` call from the implementation directory.
+  - Stop before binary imports and request a one-time runtime restart when installation changes a pinned package or replaces an already-loaded NumPy version.
   - Preserve the notebook's existing uncommitted metadata removal and all unrelated work.
   - Update the implementation README with the Colab dependency behavior and any compatibility caveat.
 - Acceptance criteria:
   - `requirements.txt` contains only complete, direct, explicitly pinned runtime dependencies.
   - The Colab setup cell installs that file every time and no longer maintains a second dependency list.
   - `torchmetrics` imports successfully after installation.
+  - A changed binary dependency cannot be imported into the stale pre-install kernel.
   - PyTorch, TorchVision, and CUDA availability are checked after installation so an incompatible A100 environment fails clearly before experiments.
   - Notebook JSON remains valid and the existing metadata-only user change is preserved.
   - Relevant implementation tests and dependency consistency checks pass.
