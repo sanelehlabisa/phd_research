@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import os
+from dataclasses import replace
 from pathlib import Path
 
 import av
@@ -17,9 +19,10 @@ from src.utils import seed_everything, write_video_torchvision
 from src.vdd_diagnostic import resolve_vdd_root
 
 
-@pytest.fixture
-def prepared(tmp_path, monkeypatch):
+@pytest.fixture(params=["vdd", "kinetics-subset"])
+def prepared(tmp_path, monkeypatch, request):
     torch.set_num_threads(1)
+    monkeypatch.setattr(settings, "SELECTED_DIAGNOSTIC_DATASET", request.param)
     monkeypatch.setattr(settings, "SEQUENCE_LENGTH", 2)
     monkeypatch.setattr(settings, "TARGET_FPS", 8)
     monkeypatch.setattr(settings, "FRAME_SIZE", 8)
@@ -40,12 +43,23 @@ def prepared(tmp_path, monkeypatch):
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
     monkeypatch.setattr(visuals, "display", lambda *a, **kw: None)
     monkeypatch.setattr(workflows, "display", lambda *a, **kw: None)
-    dataset_root = tmp_path / "vdd"
-    for label, name in enumerate(("non-violent", "violent")):
+    dataset_root = tmp_path / request.param
+    classes = (
+        ("non-violent", "violent")
+        if request.param == "vdd"
+        else (
+            "headbutting",
+            "hugging",
+            "punching_person__boxing_",
+            "shaking_hands",
+            "slapping",
+        )
+    )
+    for label, name in enumerate(classes):
         for index in range(12):
             clip = torch.zeros(12, 3, 16, 16)
-            clip[:, label, :, :8] = 0.8
-            clip[:, label, :, 8:] = 0.2 + index / 100
+            clip[:, label % 3, :, :8] = 0.8
+            clip[:, label % 3, :, 8:] = 0.2 + index / 100
             write_video_torchvision(clip, dataset_root / name / f"{index}.mp4", fps=24)
     # Preparation must not open even a header of the locked test clips.
     with monkeypatch.context() as patch:
@@ -65,8 +79,16 @@ def test_previews_model_and_single_training(prepared, monkeypatch):
     assert preview["target_fps"] == 8
     assert preview["partition"] == "train"
     cards = []
+    current_video = visuals.Video
+
+    def legacy_video(data=None, filename=None, **kwargs):
+        # Reproduce Colab's older IPython filename-only constructor failure.
+        os.path.exists(data)
+        return current_video(data, filename=filename, **kwargs)
+
     with monkeypatch.context() as patch:
         patch.setattr(visuals, "display", cards.append)
+        patch.setattr(visuals, "Video", legacy_video)
         visuals.video_card(preview["sampled"], "true <label>", correct=True)
     assert "#26734d" in cards[0].data and "<video" in cards[0].data
     assert "&lt;label&gt;" in cards[0].data
@@ -83,7 +105,14 @@ def test_previews_model_and_single_training(prepared, monkeypatch):
         trained["selected_checkpoint"], map_location="cpu", weights_only=True
     )
     seed_everything(settings.SEED)
-    initial = CustomConvLSTM(num_classes=2, layers=list(settings.DEFAULT_LAYERS))
+    initial = CustomConvLSTM(
+        num_classes=dataset.num_classes, layers=list(settings.DEFAULT_LAYERS)
+    )
+    assert len(inspected[0]["probabilities"]) == dataset.num_classes
+    assert (
+        checkpoint["model_state_dict"]["classifier.weight"].shape[0]
+        == dataset.num_classes
+    )
     assert any(
         not torch.equal(value, checkpoint["model_state_dict"][name])
         for name, value in initial.state_dict().items()
@@ -93,6 +122,35 @@ def test_previews_model_and_single_training(prepared, monkeypatch):
     assert Path(trained["run_dir"], "learning_curves.png").is_file()
     assert dataset.allowed_indices.isdisjoint(prepared["test"].indices)
     assert dataset.cache_bytes <= dataset.cache_limit_bytes
+    if prepared["specification"].key == "kinetics-subset":
+        # Even the same files/classes under a different configured version must
+        # not load an old checkpoint. Class-subset changes must also be rejected.
+        with monkeypatch.context() as patch:
+            patch.setattr(
+                NotebookVideoDataset,
+                "__getitem__",
+                lambda *a: pytest.fail("incompatible checkpoint opened a clip"),
+            )
+            specification = prepared["specification"]
+            patch.setitem(
+                settings.DIAGNOSTIC_DATASETS,
+                "kinetics-subset",
+                replace(
+                    specification, kaggle_handle=specification.kaggle_handle[:-1] + "2"
+                ),
+            )
+            newer = prepare_data(prepared["root"], dataset.dataset_dir)
+            with pytest.raises(ValueError, match="incompatible"):
+                workflows.load_checkpoint(newer, trained["selected_checkpoint"])
+            patch.setitem(
+                settings.DIAGNOSTIC_DATASETS, "kinetics-subset", specification
+            )
+            patch.setattr(
+                settings, "CLASSES_OF_INTEREST", tuple(dataset.class_names[1:])
+            )
+            reduced = prepare_data(prepared["root"], dataset.dataset_dir)
+            with pytest.raises(ValueError):
+                workflows.load_checkpoint(reduced, trained["selected_checkpoint"])
 
 
 def test_complete_screen_fine_training_and_test_gate(prepared, monkeypatch):
@@ -120,6 +178,35 @@ def test_complete_screen_fine_training_and_test_gate(prepared, monkeypatch):
     # Wrong preprocessing is rejected without opening a test clip.
     with pytest.raises(ValueError, match="incompatible"):
         workflows.final_evaluate(prepared, screen)
+
+    def fail_export(*args, **kwargs):
+        raise RuntimeError("prediction export failed")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(workflows, "prediction_examples", fail_export)
+        with pytest.raises(RuntimeError, match="prediction export failed"):
+            workflows.final_evaluate(fine, screen)
+    assert (screen / "final_test_metrics.json").is_file()
+    assert not (screen / "final_test.json").exists()
+    assert fine["dataset"].allowed_indices.isdisjoint(fine["test"].indices)
+
+    def fail_display(*args, **kwargs):
+        raise TypeError("frontend display failed")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(
+            workflows,
+            "evaluate_classifier",
+            lambda *a, **kw: pytest.fail("metrics recomputed"),
+        )
+        patch.setattr(workflows, "show_predictions", fail_display)
+        with pytest.raises(TypeError, match="frontend display failed"):
+            workflows.final_evaluate(fine, screen)
+    assert (screen / "final_test.json").is_file()
+    assert fine["dataset"].allowed_indices.isdisjoint(fine["test"].indices)
+    monkeypatch.setattr(
+        NotebookVideoDataset, "__getitem__", lambda *a: pytest.fail("test reopened")
+    )
     report = workflows.final_evaluate(fine, screen)
     assert report["partition"] == "test"
     assert {r["partition"] for r in report["examples"]} == {"test"}
@@ -171,6 +258,13 @@ def test_live_curves_update_the_existing_display(tmp_path, monkeypatch):
     curves(history + [dict(history[0], epoch=2)], tmp_path)
     assert handle.updates == 1
     assert (tmp_path / "learning_curves.png").is_file()
+
+
+def test_video_card_validates_path(tmp_path):
+    with pytest.raises(ValueError, match="path is missing"):
+        visuals.video_card(None, "Missing")
+    with pytest.raises(FileNotFoundError, match="Video not found"):
+        visuals.video_card(tmp_path / "missing.mp4", "Missing")
 
 
 def test_notebook_contracts_and_reference_unchanged():

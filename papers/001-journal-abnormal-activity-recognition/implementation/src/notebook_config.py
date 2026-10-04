@@ -16,7 +16,30 @@ class DiagnosticDataset:
 
 
 # Change this one value to switch every modular diagnostic notebook.
-SELECTED_DIAGNOSTIC_DATASET = "vdd"
+SELECTED_DIAGNOSTIC_DATASET = "kinetics-subset"
+
+# Exact folder names across our datasets. Only Kinetics uses this intersection;
+# absent interests are reported and skipped, never mapped to another activity.
+CLASSES_OF_INTEREST = (
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism",
+    "non-violent",
+    "violent",
+    "headbutting",
+    "slapping",
+    "punching_person__boxing_",
+    "hugging",
+    "shaking_hands",
+)
 
 DIAGNOSTIC_DATASETS = {
     "vdd": DiagnosticDataset(
@@ -24,12 +47,11 @@ DIAGNOSTIC_DATASETS = {
         kaggle_handle="sanelehlabisa/violence-detection-dataset",
         accepted_classes=("non-violent", "violent"),
     ),
-    # Ticket 036 must replace these placeholders before this entry is enabled.
     "kinetics-subset": DiagnosticDataset(
         key="kinetics-subset",
-        kaggle_handle="sanelehlabisa/kinetics-400-dataset",
+        kaggle_handle="sanelehlabisa/kinetics-400-dataset/versions/1",
+        # Resolved from CLASSES_OF_INTEREST and the actual folder inventory.
         accepted_classes=(),
-        enabled=False,
     ),
 }
 
@@ -62,7 +84,12 @@ def selected_diagnostic_dataset() -> DiagnosticDataset:
         raise ValueError(
             f"unknown diagnostic dataset: {SELECTED_DIAGNOSTIC_DATASET}"
         ) from error
-    if not dataset.enabled or len(dataset.accepted_classes) < 2:
+    requested = (
+        CLASSES_OF_INTEREST
+        if dataset.key == "kinetics-subset"
+        else dataset.accepted_classes
+    )
+    if not dataset.enabled or len(set(requested)) < 2:
         raise ValueError(
             f"diagnostic dataset {dataset.key!r} is not ready; declare at least two "
             "exact accepted classes and enable it first"

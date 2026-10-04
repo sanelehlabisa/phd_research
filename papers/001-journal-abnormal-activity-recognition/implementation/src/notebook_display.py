@@ -17,10 +17,16 @@ from .utils import write_json, write_video_torchvision
 
 
 def video_card(path, title, correct=None):
+    if path is None:
+        raise ValueError("Video path is missing")
+    video_path = Path(path)
+    if not video_path.is_file():
+        raise FileNotFoundError(f"Video not found: {video_path}")
     color = "#26734d" if correct else "#bd3434"
     if correct is None:
         color = "#567"
-    video = Video(filename=str(path), embed=True, width=420)._repr_html_()
+    # Older Colab IPython checks os.path.exists(data) even with filename= set.
+    video = Video(str(video_path), embed=True, width=420)._repr_html_()
     display(
         HTML(
             f'<div style="border:4px solid {color};padding:8px;display:inline-block">'
@@ -125,7 +131,7 @@ class LiveCurves:
 
 
 @torch.inference_mode()
-def prediction_examples(model, prepared, partition, output, count=5):
+def prediction_examples(model, prepared, partition, output, count=5, render=True):
     """Save and show the exact input clip, probabilities, label and correctness."""
     model.eval()
     dataset = prepared["dataset"]
@@ -152,7 +158,8 @@ def prediction_examples(model, prepared, partition, output, count=5):
             )
         )
     write_json(Path(output) / "predictions.json", records)
-    show_predictions(records)
+    if render:
+        show_predictions(records)
     return records
 
 

@@ -8,9 +8,12 @@
   - Bounded decoding/cache, explicit corrupt-video failures and faster class-root discovery. No preparation-time test decoding or full-file hashing.
   - Reused training/metrics helpers; validation-only selection and complete run/checkpoint provenance gate final test access. Repeated final cells reuse saved reports.
   - Updated guides; controlled AAD configs/CLI and reference notebook preserved. Previous modular notebooks/outputs retained under ignored `runs/notebook-backups/pre-039/`.
+  - Colab display follow-up: positional video paths avoid older IPython's `NoneType` failure; missing files now fail explicitly. Persist test metrics and reports before display, retaining checkpoint checks and test locks on recovery.
+  - Documented display-only recovery for already exported predictions; preserved the user's current notebook 04 outputs unchanged.
 - Verification:
   - `python -m pytest tests -q`: 38 passed, including real synthetic-video encoding, CPU training, checkpoint compatibility, test locks and report reuse.
   - Final focused notebook rerun after display refinement: 5 passed.
+  - Colab display/recovery follow-up: `python -m pytest tests -q` passed all 49 tests, including legacy-IPython simulation, export/display failures, cached metric reuse and test-lock restoration.
   - Import-fix follow-up: 12 bootstrap tests passed, including real local Git fast-forwards with unrelated edits and refusal to overwrite conflicting edits. Existing notebook outputs were preserved.
   - Tests caught a native-preview FPS error; resetting frame timestamp/time-base together fixed it.
   - `python -m pip check`: no broken requirements; pinned runtime packages installed in a short temporary Windows environment.

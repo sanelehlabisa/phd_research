@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: VDD Run All diagnostic notebooks prepared; real Colab training pending
+- Status: Kinetics subset diagnostic notebooks implemented; real GPU training pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -80,6 +80,7 @@ reference architecture for ablation.
 - [x] `039-vdd-run-all-notebooks` — shared VDD defaults, playable previews,
   live curves, validation-ranked screen and automatically guarded final testing;
   separate from the controlled AAD study.
+- [x] [`040-kinetics-interest-filter`](../../agents/work/040-kinetics-interest-filter/prompt.md) — shared interests, Kinetics-only filtering and selective downloads; VDD results preserved, test access guarded.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,

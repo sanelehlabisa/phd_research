@@ -1,0 +1,392 @@
+{
+  "checked_on": "2026-10-04",
+  "handle": "sanelehlabisa/kinetics-400-dataset",
+  "metadata_url": "https://www.kaggle.com/api/v1/datasets/view/sanelehlabisa/kinetics-400-dataset",
+  "inventory_url": "https://www.kaggle.com/api/v1/datasets/list/sanelehlabisa/kinetics-400-dataset?pageSize=200",
+  "method": "Follow nextPageToken through all 55 pages; aggregate names and totalBytes. No videos downloaded or decoded.",
+  "limitations": "Metadata only: corruption, duration, label quality, near duplicates and GPU runtime unverified. This Kaggle copy is not the full official Kinetics-400 release.",
+  "version": 1,
+  "total_files": 10847,
+  "class_count": 400,
+  "total_bytes": 16497429791,
+  "selected_count": 87,
+  "selected_bytes": 91112992,
+  "selected_classes": [
+    {
+      "class": "headbutting",
+      "count": 22,
+      "bytes": 25847159
+    },
+    {
+      "class": "hugging",
+      "count": 16,
+      "bytes": 39703123
+    },
+    {
+      "class": "punching_person__boxing_",
+      "count": 14,
+      "bytes": 6863969
+    },
+    {
+      "class": "shaking_hands",
+      "count": 22,
+      "bytes": 11186848
+    },
+    {
+      "class": "slapping",
+      "count": 13,
+      "bytes": 7511893
+    }
+  ],
+  "duplicate_selected_stems": 0,
+  "files": [
+    {
+      "name": "kinetics-400-dataset/headbutting/1RjizjveJww.mp4",
+      "bytes": 1203272
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/1uMRRunRfX8.mp4",
+      "bytes": 249758
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/3VQRiLUcr9A.mp4",
+      "bytes": 679065
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/3uLKqZv6TFc.mp4",
+      "bytes": 7649073
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/48H-T3Laf-E.mp4",
+      "bytes": 155740
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/NaS5D3_8Suo.mp4",
+      "bytes": 413104
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/OnvqTlUr_eo.mp4",
+      "bytes": 180359
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/QpT_yK8Cd9Y.mp4",
+      "bytes": 427111
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/R-SsA5v-eq0.mp4",
+      "bytes": 378559
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/RcXj6GqUyfc.mp4",
+      "bytes": 185407
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/Toh8wx_8cCI.mp4",
+      "bytes": 2472995
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/p72oj79Z_uA.mp4",
+      "bytes": 251187
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/qAKmmwIzVLE.mp4",
+      "bytes": 162597
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/qKSQMhOPan4.mp4",
+      "bytes": 1293168
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/r0soqce6cgI.mp4",
+      "bytes": 464140
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/rP0PEZvx9kw.mp4",
+      "bytes": 581738
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/sIKM6ZGC6uw.mp4",
+      "bytes": 467510
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/uRpFzl8xJVQ.mp4",
+      "bytes": 174634
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/vvI90CgwCZg.mp4",
+      "bytes": 1084835
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/vvSe-jKvpwM.mp4",
+      "bytes": 374384
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/xB7zJupZU4k.mp4",
+      "bytes": 6733408
+    },
+    {
+      "name": "kinetics-400-dataset/headbutting/yHS0-fW_PPg.mp4",
+      "bytes": 265115
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/ESiYmkavFVU.mp4",
+      "bytes": 5512720
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/F2eVArNgJf0.mp4",
+      "bytes": 326979
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/GlFheMyy5Qc.mp4",
+      "bytes": 566440
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/HAZ0IoI2dAk.mp4",
+      "bytes": 688355
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/MNCzSfv4hX8.mp4",
+      "bytes": 10873622
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/Qv2McJK7ojQ.mp4",
+      "bytes": 4341950
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/R_JKiFg1J3s.mp4",
+      "bytes": 1600304
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/bxsY1e9NGrk.mp4",
+      "bytes": 7643068
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/gnVBME2ecIw.mp4",
+      "bytes": 404412
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/hN8CKwdosjE.mp4",
+      "bytes": 2709247
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/jUw1IKws_Ac.mp4",
+      "bytes": 558381
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/lk5J3xMukxY.mp4",
+      "bytes": 366076
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/wjo4rWQYywo.mp4",
+      "bytes": 977545
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/xaBPKoZtfnI.mp4",
+      "bytes": 1465679
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/y1uunWKuM6w.mp4",
+      "bytes": 568267
+    },
+    {
+      "name": "kinetics-400-dataset/hugging/zKz2GSjIais.mp4",
+      "bytes": 1100078
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/0cO01qAfB9s.mp4",
+      "bytes": 503587
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/1X_d9kWynQ0.mp4",
+      "bytes": 521920
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/1kXqcYgbztk.mp4",
+      "bytes": 618941
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/CIIGqR8fB9s.mp4",
+      "bytes": 603245
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/CqL0413qBfo.mp4",
+      "bytes": 384163
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/FOFnZSRTjRc.mp4",
+      "bytes": 388458
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/G5f9NFq9V9k.mp4",
+      "bytes": 440408
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/K85EFha5-Zs.mp4",
+      "bytes": 297056
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/UyvebA6EfXg.mp4",
+      "bytes": 316905
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/bBNh5FHTrPE.mp4",
+      "bytes": 430763
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/dFgO-QAP9gs.mp4",
+      "bytes": 468444
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/kDEmF6Zi8bc.mp4",
+      "bytes": 736175
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/rPd5DM-hwhs.mp4",
+      "bytes": 405981
+    },
+    {
+      "name": "kinetics-400-dataset/punching_person__boxing_/wcpnaq3A9ck.mp4",
+      "bytes": 747923
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/6wD0Gf9w5DA.mp4",
+      "bytes": 436612
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/AGYXHK0K_ug.mp4",
+      "bytes": 483311
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/AnSSaui3c-4.mp4",
+      "bytes": 874820
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/EPFRyQYRTMs.mp4",
+      "bytes": 560094
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/JM6-YY_GkvY.mp4",
+      "bytes": 678799
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/TwCucyb-rt0.mp4",
+      "bytes": 225985
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/X_1OsOXllqs.mp4",
+      "bytes": 547232
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/ZZDQt1_kk74.mp4",
+      "bytes": 593996
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/_InogHFjmNA.mp4",
+      "bytes": 790229
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/_bh7oY2kiqc.mp4",
+      "bytes": 522762
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/_yp-UxN7rOY.mp4",
+      "bytes": 174356
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/g2CA-OD-wMU.mp4",
+      "bytes": 297337
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/gld4u7-aEJ8.mp4",
+      "bytes": 469085
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/ifEeMXb2mFY.mp4",
+      "bytes": 430468
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/jFsANvy8NPg.mp4",
+      "bytes": 420219
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/knQW0OYIIcI.mp4",
+      "bytes": 442008
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/lZx8vj6btfI.mp4",
+      "bytes": 584349
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/lzZm13o2gPY.mp4",
+      "bytes": 522377
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/qdDAPSDPunE.mp4",
+      "bytes": 508220
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/s2F03JG_t1o.mp4",
+      "bytes": 706441
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/t73mFLZ_SSY.mp4",
+      "bytes": 386340
+    },
+    {
+      "name": "kinetics-400-dataset/shaking_hands/u7nB1gYytEM.mp4",
+      "bytes": 531808
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/7AqCAS-o_Oc.mp4",
+      "bytes": 223357
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/7k-81aeztCc.mp4",
+      "bytes": 461213
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/9XvQuC2n0zg.mp4",
+      "bytes": 549341
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/9zSlEiDSvYI.mp4",
+      "bytes": 2610319
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/BbGCK7Op_ME.mp4",
+      "bytes": 1257803
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/HjISZCCFtLw.mp4",
+      "bytes": 357615
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/NTwHN-XnQhA.mp4",
+      "bytes": 479389
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/eE5PTZyZDQ0.mp4",
+      "bytes": 203879
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/lfaC80ZMBgs.mp4",
+      "bytes": 303322
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/ohfPNCygRQM.mp4",
+      "bytes": 45529
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/xqxGsRaJaq8.mp4",
+      "bytes": 572811
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/y9GR17Y-NG8.mp4",
+      "bytes": 157835
+    },
+    {
+      "name": "kinetics-400-dataset/slapping/zDo1CZLbJLk.mp4",
+      "bytes": 289480
+    }
+  ]
+}

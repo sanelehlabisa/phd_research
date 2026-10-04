@@ -318,21 +318,36 @@ def final_evaluate(prepared, screen_dir):
     allowed_before = dataset.allowed_indices.copy()
     dataset.allowed_indices = set(prepared["test"].indices)
     try:
-        print(
-            f"Final evaluation: {len(prepared['test'])} test clips; model is frozen.",
-            flush=True,
-        )
-        metrics = evaluate_classifier(
-            model,
-            DataLoader(prepared["test"], batch_size=config["batch_size"]),
-            torch.nn.CrossEntropyLoss(),
-            next(model.parameters()).device,
-            dataset.num_classes,
-            lambda done, total, loss: print(f"  Test: {done}/{total}", flush=True),
-        )
-        display(pd.DataFrame([metrics]))
+        metrics_path = screen_dir / "final_test_metrics.json"
+        if metrics_path.exists():
+            saved_metrics = _read(metrics_path)
+            if saved_metrics["checkpoint_sha256"] != frozen["checkpoint_sha256"]:
+                raise ValueError("Saved test metrics belong to a different checkpoint")
+            metrics = saved_metrics["metrics"]
+            print("Reusing saved test metrics; recovering prediction export only.")
+        else:
+            print(
+                f"Final evaluation: {len(prepared['test'])} test clips; model is frozen.",
+                flush=True,
+            )
+            metrics = evaluate_classifier(
+                model,
+                DataLoader(prepared["test"], batch_size=config["batch_size"]),
+                torch.nn.CrossEntropyLoss(),
+                next(model.parameters()).device,
+                dataset.num_classes,
+                lambda done, total, loss: print(f"  Test: {done}/{total}", flush=True),
+            )
+            write_json(
+                metrics_path,
+                dict(
+                    partition="test",
+                    checkpoint_sha256=frozen["checkpoint_sha256"],
+                    metrics=metrics,
+                ),
+            )
         examples = prediction_examples(
-            model, prepared, "test", screen_dir / "test_predictions"
+            model, prepared, "test", screen_dir / "test_predictions", render=False
         )
         report = dict(
             partition="test",
@@ -342,6 +357,9 @@ def final_evaluate(prepared, screen_dir):
             examples=examples,
         )
         write_json(report_path, report)
-        return report
     finally:
         dataset.allowed_indices = allowed_before
+    # Persist evidence and re-lock raw clips before invoking frontend display.
+    display(pd.DataFrame([report["metrics"]]))
+    show_predictions(report["examples"])
+    return report

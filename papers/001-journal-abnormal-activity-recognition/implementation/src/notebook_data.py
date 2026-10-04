@@ -1,6 +1,8 @@
 """Bounded, strict video loading for exploratory notebooks (not the AAD protocol)."""
 
 from collections import OrderedDict
+import hashlib
+import json
 from pathlib import Path
 from time import perf_counter
 
@@ -10,6 +12,7 @@ import torch
 
 from . import notebook_config as settings
 from .dataset import AHARDataset, create_split_manifest, load_split_subsets
+from .kinetics_subset import download_subset, matched_interests, versioned_handle
 from .vdd_diagnostic import resolve_vdd_root
 
 
@@ -95,35 +98,80 @@ class NotebookVideoDataset(AHARDataset):
 def prepare_data(root, dataset_root=None, frame_size=None):
     """Create/reuse a split from file inventory only; never open test videos."""
     started = perf_counter()
+    root = Path(root)
     specification = settings.selected_diagnostic_dataset()
     print(f"Dataset: {specification.key} | {specification.kaggle_handle}", flush=True)
-    print(f"Accepted classes: {specification.accepted_classes}", flush=True)
-    if dataset_root is None:
+    kinetics = specification.key == "kinetics-subset"
+    if kinetics:
+        _, slug, _ = versioned_handle(specification.kaggle_handle)
+        if dataset_root is None:
+            dataset_root, accepted = download_subset(
+                root, specification.kaggle_handle, settings.CLASSES_OF_INTEREST
+            )
+        else:
+            dataset_root = Path(dataset_root)
+            if (dataset_root / slug).is_dir():
+                dataset_root = dataset_root / slug
+            accepted = matched_interests(
+                (p.name for p in dataset_root.iterdir() if p.is_dir()),
+                settings.CLASSES_OF_INTEREST,
+            )
+    else:
+        accepted = specification.accepted_classes
+    if not kinetics and dataset_root is None:
         print(
             "Downloading/reusing Kaggle cache (download/extraction may take time)...",
             flush=True,
         )
         dataset_root = kagglehub.dataset_download(specification.kaggle_handle)
+    if not kinetics:
+        dataset_root = resolve_vdd_root(dataset_root)
+    print(f"Accepted classes: {accepted}", flush=True)
     print(
         "Locating class folders and building file inventory (no video decoding)...",
         flush=True,
     )
     size = frame_size or settings.FRAME_SIZE
     dataset = NotebookVideoDataset(
-        resolve_vdd_root(dataset_root),
+        dataset_root,
         sequence_length=settings.SEQUENCE_LENGTH,
         frame_size=(size, size),
         target_fps=settings.TARGET_FPS,
-        accepted_classes=specification.accepted_classes,
+        accepted_classes=accepted,
     )
-    root = Path(root)
+    seed = settings.SEED
+    suffix = ""
+    if kinetics:
+        identity = json.dumps(
+            dict(
+                handle=specification.kaggle_handle,
+                classes=dataset.class_names,
+                seed=seed,
+            ),
+            sort_keys=True,
+        )
+        suffix = "_" + hashlib.sha256(identity.encode()).hexdigest()[:16]
     manifest = (
-        root / "runs" / "manifests" / f"{specification.key}_diagnostic_seed42.json"
+        root
+        / "runs"
+        / "manifests"
+        / f"{specification.key}{suffix}_diagnostic_seed{seed}.json"
     )
     if not manifest.is_file():
-        create_split_manifest(dataset, manifest, seed=42)
-    train, validation, test, split = load_split_subsets(dataset, manifest, seed=42)
+        create_split_manifest(dataset, manifest, seed=seed)
+    train, validation, test, split = load_split_subsets(dataset, manifest, seed=seed)
     dataset.allowed_indices = set(train.indices) | set(validation.indices)
+    baselines = {}
+    for partition in ("train", "validation"):
+        counts = {
+            name: split["class_counts"][name][partition] for name in dataset.class_names
+        }
+        baselines[partition] = max(counts.values()) / sum(counts.values())
+        print(f"{partition} class counts: {counts}", flush=True)
+        print(
+            f"{partition} majority-class baseline: {baselines[partition]:.1%}",
+            flush=True,
+        )
     print(
         f"Ready in {perf_counter() - started:.1f}s | train={len(train)}, "
         f"validation={len(validation)}, test={len(test)} (locked)",
@@ -138,6 +186,7 @@ def prepare_data(root, dataset_root=None, frame_size=None):
         split=split,
         manifest_path=manifest,
         specification=specification,
+        majority_baselines=baselines,
     )
 
 

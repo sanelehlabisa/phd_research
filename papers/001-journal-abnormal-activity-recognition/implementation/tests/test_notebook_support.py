@@ -1,6 +1,7 @@
 """Tests for modular-notebook configuration and command delegation."""
 
 from pathlib import Path
+from dataclasses import replace
 
 import pytest
 
@@ -16,7 +17,15 @@ from src.notebook_utils import (
 )
 
 
-def test_vdd_is_the_default_diagnostic_dataset() -> None:
+def test_kinetics_is_the_default_diagnostic_dataset() -> None:
+    selected = notebook_config.selected_diagnostic_dataset()
+    assert selected.key == "kinetics-subset"
+    assert selected.kaggle_handle == "sanelehlabisa/kinetics-400-dataset/versions/1"
+
+
+def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
+    monkeypatch.setattr(notebook_config, "SELECTED_DIAGNOSTIC_DATASET", "vdd")
+    monkeypatch.setattr(notebook_config, "CLASSES_OF_INTEREST", ("missing",))
     selected = notebook_config.selected_diagnostic_dataset()
     assert selected.key == "vdd"
     assert selected.kaggle_handle == "sanelehlabisa/violence-detection-dataset"
@@ -24,8 +33,10 @@ def test_vdd_is_the_default_diagnostic_dataset() -> None:
 
 
 def test_disabled_dataset_cannot_be_selected(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        notebook_config, "SELECTED_DIAGNOSTIC_DATASET", "kinetics-subset"
+    monkeypatch.setitem(
+        notebook_config.DIAGNOSTIC_DATASETS,
+        "kinetics-subset",
+        replace(notebook_config.DIAGNOSTIC_DATASETS["kinetics-subset"], enabled=False),
     )
     with pytest.raises(ValueError, match="not ready"):
         notebook_config.selected_diagnostic_dataset()

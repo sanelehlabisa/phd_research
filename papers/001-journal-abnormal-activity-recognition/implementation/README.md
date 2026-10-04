@@ -119,9 +119,11 @@ exploratory evidence.
 ## Modular Colab notebooks
 
 Open one notebook and choose **Run All** on a Colab GPU. All four use
-`SELECTED_DIAGNOSTIC_DATASET = "vdd"` in [shared configuration](src/notebook_config.py),
-with `sanelehlabisa/violence-detection-dataset` and exact `non-violent` /
-`violent` class folders. There are no execution toggles or run-directory placeholders.
+`SELECTED_DIAGNOSTIC_DATASET = "kinetics-subset"` in
+[shared configuration](src/notebook_config.py). Change only that value to `"vdd"`
+to use `sanelehlabisa/violence-detection-dataset` with its unchanged `non-violent` /
+`violent` classes. There are no execution toggles or run-directory placeholders.
+Existing saved notebook outputs describe the earlier VDD run, not new Kinetics results.
 
 | Notebook | End-to-end workflow |
 |---|---|
@@ -154,8 +156,10 @@ are **not** established.
 
 Notebook 04 opens test automatically only after all candidates finish and a
 compatible longer-trained checkpoint is frozen. Metrics precede example videos;
-rerunning its final cell displays the saved report. Do not tune or rerank from
-test feedback. Notebooks 01–03 never evaluate test. No accuracy threshold is promised.
+metrics and the final report are saved before rendering. Rerunning its final
+cell reuses completed metrics/reports after an export/display failure. Do not
+tune or rerank from test feedback. Notebooks 01–03 never evaluate test. No
+accuracy threshold is promised.
 
 Every setup cell safely fast-forwards its checkout, verifies the required source
 files and prints the code revision before installing `requirements.txt` and
@@ -168,13 +172,65 @@ cannot download source files that have not been committed and pushed.
 The previous notebooks and saved outputs are preserved locally at
 `runs/notebook-backups/pre-039/`; revised cells start without stale outputs.
 
-### Later datasets
+### Recover an existing Colab video-display failure
 
-All four notebooks follow the same selection. Kinetics remains disabled until
-ticket 036 identifies the **actual variant and exact accepted class directories**.
-Configure that subset in `DIAGNOSTIC_DATASETS`, then change the one selection.
-Class filtering limits training inputs, but a full Kaggle download may still be
-large. Do not silently use every class or call an unaudited copy official Kinetics.
+Older IPython versions can raise `TypeError: stat ... NoneType` for
+`Video(filename=...)`; the helper now passes the path positionally. If an
+existing run failed in `show_predictions` after saving its examples, run this
+cell in the same session to display them without retraining or rescoring test:
+
+```python
+import json
+from pathlib import Path
+from IPython.display import Video as _Video
+import src.notebook_display as nd
+
+nd.Video = lambda filename, **kwargs: _Video(filename, **kwargs)
+records = json.loads(
+    (Path(screen_dir) / "test_predictions" / "predictions.json").read_text()
+)
+nd.show_predictions(records)
+```
+
+This recovers saved examples only; runs before the persistence fix may have
+displayed test metrics without saving a final report. Do not rerun training.
+
+### Kinetics interest filter
+
+`CLASSES_OF_INTEREST` contains the existing AAD/VDD labels and these exact
+Kinetics folders. Only Kinetics uses the intersection with available classes;
+absent names are printed and skipped. Labels stay separate activities, not a
+binary violence mapping. Fewer than two matches or an impossible stratified
+split fails clearly instead of loading everything.
+
+| Version-1 folder | Clips |
+|---|---:|
+| `headbutting` | 22 |
+| `slapping` | 13 |
+| `punching_person__boxing_` | 14 |
+| `hugging` | 16 |
+| `shaking_hands` | 22 |
+
+The handle is pinned to `sanelehlabisa/kinetics-400-dataset/versions/1`.
+Default preparation reports 60 training, 13 validation and 14 locked test clips.
+Setup inventories public filenames (55 pages on first use), then downloads
+only the 87 matching videos: 91.1 MB, not the full 16.5 GB copy. Host mounts
+are temporarily disabled for these file-only requests and restored afterward.
+Inventory and size-checked clips are reused under ignored `runs/datasets/`;
+partial downloads can be retried; non-video `.mp4.part` inventory entries are
+ignored. A supplied local class-folder root skips
+all network calls. No automatic full-download fallback exists.
+
+Train/validation class counts and majority-class baselines are printed before
+training. No rebalancing, clip caps, input or training-budget changes are made.
+Kinetics manifests are keyed by pinned version, matched classes and seed, so
+changing the subset preserves older manifests and rejects old checkpoints.
+Controlled AAD and the original reference notebook remain unchanged.
+
+This is a tiny learnability diagnostic, not the full official Kinetics release
+or surveillance evidence; held-out estimates are noisy. The broader audit in
+ticket 036 remains incomplete: metadata does not establish clip quality,
+source independence or absence of near duplicates.
 
 ## Implementation tasks
 
