@@ -1,0 +1,22 @@
+# Completion
+
+- Status: Done
+- Summary: Implemented the approved eight-hour exploratory Colab suite; real GPU execution remains for the user.
+- Changes:
+  - Committed prior saved Kinetics outputs first: `d96533e`; all four notebooks' existing outputs remain unchanged.
+  - Gentler notebook-only scheduler (0.5 / patience 5 / floor 1e-5), learning-rate/gradient/update/runtime histories and clean selected-checkpoint training metrics.
+  - Seeded per-epoch temporal windows, fixed central evaluation windows, matching native previews, state-aware cache and strict test locks. Source videos remain untouched.
+  - Train/validation timestamp/FPS audit and training-only balanced overfit gate; eleven custom models plus three scratch CNNs; separate native published topology with explicit resource limits.
+  - One-factor coverage/dropout/weight-decay trials; matched longer/finer custom/CNN confirmation across seeds 42/2026, mean/std tables, frozen validation selection and persisted exploratory test recovery.
+  - Updated notebook setup checks, guides and research limitations. Controlled AAD configuration/CLI, original reference notebook and dependencies unchanged.
+- Verification:
+  - Full `python -m pytest tests -q --tb=short`: 84 passed. New tests cover real synthetic videos, later-window sampling, low-FPS padding, deterministic cache, model/checkpoint reconstruction, scheduler floor, ablations, deadlines and test/display safeguards.
+  - Black check (10 changed Python files), source/notebook compilation, `pip check` and `git diff --check` passed.
+  - All notebook output structures match commit `d96533e`; original reference hash remains `cbe430531729e6d0444c783cea799b99467928ab5964a526adb58dad986b078b`.
+  - Real cached Kinetics audit: 73 train/validation clips, native rates 6–30.06 FPS, durations 1.60–10.07 seconds; two clips shorter than four seconds. No declared/median-timestamp FPS disagreement beyond 5%; this does not prove original capture timing or labels are correct.
+  - Real samples at native 25/7/16 FPS produced `(32, 3, 64, 64)` windows with seeded nonzero offsets. All 14 test clips remained unopened. Audit saved outside Git under temporary `k041-audit-aeisztka`.
+- Remaining issues:
+  - No A100 training, convergence/accuracy claim, or native-model peak-memory benchmark performed here. Resource-limited native runs and incomplete matched comparisons are explicitly distinguished.
+  - Eight hours is a cooperative compute deadline, not cancellation of an in-flight CUDA call/write. Partial evidence is retained; automatic training resume is not implemented.
+  - Previously inspected Kinetics/VDD test scores remain exploratory; paper claims require the separate controlled protocol, source-quality assessment and appropriate independent confirmation.
+  - New implementation is saved locally; commit/push awaits the user's separate publication approval. Preserve suite and referenced training artifacts outside ephemeral Colab storage.

@@ -35,8 +35,8 @@ def video_card(path, title, correct=None):
     )
 
 
-def native_preview(source, destination, seconds):
-    """Encode the matching first window at source resolution and native FPS."""
+def native_preview(source, destination, seconds, start_seconds=0.0):
+    """Encode the matching window at source resolution and native FPS."""
     destination.parent.mkdir(parents=True, exist_ok=True)
     with av.open(str(source)) as container, av.open(str(destination), "w") as output:
         source_stream = container.streams.video[0]
@@ -47,12 +47,23 @@ def native_preview(source, destination, seconds):
         stream.width = source_stream.width
         stream.height = source_stream.height
         stream.pix_fmt = "yuv420p"
+        origin = None
+        encoded = 0
         for index, frame in enumerate(container.decode(source_stream)):
-            if index / float(rate) >= seconds:
+            timestamp = (
+                float(frame.time) if frame.time is not None else index / float(rate)
+            )
+            if origin is None:
+                origin = timestamp
+            relative = timestamp - origin - start_seconds
+            if relative < 0:
+                continue
+            if relative >= seconds:
                 break
             # Decoded frames retain the input container's time base. Reset both
             # fields together so the encoder keeps the declared native FPS.
-            frame.pts = index
+            frame.pts = encoded
+            encoded += 1
             frame.time_base = Fraction(rate.denominator, rate.numerator)
             for packet in stream.encode(frame):
                 output.mux(packet)
@@ -72,7 +83,13 @@ def show_dataset(prepared):
     source = dataset.samples[index][0]
     output = prepared["root"] / "runs" / "previews" / prepared["specification"].key
     native = output / "native.mp4"
-    fps = native_preview(source, native, dataset.sequence_length / dataset.target_fps)
+    window = dataset.window_records[index]
+    fps = native_preview(
+        source,
+        native,
+        dataset.sequence_length / dataset.target_fps,
+        window["start_seconds"],
+    )
     sampled, augmented = output / "sampled.mp4", output / "augmented.mp4"
     with torch.random.fork_rng():
         torch.manual_seed(43)
@@ -89,6 +106,7 @@ def show_dataset(prepared):
         native=str(native),
         sampled=str(sampled),
         augmented=str(augmented),
+        window=window,
     )
     write_json(output / "preview.json", record)
     print(record)
@@ -131,7 +149,9 @@ class LiveCurves:
 
 
 @torch.inference_mode()
-def prediction_examples(model, prepared, partition, output, count=5, render=True):
+def prediction_examples(
+    model, prepared, partition, output, count=5, render=True, before_sample=None
+):
     """Save and show the exact input clip, probabilities, label and correctness."""
     model.eval()
     dataset = prepared["dataset"]
@@ -140,6 +160,8 @@ def prediction_examples(model, prepared, partition, output, count=5, render=True
     indices = random.Random(43).sample(indices, min(count, len(indices)))
     records = []
     for index in indices:
+        if before_sample is not None:
+            before_sample()
         clip, label = dataset[index]  # dataset enforces the partition lock
         probabilities = model(clip.unsqueeze(0).to(device)).softmax(1)[0].cpu()
         predicted = int(probabilities.argmax())

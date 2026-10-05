@@ -24,6 +24,7 @@ from .model import (
 )
 from .notebook_data import data_identity, prepare_data
 from .notebook_display import LiveCurves, prediction_examples, show_predictions
+from .notebook_models import from_checkpoint
 from .train import train_notebook_model
 from .utils import RunContext, seed_everything, write_json
 
@@ -61,6 +62,7 @@ def inspect_model(prepared):
         CustomConvLSTM(
             num_classes=prepared["dataset"].num_classes,
             layers=list(settings.DEFAULT_LAYERS),
+            dropout=settings.NOTEBOOK_DROPOUT,
         )
         .to(device)
         .eval()
@@ -99,7 +101,7 @@ def load_checkpoint(prepared, path):
         raise ValueError(
             "Checkpoint dataset, classes or preprocessing are incompatible"
         )
-    model = custom_model_from_checkpoint(checkpoint)
+    model = from_checkpoint(checkpoint)
     model.to("cuda" if torch.cuda.is_available() else "cpu").eval()
     return model, checkpoint
 

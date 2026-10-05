@@ -118,12 +118,17 @@ exploratory evidence.
 
 ## Modular Colab notebooks
 
+Pending integration: [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/prompt.md)
+will combine the remote Kinetics-600 source (>2,000 unique videos before splitting)
+with the expanded eight-hour suite and explicit spatial-size comparisons. It is
+ready for approval; the local and remote workflows are not merged yet.
+
 Open one notebook and choose **Run All** on a Colab GPU. All four use
 `SELECTED_DIAGNOSTIC_DATASET = "kinetics-subset"` in
 [shared configuration](src/notebook_config.py). Change only that value to `"vdd"`
 to use `sanelehlabisa/violence-detection-dataset` with its unchanged `non-violent` /
 `violent` classes. There are no execution toggles or run-directory placeholders.
-Existing saved notebook outputs describe the earlier VDD run, not new Kinetics results.
+Saved notebook 04 outputs describe the old ticket-040 Kinetics run, not the revised suite.
 
 | Notebook | End-to-end workflow |
 |---|---|
@@ -132,15 +137,45 @@ Existing saved notebook outputs describe the earlier VDD run, not new Kinetics r
 | [03 Training](notebooks/03_model_training.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
 | [04 Experiments](notebooks/04_controlled_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
 
-Defaults: 16 frames at 16 FPS, batch 8, seed 42, 32×32 input. Notebook 03 trains
-for 12 epochs. Notebook 04 compares `8`, `8-16`, and `8-8-8` stacks for eight
-epochs each, then retrains the winning architecture **from scratch** for 24
-epochs at 64×64. Budgets and candidates live beside the dataset selection.
+Defaults: 32 frames at 8 FPS, batch 8, seed 42, 64×64 input. Notebook 03 trains
+for 32 epochs. The notebook-only Adam schedule starts at 0.001, halves after six
+non-improving validation epochs and floors at 0.00001. Custom dropout is 0.1,
+weight decay 0.0001 and spatial augmentation is off. Controlled AAD defaults are unchanged.
+Notebook 04 declares the following suite before training:
+
+1. Audit train/validation video timestamps, source FPS, duration and repeated
+   thumbnails; save checksums. Do not inspect test or rewrite source files.
+2. Memorize two fixed training clips per class with a `16–32` custom stack,
+   dropout/weight decay/scheduler off, up to 512 updates. Require at least 95%
+   clean training accuracy and reduced loss; otherwise stop with diagnostics.
+3. Compare the existing eleven custom candidates and three scratch 3D CNNs for
+   24 epochs each, identical inputs/split/budget. No pretrained weights.
+4. On the validation-selected custom reference, compare 4/8/16 FPS, dropout
+   0/0.1/0.5 and weight decay 0/0.0001/0.001 one factor at a time. Fixed 32 frames
+   make this a temporal **coverage** comparison (about 8/4/2 seconds), not isolated FPS.
+5. Attempt the native 50-frame/50×50 published topology separately, with a
+   dataset-specific output head. Memory preflight and a 30-minute stage cap
+   preserve time for confirmation. Resource-limited status is not a result;
+   the topology is never downsized or ranked alongside matched-input models.
+6. Select the custom configuration by validation; retrain it and all three
+   CNNs **from scratch** for 64 epochs at 96×96, both seeds 42/2026, with matched
+   sampling/optimizer/budgets. Rank mean validation metrics; export seed variation.
+7. Freeze all eight compatible checkpoints before exploratory test scoring.
+   Show five examples from the validation winner's predeclared seed 42, never
+   select a seed/model from test results.
+
+The shared eight-hour **compute** deadline starts at `run_screen` (after setup/
+downloads), spans subsequent cells and is checked between batches/audit frames.
+An in-flight CUDA operation, checkpoint write or frontend render may finish
+after the deadline. Interrupted/budget-limited evidence remains partial; it
+cannot trigger final testing. Completed trials and checkpoint/history files
+remain saved, but automatic mid-trial resume is not implemented. Run All starts
+a new suite, so do not rerun it merely to recover display.
 Checkpoints use minimum validation loss; candidate ranking uses validation
 macro-F1, accuracy, parameter count, then name. Batch progress is printed,
 loss/accuracy plots update each epoch, and artifacts go under ignored `runs/`.
 
-These are **single-seed exploratory diagnostics**, not the paper's controlled
+These are **exploratory diagnostics**, not the paper's controlled
 AAD protocol or evidence of cross-dataset generalisation. Despite its retained
 filename, notebook 04 now follows the selected diagnostic dataset. The
 [original reference notebook](notebooks/aad_experiment_workflow.ipynb), controlled
@@ -148,18 +183,38 @@ AAD configuration and `src.experiments` CLI remain unchanged.
 
 Preparation inventories filenames/classes and reuses the stratified 70:15:15
 manifest without opening test videos. The diagnostic loader decodes only the
-first input window, samples by timestamps and keeps a bounded 64 MiB cache.
+chosen input window, samples by timestamps and keeps a bounded 64 MiB cache.
+Training windows use seeded random offsets per epoch; validation, clean training
+checks and test use fixed central windows. Cache keys include temporal state.
+Notebook 01 displays native/sampled/augmented versions of the same central window.
+Short videos repeat the last sampled frame; the duration audit makes these visible.
 Corrupt clips fail explicitly instead of substituting another split's sample.
 This preprocessing is recorded separately from the legacy AAD loader.
 The split is clip-level; subject/source independence and near-duplicate absence
 are **not** established.
 
-Notebook 04 opens test automatically only after all candidates finish and a
-compatible longer-trained checkpoint is frozen. Metrics precede example videos;
+Notebook 04 opens test automatically only after all matched candidates/ablations
+and both seeds of every confirmation model finish and are frozen. Metrics precede example videos;
 metrics and the final report are saved before rendering. Rerunning its final
 cell reuses completed metrics/reports after an export/display failure. Do not
 tune or rerank from test feedback. Notebooks 01–03 never evaluate test. No
 accuracy threshold is promised.
+
+Ticket 041 exports `source_audit.json`, `tiny.json`, predeclared plans,
+`screen.csv`, `ablations.csv`, `confirmation.csv`, `confirmation_mean_std.csv`
+and `test_exploratory.csv` under the printed suite directory. Each training run
+retains config, split identity, code revision, model specification, parameters,
+selected checkpoint, clean training metrics and curves; epoch histories include
+learning rate, gradient norm, sampled parameter-update norm and runtime.
+Copy the suite **and its referenced training directories** out of `/content`
+before Colab disconnects; notebook displays alone are not the full evidence.
+
+Kinetics/VDD test scores have already informed exploratory discussion. They
+must not be presented as a new untouched final holdout. Good performance still
+requires clip/source-quality checks, suitable independent confirmation and the
+separate AAD/VDD paper protocol before manuscript claims. Poor performance across
+models does not establish bad FPS/data: optimization and shared sampling remain
+possible causes. No recurrent state is carried across videos or splits.
 
 Every setup cell safely fast-forwards its checkout, verifies the required source
 files and prints the code revision before installing `requirements.txt` and
@@ -222,7 +277,8 @@ ignored. A supplied local class-folder root skips
 all network calls. No automatic full-download fallback exists.
 
 Train/validation class counts and majority-class baselines are printed before
-training. No rebalancing, clip caps, input or training-budget changes are made.
+training. All 87 selected clips and the existing split are retained; ticket 041
+changes input/training protocols, so its runs are not matched to older results.
 Kinetics manifests are keyed by pinned version, matched classes and seed, so
 changing the subset preserves older manifests and rejects old checkpoints.
 Controlled AAD and the original reference notebook remain unchanged.

@@ -12,6 +12,7 @@ Author: Sanele Hlabisa
 from __future__ import annotations
 
 import argparse
+import math
 from datetime import datetime
 from pathlib import Path
 from timeit import default_timer as timer
@@ -164,10 +165,29 @@ def _save_custom_checkpoint(
     print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
-def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoch=None):
+def train_notebook_model(
+    prepared,
+    config: ExperimentConfig,
+    label: str,
+    on_epoch=None,
+    *,
+    model_spec=None,
+    deadline=None,
+):
     """Train an exploratory model on explicit train/validation subsets only."""
     from time import perf_counter
     from .notebook_data import data_identity
+    from . import notebook_config as settings
+    from .notebook_models import build_model
+    import time
+
+    def check_budget():
+        if deadline is not None and time.time() >= deadline:
+            raise TimeoutError(
+                "Diagnostic compute budget exhausted; evidence is partial"
+            )
+
+    check_budget()
 
     deterministic = seed_everything(config.seed)
     dataset = prepared["dataset"]
@@ -193,16 +213,42 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
     )
     config.save_json(run.run_dir / "config.json")
     write_json(run.run_dir / "split.json", prepared["split"])
-    model = CustomConvLSTM(
-        num_classes=dataset.num_classes,
-        layers=list(config.convlstm_layers),
+    model_spec = model_spec or dict(
+        name="custom",
+        layers=config.to_dict()["convlstm_layers"],
+        dropout=settings.NOTEBOOK_DROPOUT,
         hidden_classifier_width=config.hidden_classifier_width,
-    ).to(device)
+    )
+    try:
+        model = build_model(
+            model_spec,
+            dataset.num_classes,
+            (3, config.height, config.width),
+            config.sequence_length,
+        ).to(device)
+    except BaseException as error:
+        run.update({"status": "failed", "error": f"Model allocation: {error}"})
+        raise
+    run.update(
+        {
+            "notebook_model": model_spec,
+            "scheduler_parameters": dict(
+                factor=settings.LR_FACTOR,
+                patience=settings.LR_PATIENCE,
+                min_lr=settings.MIN_LR,
+            ),
+        }
+    )
     optimizer = optim.Adam(
         model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
     )
     scheduler = (
-        optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3)
+        optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            patience=settings.LR_PATIENCE,
+            factor=settings.LR_FACTOR,
+            min_lr=settings.MIN_LR,
+        )
         if config.scheduler == "reduce_on_plateau"
         else None
     )
@@ -230,9 +276,22 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
     checkpoint_path = run.run_dir / "checkpoints" / "best_model.pth"
     history = []
     last_print = 0.0
+    gradient_norm = None
 
     def progress(done, total, loss):
-        nonlocal last_print
+        nonlocal last_print, gradient_norm
+        check_budget()
+        if model.training:
+            gradients = [
+                p.grad.detach().norm() for p in model.parameters() if p.grad is not None
+            ]
+            gradient_norm = (
+                float(torch.stack(gradients).norm().item()) if gradients else 0.0
+            )
+            if not math.isfinite(gradient_norm):
+                raise ValueError(
+                    "Non-finite gradients; inspect saved input diagnostics"
+                )
         now = perf_counter()
         if now - last_print >= 10 or done == total:
             print(
@@ -248,6 +307,12 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
     print(f"Artifacts: {run.run_dir}", flush=True)
     try:
         for epoch in range(1, config.epochs + 1):
+            check_budget()
+            epoch_started = perf_counter()
+            learning_rate = optimizer.param_groups[0]["lr"]
+            tracked_parameter = next(model.parameters())
+            before_update = tracked_parameter.detach().flatten()[:1024].clone()
+            dataset.set_epoch(epoch, config.seed, training=True)
             print(f"Epoch {epoch}/{config.epochs}", flush=True)
             train_metrics = train_classifier_epoch(
                 model,
@@ -258,12 +323,25 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
                 dataset.num_classes,
                 progress,
             )
+            dataset.set_epoch(epoch, config.seed, training=False)
             print("  Validating complete validation partition...", flush=True)
             validation_metrics = evaluate_classifier(
                 model, validation, criterion, device, dataset.num_classes, progress
             )
             history.append(
-                dict(epoch=epoch, train=train_metrics, validation=validation_metrics)
+                dict(
+                    epoch=epoch,
+                    train=train_metrics,
+                    validation=validation_metrics,
+                    learning_rate=learning_rate,
+                    gradient_norm=gradient_norm,
+                    parameter_sample_update_norm=float(
+                        (tracked_parameter.detach().flatten()[:1024] - before_update)
+                        .norm()
+                        .item()
+                    ),
+                    seconds=perf_counter() - epoch_started,
+                )
             )
             if selector.update(validation_metrics["loss"], epoch):
                 _save_custom_checkpoint(
@@ -279,7 +357,7 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
                 )
             write_json(run.run_dir / "history.json", history)
             print(
-                f"  train loss={train_metrics['loss']:.4f}, acc={train_metrics['accuracy']:.1%} | "
+                f"  lr={learning_rate:g} | train loss={train_metrics['loss']:.4f}, acc={train_metrics['accuracy']:.1%} | "
                 f"val loss={validation_metrics['loss']:.4f}, acc={validation_metrics['accuracy']:.1%}",
                 flush=True,
             )
@@ -290,8 +368,24 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
             if selector.should_stop:
                 break
         checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        clean_training = evaluate_classifier(
+            model,
+            DataLoader(prepared["train"], batch_size=config.batch_size),
+            criterion,
+            device,
+            dataset.num_classes,
+            progress,
+        )
         checkpoint.update(
-            early_stopping=selector.state(len(history)), data_identity=identity
+            early_stopping=selector.state(len(history)),
+            data_identity=identity,
+            notebook_model=model_spec,
+            scheduler_parameters=dict(
+                factor=settings.LR_FACTOR,
+                patience=settings.LR_PATIENCE,
+                min_lr=settings.MIN_LR,
+            ),
         )
         torch.save(checkpoint, checkpoint_path)
         write_json(
@@ -312,6 +406,9 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
             actual_epochs=len(history),
             validation_metrics=checkpoint["validation_metrics"],
             num_params=count_trainable_parameters(model),
+            model_spec=model_spec,
+            training_seconds=sum(row["seconds"] for row in history),
+            clean_training_metrics=clean_training,
         )
         run.complete(
             {
@@ -332,6 +429,7 @@ def train_notebook_model(prepared, config: ExperimentConfig, label: str, on_epoc
         )
         raise
     finally:
+        dataset.training_windows = False
         del model, optimizer
         if device.type == "cuda":
             torch.cuda.empty_cache()

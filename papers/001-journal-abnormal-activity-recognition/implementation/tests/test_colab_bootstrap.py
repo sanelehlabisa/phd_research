@@ -24,7 +24,14 @@ def test_exact_requirements_rejects_ranges(tmp_path: Path) -> None:
 
 NOTEBOOKS = sorted((Path(__file__).resolve().parents[1] / "notebooks").glob("0*.ipynb"))
 IMPLEMENTATION = Path("papers/001-journal-abnormal-activity-recognition/implementation")
-HELPERS = ("notebook_data.py", "notebook_display.py", "notebook_workflows.py")
+HELPERS = (
+    "notebook_data.py",
+    "notebook_display.py",
+    "notebook_workflows.py",
+    "notebook_suite.py",
+    "notebook_models.py",
+    "notebook_diagnostics.py",
+)
 
 
 def checkout_setup(notebook, checkout):

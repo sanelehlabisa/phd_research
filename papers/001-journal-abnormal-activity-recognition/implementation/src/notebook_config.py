@@ -59,13 +59,13 @@ CONTROLLED_AAD_PLAN = "configs/aad_controlled_experiment_plan.json"
 CONTROLLED_AAD_DATASET_HANDLE = "sanelehlabisa/abnormal-activities-dataset"
 
 # Bounded exploratory budgets, not the paper's controlled AAD protocol.
-SEQUENCE_LENGTH = 16
-TARGET_FPS = 16
-FRAME_SIZE = 32
-FINAL_FRAME_SIZE = 64
-TRAIN_EPOCHS = 12
-SCREEN_EPOCHS = 8
-FINAL_EPOCHS = 24
+SEQUENCE_LENGTH = 32
+TARGET_FPS = 8
+FRAME_SIZE = 64
+FINAL_FRAME_SIZE = 96
+TRAIN_EPOCHS = 32
+SCREEN_EPOCHS = 24
+FINAL_EPOCHS = 64
 BATCH_SIZE = 8
 SEED = 42
 DEFAULT_LAYERS = ((8, (3, 3)), (16, (3, 3)))
@@ -74,6 +74,18 @@ SCREEN_CANDIDATES = {
     "depth_8_16": DEFAULT_LAYERS,
     "depth_8_8_8": ((8, (3, 3)), (8, (3, 3)), (8, (3, 3))),
 }
+
+# Diagnostic-only controls. Controlled AAD configuration remains unchanged.
+NOTEBOOK_DROPOUT = 0.1
+LR_FACTOR = 0.5
+LR_PATIENCE = 5  # reduction after six consecutive non-improving epochs
+MIN_LR = 1e-5
+SUITE_HOURS = 8
+PAPER_MAX_MINUTES = 30
+CONFIRMATION_SEEDS = (42, 2026)
+TEMPORAL_FPS = (4, 8, 16)
+TINY_PER_CLASS = 2
+TINY_STEPS = 512
 
 
 def selected_diagnostic_dataset() -> DiagnosticDataset:

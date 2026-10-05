@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Kinetics subset diagnostic notebooks implemented; real GPU training pending
+- Status: Kinetics run exposed near-chance learning; expanded diagnostic suite prepared, GPU verification pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -26,6 +26,7 @@ reference architecture for ablation.
 
 ## Tasks
 
+- [ ] [`042-merge-expanded-kinetics-suite`](../../agents/work/042-merge-expanded-kinetics-suite/prompt.md) — Ready for approval: preserve both laptops' work, integrate Kinetics-600 (>2,000 videos before splitting), and expand spatial/model/weight-decay comparisons within eight hours.
 - [ ] `009-define-ablation-config` — superseded by ticket 017; its preserved WIP
   remains stashed and must not be applied to the current runners.
 - [x] `010-prepare-architecture-search` — added the faithful paper baseline,
@@ -81,6 +82,7 @@ reference architecture for ablation.
   live curves, validation-ranked screen and automatically guarded final testing;
   separate from the controlled AAD study.
 - [x] [`040-kinetics-interest-filter`](../../agents/work/040-kinetics-interest-filter/prompt.md) — shared interests, Kinetics-only filtering and selective downloads; VDD results preserved, test access guarded.
+- [x] [`041-learning-and-temporal-diagnostics`](../../agents/work/041-learning-and-temporal-diagnostics/prompt.md) — implemented and locally verified: gentle scheduling, temporal audit, 14-model screen, separate native topology and two-seed confirmation under an eight-hour cap. GPU run pending; existing Kinetics test is exploratory, not fresh paper evidence.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,

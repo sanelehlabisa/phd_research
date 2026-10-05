@@ -3,6 +3,7 @@
 from collections import OrderedDict
 import hashlib
 import json
+import random
 from pathlib import Path
 from time import perf_counter
 
@@ -19,7 +20,7 @@ from .vdd_diagnostic import resolve_vdd_root
 class NotebookVideoDataset(AHARDataset):
     """Decode only the input window; forbid locked indices and corrupt fallbacks."""
 
-    preprocessing = "timestamp-next-frame-rgb-resize-v1"
+    preprocessing = "timestamp-window-rgb-resize-v2"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,31 +37,81 @@ class NotebookVideoDataset(AHARDataset):
             )
         self.allowed_indices = set()
         self._cache = OrderedDict()
+        self._cached_windows = {}
         self.cache_bytes = 0
         self.cache_limit_bytes = 64 * 1024 * 1024
+        self.training_indices = set()
+        self.training_windows = False
+        self.epoch = 0
+        self.window_seed = settings.SEED
+        self.window_records = {}
+
+    def set_epoch(self, epoch, seed, training=False):
+        self.epoch, self.window_seed, self.training_windows = epoch, seed, training
+
+    def window(self, index):
+        """Inspect only an allowed video; never use test headers during setup."""
+        if index not in self.allowed_indices:
+            raise PermissionError(f"Clip {index} is locked for this stage")
+        with av.open(str(self.samples[index][0])) as container:
+            stream = container.streams.video[0]
+            fps = float(stream.average_rate or 0)
+            duration = (
+                float(stream.duration * stream.time_base)
+                if stream.duration is not None
+                else float(container.duration or 0) / av.time_base
+            )
+            if duration <= 0 or fps <= 0:
+                raise ValueError("Source duration/FPS unavailable; audit the video")
+        span = self.sequence_length / self.target_fps
+        available = max(0.0, duration - span)
+        training = self.training_windows and index in self.training_indices
+        seed = f"{self.window_seed}:{self.epoch}:{index}"
+        start = random.Random(seed).uniform(0, available) if training else available / 2
+        return dict(
+            start_seconds=start,
+            duration_seconds=duration,
+            native_fps=fps,
+            window_seconds=span,
+            sampling="random" if training else "center",
+        )
 
     def __getitem__(self, index):
         if index not in self.allowed_indices:
             raise PermissionError(f"Clip {index} is locked for this stage")
         path, label = self.samples[index]
-        if index in self._cache:
-            self._cache.move_to_end(index)
-            return self._cache[index].clone(), label
+        training = self.training_windows and index in self.training_indices
+        key = (
+            index,
+            self.epoch if training else None,
+            self.window_seed if training else None,
+        )
+        if key in self._cache:
+            self._cache.move_to_end(key)
+            self.window_records[index] = self._cached_windows[key]
+            return self._cache[key].clone(), label
         frames = []
         try:
+            window = self.window(index)
+            self.window_records[index] = window
             with av.open(str(path)) as container:
                 stream = container.streams.video[0]
                 rate = float(stream.average_rate or 0)
                 if rate <= 0:
                     raise ValueError("source FPS is unavailable")
                 start = None
+                previous = None
                 for number, frame in enumerate(container.decode(stream)):
                     timestamp = (
                         float(frame.time) if frame.time is not None else number / rate
                     )
                     if start is None:
                         start = timestamp
-                    if timestamp - start + 1e-7 < len(frames) / self.target_fps:
+                    if previous is not None and timestamp <= previous:
+                        raise ValueError("non-increasing source timestamps")
+                    previous = timestamp
+                    relative = timestamp - start - window["start_seconds"]
+                    if relative + 1e-7 < len(frames) / self.target_fps:
                         continue
                     array = frame.to_ndarray(
                         format="rgb24",
@@ -72,7 +123,7 @@ class NotebookVideoDataset(AHARDataset):
                     )
                     while (
                         len(frames) < self.sequence_length
-                        and len(frames) / self.target_fps <= timestamp - start + 1e-7
+                        and len(frames) / self.target_fps <= relative + 1e-7
                     ):
                         frames.append(tensor)
                     if len(frames) == self.sequence_length:
@@ -87,15 +138,19 @@ class NotebookVideoDataset(AHARDataset):
             ) from error
         size = clip.numel() * clip.element_size()
         while self._cache and self.cache_bytes + size > self.cache_limit_bytes:
-            _, evicted = self._cache.popitem(last=False)
+            evicted_key, evicted = self._cache.popitem(last=False)
+            self._cached_windows.pop(evicted_key)
             self.cache_bytes -= evicted.numel() * evicted.element_size()
         if size <= self.cache_limit_bytes:
-            self._cache[index] = clip
+            self._cache[key] = clip
+            self._cached_windows[key] = window
             self.cache_bytes += size
         return clip.clone(), label
 
 
-def prepare_data(root, dataset_root=None, frame_size=None):
+def prepare_data(
+    root, dataset_root=None, frame_size=None, *, sequence_length=None, target_fps=None
+):
     """Create/reuse a split from file inventory only; never open test videos."""
     started = perf_counter()
     root = Path(root)
@@ -134,9 +189,9 @@ def prepare_data(root, dataset_root=None, frame_size=None):
     size = frame_size or settings.FRAME_SIZE
     dataset = NotebookVideoDataset(
         dataset_root,
-        sequence_length=settings.SEQUENCE_LENGTH,
+        sequence_length=sequence_length or settings.SEQUENCE_LENGTH,
         frame_size=(size, size),
-        target_fps=settings.TARGET_FPS,
+        target_fps=target_fps or settings.TARGET_FPS,
         accepted_classes=accepted,
     )
     seed = settings.SEED
@@ -161,6 +216,7 @@ def prepare_data(root, dataset_root=None, frame_size=None):
         create_split_manifest(dataset, manifest, seed=seed)
     train, validation, test, split = load_split_subsets(dataset, manifest, seed=seed)
     dataset.allowed_indices = set(train.indices) | set(validation.indices)
+    dataset.training_indices = set(train.indices)
     baselines = {}
     for partition in ("train", "validation"):
         counts = {
@@ -201,5 +257,7 @@ def data_identity(prepared):
         sequence_length=dataset.sequence_length,
         frame_size=list(dataset.frame_size),
         preprocessing=dataset.preprocessing,
+        training_sampling="seeded-random-window-per-epoch",
+        evaluation_sampling="center-window",
         split_manifest_hash=prepared["split"]["manifest_hash"],
     )

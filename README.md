@@ -15,7 +15,14 @@ All four modular Colab notebooks now default to a five-class Kinetics diagnostic
 subset: 87 clips, selectively downloaded (ticket `040`). One shared setting
 switches back to VDD. Playable previews, live curves and validation-selected
 experiments are described in the [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
-The controlled AAD study stays separate; saved VDD notebook outputs are preserved.
+Ticket `041` adds a budgeted eight-hour learning/temporal diagnostic suite with
+14 matched candidates, a separate native paper topology and two-seed confirmation.
+Saved outputs are historical; the new suite still needs its Colab run.
+Integration ticket [042](agents/work/042-merge-expanded-kinetics-suite/prompt.md)
+is ready for approval: merge the other laptop's larger Kinetics source with the
+expanded suite and explicit spatial-size comparisons. The agreed dataset size
+is more than 2,000 unique videos before splitting, not a maximum.
+The controlled AAD study stays separate; previously inspected test scores are exploratory.
 
 ## Structure
 
