@@ -44,7 +44,34 @@ def implementation_root(start: str | Path | None = None) -> Path:
 def validate_runtime(require_cuda: bool = True) -> dict[str, object]:
     """Return runtime provenance and optionally require an available CUDA device."""
     if require_cuda and not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required; connect the notebook to the Colab A100")
+        try:
+            gpu = subprocess.run(
+                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            gpu_description = gpu.stdout.strip() or gpu.stderr.strip()
+            visible_gpu = gpu.returncode == 0 and bool(gpu.stdout.strip())
+        except (OSError, subprocess.TimeoutExpired) as error:
+            gpu_description = str(error)
+            visible_gpu = False
+        if visible_gpu:
+            advice = (
+                "An NVIDIA GPU is attached, but this Python kernel cannot use CUDA. "
+                "Restart this notebook's kernel after package installation and rerun setup. "
+                "If it persists, reconnect to a fresh Colab GPU runtime."
+            )
+        else:
+            advice = (
+                "This notebook's kernel cannot see an NVIDIA GPU. In VS Code, use "
+                "Select Kernel to connect THIS notebook to the Colab A100 runtime; "
+                "another notebook may use a different runtime. Then rerun setup."
+            )
+        raise RuntimeError(
+            f"{advice}\nPython: {sys.executable}\nPyTorch: {torch.__version__} "
+            f"(CUDA build: {torch.version.cuda})\nNVIDIA: {gpu_description}"
+        )
     environment = runtime_environment()
     environment["cuda_device"] = (
         torch.cuda.get_device_name(0) if torch.cuda.is_available() else None

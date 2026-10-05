@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from src.colab_bootstrap import exact_requirements
+from src import colab_bootstrap
+from src.colab_bootstrap import exact_requirements, version_matches
 
 
 def test_exact_requirements_parses_direct_pins(tmp_path: Path) -> None:
@@ -22,9 +23,61 @@ def test_exact_requirements_rejects_ranges(tmp_path: Path) -> None:
         exact_requirements(requirements)
 
 
+@pytest.mark.parametrize(
+    "installed,required,matches",
+    [
+        ("2.9.1+cu128", "2.9.1", True),
+        ("2.9.1+cpu", "2.9.1", True),
+        ("2.9.0+cu128", "2.9.1", False),
+        (None, "2.9.1", False),
+        ("2.9.1+cpu", "2.9.1+cu128", False),
+    ],
+)
+def test_pins_accept_build_suffixes(installed, required, matches):
+    assert version_matches(installed, required) is matches
+
+
+@pytest.mark.parametrize("cpu_wheel", [False, True])
+def test_gpu_bootstrap_preserves_or_repairs_cuda_pair(tmp_path, monkeypatch, cpu_wheel):
+    requirements = tmp_path / "requirements.txt"
+    requirements.write_text("torch==2.9.1\ntorchvision==0.24.1\n")
+    suffix = "+cpu" if cpu_wheel else "+cu128"
+    before = {"torch": "2.9.1" + suffix, "torchvision": "0.24.1" + suffix}
+    after = {"torch": "2.9.1+cu128", "torchvision": "0.24.1+cu128"}
+    versions = iter([before, after])
+    monkeypatch.setattr(
+        colab_bootstrap, "installed_versions", lambda pins: next(versions)
+    )
+    monkeypatch.setattr(colab_bootstrap, "gpu_is_visible", lambda: True)
+    commands = []
+
+    def run(command, **kwargs):
+        commands.append(command)
+        return subprocess.CompletedProcess(
+            command, 0, stdout="null" if cpu_wheel else '"12.8"', stderr=""
+        )
+
+    monkeypatch.setattr(subprocess, "run", run)
+    if cpu_wheel:
+        with pytest.raises(SystemExit) as error:
+            colab_bootstrap.main([str(requirements)])
+        assert error.value.code == 75
+        assert "torch==2.9.1+cu128" in commands[1]
+        assert "torchvision==0.24.1+cu128" in commands[1]
+        assert "https://download.pytorch.org/whl/cu128" in commands[1]
+    else:
+        colab_bootstrap.main([str(requirements)])
+        assert len(commands) == 2  # probe + requirements; healthy wheels retained
+
+
 NOTEBOOKS = sorted((Path(__file__).resolve().parents[1] / "notebooks").glob("0*.ipynb"))
 IMPLEMENTATION = Path("papers/001-journal-abnormal-activity-recognition/implementation")
-HELPERS = ("notebook_data.py", "notebook_display.py", "notebook_workflows.py")
+HELPERS = (
+    "notebook_data.py",
+    "notebook_display.py",
+    "notebook_workflows.py",
+    "kinetics600_subset.py",
+)
 
 
 def checkout_setup(notebook, checkout):
@@ -40,7 +93,7 @@ def checkout_setup(notebook, checkout):
         "REPO_ROOT = Path('/content/phd_research')",
         f"REPO_ROOT = Path({str(checkout)!r})",
     )
-    exec(compile(source, str(notebook), "exec"), {})
+    exec(compile(source, "<notebook setup>", "exec"), {})
 
 
 @pytest.mark.parametrize("notebook", NOTEBOOKS, ids=lambda path: path.stem)
@@ -48,6 +101,7 @@ def checkout_setup(notebook, checkout):
 def test_checkout_checks_helpers_before_installation(
     tmp_path, monkeypatch, notebook, present
 ):
+    (tmp_path / ".git").mkdir()
     if present:
         source = tmp_path / IMPLEMENTATION / "src"
         source.mkdir(parents=True)
@@ -68,7 +122,34 @@ def test_checkout_checks_helpers_before_installation(
         with pytest.raises(RuntimeError, match="NOT pip packages"):
             checkout_setup(notebook, tmp_path)
     assert commands[0] == ["git", "pull", "--ff-only", "origin", "master"]
-    assert all(command[0] == "git" for command in commands)
+    assert all(command[0] in ("git", "nvidia-smi") for command in commands)
+
+
+def test_checkout_clones_into_empty_folder(tmp_path, monkeypatch):
+    commands = []
+
+    def run(command, **kwargs):
+        commands.append(command)
+        if command[1] == "clone":
+            source = tmp_path / IMPLEMENTATION / "src"
+            source.mkdir(parents=True)
+            for name in HELPERS:
+                (source / name).touch()
+        return subprocess.CompletedProcess(
+            command, 0, stdout="test-revision", stderr=""
+        )
+
+    monkeypatch.setattr(subprocess, "run", run)
+    checkout_setup(NOTEBOOKS[-1], tmp_path)
+    assert commands[0][:2] == ["git", "clone"]
+
+
+def test_checkout_preserves_non_git_files(tmp_path):
+    existing = tmp_path / "keep.txt"
+    existing.write_text("my data")
+    with pytest.raises(RuntimeError, match="not a Git checkout"):
+        checkout_setup(NOTEBOOKS[-1], tmp_path)
+    assert existing.read_text() == "my data"
 
 
 @pytest.mark.parametrize("conflict", [False, True])

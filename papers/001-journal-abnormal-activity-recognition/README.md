@@ -1,9 +1,16 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Kinetics subset diagnostic notebooks implemented; real GPU training pending
+- Status: Kinetics-600 diagnostic source implemented; real Colab inventory and GPU training pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
+
+Notebook 04's quick diagnostic runs 12 combinations of three architectures,
+two frame sizes and two weight-decay values for four epochs each, then retrains
+the validation winner for eight epochs with its selected inputs. The shared
+notebooks now selectively download five Kinetics-600 activity archives; their
+first Colab preparation reports the actual unique clip count and requires more
+than 2,000 before training.
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
 from surveillance video. Earlier width experiments made `64-32-16` a useful
@@ -81,6 +88,7 @@ reference architecture for ablation.
   live curves, validation-ranked screen and automatically guarded final testing;
   separate from the controlled AAD study.
 - [x] [`040-kinetics-interest-filter`](../../agents/work/040-kinetics-interest-filter/prompt.md) — shared interests, Kinetics-only filtering and selective downloads; VDD results preserved, test access guarded.
+- [x] [`041-larger-kinetics-diagnostic`](../../agents/work/041-larger-kinetics-diagnostic/prompt.md) — added selective Kinetics-600 downloads, source-video grouped splits and a more-than-2,000 unique-clip gate. Actual archive count awaits the first Colab preparation.
 - [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,

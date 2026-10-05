@@ -64,9 +64,14 @@ def native_preview(source, destination, seconds):
 def show_dataset(prepared):
     dataset = prepared["dataset"]
     display(pd.DataFrame(prepared["split"]["class_counts"]).T)
-    print(
-        "Clip-level split; source/subject independence is not established. Test remains locked."
-    )
+    if prepared["split"].get("assignment_unit") == "source_video":
+        print(
+            "Source-ID grouped diagnostic split; subject independence and near-duplicate absence are not established. Test remains locked."
+        )
+    else:
+        print(
+            "Clip-level split; source/subject independence is not established. Test remains locked."
+        )
     index = random.Random(42).choice(prepared["train"].indices)
     clip, label = dataset[index]
     source = dataset.samples[index][0]

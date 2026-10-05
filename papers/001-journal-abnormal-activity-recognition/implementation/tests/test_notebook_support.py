@@ -6,6 +6,7 @@ from dataclasses import replace
 import pytest
 
 from src import notebook_config
+from src import notebook_utils
 from src.notebook_utils import (
     controlled_plan_list_command,
     controlled_stage_command,
@@ -17,10 +18,39 @@ from src.notebook_utils import (
 )
 
 
+@pytest.mark.parametrize("visible_gpu", [False, True])
+def test_cuda_failure_identifies_kernel_or_package_problem(monkeypatch, visible_gpu):
+    import subprocess
+
+    monkeypatch.setattr(notebook_utils.torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(
+        notebook_utils.subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args[0],
+            0 if visible_gpu else 1,
+            stdout="NVIDIA A100" if visible_gpu else "",
+            stderr="No GPU" if not visible_gpu else "",
+        ),
+    )
+    message = "Restart this notebook" if visible_gpu else "Select Kernel"
+    with pytest.raises(RuntimeError, match=message) as error:
+        notebook_utils.validate_runtime(require_cuda=True)
+    assert "Python:" in str(error.value)
+    assert "CUDA build:" in str(error.value)
+
+
 def test_kinetics_is_the_default_diagnostic_dataset() -> None:
     selected = notebook_config.selected_diagnostic_dataset()
-    assert selected.key == "kinetics-subset"
-    assert selected.kaggle_handle == "sanelehlabisa/kinetics-400-dataset/versions/1"
+    assert selected.key == "kinetics600-subset"
+    assert selected.source_url == "https://s3.amazonaws.com/kinetics/600/train"
+    assert selected.accepted_classes == (
+        "headbutting",
+        "slapping",
+        "punching person (boxing)",
+        "hugging (not baby)",
+        "shaking hands",
+    )
 
 
 def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
@@ -35,11 +65,29 @@ def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
 def test_disabled_dataset_cannot_be_selected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(
         notebook_config.DIAGNOSTIC_DATASETS,
-        "kinetics-subset",
-        replace(notebook_config.DIAGNOSTIC_DATASETS["kinetics-subset"], enabled=False),
+        "kinetics600-subset",
+        replace(
+            notebook_config.DIAGNOSTIC_DATASETS["kinetics600-subset"], enabled=False
+        ),
     )
     with pytest.raises(ValueError, match="not ready"):
         notebook_config.selected_diagnostic_dataset()
+
+
+def test_all_modular_notebooks_check_for_the_shared_kinetics_loader() -> None:
+    import json
+
+    implementation = Path(__file__).resolve().parents[1]
+    notebooks = sorted((implementation / "notebooks").glob("0[1-4]_*.ipynb"))
+    assert len(notebooks) == 4
+    for path in notebooks:
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+        code = "\n".join(
+            "".join(cell["source"])
+            for cell in notebook["cells"]
+            if cell["cell_type"] == "code"
+        )
+        assert "kinetics600_subset.py" in code
 
 
 def test_manifest_is_dataset_specific_and_ignored_location(tmp_path: Path) -> None:

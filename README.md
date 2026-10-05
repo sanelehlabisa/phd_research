@@ -11,11 +11,15 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-All four modular Colab notebooks now default to a five-class Kinetics diagnostic
-subset: 87 clips, selectively downloaded (ticket `040`). One shared setting
-switches back to VDD. Playable previews, live curves and validation-selected
-experiments are described in the [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
+All four modular Colab notebooks now default to five Kinetics-600 activity
+archives, downloaded selectively. Preparation requires over 2,000 unique clips;
+the actual extracted count will appear on the first Colab run. A shared setting
+switches back to VDD or the earlier Kinetics-400 subset. Playable previews,
+live curves and validation-selected experiments are described in the
+[implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
 The controlled AAD study stays separate; saved VDD notebook outputs are preserved.
+Notebook 04 uses editable factor lists: the quick default runs 12 combinations
+for four epochs each, then retrains the validation winner for eight epochs.
 
 ## Structure
 
