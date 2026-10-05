@@ -5,6 +5,7 @@ from dataclasses import replace
 
 import pytest
 
+from notebook_files import NOTEBOOKS
 from src import notebook_config
 from src import notebook_utils
 from src.notebook_utils import (
@@ -77,10 +78,8 @@ def test_disabled_dataset_cannot_be_selected(monkeypatch: pytest.MonkeyPatch) ->
 def test_all_modular_notebooks_check_for_the_shared_kinetics_loader() -> None:
     import json
 
-    implementation = Path(__file__).resolve().parents[1]
-    notebooks = sorted((implementation / "notebooks").glob("0[1-4]_*.ipynb"))
-    assert len(notebooks) == 4
-    for path in notebooks:
+    assert len(NOTEBOOKS) == 4
+    for path in NOTEBOOKS:
         notebook = json.loads(path.read_text(encoding="utf-8"))
         code = "\n".join(
             "".join(cell["source"])

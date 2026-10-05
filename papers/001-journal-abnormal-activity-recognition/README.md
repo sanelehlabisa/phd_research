@@ -5,12 +5,13 @@
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
-Notebook 04's quick diagnostic runs 12 combinations of three architectures,
-two frame sizes and two weight-decay values for four epochs each, then retrains
-the validation winner for eight epochs with its selected inputs. The shared
-notebooks now selectively download five Kinetics-600 activity archives; their
-first Colab preparation reports the actual unique clip count and requires more
-than 2,000 before training.
+The diagnostic suite screens 14 models, compares input sizes and regularisation,
+then confirms validation-selected configurations across two seeds. See the
+[implementation guide](implementation/README.md#modular-colab-notebooks) for the
+full plan and renamed training/experiment notebooks (a VS Code controller workaround).
+The shared notebooks selectively download five Kinetics-600 activity archives;
+preparation reports the actual unique clip count and requires more than 2,000
+before training.
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
 from surveillance video. Earlier width experiments made `64-32-16` a useful

@@ -10,6 +10,7 @@ import av
 import pytest
 import torch
 
+from notebook_files import NOTEBOOKS
 from src import notebook_config as settings
 from src import notebook_display as visuals
 from src import notebook_workflows as workflows
@@ -385,9 +386,8 @@ def test_video_card_validates_path(tmp_path):
 
 def test_notebook_contracts_and_reference_unchanged():
     root = Path(__file__).resolve().parents[1]
-    notebooks = sorted((root / "notebooks").glob("0*.ipynb"))
-    assert len(notebooks) == 4
-    for path in notebooks:
+    assert len(NOTEBOOKS) == 4
+    for path in NOTEBOOKS:
         notebook = json.loads(path.read_text(encoding="utf-8"))
         source = "\n".join(
             "".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "code"

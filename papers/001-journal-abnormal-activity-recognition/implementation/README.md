@@ -137,8 +137,14 @@ notebook outputs describe earlier VDD/Kinetics-400 runs.
 |---|---|
 | [01 Dataset](notebooks/01_dataset_setup.ipynb) | Split summary; the same training video at native FPS, sampled FPS, then augmented |
 | [02 Model](notebooks/02_model_inspection.ipynb) | Architecture, parameter count, one random-weight prediction, playable labelled video and probabilities |
-| [03 Training](notebooks/03_model_training.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
-| [04 Experiments](notebooks/04_controlled_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
+| [03 Training](notebooks/03_train_model.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
+| [04 Experiments](notebooks/04_run_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
+
+Notebooks 03/04 have fresh filenames to work around VS Code's logged
+`notebook controller is DISPOSED` error: copies ran while the old paths did not.
+Their cells, metadata and saved outputs are preserved. Close the old tabs, open
+the files linked above and select the working Colab GPU kernel for each.
+This is a filename-based workaround; local tests cannot verify the editor's Run button.
 
 Notebooks 01–03 retain 16 frames at 16 FPS, batch 8, seed 42 and 32×32 input;
 notebook 03 trains for 128 epochs. Notebook 04 has separate `SUITE_*` settings:
@@ -187,8 +193,8 @@ macro-F1, accuracy, parameter count, then name. Batch progress is printed,
 loss/accuracy plots update each epoch, and artifacts go under ignored `runs/`.
 
 These are **exploratory diagnostics**, not the paper's controlled
-AAD protocol or evidence of cross-dataset generalisation. Despite its retained
-filename, notebook 04 now follows the selected diagnostic dataset. The
+AAD protocol or evidence of cross-dataset generalisation. Notebook 04 follows
+the selected diagnostic dataset. The
 [original reference notebook](notebooks/aad_experiment_workflow.ipynb), controlled
 AAD configuration and `src.experiments` CLI remain unchanged.
 

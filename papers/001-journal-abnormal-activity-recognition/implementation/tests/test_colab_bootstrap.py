@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from notebook_files import NOTEBOOKS
 from src import colab_bootstrap
 from src.colab_bootstrap import exact_requirements, version_matches
 
@@ -70,7 +71,6 @@ def test_gpu_bootstrap_preserves_or_repairs_cuda_pair(tmp_path, monkeypatch, cpu
         assert len(commands) == 2  # probe + requirements; healthy wheels retained
 
 
-NOTEBOOKS = sorted((Path(__file__).resolve().parents[1] / "notebooks").glob("0*.ipynb"))
 IMPLEMENTATION = Path("papers/001-journal-abnormal-activity-recognition/implementation")
 HELPERS = (
     "notebook_data.py",
