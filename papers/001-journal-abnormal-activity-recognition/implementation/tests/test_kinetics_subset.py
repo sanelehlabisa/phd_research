@@ -247,6 +247,7 @@ def test_local_filter_manifests_version_and_baselines(tmp_path, monkeypatch, cap
 
 
 def test_insufficient_local_samples_fail_before_decoding(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "SELECTED_DIAGNOSTIC_DATASET", "kinetics-subset")
     local_inventory(tmp_path / "local", ("headbutting", "hugging"), count=1)
     monkeypatch.setattr(av, "open", lambda *a, **k: pytest.fail("decoded video"))
     with pytest.raises(ValueError, match="stratified split failed"):

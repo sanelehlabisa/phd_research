@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+import json
 import re
 import subprocess
 import sys
@@ -38,6 +39,29 @@ def installed_versions(packages: dict[str, str]) -> dict[str, str | None]:
     return versions
 
 
+def version_matches(installed: str | None, required: str) -> bool:
+    """Accept a pinned public version with its CUDA/CPU wheel suffix."""
+    if installed is None:
+        return False
+    return installed == required or (
+        "+" not in required and installed.split("+", 1)[0] == required
+    )
+
+
+def gpu_is_visible() -> bool:
+    """Check whether this process can see an NVIDIA GPU before importing torch."""
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
 def main(argv: list[str] | None = None) -> None:
     """Install requirements and stop when the current kernel must restart."""
     arguments = list(sys.argv[1:] if argv is None else argv)
@@ -46,6 +70,36 @@ def main(argv: list[str] | None = None) -> None:
     requirements = Path(arguments[0]).resolve()
     pins = exact_requirements(requirements)
     before = installed_versions(pins)
+    if gpu_is_visible():
+        probe = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import json, torch; print(json.dumps(torch.version.cuda))",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        needs_cuda_wheel = probe.returncode != 0 or json.loads(probe.stdout) is None
+        if needs_cuda_wheel or any(
+            not version_matches(before[name], pins[name])
+            or (before[name] or "").endswith("+cpu")
+            for name in ("torch", "torchvision")
+        ):
+            # Install the official CUDA pair rather than a CPU wheel on a GPU VM.
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    f"torch=={pins['torch']}+cu128",
+                    f"torchvision=={pins['torchvision']}+cu128",
+                    "--index-url",
+                    "https://download.pytorch.org/whl/cu128",
+                ],
+                check=True,
+            )
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "-r", str(requirements)],
         check=True,
@@ -54,7 +108,7 @@ def main(argv: list[str] | None = None) -> None:
     mismatches = {
         package: {"required": required, "installed": after[package]}
         for package, required in pins.items()
-        if after[package] != required
+        if not version_matches(after[package], required)
     }
     if mismatches:
         raise SystemExit(f"installed versions do not match exact pins: {mismatches}")

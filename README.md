@@ -11,18 +11,15 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-All four modular Colab notebooks now default to a five-class Kinetics diagnostic
-subset: 87 clips, selectively downloaded (ticket `040`). One shared setting
-switches back to VDD. Playable previews, live curves and validation-selected
-experiments are described in the [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
-Ticket `041` adds a budgeted eight-hour learning/temporal diagnostic suite with
-14 matched candidates, a separate native paper topology and two-seed confirmation.
-Saved outputs are historical; the new suite still needs its Colab run.
-Integration ticket [042](agents/work/042-merge-expanded-kinetics-suite/prompt.md)
-is ready for approval: merge the other laptop's larger Kinetics source with the
-expanded suite and explicit spatial-size comparisons. The agreed dataset size
-is more than 2,000 unique videos before splitting, not a maximum.
-The controlled AAD study stays separate; previously inspected test scores are exploratory.
+All four modular Colab notebooks default to five Kinetics-600 activity archives.
+Preparation requires more than 2,000 unique videos before splitting; the actual
+count remains to be observed on Colab. Shared configuration retains VDD and
+Kinetics-400 alternatives. Ticket [042](agents/work/042-merge-expanded-kinetics-suite/prompt.md)
+integrates the two laptops' work: an eight-hour exploratory suite with 14 matched
+models, spatial/temporal/regularization comparisons, a separate native paper
+model and two-seed confirmation. See the [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
+Saved notebook outputs are historical; the merged suite needs its Colab run.
+The controlled AAD study stays separate; no new manuscript claims are made.
 
 ## Structure
 

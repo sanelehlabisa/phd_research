@@ -14,6 +14,12 @@ import torch
 from . import notebook_config as settings
 from .dataset import AHARDataset, create_split_manifest, load_split_subsets
 from .kinetics_subset import download_subset, matched_interests, versioned_handle
+from .kinetics600_subset import (
+    GROUPING,
+    content_hash,
+    load_grouped_subsets,
+    prepare_subset,
+)
 from .vdd_diagnostic import resolve_vdd_root
 
 
@@ -149,15 +155,30 @@ class NotebookVideoDataset(AHARDataset):
 
 
 def prepare_data(
-    root, dataset_root=None, frame_size=None, *, sequence_length=None, target_fps=None
+    root, dataset_root=None, frame_size=None, sequence_length=None, *, target_fps=None
 ):
     """Create/reuse a split from file inventory only; never open test videos."""
     started = perf_counter()
     root = Path(root)
     specification = settings.selected_diagnostic_dataset()
-    print(f"Dataset: {specification.key} | {specification.kaggle_handle}", flush=True)
+    print(
+        f"Dataset: {specification.key} | {specification.source_url or specification.kaggle_handle}",
+        flush=True,
+    )
     kinetics = specification.key == "kinetics-subset"
-    if kinetics:
+    kinetics600 = specification.key == "kinetics600-subset"
+    source = None
+    if kinetics600:
+        if (
+            specification.source_url != settings.KINETICS600_SOURCE_URL
+            or specification.accepted_classes != settings.KINETICS600_CLASSES
+        ):
+            raise ValueError(
+                "Kinetics-600 requires the approved source and five exact activities"
+            )
+        dataset_root, source = prepare_subset(root, dataset_root)
+        accepted = specification.accepted_classes
+    elif kinetics:
         _, slug, _ = versioned_handle(specification.kaggle_handle)
         if dataset_root is None:
             dataset_root, accepted = download_subset(
@@ -173,13 +194,13 @@ def prepare_data(
             )
     else:
         accepted = specification.accepted_classes
-    if not kinetics and dataset_root is None:
+    if not kinetics and not kinetics600 and dataset_root is None:
         print(
             "Downloading/reusing Kaggle cache (download/extraction may take time)...",
             flush=True,
         )
         dataset_root = kagglehub.dataset_download(specification.kaggle_handle)
-    if not kinetics:
+    if not kinetics and not kinetics600:
         dataset_root = resolve_vdd_root(dataset_root)
     print(f"Accepted classes: {accepted}", flush=True)
     print(
@@ -189,7 +210,9 @@ def prepare_data(
     size = frame_size or settings.FRAME_SIZE
     dataset = NotebookVideoDataset(
         dataset_root,
-        sequence_length=sequence_length or settings.SEQUENCE_LENGTH,
+        sequence_length=(
+            settings.SEQUENCE_LENGTH if sequence_length is None else sequence_length
+        ),
         frame_size=(size, size),
         target_fps=target_fps or settings.TARGET_FPS,
         accepted_classes=accepted,
@@ -206,15 +229,33 @@ def prepare_data(
             sort_keys=True,
         )
         suffix = "_" + hashlib.sha256(identity.encode()).hexdigest()[:16]
+    if kinetics600:
+        suffix = (
+            "_" + content_hash(dict(source=source, grouping=GROUPING, seed=seed))[:16]
+        )
     manifest = (
         root
         / "runs"
         / "manifests"
         / f"{specification.key}{suffix}_diagnostic_seed{seed}.json"
     )
-    if not manifest.is_file():
-        create_split_manifest(dataset, manifest, seed=seed)
-    train, validation, test, split = load_split_subsets(dataset, manifest, seed=seed)
+    if kinetics600:
+        train, validation, test, split = load_grouped_subsets(
+            dataset, manifest, source, seed
+        )
+        print(
+            f"Source-ID grouped diagnostic split: {split['actual_ratios']} | "
+            f"{split['known_source_clips']}/{len(dataset)} clips have identified source IDs. "
+            "Upstream train clips only; not the official benchmark split. "
+            "Subject independence and near-duplicate absence are not established.",
+            flush=True,
+        )
+    else:
+        if not manifest.is_file():
+            create_split_manifest(dataset, manifest, seed=seed)
+        train, validation, test, split = load_split_subsets(
+            dataset, manifest, seed=seed
+        )
     dataset.allowed_indices = set(train.indices) | set(validation.indices)
     dataset.training_indices = set(train.indices)
     baselines = {}
@@ -243,13 +284,14 @@ def prepare_data(
         manifest_path=manifest,
         specification=specification,
         majority_baselines=baselines,
+        source=source,
     )
 
 
 def data_identity(prepared):
     """Record labels and preprocessing alongside the split and dataset handle."""
     dataset = prepared["dataset"]
-    return dict(
+    identity = dict(
         dataset_key=prepared["specification"].key,
         kaggle_handle=prepared["specification"].kaggle_handle,
         classes=dataset.class_names,
@@ -261,3 +303,13 @@ def data_identity(prepared):
         evaluation_sampling="center-window",
         split_manifest_hash=prepared["split"]["manifest_hash"],
     )
+    if prepared.get("source") is not None:
+        identity.update(
+            source_url=prepared["specification"].source_url,
+            source_hash=content_hash(prepared["source"]),
+            source_inventory_hash=prepared["source"]["inventory_hash"],
+            release=prepared["source"]["release"],
+            upstream_split=prepared["source"]["upstream_split"],
+            grouping=prepared["split"]["grouping"],
+        )
+    return identity

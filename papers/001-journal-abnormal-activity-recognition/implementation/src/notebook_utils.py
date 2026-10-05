@@ -33,7 +33,9 @@ def implementation_root(start: str | Path | None = None) -> Path:
     candidates = [
         current,
         current / "papers/001-journal-abnormal-activity-recognition/implementation",
-        Path("/content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation"),
+        Path(
+            "/content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation"
+        ),
     ]
     for candidate in candidates:
         if (candidate / "src").is_dir() and (candidate / "requirements.txt").is_file():
@@ -44,7 +46,34 @@ def implementation_root(start: str | Path | None = None) -> Path:
 def validate_runtime(require_cuda: bool = True) -> dict[str, object]:
     """Return runtime provenance and optionally require an available CUDA device."""
     if require_cuda and not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required; connect the notebook to the Colab A100")
+        try:
+            gpu = subprocess.run(
+                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            gpu_description = gpu.stdout.strip() or gpu.stderr.strip()
+            visible_gpu = gpu.returncode == 0 and bool(gpu.stdout.strip())
+        except (OSError, subprocess.TimeoutExpired) as error:
+            gpu_description = str(error)
+            visible_gpu = False
+        if visible_gpu:
+            advice = (
+                "An NVIDIA GPU is attached, but this Python kernel cannot use CUDA. "
+                "Restart this notebook's kernel after package installation and rerun setup. "
+                "If it persists, reconnect to a fresh Colab GPU runtime."
+            )
+        else:
+            advice = (
+                "This notebook's kernel cannot see an NVIDIA GPU. In VS Code, use "
+                "Select Kernel to connect THIS notebook to the Colab A100 runtime; "
+                "another notebook may use a different runtime. Then rerun setup."
+            )
+        raise RuntimeError(
+            f"{advice}\nPython: {sys.executable}\nPyTorch: {torch.__version__} "
+            f"(CUDA build: {torch.version.cuda})\nNVIDIA: {gpu_description}"
+        )
     environment = runtime_environment()
     environment["cuda_device"] = (
         torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
@@ -89,9 +118,7 @@ def prepare_selected_splits(
     manifest_path = diagnostic_manifest_path(root, specification.key)
     if not manifest_path.is_file():
         create_split_manifest(dataset, manifest_path, seed=42)
-    train, validation, test, split = load_split_subsets(
-        dataset, manifest_path, seed=42
-    )
+    train, validation, test, split = load_split_subsets(dataset, manifest_path, seed=42)
     inventory = inspect_vdd(dataset)
     return {
         "specification": specification,
@@ -203,7 +230,9 @@ def validation_prediction_examples(
     """Load the selected diagnostic checkpoint and predict validation examples."""
     prepared = prepare_selected_splits(root)
     dataset = prepared["dataset"]
-    selected_run = Path(run_dir) if run_dir is not None else latest_completed_diagnostic_run(root)
+    selected_run = (
+        Path(run_dir) if run_dir is not None else latest_completed_diagnostic_run(root)
+    )
     checkpoint_path = selected_run / "checkpoints" / "bounded_validation_selected.pth"
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
     selection = validate_selected_checkpoint(
@@ -332,12 +361,12 @@ def validation_screen_winner(screen_run_dir: str | Path) -> dict[str, object]:
         if isinstance(candidate, dict)
     }
     completed_names = {
-        str(result.get("name"))
-        for result in all_results
-        if isinstance(result, dict)
+        str(result.get("name")) for result in all_results if isinstance(result, dict)
     }
     if not expected_names or completed_names != expected_names:
-        raise ValueError("architecture screen did not complete every declared candidate")
+        raise ValueError(
+            "architecture screen did not complete every declared candidate"
+        )
     if any(
         not isinstance(result, dict) or result.get("partition") != "validation"
         for result in ranked
@@ -387,7 +416,9 @@ def frozen_confirmation_checkpoint(
                 if result.get("partition") != "validation":
                     raise ValueError("confirmation candidate was not validated")
                 selection = result.get("checkpoint_selection")
-                if not isinstance(selection, dict) or not isinstance(selection.get("seed"), int):
+                if not isinstance(selection, dict) or not isinstance(
+                    selection.get("seed"), int
+                ):
                     raise ValueError("confirmation checkpoint provenance is incomplete")
                 seeds.add(int(selection["seed"]))
                 matching.append(result)
@@ -416,7 +447,9 @@ def final_test_evaluation_command(
 ) -> list[str]:
     """Build the one-time final AAD test command after explicit acknowledgement."""
     if acknowledgement != "OPEN FINAL AAD TEST":
-        raise ValueError("set acknowledgement to 'OPEN FINAL AAD TEST' after freezing the model")
+        raise ValueError(
+            "set acknowledgement to 'OPEN FINAL AAD TEST' after freezing the model"
+        )
     checkpoint = Path(checkpoint_path).resolve()
     for manifest_path in (root / "runs" / "evaluate").glob("*/run.json"):
         manifest = _json_object(manifest_path)

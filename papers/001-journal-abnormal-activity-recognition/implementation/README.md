@@ -118,17 +118,20 @@ exploratory evidence.
 
 ## Modular Colab notebooks
 
-Pending integration: [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/prompt.md)
-will combine the remote Kinetics-600 source (>2,000 unique videos before splitting)
-with the expanded eight-hour suite and explicit spatial-size comparisons. It is
-ready for approval; the local and remote workflows are not merged yet.
+Integration [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/prompt.md)
+combines Kinetics-600 (>2,000 unique videos before splitting) with the expanded
+eight-hour suite. Real Colab inventory/training remains pending.
 
 Open one notebook and choose **Run All** on a Colab GPU. All four use
-`SELECTED_DIAGNOSTIC_DATASET = "kinetics-subset"` in
-[shared configuration](src/notebook_config.py). Change only that value to `"vdd"`
-to use `sanelehlabisa/violence-detection-dataset` with its unchanged `non-violent` /
-`violent` classes. There are no execution toggles or run-directory placeholders.
-Saved notebook 04 outputs describe the old ticket-040 Kinetics run, not the revised suite.
+`SELECTED_DIAGNOSTIC_DATASET = "kinetics600-subset"` in
+[shared configuration](src/notebook_config.py). Preparation downloads only the
+five Kinetics-600 training archives (about 3 GB compressed), extracts them
+safely, prints actual per-class/total counts and stops unless it finds over
+2,000 unique clips. The exact extracted total remains to be observed on Colab.
+This is an exploratory five-activity diagnostic, not surveillance-paper evidence.
+Change the shared setting to `"vdd"` for the unchanged VDD labels or
+`"kinetics-subset"` for the previous 87-clip Kinetics-400 copy. Existing saved
+notebook outputs describe earlier VDD/Kinetics-400 runs.
 
 | Notebook | End-to-end workflow |
 |---|---|
@@ -137,8 +140,11 @@ Saved notebook 04 outputs describe the old ticket-040 Kinetics run, not the revi
 | [03 Training](notebooks/03_model_training.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
 | [04 Experiments](notebooks/04_controlled_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
 
-Defaults: 32 frames at 8 FPS, batch 8, seed 42, 64×64 input. Notebook 03 trains
-for 32 epochs. The notebook-only Adam schedule starts at 0.001, halves after six
+Notebooks 01–03 retain 16 frames at 16 FPS, batch 8, seed 42 and 32×32 input;
+notebook 03 trains for 128 epochs. Notebook 04 has separate `SUITE_*` settings:
+32 frames at 8 FPS, 64×64 screening input, 24 screening epochs and 64 confirmation
+epochs. The retained legacy `SCREEN_*` quick-grid lists do not control notebook 04.
+The notebook-only Adam schedule starts at 0.001, halves after six
 non-improving validation epochs and floors at 0.00001. Custom dropout is 0.1,
 weight decay 0.0001 and spatial augmentation is off. Controlled AAD defaults are unchanged.
 Notebook 04 declares the following suite before training:
@@ -150,20 +156,25 @@ Notebook 04 declares the following suite before training:
    clean training accuracy and reduced loss; otherwise stop with diagnostics.
 3. Compare the existing eleven custom candidates and three scratch 3D CNNs for
    24 epochs each, identical inputs/split/budget. No pretrained weights.
-4. On the validation-selected custom reference, compare 4/8/16 FPS, dropout
-   0/0.1/0.5 and weight decay 0/0.0001/0.001 one factor at a time. Fixed 32 frames
+4. On the validation-selected custom reference, compare 64/96/128 pixels,
+   4/8/16 FPS, dropout 0/0.1/0.5 and weight decay 0/0.0001/0.001 one factor at a
+   time with the same split and 24-epoch budget. Fixed 32 frames
    make this a temporal **coverage** comparison (about 8/4/2 seconds), not isolated FPS.
 5. Attempt the native 50-frame/50×50 published topology separately, with a
    dataset-specific output head. Memory preflight and a 30-minute stage cap
    preserve time for confirmation. Resource-limited status is not a result;
    the topology is never downsized or ranked alongside matched-input models.
 6. Select the custom configuration by validation; retrain it and all three
-   CNNs **from scratch** for 64 epochs at 96×96, both seeds 42/2026, with matched
+   CNNs **from scratch** for 64 epochs at max(96, selected size), both seeds
+   42/2026, with matched
    sampling/optimizer/budgets. Rank mean validation metrics; export seed variation.
 7. Freeze all eight compatible checkpoints before exploratory test scoring.
    Show five examples from the validation winner's predeclared seed 42, never
    select a seed/model from test results.
 
+The plan prints and saves **31 training runs** (14 screen, eight one-factor,
+one native attempt, eight confirmation), plus the tiny check. This is a declared
+plan, not a promise all runs finish on A100 within eight hours.
 The shared eight-hour **compute** deadline starts at `run_screen` (after setup/
 downloads), spans subsequent cells and is checked between batches/audit frames.
 An in-flight CUDA operation, checkpoint write or frontend render may finish
@@ -181,8 +192,9 @@ filename, notebook 04 now follows the selected diagnostic dataset. The
 [original reference notebook](notebooks/aad_experiment_workflow.ipynb), controlled
 AAD configuration and `src.experiments` CLI remain unchanged.
 
-Preparation inventories filenames/classes and reuses the stratified 70:15:15
-manifest without opening test videos. The diagnostic loader decodes only the
+Preparation inventories and hashes files without decoding test frames. It reuses
+the approximately stratified 70:15:15 manifest; Kinetics-600 clips sharing known
+source-video IDs stay together. The diagnostic loader decodes only the
 chosen input window, samples by timestamps and keeps a bounded 64 MiB cache.
 Training windows use seeded random offsets per epoch; validation, clean training
 checks and test use fixed central windows. Cache keys include temporal state.
@@ -190,8 +202,9 @@ Notebook 01 displays native/sampled/augmented versions of the same central windo
 Short videos repeat the last sampled frame; the duration audit makes these visible.
 Corrupt clips fail explicitly instead of substituting another split's sample.
 This preprocessing is recorded separately from the legacy AAD loader.
-The split is clip-level; subject/source independence and near-duplicate absence
-are **not** established.
+The Kinetics-600 split is grouped by known YouTube ID, but subject independence
+and absence of near-duplicates are **not** established. Other diagnostic splits
+remain clip-level.
 
 Notebook 04 opens test automatically only after all matched candidates/ablations
 and both seeds of every confirmation model finish and are frozen. Metrics precede example videos;
@@ -200,7 +213,7 @@ cell reuses completed metrics/reports after an export/display failure. Do not
 tune or rerank from test feedback. Notebooks 01–03 never evaluate test. No
 accuracy threshold is promised.
 
-Ticket 041 exports `source_audit.json`, `tiny.json`, predeclared plans,
+The expanded suite exports `source_audit.json`, `tiny.json`, predeclared plans,
 `screen.csv`, `ablations.csv`, `confirmation.csv`, `confirmation_mean_std.csv`
 and `test_exploratory.csv` under the printed suite directory. Each training run
 retains config, split identity, code revision, model specification, parameters,
@@ -209,7 +222,7 @@ learning rate, gradient norm, sampled parameter-update norm and runtime.
 Copy the suite **and its referenced training directories** out of `/content`
 before Colab disconnects; notebook displays alone are not the full evidence.
 
-Kinetics/VDD test scores have already informed exploratory discussion. They
+Kinetics-400/VDD test scores have already informed exploratory discussion. They
 must not be presented as a new untouched final holdout. Good performance still
 requires clip/source-quality checks, suitable independent confirmation and the
 separate AAD/VDD paper protocol before manuscript claims. Poor performance across
@@ -222,10 +235,17 @@ reloading modules. Git preserves unrelated edits and refuses updates that would
 overwrite conflicting edits; no reset, clean or automatic stash is used.
 If dependency versions change, restart the runtime once and
 rerun from the top. Updated local code must be pushed/synced before Colab can use it.
+Setup prints the GPU attached to each notebook's kernel, accepts CUDA wheel
+version suffixes, and installs the pinned CUDA pair when a visible GPU has a
+CPU-only or incompatible PyTorch installation. Select the Colab kernel separately
+for each notebook; a GPU connection in another notebook does not confirm this one.
 `src.notebook_data` is a repository module, not a pip package: a kernel restart
 cannot download source files that have not been committed and pushed.
-The previous notebooks and saved outputs are preserved locally at
-`runs/notebook-backups/pre-039/`; revised cells start without stale outputs.
+Active notebooks retain the remote laptop's historical saved outputs unchanged;
+they do not demonstrate the revised code has run. The local versions remain in
+recovery commit `42f2130` (branch `recovery/pre-042-20261005`). Both ticket-041
+records are retained under their distinct full names. Open the updated notebook
+from Git before Run All; updating a checkout does not rewrite already-open cells.
 
 ### Recover an existing Colab video-display failure
 
@@ -250,7 +270,25 @@ nd.show_predictions(records)
 This recovers saved examples only; runs before the persistence fix may have
 displayed test metrics without saving a final report. Do not rerun training.
 
-### Kinetics interest filter
+### Kinetics-600 diagnostic source
+
+Notebook 01 downloads only the training archives for `headbutting`, `slapping`,
+`punching person (boxing)`, `hugging (not baby)`, and `shaking hands` from the
+[CVDF Kinetics-600 release](https://github.com/cvdfoundation/kinetics-dataset).
+The five archives total about 3 GB compressed. Extraction verifies the archive,
+rejects unsafe paths/links and records content hashes. Preparation prints unique
+counts per activity and requires at least 2,001 clips before creating the
+source-ID grouped 70:15:15 split. The upstream annotation CSV is incomplete, so
+the actual extracted count is pending the first Colab Run All. The split uses
+only the upstream training archives and is not an official Kinetics benchmark
+partition. Subject independence and absence of near-duplicates are unknown.
+
+The local cache is `runs/datasets/kinetics600-five-activities/`. To reuse a
+copied extracted root, keep its `.kinetics600-source.json` provenance file with
+the video folders. The existing Kinetics-400 subset below remains available by
+changing the shared dataset setting to `kinetics-subset`.
+
+### Previous Kinetics-400 interest-filtered subset
 
 `CLASSES_OF_INTEREST` contains the existing AAD/VDD labels and these exact
 Kinetics folders. Only Kinetics uses the intersection with available classes;
@@ -266,8 +304,9 @@ split fails clearly instead of loading everything.
 | `hugging` | 16 |
 | `shaking_hands` | 22 |
 
-The handle is pinned to `sanelehlabisa/kinetics-400-dataset/versions/1`.
-Default preparation reports 60 training, 13 validation and 14 locked test clips.
+This previous, optional source is pinned to
+`sanelehlabisa/kinetics-400-dataset/versions/1`. It contains 60 training, 13
+validation and 14 locked test clips after the interest filter.
 Setup inventories public filenames (55 pages on first use), then downloads
 only the 87 matching videos: 91.1 MB, not the full 16.5 GB copy. Host mounts
 are temporarily disabled for these file-only requests and restored afterward.

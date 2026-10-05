@@ -26,12 +26,17 @@ def prepared(tmp_path, monkeypatch, request):
     monkeypatch.setattr(settings, "SEQUENCE_LENGTH", 2)
     monkeypatch.setattr(settings, "TARGET_FPS", 8)
     monkeypatch.setattr(settings, "FRAME_SIZE", 8)
-    monkeypatch.setattr(settings, "FINAL_FRAME_SIZE", 12)
     monkeypatch.setattr(settings, "BATCH_SIZE", 8)
     monkeypatch.setattr(settings, "TRAIN_EPOCHS", 1)
     monkeypatch.setattr(settings, "SCREEN_EPOCHS", 1)
     monkeypatch.setattr(settings, "FINAL_EPOCHS", 2)
+    monkeypatch.setattr(settings, "SCREEN_FRAME_SIZES", [8, 12])
+    monkeypatch.setattr(settings, "SCREEN_SEQUENCE_LENGTHS", [2, 3])
+    monkeypatch.setattr(settings, "SCREEN_BATCH_SIZE", 8)
+    monkeypatch.setattr(settings, "SCREEN_WEIGHT_DECAYS", [0.0001])
+    monkeypatch.setattr(settings, "SCREEN_AUGMENT_OPTIONS", [False, True])
     monkeypatch.setattr(settings, "DEFAULT_LAYERS", ((2, (3, 3)),))
+    monkeypatch.setattr(settings, "SCREEN_MODEL_NAMES", ["small", "wide"])
     monkeypatch.setattr(
         settings,
         "SCREEN_CANDIDATES",
@@ -158,10 +163,31 @@ def test_complete_screen_fine_training_and_test_gate(prepared, monkeypatch):
     screen = workflows.run_screen(prepared)
     screen_path = screen / "screen.json"
     original_screen = screen_path.read_text()
+    declared = json.loads((screen / "plan.json").read_text())
+    assert len(declared["candidates"]) == 16
+    assert declared["candidate_data_identities"]["small_s12_t2_wd0p0001_aug1"][
+        "frame_size"
+    ] == [12, 12]
+    assert (
+        declared["candidate_data_identities"]["small_s8_t3_wd0p0001_aug0"][
+            "sequence_length"
+        ]
+        == 3
+    )
+    assert {
+        identity["split_manifest_hash"]
+        for identity in declared["candidate_data_identities"].values()
+    } == {prepared["split"]["manifest_hash"]}
     incomplete = json.loads(original_screen)
     incomplete["ranked"].pop()
     screen_path.write_text(json.dumps(incomplete))
     with pytest.raises(ValueError, match="Every declared candidate"):
+        workflows.checked_winner(screen)
+    screen_path.write_text(original_screen)
+    changed_shape = json.loads(original_screen)
+    changed_shape["ranked"][0]["data_identity"]["sequence_length"] += 1
+    screen_path.write_text(json.dumps(changed_shape))
+    with pytest.raises(ValueError, match="provenance"):
         workflows.checked_winner(screen)
     screen_path.write_text(original_screen)
     reversed_ranking = json.loads(original_screen)
@@ -173,11 +199,18 @@ def test_complete_screen_fine_training_and_test_gate(prepared, monkeypatch):
     with pytest.raises(FileNotFoundError):
         workflows.final_evaluate(prepared, screen)
     fine = workflows.train_winner(prepared, screen)
-    assert fine["dataset"].frame_size == (12, 12)
+    winner, _ = workflows.checked_winner(screen)
+    assert fine["dataset"].frame_size == (
+        winner["config"]["height"],
+        winner["config"]["width"],
+    )
+    assert fine["dataset"].sequence_length == winner["config"]["sequence_length"]
     assert fine["dataset"].allowed_indices.isdisjoint(fine["test"].indices)
     # Wrong preprocessing is rejected without opening a test clip.
-    with pytest.raises(ValueError, match="incompatible"):
-        workflows.final_evaluate(prepared, screen)
+    with monkeypatch.context() as patch:
+        patch.setattr(prepared["dataset"], "frame_size", (7, 7))
+        with pytest.raises(ValueError, match="incompatible"):
+            workflows.final_evaluate(prepared, screen)
 
     def fail_export(*args, **kwargs):
         raise RuntimeError("prediction export failed")
@@ -219,10 +252,93 @@ def test_complete_screen_fine_training_and_test_gate(prepared, monkeypatch):
     with pytest.raises(ValueError, match="already frozen"):
         workflows.train_winner(prepared, screen)
     frozen = json.loads((screen / "frozen.json").read_text())
-    frozen["result"]["config"]["height"] = 8
+    frozen["result"]["config"]["height"] += 4
     (screen / "frozen.json").write_text(json.dumps(frozen))
     with pytest.raises(ValueError, match="compatible"):
         workflows.final_evaluate(fine, screen)
+
+
+def test_grid_includes_every_model_and_factor_combination(tmp_path):
+    from itertools import product
+    from types import SimpleNamespace
+
+    prepared = {
+        "root": tmp_path,
+        "dataset": SimpleNamespace(
+            dataset_dir=tmp_path, sequence_length=16, frame_size=(32, 32)
+        ),
+        "manifest_path": tmp_path / "split.json",
+    }
+    configs = workflows.screen_configurations(prepared)
+    assert len(settings.SCREEN_CANDIDATES) == 16
+    assert len(configs) == 12
+    assert {config.epochs for config in configs.values()} == {4}
+    assert {config.batch_size for config in configs.values()} == {4}
+    assert {config.height for config in configs.values()} == {64, 128}
+    assert {config.sequence_length for config in configs.values()} == {16}
+    assert {config.weight_decay for config in configs.values()} == {0.0, 0.0001}
+    actual = {
+        (
+            config.convlstm_layers,
+            config.height,
+            config.sequence_length,
+            config.weight_decay,
+            config.augment,
+        )
+        for config in configs.values()
+    }
+    expected = set(
+        product(
+            [settings.SCREEN_CANDIDATES[name] for name in settings.SCREEN_MODEL_NAMES],
+            settings.SCREEN_FRAME_SIZES,
+            settings.SCREEN_SEQUENCE_LENGTHS,
+            settings.SCREEN_WEIGHT_DECAYS,
+            settings.SCREEN_AUGMENT_OPTIONS,
+        )
+    )
+    assert actual == expected
+    assert len(actual) == len(configs)
+    assert configs == workflows.screen_configurations(prepared)
+
+
+@pytest.mark.parametrize("values", [[], [8, 8]])
+def test_grid_rejects_empty_or_duplicate_sizes(tmp_path, monkeypatch, values):
+    from types import SimpleNamespace
+
+    prepared = {
+        "root": tmp_path,
+        "dataset": SimpleNamespace(
+            dataset_dir=tmp_path, sequence_length=16, frame_size=(32, 32)
+        ),
+        "manifest_path": tmp_path / "split.json",
+    }
+    monkeypatch.setattr(settings, "SCREEN_FRAME_SIZES", values)
+    with pytest.raises(ValueError, match="nonempty list of distinct"):
+        workflows.screen_configurations(prepared)
+
+
+def test_confirmation_preserves_selected_inputs_and_regularisation():
+    from src.experiment_config import ExperimentConfig
+
+    winner = {
+        "config": ExperimentConfig(
+            height=96, width=96, sequence_length=64, augment=True, weight_decay=0.001
+        ).to_dict()
+    }
+    selected = workflows.final_training_configuration(
+        winner, {"final_input_policy": "selected", "final_epochs": 128}
+    )
+    assert (selected.height, selected.width, selected.sequence_length) == (96, 96, 64)
+    assert (selected.augment, selected.weight_decay, selected.epochs) == (
+        True,
+        0.001,
+        128,
+    )
+    legacy = workflows.final_training_configuration(
+        winner,
+        {"final_frame_size": 128, "final_sequence_length": 32, "final_epochs": 128},
+    )
+    assert (legacy.height, legacy.width, legacy.sequence_length) == (128, 128, 32)
 
 
 def test_no_corrupt_fallback_and_bounded_root_lookup(prepared, monkeypatch):
@@ -277,7 +393,12 @@ def test_notebook_contracts_and_reference_unchanged():
             "".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "code"
         )
         compile(source, str(path), "exec")
-        assert "prepare_data(IMPLEMENTATION_ROOT)" in source
+        if path.name.startswith("04_"):
+            assert "prepare_experiment_data(IMPLEMENTATION_ROOT)" in source
+            assert "from src.notebook_suite import prepare_experiment_data" in source
+            assert "from src.notebook_suite import show_experiment_plan" in source
+        else:
+            assert "prepare_data(IMPLEMENTATION_ROOT)" in source
         assert "RUN_" not in source and "controlled_stage_command" not in source
         assert "requirements.txt" in source
     reference = root / "notebooks" / "aad_experiment_workflow.ipynb"

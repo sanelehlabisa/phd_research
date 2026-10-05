@@ -3,6 +3,7 @@
 import hashlib
 import json
 from dataclasses import replace
+from itertools import product
 from pathlib import Path
 
 import pandas as pd
@@ -122,10 +123,50 @@ def show_validation_predictions(prepared, result):
     )
 
 
+def screen_configurations(prepared):
+    """Declare every combination of the finite experiment lists before training."""
+    reference = replace(
+        configuration(prepared, settings.SCREEN_EPOCHS),
+        batch_size=settings.SCREEN_BATCH_SIZE,
+    )
+    choices = {
+        "models": settings.SCREEN_MODEL_NAMES,
+        "frame sizes": settings.SCREEN_FRAME_SIZES,
+        "frame counts": settings.SCREEN_SEQUENCE_LENGTHS,
+        "weight decay": settings.SCREEN_WEIGHT_DECAYS,
+        "augmentation": settings.SCREEN_AUGMENT_OPTIONS,
+    }
+    for label, values in choices.items():
+        if not values or len(values) != len(set(values)):
+            raise ValueError(f"Declare a nonempty list of distinct {label} values")
+    if not settings.SCREEN_CANDIDATES:
+        raise ValueError("Declare at least one model architecture")
+    configs = {}
+    unknown_models = set(settings.SCREEN_MODEL_NAMES) - set(settings.SCREEN_CANDIDATES)
+    if unknown_models:
+        raise ValueError(f"Unknown model names: {sorted(unknown_models)}")
+    combinations = product(*choices.values())
+    for model_name, size, frames, weight_decay, augment in combinations:
+        config = replace(
+            reference,
+            convlstm_layers=settings.SCREEN_CANDIDATES[model_name],
+            height=size,
+            width=size,
+            sequence_length=frames,
+            weight_decay=weight_decay,
+            augment=augment,
+        )
+        decay_label = str(weight_decay).replace(".", "p").replace("-", "m")
+        name = f"{model_name}_s{size}_t{frames}_wd{decay_label}_aug{int(augment)}"
+        if name in configs:
+            raise ValueError(f"Duplicate experiment name: {name}")
+        configs[name] = config
+    return configs
+
+
 def show_experiment_plan(prepared):
     rows = []
-    for name, layers in settings.SCREEN_CANDIDATES.items():
-        config = configuration(prepared, settings.SCREEN_EPOCHS, layers)
+    for name, config in screen_configurations(prepared).items():
         rows.append(
             dict(
                 candidate=name,
@@ -135,27 +176,69 @@ def show_experiment_plan(prepared):
                 frames=config.sequence_length,
                 batch=config.batch_size,
                 learning_rate=config.learning_rate,
+                augment=config.augment,
+                weight_decay=config.weight_decay,
                 seed=config.seed,
             )
         )
     display(pd.DataFrame(rows))
     print(
+        f"{len(settings.SCREEN_MODEL_NAMES)} architectures x "
+        f"{len(settings.SCREEN_FRAME_SIZES)} frame sizes x "
+        f"{len(settings.SCREEN_SEQUENCE_LENGTHS)} frame counts x "
+        f"{len(settings.SCREEN_WEIGHT_DECAYS)} weight-decay values x "
+        f"{len(settings.SCREEN_AUGMENT_OPTIONS)} augmentation options.",
+        flush=True,
+    )
+    print(
+        f"{len(rows)} runs x {settings.SCREEN_EPOCHS} epochs = "
+        f"{len(rows) * settings.SCREEN_EPOCHS} screening epochs in total. "
+        f"Every run uses all {len(prepared['train'])} training and "
+        f"{len(prepared['validation'])} validation clips; no augmented copies.",
+        flush=True,
+    )
+    print(
         f"Then retrain the validation winner from scratch: {settings.FINAL_EPOCHS} epochs, "
-        f"{settings.FINAL_FRAME_SIZE}x{settings.FINAL_FRAME_SIZE}; freeze before final test."
+        "keeping its selected input size, frame count, augmentation and weight decay; "
+        "freeze before final test."
     )
     print("Exploratory single-seed diagnostic, not the controlled AAD paper screen.")
     return rows
 
 
 def run_screen(prepared):
-    configs = {
-        name: configuration(prepared, settings.SCREEN_EPOCHS, layers)
-        for name, layers in settings.SCREEN_CANDIDATES.items()
-    }
+    configs = screen_configurations(prepared)
     if not configs or settings.FINAL_EPOCHS <= settings.SCREEN_EPOCHS:
         raise ValueError("Declare candidates and a longer final training budget")
-    if settings.FINAL_FRAME_SIZE <= prepared["dataset"].frame_size[0]:
-        raise ValueError("Final resolution must be larger than the screen resolution")
+    plan = dict(
+        candidates={name: config.to_dict() for name, config in configs.items()},
+        candidate_data_identities={},
+        final_epochs=settings.FINAL_EPOCHS,
+        final_input_policy="selected",
+        data_identity=data_identity(prepared),
+    )
+    views = {}
+    for name, config in configs.items():
+        if config.height != config.width:
+            raise ValueError("Notebook experiments require square frames")
+        key = (config.height, config.sequence_length)
+        if key not in views:
+            views[key] = prepare_data(
+                prepared["root"],
+                prepared["dataset"].dataset_dir,
+                frame_size=config.height,
+                sequence_length=config.sequence_length,
+            )
+        identity = data_identity(views[key])
+        for field, value in plan["data_identity"].items():
+            if (
+                field not in ("frame_size", "sequence_length")
+                and identity[field] != value
+            ):
+                raise ValueError(
+                    "Experiments must reuse the same dataset, split and FPS"
+                )
+        plan["candidate_data_identities"][name] = identity
     run = RunContext(
         prepared["root"] / "runs",
         "experiments",
@@ -167,18 +250,13 @@ def run_screen(prepared):
             "data_identity": data_identity(prepared),
         },
     )
-    plan = dict(
-        candidates={name: config.to_dict() for name, config in configs.items()},
-        final_epochs=settings.FINAL_EPOCHS,
-        final_frame_size=settings.FINAL_FRAME_SIZE,
-        data_identity=data_identity(prepared),
-    )
     write_json(run.run_dir / "plan.json", plan)
     results = []
     try:
         for number, (name, config) in enumerate(configs.items(), 1):
             print(f"Candidate {number}/{len(configs)}: {name}", flush=True)
-            result = train_notebook_model(prepared, config, name, LiveCurves())
+            view = views[(config.height, config.sequence_length)]
+            result = train_notebook_model(view, config, name, LiveCurves())
             result["checkpoint_sha256"] = _sha(result["selected_checkpoint"])
             results.append(result)
             write_json(run.run_dir / "screen_progress.json", results)
@@ -195,6 +273,11 @@ def run_screen(prepared):
                 [
                     dict(
                         candidate=r["name"],
+                        resolution=f"{r['config']['height']}x{r['config']['width']}",
+                        frames=r["config"]["sequence_length"],
+                        augment=r["config"]["augment"],
+                        weight_decay=r["config"]["weight_decay"],
+                        epochs=r["actual_epochs"],
                         **r["validation_metrics"],
                         parameters=r["num_params"],
                     )
@@ -226,16 +309,38 @@ def checked_winner(screen_dir):
         raise ValueError("Winner must come from the validation ranking")
     for result in ranked:
         manifest = _read(Path(result["run_dir"]) / "run.json")
+        expected_identity = plan.get("candidate_data_identities", {}).get(
+            result["name"], plan["data_identity"]
+        )
         if (
             result["partition"] != "validation"
             or manifest["status"] != "complete"
             or result["config"] != plan["candidates"][result["name"]]
-            or result["data_identity"] != plan["data_identity"]
+            or result["data_identity"] != expected_identity
             or result["validation_metrics"] != manifest["results"]["validation_metrics"]
             or result["checkpoint_sha256"] != _sha(result["selected_checkpoint"])
         ):
             raise ValueError("Candidate provenance does not match the completed screen")
     return ranked[0], plan
+
+
+def final_training_configuration(winner, plan):
+    """Retain the grid winner's inputs, with compatibility for older saved plans."""
+    config = ExperimentConfig.from_mapping(winner["config"])
+    if plan.get("final_input_policy") == "selected":
+        return replace(
+            config,
+            epochs=plan["final_epochs"],
+            early_stopping_patience=plan["final_epochs"],
+        )
+    return replace(
+        config,
+        height=plan["final_frame_size"],
+        width=plan["final_frame_size"],
+        sequence_length=plan.get("final_sequence_length", config.sequence_length),
+        epochs=plan["final_epochs"],
+        early_stopping_patience=plan["final_epochs"],
+    )
 
 
 def train_winner(prepared, screen_dir):
@@ -247,15 +352,12 @@ def train_winner(prepared, screen_dir):
     winner, plan = checked_winner(screen_dir)
     if data_identity(prepared) != plan["data_identity"]:
         raise ValueError("Selected dataset changed after screening")
+    config = final_training_configuration(winner, plan)
     fine = prepare_data(
-        prepared["root"], prepared["dataset"].dataset_dir, plan["final_frame_size"]
-    )
-    config = replace(
-        ExperimentConfig.from_mapping(winner["config"]),
-        height=plan["final_frame_size"],
-        width=plan["final_frame_size"],
-        epochs=plan["final_epochs"],
-        early_stopping_patience=plan["final_epochs"],
+        prepared["root"],
+        prepared["dataset"].dataset_dir,
+        config.height,
+        sequence_length=config.sequence_length,
     )
     result = train_notebook_model(
         fine, config, winner["name"] + "-longer", LiveCurves()
@@ -283,13 +385,7 @@ def final_evaluate(prepared, screen_dir):
     result = frozen["result"]
     run = _read(Path(result["run_dir"]) / "run.json")
     config = result["config"]
-    expected = dict(
-        winner["config"],
-        height=plan["final_frame_size"],
-        width=plan["final_frame_size"],
-        epochs=plan["final_epochs"],
-        early_stopping_patience=plan["final_epochs"],
-    )
+    expected = final_training_configuration(winner, plan).to_dict()
     if (
         frozen["winner"] != winner["name"]
         or config != expected

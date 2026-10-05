@@ -125,6 +125,7 @@ def test_ablation_plan_changes_one_factor(prepared):
         coverage_fps=[4, 8, 16],
         dropout_trials=[0, 0.5],
         weight_decay_trials=[0, 0.001],
+        spatial_sizes=[config["height"], 12, 16],
     )
     for variant in suite.ablation_trials(plan, custom):
         changed = [key for key in config if config[key] != variant["config"][key]]
@@ -133,6 +134,10 @@ def test_ablation_plan_changes_one_factor(prepared):
         elif variant["name"].startswith("dropout"):
             assert not changed and variant["fps"] == 8
             assert {k for k in spec if spec[k] != variant["model"][k]} == {"dropout"}
+        elif variant["name"].startswith("spatial"):
+            assert set(changed) == {"height", "width"}
+            assert variant["config"]["height"] == variant["config"]["width"]
+            assert variant["model"] == spec and variant["fps"] == 8
         else:
             assert (
                 changed == ["weight_decay"]
@@ -164,6 +169,10 @@ def test_audit_never_reads_test_and_tiny_diagnostics(prepared, monkeypatch):
 
 
 def _small_suite(monkeypatch):
+    monkeypatch.setattr(settings, "SUITE_SCREEN_EPOCHS", 1)
+    monkeypatch.setattr(settings, "SUITE_FINAL_EPOCHS", 2)
+    monkeypatch.setattr(settings, "SUITE_FINAL_FRAME_SIZE", 12)
+    monkeypatch.setattr(settings, "SUITE_SPATIAL_SIZES", (8, 12, 16))
     monkeypatch.setattr(
         suite,
         "candidate_specs",
@@ -225,7 +234,7 @@ def test_full_suite_freeze_and_saved_display_recovery(prepared, monkeypatch):
     monkeypatch.setattr(suite, "show_predictions", lambda *args: None)
     report = suite.final_evaluate(fine, directory)
     assert len(report["rows"]) == 4
-    assert "previously_inspected" in report["evidence_role"]
+    assert "not_independent_paper_evidence" in report["evidence_role"]
     assert len(report["examples"]) == min(5, len(fine["test"]))
     with pytest.raises(ValueError, match="Already frozen"):
         suite.train_winner(prepared, directory)

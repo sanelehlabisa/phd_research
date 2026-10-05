@@ -24,7 +24,18 @@ from .notebook_workflows import _read, _sha, configuration, load_checkpoint
 from .train import train_notebook_model
 from .utils import RunContext, write_json
 
-EVIDENCE = "exploratory_diagnostic_previously_inspected_test"
+EVIDENCE = "exploratory_diagnostic_not_independent_paper_evidence"
+
+
+def prepare_experiment_data(root, dataset_root=None):
+    """Use suite inputs without changing the preview/single-model defaults."""
+    return prepare_data(
+        root,
+        dataset_root,
+        settings.SUITE_FRAME_SIZE,
+        sequence_length=settings.SUITE_SEQUENCE_LENGTH,
+        target_fps=settings.SUITE_TARGET_FPS,
+    )
 
 
 def candidate_specs(root):
@@ -42,8 +53,8 @@ def candidate_specs(root):
 
 
 def suite_plan(prepared):
-    config = configuration(prepared, settings.SCREEN_EPOCHS).to_dict()
-    return dict(
+    config = configuration(prepared, settings.SUITE_SCREEN_EPOCHS).to_dict()
+    plan = dict(
         schema=1,
         evidence_role=EVIDENCE,
         candidates=candidate_specs(prepared["root"]),
@@ -57,56 +68,114 @@ def suite_plan(prepared):
         coverage_fps=list(settings.TEMPORAL_FPS),
         dropout_trials=[0.0, 0.5],
         weight_decay_trials=[0.0, 0.001],
+        spatial_sizes=list(settings.SUITE_SPATIAL_SIZES),
         seeds=list(settings.CONFIRMATION_SEEDS),
-        final_epochs=settings.FINAL_EPOCHS,
-        final_size=settings.FINAL_FRAME_SIZE,
+        final_epochs=settings.SUITE_FINAL_EPOCHS,
+        final_size=settings.SUITE_FINAL_FRAME_SIZE,
         hours=settings.SUITE_HOURS,
         paper_minutes=settings.PAPER_MAX_MINUTES,
         selection="validation macro-F1, accuracy, parameter count, name; never test",
         confirmation="selected custom plus all three practical baselines, identical inputs/budgets, both seeds",
         paper="separate native 50-frame/50x50 topology; dataset-specific head; not a faithful training-protocol reproduction",
     )
+    reference = dict(
+        config=config,
+        model_spec=dict(
+            name="custom",
+            layers=config["convlstm_layers"],
+            dropout=settings.NOTEBOOK_DROPOUT,
+        ),
+    )
+    counts = dict(
+        screen=len(plan["candidates"]),
+        one_factor=len(ablation_trials(plan, reference)),
+        native_attempt=1,
+        confirmation=(1 + len(BASELINES)) * len(plan["seeds"]),
+    )
+    plan["run_counts"] = dict(counts, total=sum(counts.values()), tiny_checks=1)
+    return plan
 
 
 def show_experiment_plan(prepared):
     plan = suite_plan(prepared)
+    config = plan["screen_config"]
     rows = []
     for name, spec in plan["candidates"].items():
         with torch.device("meta"):
             model = build_model(
                 spec,
                 prepared["dataset"].num_classes,
-                (3, settings.FRAME_SIZE, settings.FRAME_SIZE),
-                settings.SEQUENCE_LENGTH,
+                (3, config["height"], config["width"]),
+                config["sequence_length"],
             )
         rows.append(
             dict(
                 candidate=name,
                 parameters=count_trainable_parameters(model),
-                frames=settings.SEQUENCE_LENGTH,
-                fps=settings.TARGET_FPS,
-                resolution=settings.FRAME_SIZE,
-                epochs=settings.SCREEN_EPOCHS,
+                frames=config["sequence_length"],
+                fps=plan["data_identity"]["target_fps"],
+                resolution=config["height"],
+                epochs=config["epochs"],
             )
         )
     display(pd.DataFrame(rows))
+    reference = dict(
+        config=config,
+        model_spec=dict(
+            name="custom",
+            layers=config["convlstm_layers"],
+            dropout=settings.NOTEBOOK_DROPOUT,
+        ),
+    )
+    variants = ablation_trials(plan, reference)
+    display(
+        pd.DataFrame(
+            [
+                dict(
+                    name=v["name"],
+                    resolution=v["config"]["height"],
+                    fps=v["fps"],
+                    weight_decay=v["config"]["weight_decay"],
+                    dropout=v["model"].get("dropout"),
+                    epochs=v["config"]["epochs"],
+                )
+                for v in variants
+            ]
+        )
+    )
+    confirmation_count = (1 + len(BASELINES)) * len(plan["seeds"])
+    print(
+        f"Planned training runs: {len(rows)} screen + {len(variants)} one-factor "
+        f"+ 1 separate native attempt + {confirmation_count} confirmation = "
+        f"{len(rows) + len(variants) + 1 + confirmation_count}; plus the tiny check. "
+        "The compute deadline may leave this plan incomplete."
+    )
     print(
         f"Audit → tiny overfit → {len(rows)} candidates → one-factor comparisons → separate native paper model → two-seed confirmation → frozen exploratory test."
     )
     print(
-        f"Compute cap: {settings.SUITE_HOURS} hours (checked between batches). No accuracy guarantee; test previously inspected."
+        f"Compute cap: {plan['hours']} hours (checked between batches). No accuracy guarantee; exploratory evidence only."
     )
     return plan
 
 
 def _data(prepared, config, fps):
-    return prepare_data(
+    view = prepare_data(
         prepared["root"],
         prepared["dataset"].dataset_dir,
         config.height,
         sequence_length=config.sequence_length,
         target_fps=fps,
     )
+    expected = dict(
+        data_identity(prepared),
+        frame_size=[config.height, config.width],
+        sequence_length=config.sequence_length,
+        target_fps=fps,
+    )
+    if data_identity(view) != expected:
+        raise ValueError("Input view changed source, labels, preprocessing or split")
+    return view
 
 
 def _trial(prepared, name, spec, config, deadline):
@@ -180,6 +249,16 @@ def ablation_trials(plan, custom):
                 base_fps,
             )
         )
+    for size in plan["spatial_sizes"]:
+        if size != base.height:
+            trials.append(
+                (
+                    f"spatial-{size}",
+                    custom["model_spec"],
+                    replace(base, height=size, width=size),
+                    base_fps,
+                )
+            )
     return [dict(name=n, model=s, config=c.to_dict(), fps=f) for n, s, c, f in trials]
 
 
@@ -216,7 +295,7 @@ def _native_trial(prepared, plan, directory, deadline):
     else:
         try:
             result = _trial(
-                _data(prepared, config, settings.TARGET_FPS),
+                _data(prepared, config, plan["data_identity"]["target_fps"]),
                 "paper-native",
                 spec,
                 config,
@@ -354,7 +433,11 @@ def checked_screen(prepared, directory):
         raise ValueError("Ablation reference differs from screen")
     for variant in declared:
         result = by_name[variant["name"]]
-        identity = dict(plan["data_identity"], target_fps=variant["fps"])
+        identity = dict(
+            plan["data_identity"],
+            target_fps=variant["fps"],
+            frame_size=[variant["config"]["height"], variant["config"]["width"]],
+        )
         if (
             result["config"] != variant["config"]
             or result["model_spec"] != variant["model"]
@@ -391,6 +474,17 @@ def confirmation_ranking(results):
     )
 
 
+def confirmation_configuration(plan, reference):
+    """Declare longer matched confirmation without shrinking the selected input."""
+    return replace(
+        ExperimentConfig.from_mapping(reference["config"]),
+        height=max(plan["final_size"], reference["config"]["height"]),
+        width=max(plan["final_size"], reference["config"]["width"]),
+        epochs=plan["final_epochs"],
+        early_stopping_patience=plan["final_epochs"],
+    )
+
+
 def train_winner(prepared, directory):
     directory = Path(directory)
     if (directory / "frozen.json").exists():
@@ -400,13 +494,7 @@ def train_winner(prepared, directory):
     plan, screen = checked_screen(prepared, directory)
     deadline = _read(directory / "budget.json")["deadline"]
     reference = screen["reference"]
-    base = replace(
-        ExperimentConfig.from_mapping(reference["config"]),
-        height=plan["final_size"],
-        width=plan["final_size"],
-        epochs=plan["final_epochs"],
-        early_stopping_patience=plan["final_epochs"],
-    )
+    base = confirmation_configuration(plan, reference)
     fine = _data(prepared, base, reference["data_identity"]["target_fps"])
     specs = dict(
         custom_selected=reference["model_spec"], **{n: dict(name=n) for n in BASELINES}
@@ -486,13 +574,7 @@ def _checked_confirmation(prepared, directory):
         raise ValueError("Confirmation evidence/data changed")
     results = frozen["results"]
     reference = screen["reference"]
-    config = replace(
-        ExperimentConfig.from_mapping(reference["config"]),
-        height=plan["final_size"],
-        width=plan["final_size"],
-        epochs=plan["final_epochs"],
-        early_stopping_patience=plan["final_epochs"],
-    )
+    config = confirmation_configuration(plan, reference)
     specs = dict(
         custom_selected=reference["model_spec"], **{n: dict(name=n) for n in BASELINES}
     )
@@ -602,7 +684,7 @@ def final_evaluate(prepared, directory):
             examples=examples,
             winner=frozen["winner"],
             evidence_role=EVIDENCE,
-            limitation="Previously inspected Kinetics/VDD test: not a new independent final holdout",
+            limitation="Diagnostic split, not independent paper evidence; prior Kinetics-400/VDD test feedback must not be treated as a fresh holdout",
         )
         write_json(report_path, report)
         pd.DataFrame(rows).to_csv(directory / "test_exploratory.csv", index=False)
