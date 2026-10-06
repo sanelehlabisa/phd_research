@@ -211,6 +211,11 @@ def train_notebook_model(
             "determinism": deterministic,
         },
     )
+    if prepared.get("suite_run_dir") is not None:
+        run_directory = Path(run.run_dir)
+        if not run_directory.is_absolute():
+            run_directory = Path(prepared["root"]) / run_directory
+        prepared.setdefault("suite_train_run_dirs", []).append(run_directory)
     config.save_json(run.run_dir / "config.json")
     write_json(run.run_dir / "split.json", prepared["split"])
     model_spec = model_spec or dict(

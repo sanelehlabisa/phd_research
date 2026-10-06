@@ -2,7 +2,10 @@
 
 import copy
 import json
+import sys
 import time
+import types
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -238,6 +241,14 @@ def test_full_suite_freeze_and_saved_display_recovery(prepared, monkeypatch):
     assert len(report["examples"]) == min(5, len(fine["test"]))
     with pytest.raises(ValueError, match="Already frozen"):
         suite.train_winner(prepared, directory)
+    archive_path = suite.create_suite_artifact_archive(prepared, directory)
+    with zipfile.ZipFile(archive_path) as archive:
+        names = set(archive.namelist())
+    for run_dir in prepared["suite_train_run_dirs"]:
+        prefix = f"{Path(run_dir).relative_to(prepared['root'])}/"
+        assert f"{prefix}config.json" in names
+        assert f"{prefix}history.json" in names
+        assert any(name.startswith(prefix + "checkpoints/") for name in names)
 
 
 def test_budget_and_tiny_failure_prevent_screen(prepared, monkeypatch):
@@ -250,6 +261,10 @@ def test_budget_and_tiny_failure_prevent_screen(prepared, monkeypatch):
         suite.run_screen(prepared)
     runs = list((prepared["root"] / "runs/experiments").glob("*/run.json"))
     assert json.loads(runs[-1].read_text())["status"] == "partial"
+    archive_path = suite.create_suite_artifact_archive(prepared)
+    with zipfile.ZipFile(archive_path) as archive:
+        assert any(name.endswith("/plan.json") for name in archive.namelist())
+        assert any(name.endswith("/run.json") for name in archive.namelist())
     monkeypatch.setattr(settings, "SUITE_HOURS", 8)
     monkeypatch.setattr(suite, "audit_sources", lambda *args: [])
     monkeypatch.setattr(
@@ -259,3 +274,91 @@ def test_budget_and_tiny_failure_prevent_screen(prepared, monkeypatch):
     )
     with pytest.raises(ValueError, match="tiny failure"):
         suite.run_screen(prepared)
+
+
+def test_suite_artifact_archive_contains_only_current_suite_and_models(tmp_path):
+    root = tmp_path / "implementation"
+    suite_dir = root / "runs/experiments/current-suite"
+    train_dir = root / "runs/train/current-model"
+    old_train_dir = root / "runs/train/older-model"
+    dataset_dir = root / "datasets/source-videos"
+    for directory in (suite_dir, train_dir, old_train_dir, dataset_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+    (suite_dir / "plan.json").write_text("{}", encoding="utf-8")
+    (suite_dir / "summary.csv").write_text("model,accuracy\n", encoding="utf-8")
+    (train_dir / "config.json").write_text("{}", encoding="utf-8")
+    (train_dir / "history.json").write_text("[]", encoding="utf-8")
+    (train_dir / "loss_curve.png").write_bytes(b"curve")
+    (train_dir / "best_model.pth").write_bytes(b"weights")
+    (old_train_dir / "old.json").write_text("{}", encoding="utf-8")
+    (dataset_dir / "source.mp4").write_bytes(b"dataset")
+    prepared = {
+        "root": root,
+        "suite_run_dir": suite_dir,
+        "suite_train_run_dirs": [train_dir],
+    }
+
+    archive_path = suite.create_suite_artifact_archive(prepared)
+
+    with zipfile.ZipFile(archive_path) as archive:
+        names = set(archive.namelist())
+    assert "runs/experiments/current-suite/plan.json" in names
+    assert "runs/train/current-model/config.json" in names
+    assert "runs/train/current-model/history.json" in names
+    assert "runs/train/current-model/loss_curve.png" in names
+    assert "runs/train/current-model/best_model.pth" in names
+    assert not any("older-model" in name for name in names)
+    assert not any("source-videos" in name for name in names)
+    assert suite_dir.joinpath("plan.json").is_file()
+    assert train_dir.joinpath("best_model.pth").is_file()
+
+
+def test_suite_data_views_share_registered_model_runs(prepared):
+    prepared["suite_run_dir"] = prepared["root"] / "runs/experiments/current-suite"
+    prepared["suite_train_run_dirs"] = [Path("runs/train/current-model")]
+    config = suite.configuration(prepared, settings.SUITE_SCREEN_EPOCHS)
+
+    view = suite._data(prepared, config, prepared["dataset"].target_fps)
+
+    assert view["suite_run_dir"] == prepared["suite_run_dir"]
+    assert view["suite_train_run_dirs"] is prepared["suite_train_run_dirs"]
+
+
+def test_suite_artifact_download_uses_colab_browser(tmp_path, monkeypatch):
+    root = tmp_path / "implementation"
+    suite_dir = root / "runs/experiments/current-suite"
+    suite_dir.mkdir(parents=True)
+    (suite_dir / "plan.json").write_text("{}", encoding="utf-8")
+    downloaded = []
+    google_module = types.ModuleType("google")
+    colab_module = types.ModuleType("google.colab")
+    files_module = types.ModuleType("google.colab.files")
+    files_module.download = downloaded.append
+    colab_module.files = files_module
+    google_module.colab = colab_module
+    monkeypatch.setitem(sys.modules, "google", google_module)
+    monkeypatch.setitem(sys.modules, "google.colab", colab_module)
+    monkeypatch.setitem(sys.modules, "google.colab.files", files_module)
+
+    archive_path = suite.download_suite_artifacts(
+        {"root": root, "suite_run_dir": suite_dir}, suite_dir
+    )
+
+    assert downloaded == [str(archive_path)]
+    assert archive_path.is_file()
+
+
+def test_experiment_notebook_cells_download_even_after_budget_timeout():
+    notebook_path = (
+        Path(__file__).resolve().parents[1]
+        / "notebooks/04_run_experiments.ipynb"
+    )
+    notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+    cells = notebook["cells"]
+    for index in (4, 6, 8):
+        source = "".join(cells[index]["source"])
+        compile(source, f"notebook cell {index}", "exec")
+        assert "except TimeoutError" in source
+    assert "download_suite_artifacts(prepared, screen_dir)" in "".join(
+        cells[8]["source"]
+    )

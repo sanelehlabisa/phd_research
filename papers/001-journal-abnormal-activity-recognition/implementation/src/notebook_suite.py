@@ -4,6 +4,7 @@ import gc
 import json
 import statistics
 import time
+import zipfile
 from dataclasses import replace
 from pathlib import Path
 
@@ -167,6 +168,9 @@ def _data(prepared, config, fps):
         sequence_length=config.sequence_length,
         target_fps=fps,
     )
+    if prepared.get("suite_run_dir") is not None:
+        view["suite_run_dir"] = prepared["suite_run_dir"]
+        view["suite_train_run_dirs"] = prepared["suite_train_run_dirs"]
     expected = dict(
         data_identity(prepared),
         frame_size=[config.height, config.width],
@@ -329,6 +333,8 @@ def run_screen(prepared):
         {"evidence_role": EVIDENCE},
     )
     directory = context.run_dir
+    prepared["suite_run_dir"] = directory
+    prepared["suite_train_run_dirs"] = []
     deadline = time.time() + plan["hours"] * 3600
     write_json(directory / "plan.json", plan)
     write_json(directory / "budget.json", dict(deadline=deadline, started=time.time()))
@@ -386,6 +392,51 @@ def run_screen(prepared):
             flush=True,
         )
         raise
+
+
+def create_suite_artifact_archive(prepared, directory=None):
+    """Bundle the current suite and its registered model-run artifacts."""
+    root = Path(prepared["root"]).resolve()
+    runs_root = (root / "runs").resolve()
+    suite_dir = Path(
+        directory or prepared.get("suite_run_dir") or ""
+    ).resolve()
+    experiments_root = (runs_root / "experiments").resolve()
+    if not suite_dir.is_relative_to(experiments_root) or not suite_dir.is_dir():
+        raise ValueError("A current experiment-suite directory is required")
+
+    run_dirs = [suite_dir]
+    train_root = (runs_root / "train").resolve()
+    for run_dir in prepared.get("suite_train_run_dirs", []):
+        candidate = Path(run_dir)
+        if not candidate.is_absolute():
+            candidate = root / candidate
+        candidate = candidate.resolve()
+        if candidate.is_relative_to(train_root) and candidate.is_dir():
+            run_dirs.append(candidate)
+
+    archive_path = runs_root / "exports" / f"{suite_dir.name}_artifacts.zip"
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(
+        archive_path, mode="w", compression=zipfile.ZIP_DEFLATED
+    ) as archive:
+        for run_dir in run_dirs:
+            for artifact in sorted(run_dir.rglob("*")):
+                if artifact.is_file():
+                    archive.write(artifact, artifact.relative_to(root))
+    return archive_path
+
+
+def download_suite_artifacts(prepared, directory=None):
+    """Create one suite ZIP and trigger its Colab browser download."""
+    archive_path = create_suite_artifact_archive(prepared, directory)
+    try:
+        from google.colab import files
+    except ImportError:
+        print(f"Artifact archive saved at {archive_path}; Colab download unavailable.")
+    else:
+        files.download(str(archive_path))
+    return archive_path
 
 
 def checked_screen(prepared, directory):

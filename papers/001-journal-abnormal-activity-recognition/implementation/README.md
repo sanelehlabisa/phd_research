@@ -140,6 +140,12 @@ notebook outputs describe earlier VDD/Kinetics-400 runs.
 | [03 Training](notebooks/03_train_model.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
 | [04 Experiments](notebooks/04_run_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
 
+Notebook 04 creates one ZIP for its current suite and triggers a Colab browser
+download after completion or a handled time-budget timeout. It includes run and
+per-model configs, histories, metrics, plots, checkpoints, and generated
+predictions; source datasets are excluded. Original run folders remain under
+`runs/`. The download needs the Colab notebook session to reach its final cell.
+
 Notebooks 03/04 have fresh filenames to work around VS Code's logged
 `notebook controller is DISPOSED` error: copies ran while the old paths did not.
 Their cells, metadata and saved outputs are preserved. Close the old tabs, open
