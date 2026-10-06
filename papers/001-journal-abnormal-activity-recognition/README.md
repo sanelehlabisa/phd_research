@@ -68,9 +68,7 @@ reference architecture for ablation.
 - [x] `020-expand-controlled-experiments` — prepared the approved 11-model
   screen, practical-baseline confirmation, separate published topology, and
   one-factor weight-decay, augmentation, spatial-size, and sequence ablations.
-- [ ] `021-optional-cloud-architecture-expansion` — **Next decision, before screening:**
-  optionally add the complete predeclared five-model block when a Colab timing
-  check shows sufficient runtime.
+- [x] [`021-optional-cloud-architecture-expansion`](../../agents/work/021-optional-cloud-architecture-expansion/prompt.md) — **Skipped:** retain the eleven-candidate screen; no optional five-model block.
 - [x] `022-interactive-notebook-foundation` — simplified the Colab VS Code
   setup and displayed AAD metadata, balance, training frames, and augmentation.
 - [x] `023-interactive-model-inspection` — added playable native, model-ready,
@@ -78,7 +76,7 @@ reference architecture for ablation.
   random-weight GPU check.
 - [x] `024-notebook-experiment-workflow` — added guarded single-stage execution
   and visual validation-only result inspection to the Colab notebook.
-- [ ] `035-vdd-learnability-check` — **Next diagnostic:** verify that the current
+- [ ] `035-vdd-learnability-check` — **Blocked diagnostic:** verify that the current
   model and optimizer can overfit a tiny balanced VDD subset, then run one
   bounded VDD train/validation check before resuming expensive AAD experiments.
 - [ ] `036-kinetics-subset-audit` — inventory the available Kinetics copy and
@@ -95,7 +93,8 @@ reference architecture for ablation.
 - [x] [`040-kinetics-interest-filter`](../../agents/work/040-kinetics-interest-filter/prompt.md) — shared interests, Kinetics-only filtering and selective downloads; VDD results preserved, test access guarded.
 - [x] [`041-learning-and-temporal-diagnostics`](../../agents/work/041-learning-and-temporal-diagnostics/prompt.md) — implemented and locally verified: gentle scheduling, temporal audit, 14-model screen, separate native topology and two-seed confirmation under an eight-hour cap. GPU run pending; existing Kinetics test is exploratory, not fresh paper evidence.
 - [x] [`041-larger-kinetics-diagnostic`](../../agents/work/041-larger-kinetics-diagnostic/prompt.md) — added selective Kinetics-600 downloads, source-video grouped splits and a more-than-2,000 unique-clip gate. Actual archive count awaits the first Colab preparation.
-- [ ] `025-run-controlled-aad-experiments` — run the architecture screen,
+- [x] [`046-separate-aad-screen-config`](../../agents/work/046-separate-aad-screen-config/prompt.md) — separated the fixed 24-epoch AAD screen from the local longer-training profile.
+- [ ] [`025-run-controlled-aad-experiments`](../../agents/work/025-run-controlled-aad-experiments/prompt.md) — **Next:** run the architecture screen,
   baselines, published topology, and one-factor ablations; select by validation.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,
   input size, augmentation, and regularisation across both planned seeds.

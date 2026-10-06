@@ -9,6 +9,9 @@
   - local ignored `runs/experiments/` evidence
   - concise Paper 001 and implementation status notes
 - Changes:
+  - Use the fixed 24-epoch screening profile from ticket 020; reserve 64 epochs
+    for the later selected-model training ticket. Do not use a longer local
+    training profile for candidate screening.
   - Execute only after ticket 024 is complete and the ticket-021 supplemental
     candidate-block decision is recorded before screening.
   - Run the complete architecture screen with the fixed split, seed, 24-epoch
@@ -42,8 +45,9 @@
 - Out of scope:
   - Final test evaluation, VDD, unplanned hyperparameter grids, Kinetics,
     manuscript rewriting, or committing generated datasets/checkpoints/runs.
-- Open questions: None. Ticket 021 must be explicitly completed or skipped
-  before this ticket starts.
+- Open questions: `None`. Ticket 021 is recorded as skipped; ticket 046 must
+  first separate the fixed screening profile from the user's local longer-run
+  configuration.
 - Verification:
   - Validate the plan and list exact commands before execution.
   - Inspect every produced run manifest and validation-only summary.

@@ -11,8 +11,8 @@
     "best_validation_loss": 1.3645338535308837,
     "selected_epoch": 122,
     "patience": 16,
-    "epochs_without_improvement": 3,
-    "actual_epochs": 125,
+    "epochs_without_improvement": 6,
+    "actual_epochs": 128,
     "stopped_early": false,
     "stop_reason": "maximum_epochs_completed"
   },
@@ -2389,6 +2389,63 @@
         "macro_precision": 0.33692625164985657,
         "macro_recall": 0.4395323395729065,
         "macro_f1": 0.3626071810722351
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 126,
+      "learning_rate": 0.0016200000000000001,
+      "training_metrics": {
+        "loss": 1.4479065802008073,
+        "accuracy": 0.3582887649536133,
+        "macro_precision": 0.2824629545211792,
+        "macro_recall": 0.3295980989933014,
+        "macro_f1": 0.27133306860923767
+      },
+      "validation_metrics": {
+        "loss": 1.4290066003799438,
+        "accuracy": 0.33125001192092896,
+        "macro_precision": 0.21870669722557068,
+        "macro_recall": 0.2928825914859772,
+        "macro_f1": 0.20770220458507538
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 127,
+      "learning_rate": 0.0016200000000000001,
+      "training_metrics": {
+        "loss": 1.4958128323529494,
+        "accuracy": 0.3449198007583618,
+        "macro_precision": 0.29009097814559937,
+        "macro_recall": 0.3143129348754883,
+        "macro_f1": 0.259432315826416
+      },
+      "validation_metrics": {
+        "loss": 1.413265585899353,
+        "accuracy": 0.4000000059604645,
+        "macro_precision": 0.32198795676231384,
+        "macro_recall": 0.37341436743736267,
+        "macro_f1": 0.3018868863582611
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 128,
+      "learning_rate": 0.0016200000000000001,
+      "training_metrics": {
+        "loss": 1.4594455147809524,
+        "accuracy": 0.36631014943122864,
+        "macro_precision": 0.3015010952949524,
+        "macro_recall": 0.3374410569667816,
+        "macro_f1": 0.278044730424881
+      },
+      "validation_metrics": {
+        "loss": 1.3730709552764893,
+        "accuracy": 0.4625000059604645,
+        "macro_precision": 0.33121258020401,
+        "macro_recall": 0.43137380480766296,
+        "macro_f1": 0.35381630063056946
       },
       "selected_checkpoint": false
     }

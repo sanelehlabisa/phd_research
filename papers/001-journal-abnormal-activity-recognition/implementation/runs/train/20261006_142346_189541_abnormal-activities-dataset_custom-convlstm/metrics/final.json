@@ -1,0 +1,56 @@
+{
+  "evaluated_model": "validation_selected_checkpoint",
+  "partition": "validation",
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "macro"
+  },
+  "validation_metrics": {
+    "loss": 1.3645338535308837,
+    "accuracy": 0.44999998807907104,
+    "macro_precision": 0.32262617349624634,
+    "macro_recall": 0.416116327047348,
+    "macro_f1": 0.33632591366767883
+  },
+  "checkpoint_selection": {
+    "checkpoint_role": "validation_selected_lowest_loss",
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_value": 1.3645338535308837,
+    "selected_epoch": 122,
+    "dataset_name": "abnormal-activities-dataset",
+    "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "seed": 42,
+    "metric_protocol": {
+      "loss_aggregation": "sample_weighted_mean",
+      "classification_aggregation": "full_partition",
+      "precision_recall_f1_average": "macro"
+    },
+    "early_stopping": {
+      "selection_partition": "validation",
+      "selection_metric": "loss",
+      "selection_mode": "min",
+      "best_validation_loss": 1.3645338535308837,
+      "selected_epoch": 122,
+      "patience": 16,
+      "epochs_without_improvement": 6,
+      "actual_epochs": 128,
+      "stopped_early": false,
+      "stop_reason": "maximum_epochs_completed"
+    }
+  },
+  "early_stopping": {
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_mode": "min",
+    "best_validation_loss": 1.3645338535308837,
+    "selected_epoch": 122,
+    "patience": 16,
+    "epochs_without_improvement": 6,
+    "actual_epochs": 128,
+    "stopped_early": false,
+    "stop_reason": "maximum_epochs_completed"
+  },
+  "test_access": "locked"
+}

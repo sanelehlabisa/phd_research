@@ -25,7 +25,9 @@ VS Code notebook controllers; use the links in the implementation guide above.
 Notebook-only helpers now live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Ticket
 [045](agents/work/045-stabilize-colab-script-runtime/prompt.md) hardens the
-exported one-cell Colab runtime.
+exported one-cell Colab runtime. Next is [ticket
+025](agents/work/025-run-controlled-aad-experiments/prompt.md), after the
+screening configuration is safely separated from the local training profile.
 
 ## Structure
 

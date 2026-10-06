@@ -70,7 +70,7 @@ List the eleven custom AAD candidates without loading data or allocating models:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --config configs/aad_screening_reference.json \
+  --config configs/aad_architecture_screen_reference.json \
   --candidates-config configs/aad_architecture_candidates.json \
   --list-models
 ```
@@ -567,3 +567,17 @@ to make the plan executable; replace it only with validation-screen evidence
 before confirmation or ablation. The 24-epoch screen and 64-epoch confirmation
 are compute stages, not an epoch ablation. Random-weight inference and the
 512-step learning sanity check remain pipeline checks, not research evidence.
+
+The controlled AAD screen uses `configs/aad_architecture_screen_reference.json`:
+eleven candidates, 16 frames at `32x32`, and a 24-epoch maximum. The separate
+`aad_screening_reference.json` remains a standalone training profile and is not
+read by the controlled plan. Ticket 026 reserves up to 64 epochs for training
+the validation-selected model.
+
+The standalone profile now reproduces the strongest local exploratory run so
+far: custom `[32, 16, 8]`, 16 frames at `64x64`, batch 32, learning rate `0.002`,
+weight decay `0.0001`, and 128 epochs. That run's highest validation accuracy
+was 46.9% at epoch 125; validation loss selected its checkpoint at epoch 122
+(45.0% accuracy). This is a single exploratory result, not a controlled winner
+or a promise of 90% accuracy; keep final selection validation-only and run the
+predeclared comparisons before making claims.

@@ -78,6 +78,7 @@ def _copy_plan_files(tmp_path: Path) -> Path:
     config_dir.mkdir(parents=True)
     for filename in (
         "aad_architecture_candidates.json",
+        "aad_architecture_screen_reference.json",
         "aad_screening_reference.json",
         "aad_confirmation_reference.json",
         "aad_paper_topology_reference.json",
@@ -113,6 +114,37 @@ def test_plan_has_one_factor_trials_and_fixed_learning_rate() -> None:
     )
     assert reference.learning_rate == 0.001
     assert reference.epochs == 64
+
+
+def test_architecture_screen_uses_its_fixed_24_epoch_profile() -> None:
+    """Keep candidate screening independent from a local longer-run config."""
+    plan, manifest = load_controlled_plan(PLAN_PATH)
+    assert plan["screening"]["config"] == (
+        "configs/aad_architecture_screen_reference.json"
+    )
+    screen_path = CONFIG_DIR / "aad_architecture_screen_reference.json"
+    screen = ExperimentConfig.from_json(screen_path)
+
+    assert screen_path.name == "aad_architecture_screen_reference.json"
+    assert len(manifest.candidates) == 11
+    assert screen.epochs == 24
+    assert screen.batch_size == 16
+    assert screen.sequence_length == 16
+    assert (screen.height, screen.width) == (32, 32)
+    assert screen.learning_rate == 0.001
+    assert screen.weight_decay == 0.001
+    assert screen.augment is True
+    assert screen.optimizer == "adam"
+    assert screen.scheduler == "reduce_on_plateau"
+    assert screen.loss == "cross_entropy"
+    assert screen.early_stopping_patience == 10
+    assert screen.seed == screen.split_seed == 42
+    assert (screen.train_ratio, screen.val_ratio, screen.test_ratio) == (
+        0.7,
+        0.15,
+        0.15,
+    )
+    assert screen.split_manifest == "splits/abnormal-activities-dataset_seed42.json"
 
 
 def test_plan_rows_expose_every_controlled_factor() -> None:

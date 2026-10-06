@@ -3,7 +3,7 @@
   "candidate_manifest": "configs/aad_architecture_candidates.json",
   "reference_candidate": "custom_depth_8_8_8",
   "screening": {
-    "config": "configs/aad_screening_reference.json",
+    "config": "configs/aad_architecture_screen_reference.json",
     "model_scope": "all_custom_candidates"
   },
   "confirmation": {

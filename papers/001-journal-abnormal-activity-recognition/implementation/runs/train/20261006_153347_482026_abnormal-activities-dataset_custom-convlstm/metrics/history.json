@@ -1,0 +1,1237 @@
+{
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "macro"
+  },
+  "selection": {
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_mode": "min",
+    "best_validation_loss": 2.0394862413406374,
+    "selected_epoch": 64,
+    "patience": 16,
+    "epochs_without_improvement": 0,
+    "actual_epochs": 64,
+    "stopped_early": false,
+    "stop_reason": "maximum_epochs_completed"
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.43221325415341,
+        "accuracy": 0.10561497509479523,
+        "macro_precision": 0.017744384706020355,
+        "macro_recall": 0.09153663367033005,
+        "macro_f1": 0.026687610894441605
+      },
+      "validation_metrics": {
+        "loss": 2.423902893066406,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 2,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.4238492358814585,
+        "accuracy": 0.09224598854780197,
+        "macro_precision": 0.047659531235694885,
+        "macro_recall": 0.08341202139854431,
+        "macro_f1": 0.04533838853240013
+      },
+      "validation_metrics": {
+        "loss": 2.408538842201233,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 3,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.411151428273655,
+        "accuracy": 0.09625668078660965,
+        "macro_precision": 0.025466639548540115,
+        "macro_recall": 0.08545377850532532,
+        "macro_f1": 0.03191336244344711
+      },
+      "validation_metrics": {
+        "loss": 2.3979133129119874,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 4,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.404184845042101,
+        "accuracy": 0.0989304780960083,
+        "macro_precision": 0.04889471456408501,
+        "macro_recall": 0.09030569344758987,
+        "macro_f1": 0.04564642906188965
+      },
+      "validation_metrics": {
+        "loss": 2.393448281288147,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 5,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.4057843455656327,
+        "accuracy": 0.09090909361839294,
+        "macro_precision": 0.036626461893320084,
+        "macro_recall": 0.08338332176208496,
+        "macro_f1": 0.04260561242699623
+      },
+      "validation_metrics": {
+        "loss": 2.390249013900757,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 6,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.4027280552501984,
+        "accuracy": 0.09625668078660965,
+        "macro_precision": 0.04843740165233612,
+        "macro_recall": 0.08604761213064194,
+        "macro_f1": 0.05048626661300659
+      },
+      "validation_metrics": {
+        "loss": 2.3903348207473756,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 7,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.400904549634393,
+        "accuracy": 0.10160427540540695,
+        "macro_precision": 0.049391668289899826,
+        "macro_recall": 0.08679971843957901,
+        "macro_f1": 0.05480748787522316
+      },
+      "validation_metrics": {
+        "loss": 2.3943633079528808,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 8,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3906084471207887,
+        "accuracy": 0.12032085657119751,
+        "macro_precision": 0.060377541929483414,
+        "macro_recall": 0.10529128462076187,
+        "macro_f1": 0.06891704350709915
+      },
+      "validation_metrics": {
+        "loss": 2.384135699272156,
+        "accuracy": 0.125,
+        "macro_precision": 0.022371584549546242,
+        "macro_recall": 0.10213904082775116,
+        "macro_f1": 0.03556693717837334
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 9,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.40232422135093,
+        "accuracy": 0.10828877240419388,
+        "macro_precision": 0.05246042460203171,
+        "macro_recall": 0.09575066715478897,
+        "macro_f1": 0.061679862439632416
+      },
+      "validation_metrics": {
+        "loss": 2.391891932487488,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 10,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3974572209750904,
+        "accuracy": 0.11497326195240021,
+        "macro_precision": 0.06109052896499634,
+        "macro_recall": 0.10106067359447479,
+        "macro_f1": 0.04327697306871414
+      },
+      "validation_metrics": {
+        "loss": 2.3844171524047852,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 11,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.396895819169315,
+        "accuracy": 0.11497326195240021,
+        "macro_precision": 0.06731022894382477,
+        "macro_recall": 0.09620766341686249,
+        "macro_f1": 0.0629446879029274
+      },
+      "validation_metrics": {
+        "loss": 2.3903905868530275,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 12,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.394783388484608,
+        "accuracy": 0.12299465388059616,
+        "macro_precision": 0.06220442056655884,
+        "macro_recall": 0.10529487580060959,
+        "macro_f1": 0.06328275799751282
+      },
+      "validation_metrics": {
+        "loss": 2.385904335975647,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 13,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.390240860495338,
+        "accuracy": 0.14705882966518402,
+        "macro_precision": 0.07322661578655243,
+        "macro_recall": 0.12362450361251831,
+        "macro_f1": 0.08320391923189163
+      },
+      "validation_metrics": {
+        "loss": 2.3839338779449464,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.009659091010689735,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.01746276207268238
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 14,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3928982574034503,
+        "accuracy": 0.1350267380475998,
+        "macro_precision": 0.06039940565824509,
+        "macro_recall": 0.1165967658162117,
+        "macro_f1": 0.07446272671222687
+      },
+      "validation_metrics": {
+        "loss": 2.3810369968414307,
+        "accuracy": 0.15625,
+        "macro_precision": 0.041035354137420654,
+        "macro_recall": 0.11764706671237946,
+        "macro_f1": 0.04972115904092789
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 15,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.389412712923346,
+        "accuracy": 0.1256684511899948,
+        "macro_precision": 0.05084396153688431,
+        "macro_recall": 0.10331681370735168,
+        "macro_f1": 0.06253938376903534
+      },
+      "validation_metrics": {
+        "loss": 2.3755724906921385,
+        "accuracy": 0.1875,
+        "macro_precision": 0.042030319571495056,
+        "macro_recall": 0.14759358763694763,
+        "macro_f1": 0.06365848332643509
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 16,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.378618172783265,
+        "accuracy": 0.12032085657119751,
+        "macro_precision": 0.07872801274061203,
+        "macro_recall": 0.10197785496711731,
+        "macro_f1": 0.0626588985323906
+      },
+      "validation_metrics": {
+        "loss": 2.368424415588379,
+        "accuracy": 0.125,
+        "macro_precision": 0.04258210211992264,
+        "macro_recall": 0.10614973306655884,
+        "macro_f1": 0.05691783130168915
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 17,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3652133686657257,
+        "accuracy": 0.12299465388059616,
+        "macro_precision": 0.05208997428417206,
+        "macro_recall": 0.10326618701219559,
+        "macro_f1": 0.06505222618579865
+      },
+      "validation_metrics": {
+        "loss": 2.353418159484863,
+        "accuracy": 0.17499999701976776,
+        "macro_precision": 0.03883225470781326,
+        "macro_recall": 0.13850267231464386,
+        "macro_f1": 0.05939996987581253
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 18,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3524360567490685,
+        "accuracy": 0.13636364042758942,
+        "macro_precision": 0.05281951278448105,
+        "macro_recall": 0.11149019747972488,
+        "macro_f1": 0.06181510165333748
+      },
+      "validation_metrics": {
+        "loss": 2.3408183813095094,
+        "accuracy": 0.16875000298023224,
+        "macro_precision": 0.035058751702308655,
+        "macro_recall": 0.13395722210407257,
+        "macro_f1": 0.05497494339942932
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 19,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3549799842630477,
+        "accuracy": 0.14304812252521515,
+        "macro_precision": 0.1057133823633194,
+        "macro_recall": 0.11910627037286758,
+        "macro_f1": 0.08176599442958832
+      },
+      "validation_metrics": {
+        "loss": 2.356196129322052,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.017024792730808258,
+        "macro_recall": 0.0885026752948761,
+        "macro_f1": 0.02783515676856041
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 20,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3560448916838133,
+        "accuracy": 0.11631015688180923,
+        "macro_precision": 0.07217351347208023,
+        "macro_recall": 0.09565760940313339,
+        "macro_f1": 0.0576375275850296
+      },
+      "validation_metrics": {
+        "loss": 2.3466158390045164,
+        "accuracy": 0.19374999403953552,
+        "macro_precision": 0.04779942333698273,
+        "macro_recall": 0.1505347639322281,
+        "macro_f1": 0.06818816810846329
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 21,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3358472324310138,
+        "accuracy": 0.1296791434288025,
+        "macro_precision": 0.07428515702486038,
+        "macro_recall": 0.1116902232170105,
+        "macro_f1": 0.07285862416028976
+      },
+      "validation_metrics": {
+        "loss": 2.3293663024902345,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04928315803408623,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.07201734185218811
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 22,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3216015782585755,
+        "accuracy": 0.15909090638160706,
+        "macro_precision": 0.0828847661614418,
+        "macro_recall": 0.1323516070842743,
+        "macro_f1": 0.08200590312480927
+      },
+      "validation_metrics": {
+        "loss": 2.3150182008743285,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04621212184429169,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06933242082595825
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 23,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3105796811414914,
+        "accuracy": 0.16042780876159668,
+        "macro_precision": 0.11082058399915695,
+        "macro_recall": 0.13234320282936096,
+        "macro_f1": 0.0815260112285614
+      },
+      "validation_metrics": {
+        "loss": 2.3215901494026183,
+        "accuracy": 0.19374999403953552,
+        "macro_precision": 0.047585226595401764,
+        "macro_recall": 0.1505347639322281,
+        "macro_f1": 0.0678684264421463
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 24,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.3096100914287057,
+        "accuracy": 0.14973261952400208,
+        "macro_precision": 0.06322793662548065,
+        "macro_recall": 0.12123353779315948,
+        "macro_f1": 0.06552273035049438
+      },
+      "validation_metrics": {
+        "loss": 2.296588397026062,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.043302591890096664,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06664494425058365
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 25,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.312791585922241,
+        "accuracy": 0.15374331176280975,
+        "macro_precision": 0.05764223635196686,
+        "macro_recall": 0.12834812700748444,
+        "macro_f1": 0.07619647681713104
+      },
+      "validation_metrics": {
+        "loss": 2.2999710917472838,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04765079542994499,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.07060877978801727
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 26,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.288804751666472,
+        "accuracy": 0.15508021414279938,
+        "macro_precision": 0.06053715944290161,
+        "macro_recall": 0.12701919674873352,
+        "macro_f1": 0.07097350805997849
+      },
+      "validation_metrics": {
+        "loss": 2.276674485206604,
+        "accuracy": 0.17499999701976776,
+        "macro_precision": 0.03442129120230675,
+        "macro_recall": 0.13850267231464386,
+        "macro_f1": 0.05480377376079559
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 27,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.29321641590506,
+        "accuracy": 0.1671123057603836,
+        "macro_precision": 0.1029556468129158,
+        "macro_recall": 0.13690567016601562,
+        "macro_f1": 0.07848067581653595
+      },
+      "validation_metrics": {
+        "loss": 2.269053506851196,
+        "accuracy": 0.17499999701976776,
+        "macro_precision": 0.03526170924305916,
+        "macro_recall": 0.13850267231464386,
+        "macro_f1": 0.05571717396378517
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 28,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2740712956311233,
+        "accuracy": 0.17914438247680664,
+        "macro_precision": 0.10503170639276505,
+        "macro_recall": 0.14697909355163574,
+        "macro_f1": 0.08881953358650208
+      },
+      "validation_metrics": {
+        "loss": 2.2678908348083495,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04381590336561203,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06712982803583145
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 29,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2710902015155647,
+        "accuracy": 0.1724599003791809,
+        "macro_precision": 0.15880995988845825,
+        "macro_recall": 0.13940772414207458,
+        "macro_f1": 0.07802778482437134
+      },
+      "validation_metrics": {
+        "loss": 2.263315486907959,
+        "accuracy": 0.20000000298023224,
+        "macro_precision": 0.041560396552085876,
+        "macro_recall": 0.1566844880580902,
+        "macro_f1": 0.06437969952821732
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 30,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2808874188897446,
+        "accuracy": 0.16310159862041473,
+        "macro_precision": 0.08075110614299774,
+        "macro_recall": 0.13372457027435303,
+        "macro_f1": 0.07832784205675125
+      },
+      "validation_metrics": {
+        "loss": 2.2682546854019163,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04494093731045723,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06817623972892761
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 31,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.256042405245776,
+        "accuracy": 0.18449197709560394,
+        "macro_precision": 0.12980061769485474,
+        "macro_recall": 0.14922009408473969,
+        "macro_f1": 0.08456910401582718
+      },
+      "validation_metrics": {
+        "loss": 2.2576502919197083,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04436132311820984,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06763990223407745
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 32,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.270916469594374,
+        "accuracy": 0.16310159862041473,
+        "macro_precision": 0.063962921500206,
+        "macro_recall": 0.13235823810100555,
+        "macro_f1": 0.07254719734191895
+      },
+      "validation_metrics": {
+        "loss": 2.2453050136566164,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.042364902794361115,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06574675440788269
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 33,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2503077601366503,
+        "accuracy": 0.1724599003791809,
+        "macro_precision": 0.10226848721504211,
+        "macro_recall": 0.1395665556192398,
+        "macro_f1": 0.07729817926883698
+      },
+      "validation_metrics": {
+        "loss": 2.251290535926819,
+        "accuracy": 0.20000000298023224,
+        "macro_precision": 0.04112553969025612,
+        "macro_recall": 0.1566844880580902,
+        "macro_f1": 0.06395422667264938
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 34,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2476657915880334,
+        "accuracy": 0.16844919323921204,
+        "macro_precision": 0.07211177796125412,
+        "macro_recall": 0.13403135538101196,
+        "macro_f1": 0.0695662796497345
+      },
+      "validation_metrics": {
+        "loss": 2.2403809309005736,
+        "accuracy": 0.1875,
+        "macro_precision": 0.03455432876944542,
+        "macro_recall": 0.14919786155223846,
+        "macro_f1": 0.05611252784729004
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 35,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.239461189922802,
+        "accuracy": 0.18048128485679626,
+        "macro_precision": 0.08824360370635986,
+        "macro_recall": 0.14535757899284363,
+        "macro_f1": 0.08218400180339813
+      },
+      "validation_metrics": {
+        "loss": 2.2376312375068665,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.08848336338996887,
+        "macro_recall": 0.1612299531698227,
+        "macro_f1": 0.075032077729702
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 36,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2448416393708417,
+        "accuracy": 0.17379678785800934,
+        "macro_precision": 0.16900575160980225,
+        "macro_recall": 0.1389104425907135,
+        "macro_f1": 0.0780773013830185
+      },
+      "validation_metrics": {
+        "loss": 2.206639277935028,
+        "accuracy": 0.21250000596046448,
+        "macro_precision": 0.08727511018514633,
+        "macro_recall": 0.1665775328874588,
+        "macro_f1": 0.0749162882566452
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 37,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.231943426285198,
+        "accuracy": 0.15508021414279938,
+        "macro_precision": 0.05059661716222763,
+        "macro_recall": 0.12319891154766083,
+        "macro_f1": 0.0613686665892601
+      },
+      "validation_metrics": {
+        "loss": 2.191952872276306,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.0384848490357399,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.06184573471546173
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 38,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2126537032305875,
+        "accuracy": 0.17379678785800934,
+        "macro_precision": 0.11373583972454071,
+        "macro_recall": 0.13766823709011078,
+        "macro_f1": 0.07306654751300812
+      },
+      "validation_metrics": {
+        "loss": 2.1962587594985963,
+        "accuracy": 0.22499999403953552,
+        "macro_precision": 0.0735878199338913,
+        "macro_recall": 0.1772727221250534,
+        "macro_f1": 0.0882256031036377
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 39,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2061435589815845,
+        "accuracy": 0.17780748009681702,
+        "macro_precision": 0.07282325625419617,
+        "macro_recall": 0.14142513275146484,
+        "macro_f1": 0.08094718307256699
+      },
+      "validation_metrics": {
+        "loss": 2.2101633548736572,
+        "accuracy": 0.21250000596046448,
+        "macro_precision": 0.0832015797495842,
+        "macro_recall": 0.16657754778862,
+        "macro_f1": 0.09129710495471954
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 40,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1988366058166013,
+        "accuracy": 0.18582887947559357,
+        "macro_precision": 0.1808796226978302,
+        "macro_recall": 0.14802579581737518,
+        "macro_f1": 0.088034987449646
+      },
+      "validation_metrics": {
+        "loss": 2.2473331451416017,
+        "accuracy": 0.18125000596046448,
+        "macro_precision": 0.08705742657184601,
+        "macro_recall": 0.13983957469463348,
+        "macro_f1": 0.06832736730575562
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 41,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.196824567203216,
+        "accuracy": 0.18582887947559357,
+        "macro_precision": 0.06346552073955536,
+        "macro_recall": 0.1458926796913147,
+        "macro_f1": 0.0769026055932045
+      },
+      "validation_metrics": {
+        "loss": 2.169636106491089,
+        "accuracy": 0.22499999403953552,
+        "macro_precision": 0.06689976900815964,
+        "macro_recall": 0.17887701094150543,
+        "macro_f1": 0.09096384793519974
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 42,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.196839602873287,
+        "accuracy": 0.18582887947559357,
+        "macro_precision": 0.06726952642202377,
+        "macro_recall": 0.14557848870754242,
+        "macro_f1": 0.07613630592823029
+      },
+      "validation_metrics": {
+        "loss": 2.1822449564933777,
+        "accuracy": 0.21250000596046448,
+        "macro_precision": 0.07126849889755249,
+        "macro_recall": 0.16657754778862,
+        "macro_f1": 0.08553997427225113
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 43,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.190869753373498,
+        "accuracy": 0.18449197709560394,
+        "macro_precision": 0.06698378175497055,
+        "macro_recall": 0.14539869129657745,
+        "macro_f1": 0.07987085729837418
+      },
+      "validation_metrics": {
+        "loss": 2.1686707139015198,
+        "accuracy": 0.1875,
+        "macro_precision": 0.037537772208452225,
+        "macro_recall": 0.14759358763694763,
+        "macro_f1": 0.059845007956027985
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 44,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.198814219969479,
+        "accuracy": 0.16978609561920166,
+        "macro_precision": 0.058903008699417114,
+        "macro_recall": 0.1343248188495636,
+        "macro_f1": 0.07176336646080017
+      },
+      "validation_metrics": {
+        "loss": 2.176762056350708,
+        "accuracy": 0.20624999701976776,
+        "macro_precision": 0.04163895547389984,
+        "macro_recall": 0.1612299382686615,
+        "macro_f1": 0.0656394436955452
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 45,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.189476200603546,
+        "accuracy": 0.18315507471561432,
+        "macro_precision": 0.0662480816245079,
+        "macro_recall": 0.14281874895095825,
+        "macro_f1": 0.07409810274839401
+      },
+      "validation_metrics": {
+        "loss": 2.174464476108551,
+        "accuracy": 0.19374999403953552,
+        "macro_precision": 0.05710549280047417,
+        "macro_recall": 0.1505347639322281,
+        "macro_f1": 0.07604590058326721
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 46,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1850917632567053,
+        "accuracy": 0.20454545319080353,
+        "macro_precision": 0.07126633822917938,
+        "macro_recall": 0.16147710382938385,
+        "macro_f1": 0.08705976605415344
+      },
+      "validation_metrics": {
+        "loss": 2.1543174266815184,
+        "accuracy": 0.21250000596046448,
+        "macro_precision": 0.05993761122226715,
+        "macro_recall": 0.16978611052036285,
+        "macro_f1": 0.08558013290166855
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 47,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.199790153911407,
+        "accuracy": 0.18315507471561432,
+        "macro_precision": 0.06174319237470627,
+        "macro_recall": 0.14361995458602905,
+        "macro_f1": 0.07671389728784561
+      },
+      "validation_metrics": {
+        "loss": 2.2014385223388673,
+        "accuracy": 0.20000000298023224,
+        "macro_precision": 0.06669372320175171,
+        "macro_recall": 0.1558823585510254,
+        "macro_f1": 0.0826357752084732
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 48,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.173008239205508,
+        "accuracy": 0.18983957171440125,
+        "macro_precision": 0.06636083871126175,
+        "macro_recall": 0.14946061372756958,
+        "macro_f1": 0.08253870159387589
+      },
+      "validation_metrics": {
+        "loss": 2.1780566811561584,
+        "accuracy": 0.20000000298023224,
+        "macro_precision": 0.06951871514320374,
+        "macro_recall": 0.1558823585510254,
+        "macro_f1": 0.0829441249370575
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 49,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.161062351522599,
+        "accuracy": 0.1925133615732193,
+        "macro_precision": 0.05512259155511856,
+        "macro_recall": 0.14981672167778015,
+        "macro_f1": 0.07302941381931305
+      },
+      "validation_metrics": {
+        "loss": 2.1965960264205933,
+        "accuracy": 0.20000000298023224,
+        "macro_precision": 0.05115630105137825,
+        "macro_recall": 0.16069519519805908,
+        "macro_f1": 0.075705386698246
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 50,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.153942308323906,
+        "accuracy": 0.20721925795078278,
+        "macro_precision": 0.059320949018001556,
+        "macro_recall": 0.16263440251350403,
+        "macro_f1": 0.0834040641784668
+      },
+      "validation_metrics": {
+        "loss": 2.140090012550354,
+        "accuracy": 0.21875,
+        "macro_precision": 0.07692692428827286,
+        "macro_recall": 0.1719251424074173,
+        "macro_f1": 0.0947495847940445
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 51,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1504392713148963,
+        "accuracy": 0.19117647409439087,
+        "macro_precision": 0.07444778084754944,
+        "macro_recall": 0.14900502562522888,
+        "macro_f1": 0.07842367887496948
+      },
+      "validation_metrics": {
+        "loss": 2.1143417358398438,
+        "accuracy": 0.23125000298023224,
+        "macro_precision": 0.07432615756988525,
+        "macro_recall": 0.1826203316450119,
+        "macro_f1": 0.09688286483287811
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 52,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.136110006169202,
+        "accuracy": 0.19518716633319855,
+        "macro_precision": 0.06942102313041687,
+        "macro_recall": 0.15320485830307007,
+        "macro_f1": 0.07942667603492737
+      },
+      "validation_metrics": {
+        "loss": 2.0896215081214904,
+        "accuracy": 0.23125000298023224,
+        "macro_precision": 0.10676950216293335,
+        "macro_recall": 0.1826203316450119,
+        "macro_f1": 0.10259796679019928
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 53,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1098764223210953,
+        "accuracy": 0.20989304780960083,
+        "macro_precision": 0.07443270087242126,
+        "macro_recall": 0.16475526988506317,
+        "macro_f1": 0.08795931935310364
+      },
+      "validation_metrics": {
+        "loss": 2.268611252307892,
+        "accuracy": 0.17499999701976776,
+        "macro_precision": 0.05027548223733902,
+        "macro_recall": 0.13449198007583618,
+        "macro_f1": 0.06468531489372253
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 54,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1442568824890462,
+        "accuracy": 0.2032085508108139,
+        "macro_precision": 0.0931074321269989,
+        "macro_recall": 0.15954998135566711,
+        "macro_f1": 0.08506590127944946
+      },
+      "validation_metrics": {
+        "loss": 2.0830732583999634,
+        "accuracy": 0.22499999403953552,
+        "macro_precision": 0.061077967286109924,
+        "macro_recall": 0.1772727370262146,
+        "macro_f1": 0.08839286118745804
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 55,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.120941237969832,
+        "accuracy": 0.2139037400484085,
+        "macro_precision": 0.08268961310386658,
+        "macro_recall": 0.1676878184080124,
+        "macro_f1": 0.08864627033472061
+      },
+      "validation_metrics": {
+        "loss": 2.092878794670105,
+        "accuracy": 0.22499999403953552,
+        "macro_precision": 0.05594973266124725,
+        "macro_recall": 0.17967914044857025,
+        "macro_f1": 0.0827505812048912
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 56,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1454004399916706,
+        "accuracy": 0.21657754480838776,
+        "macro_precision": 0.07901725172996521,
+        "macro_recall": 0.1718701869249344,
+        "macro_f1": 0.09357774257659912
+      },
+      "validation_metrics": {
+        "loss": 2.0538992524147033,
+        "accuracy": 0.23125000298023224,
+        "macro_precision": 0.06425036489963531,
+        "macro_recall": 0.1826203167438507,
+        "macro_f1": 0.09251609444618225
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 57,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1344886782335086,
+        "accuracy": 0.19518716633319855,
+        "macro_precision": 0.054325997829437256,
+        "macro_recall": 0.15288367867469788,
+        "macro_f1": 0.07740813493728638
+      },
+      "validation_metrics": {
+        "loss": 2.0709224104881288,
+        "accuracy": 0.23125000298023224,
+        "macro_precision": 0.06422419846057892,
+        "macro_recall": 0.18502673506736755,
+        "macro_f1": 0.09305619448423386
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 58,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1176945780687793,
+        "accuracy": 0.21122995018959045,
+        "macro_precision": 0.0885651707649231,
+        "macro_recall": 0.16700007021427155,
+        "macro_f1": 0.0870366021990776
+      },
+      "validation_metrics": {
+        "loss": 2.6084736585617065,
+        "accuracy": 0.10625000298023224,
+        "macro_precision": 0.013676589354872704,
+        "macro_recall": 0.09090909361839294,
+        "macro_f1": 0.023776225745677948
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 59,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2344223598745416,
+        "accuracy": 0.1818181872367859,
+        "macro_precision": 0.050574891269207,
+        "macro_recall": 0.1418377310037613,
+        "macro_f1": 0.07135933637619019
+      },
+      "validation_metrics": {
+        "loss": 2.201781892776489,
+        "accuracy": 0.21250000596046448,
+        "macro_precision": 0.060987863689661026,
+        "macro_recall": 0.17058824002742767,
+        "macro_f1": 0.0865209624171257
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 60,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.2025315073084704,
+        "accuracy": 0.19518716633319855,
+        "macro_precision": 0.054726384580135345,
+        "macro_recall": 0.1532013714313507,
+        "macro_f1": 0.07748673856258392
+      },
+      "validation_metrics": {
+        "loss": 2.1000581622123717,
+        "accuracy": 0.23125000298023224,
+        "macro_precision": 0.06615938246250153,
+        "macro_recall": 0.1826203316450119,
+        "macro_f1": 0.09355873614549637
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 61,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.1237022526123943,
+        "accuracy": 0.22058823704719543,
+        "macro_precision": 0.07578326016664505,
+        "macro_recall": 0.17464390397071838,
+        "macro_f1": 0.0954444408416748
+      },
+      "validation_metrics": {
+        "loss": 2.068052423000336,
+        "accuracy": 0.23749999701976776,
+        "macro_precision": 0.07141900062561035,
+        "macro_recall": 0.1879679262638092,
+        "macro_f1": 0.09904463589191437
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 62,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.09373197963531,
+        "accuracy": 0.22192513942718506,
+        "macro_precision": 0.0641307607293129,
+        "macro_recall": 0.17497555911540985,
+        "macro_f1": 0.09104037284851074
+      },
+      "validation_metrics": {
+        "loss": 2.0460429310798647,
+        "accuracy": 0.24375000596046448,
+        "macro_precision": 0.07092545926570892,
+        "macro_recall": 0.1933155059814453,
+        "macro_f1": 0.0991675853729248
+      },
+      "selected_checkpoint": true
+    },
+    {
+      "epoch": 63,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.0776562225372395,
+        "accuracy": 0.2139037400484085,
+        "macro_precision": 0.07425043731927872,
+        "macro_recall": 0.16880324482917786,
+        "macro_f1": 0.09091296046972275
+      },
+      "validation_metrics": {
+        "loss": 2.063351237773895,
+        "accuracy": 0.23749999701976776,
+        "macro_precision": 0.0646539255976677,
+        "macro_recall": 0.187967911362648,
+        "macro_f1": 0.09180794656276703
+      },
+      "selected_checkpoint": false
+    },
+    {
+      "epoch": 64,
+      "learning_rate": 0.001,
+      "training_metrics": {
+        "loss": 2.0863392875793783,
+        "accuracy": 0.2245989292860031,
+        "macro_precision": 0.09311781823635101,
+        "macro_recall": 0.17757296562194824,
+        "macro_f1": 0.09450379014015198
+      },
+      "validation_metrics": {
+        "loss": 2.0394862413406374,
+        "accuracy": 0.21875,
+        "macro_precision": 0.06243183836340904,
+        "macro_recall": 0.1719251275062561,
+        "macro_f1": 0.0882740467786789
+      },
+      "selected_checkpoint": true
+    }
+  ]
+}
