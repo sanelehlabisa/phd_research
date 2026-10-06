@@ -2,16 +2,16 @@
   "checkpoint_role": "validation_selected_lowest_loss",
   "selection_partition": "validation",
   "selection_metric": "loss",
-  "selection_value": 2.291312408447266,
-  "selected_epoch": 32,
-  "epoch": 32,
-  "loss": 2.291312408447266,
+  "selection_value": 1.7749813556671143,
+  "selected_epoch": 63,
+  "epoch": 63,
+  "loss": 1.7749813556671143,
   "validation_metrics": {
-    "loss": 2.291312408447266,
-    "accuracy": 0.18125000596046448,
-    "macro_precision": 0.03990364819765091,
-    "macro_recall": 0.13983957469463348,
-    "macro_f1": 0.058954931795597076
+    "loss": 1.7749813556671143,
+    "accuracy": 0.2874999940395355,
+    "macro_precision": 0.16564980149269104,
+    "macro_recall": 0.24168692529201508,
+    "macro_f1": 0.16266316175460815
   },
   "metric_protocol": {
     "loss_aggregation": "sample_weighted_mean",
@@ -21,7 +21,7 @@
   "dataset_name": "abnormal-activities-dataset",
   "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
   "seed": 42,
-  "timestamp": "2026-10-06T14:33:11.179209",
+  "timestamp": "2026-10-06T14:41:37.634956",
   "trainable_parameters": 75203,
   "model_config": {
     "model_name": "CustomConvLSTM",
