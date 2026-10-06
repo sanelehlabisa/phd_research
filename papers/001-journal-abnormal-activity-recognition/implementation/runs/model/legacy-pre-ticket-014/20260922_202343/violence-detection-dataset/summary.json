@@ -1,0 +1,127 @@
+{
+  "warning": "Random-weight smoke predictions; not experimental evidence.",
+  "dataset": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/violence-detection-dataset/violence-detection-dataset",
+  "dataset_name": "violence-detection-dataset",
+  "timestamp": "20260922_202343",
+  "seed": 42,
+  "input": {
+    "sequence_length": 64,
+    "height": 16,
+    "width": 16,
+    "fps": 8
+  },
+  "class_names": [
+    "non-violent",
+    "violent"
+  ],
+  "sample_indices": [
+    327,
+    57
+  ],
+  "models": {
+    "paper_t64_topology_smoke": {
+      "configuration": {
+        "model_name": "PaperConvLSTM",
+        "input_shape": [
+          3,
+          16,
+          16
+        ],
+        "sequence_length": 64,
+        "faithful_default_input": false
+      },
+      "trainable_parameters": 67304018,
+      "confusion_matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "predictions": [
+        {
+          "sample_index": 327,
+          "source": "datasets/violence-detection-dataset/violence-detection-dataset/violent/cam2_79.mp4",
+          "true_class": "violent",
+          "predicted_class": "violent",
+          "correct": true,
+          "logits_shape": [
+            1,
+            2
+          ],
+          "video": "outputs/model_samples/20260922_202343/violence-detection-dataset/paper_t64_topology_smoke/correct/cam2_79_true-violent_pred-violent.mp4"
+        },
+        {
+          "sample_index": 57,
+          "source": "datasets/violence-detection-dataset/violence-detection-dataset/non-violent/cam1_7.mp4",
+          "true_class": "non-violent",
+          "predicted_class": "violent",
+          "correct": false,
+          "logits_shape": [
+            1,
+            2
+          ],
+          "video": "outputs/model_samples/20260922_202343/violence-detection-dataset/paper_t64_topology_smoke/incorrect/cam1_7_true-non-violent_pred-violent.mp4"
+        }
+      ]
+    },
+    "custom_convlstm": {
+      "configuration": {
+        "model_name": "CustomConvLSTM",
+        "num_classes": 2,
+        "input_channels": 3,
+        "layers": [
+          {
+            "filters": 8,
+            "kernel_size": [
+              3,
+              3
+            ]
+          }
+        ],
+        "dropout": 0.5,
+        "hidden_classifier_width": null
+      },
+      "trainable_parameters": 3218,
+      "confusion_matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "predictions": [
+        {
+          "sample_index": 327,
+          "source": "datasets/violence-detection-dataset/violence-detection-dataset/violent/cam2_79.mp4",
+          "true_class": "violent",
+          "predicted_class": "violent",
+          "correct": true,
+          "logits_shape": [
+            1,
+            2
+          ],
+          "video": "outputs/model_samples/20260922_202343/violence-detection-dataset/custom_convlstm/correct/cam2_79_true-violent_pred-violent.mp4"
+        },
+        {
+          "sample_index": 57,
+          "source": "datasets/violence-detection-dataset/violence-detection-dataset/non-violent/cam1_7.mp4",
+          "true_class": "non-violent",
+          "predicted_class": "violent",
+          "correct": false,
+          "logits_shape": [
+            1,
+            2
+          ],
+          "video": "outputs/model_samples/20260922_202343/violence-detection-dataset/custom_convlstm/incorrect/cam1_7_true-non-violent_pred-violent.mp4"
+        }
+      ]
+    }
+  }
+}

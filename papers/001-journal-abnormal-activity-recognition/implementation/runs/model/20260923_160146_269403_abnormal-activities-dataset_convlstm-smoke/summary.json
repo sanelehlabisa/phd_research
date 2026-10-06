@@ -1,0 +1,448 @@
+{
+  "warning": "Random-weight smoke predictions; not experimental evidence.",
+  "dataset": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+  "dataset_name": "abnormal-activities-dataset",
+  "seed": 42,
+  "input": {
+    "sequence_length": 64,
+    "height": 8,
+    "width": 8,
+    "fps": 8
+  },
+  "class_names": [
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism"
+  ],
+  "sample_indices": [
+    228,
+    51
+  ],
+  "models": {
+    "paper_t64_topology_smoke": {
+      "configuration": {
+        "model_name": "PaperConvLSTM",
+        "input_shape": [
+          3,
+          8,
+          8
+        ],
+        "sequence_length": 64,
+        "faithful_default_input": false
+      },
+      "trainable_parameters": 16974683,
+      "confusion_matrix": {
+        "png": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/paper_t64_topology_smoke/confusion_matrix.png",
+        "json": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/paper_t64_topology_smoke/confusion_matrix.json",
+        "class_names": [
+          "Begging",
+          "Drunkenness",
+          "Fight",
+          "Harassment",
+          "Hijack",
+          "Knife Hazard",
+          "Normal Videos",
+          "Pollution",
+          "Property Damage",
+          "Robbery",
+          "Terrorism"
+        ],
+        "matrix": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "sample_count": 2
+      },
+      "predictions": [
+        {
+          "sample_index": 228,
+          "source": "datasets/abnormal-activities-dataset/abnormal-activities-dataset/Fight/GOPR2505_13.mp4",
+          "true_class": "Fight",
+          "predicted_class": "Begging",
+          "correct": false,
+          "logits_shape": [
+            1,
+            11
+          ],
+          "video": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/paper_t64_topology_smoke/incorrect/gopr2505_13_true-fight_pred-begging.mp4"
+        },
+        {
+          "sample_index": 51,
+          "source": "datasets/abnormal-activities-dataset/abnormal-activities-dataset/Begging/GP012506_25.mp4",
+          "true_class": "Begging",
+          "predicted_class": "Hijack",
+          "correct": false,
+          "logits_shape": [
+            1,
+            11
+          ],
+          "video": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/paper_t64_topology_smoke/incorrect/gp012506_25_true-begging_pred-hijack.mp4"
+        }
+      ]
+    },
+    "custom_convlstm": {
+      "configuration": {
+        "model_name": "CustomConvLSTM",
+        "num_classes": 11,
+        "input_channels": 3,
+        "layers": [
+          {
+            "filters": 8,
+            "kernel_size": [
+              3,
+              3
+            ]
+          },
+          {
+            "filters": 16,
+            "kernel_size": [
+              3,
+              3
+            ]
+          }
+        ],
+        "dropout": 0.5,
+        "hidden_classifier_width": null
+      },
+      "trainable_parameters": 17275,
+      "confusion_matrix": {
+        "png": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/custom_convlstm/confusion_matrix.png",
+        "json": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/custom_convlstm/confusion_matrix.json",
+        "class_names": [
+          "Begging",
+          "Drunkenness",
+          "Fight",
+          "Harassment",
+          "Hijack",
+          "Knife Hazard",
+          "Normal Videos",
+          "Pollution",
+          "Property Damage",
+          "Robbery",
+          "Terrorism"
+        ],
+        "matrix": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "sample_count": 2
+      },
+      "predictions": [
+        {
+          "sample_index": 228,
+          "source": "datasets/abnormal-activities-dataset/abnormal-activities-dataset/Fight/GOPR2505_13.mp4",
+          "true_class": "Fight",
+          "predicted_class": "Terrorism",
+          "correct": false,
+          "logits_shape": [
+            1,
+            11
+          ],
+          "video": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/custom_convlstm/incorrect/gopr2505_13_true-fight_pred-terrorism.mp4"
+        },
+        {
+          "sample_index": 51,
+          "source": "datasets/abnormal-activities-dataset/abnormal-activities-dataset/Begging/GP012506_25.mp4",
+          "true_class": "Begging",
+          "predicted_class": "Terrorism",
+          "correct": false,
+          "logits_shape": [
+            1,
+            11
+          ],
+          "video": "runs/model/20260923_160146_269403_abnormal-activities-dataset_convlstm-smoke/custom_convlstm/incorrect/gp012506_25_true-begging_pred-terrorism.mp4"
+        }
+      ]
+    }
+  }
+}

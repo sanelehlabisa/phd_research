@@ -1,0 +1,3648 @@
+{
+  "purpose": "experiments",
+  "status": "complete",
+  "started_at": "2026-09-26T15:15:24.238456+02:00",
+  "ended_at": "2026-09-26T15:51:23.857374+02:00",
+  "duration_seconds": 2159.618933,
+  "command": [
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/src/experiments.py",
+    "--config",
+    "configs/aad_screening_reference.json",
+    "--candidates-config",
+    "configs/aad_architecture_candidates.json",
+    "--epochs",
+    "8"
+  ],
+  "arguments": {
+    "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "runs_dir": "runs",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 16,
+    "height": 32,
+    "width": 32,
+    "convlstm_layers": [
+      [
+        8,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        16,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": null,
+    "epochs": 8,
+    "early_stopping_patience": 10,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "weight_decay": 0.001,
+    "augment": true,
+    "num_workers": 2,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "reduce_on_plateau",
+    "list_models": false
+  },
+  "dataset_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+  "dataset_name": "abnormal-activities-dataset",
+  "environment": {
+    "python": "3.12.12",
+    "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.43",
+    "pytorch": "2.9.1+cu128",
+    "torchvision": "0.24.1+cu128",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "cudnn_version": 91002
+  },
+  "git_revision": "78bc103fd9feeff4c36cf00fa59d5f9c903bb7eb",
+  "artifacts": {
+    "resolved_configuration": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/resolved_config.json",
+    "resolved_candidates": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/resolved_candidates.json",
+    "configuration": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/config.json",
+    "ranked_summary": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/summary.json",
+    "model_directories": {
+      "custom_reference_8": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8",
+      "custom_depth_8_8_8": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8",
+      "custom_capacity_early": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early",
+      "custom_capacity_middle": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle",
+      "custom_capacity_late": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late",
+      "custom_selected_64_32_16": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16"
+    }
+  },
+  "experiment_config": {
+    "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "runs_dir": "runs",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 16,
+    "height": 32,
+    "width": 32,
+    "convlstm_layers": [
+      [
+        8,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        16,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": null,
+    "epochs": 8,
+    "early_stopping_patience": 10,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "weight_decay": 0.001,
+    "augment": true,
+    "num_workers": 2,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "reduce_on_plateau"
+  },
+  "candidate_manifest": {
+    "content": {
+      "screening_id": "aad_custom_architecture_screen",
+      "candidates": [
+        {
+          "name": "custom_reference_8",
+          "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null
+        },
+        {
+          "name": "custom_depth_8_8_8",
+          "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null
+        },
+        {
+          "name": "custom_capacity_early",
+          "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+          "convlstm_layers": [
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null
+        },
+        {
+          "name": "custom_capacity_middle",
+          "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null
+        },
+        {
+          "name": "custom_capacity_late",
+          "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null
+        },
+        {
+          "name": "custom_selected_64_32_16",
+          "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+          "convlstm_layers": [
+            [
+              64,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              32,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null
+        }
+      ]
+    },
+    "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+  },
+  "input_dimensions": {
+    "sequence_length": 16,
+    "channels": 3,
+    "height": 32,
+    "width": 32
+  },
+  "augmentation": true,
+  "split_ratios": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "seed": 42,
+  "split_seed": 42,
+  "split_manifest": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+  "deterministic_settings": {
+    "seed": 42,
+    "python_random": true,
+    "numpy": true,
+    "pytorch_cpu": true,
+    "pytorch_cuda": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": true,
+    "data_loader_seeds": {
+      "train": 42,
+      "validation": 43
+    }
+  },
+  "device": "cuda",
+  "class_names": [
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism"
+  ],
+  "model_configuration": [
+    {
+      "name": "custom_reference_8",
+      "family": "ConvLSTM",
+      "model_class": "CustomConvLSTM",
+      "role": "controlled custom architecture candidate",
+      "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+      "convlstm_layers": [
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_depth_8_8_8",
+      "family": "ConvLSTM",
+      "model_class": "CustomConvLSTM",
+      "role": "controlled custom architecture candidate",
+      "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+      "convlstm_layers": [
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_capacity_early",
+      "family": "ConvLSTM",
+      "model_class": "CustomConvLSTM",
+      "role": "controlled custom architecture candidate",
+      "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+      "convlstm_layers": [
+        [
+          16,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_capacity_middle",
+      "family": "ConvLSTM",
+      "model_class": "CustomConvLSTM",
+      "role": "controlled custom architecture candidate",
+      "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+      "convlstm_layers": [
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          16,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_capacity_late",
+      "family": "ConvLSTM",
+      "model_class": "CustomConvLSTM",
+      "role": "controlled custom architecture candidate",
+      "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+      "convlstm_layers": [
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          16,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_selected_64_32_16",
+      "family": "ConvLSTM",
+      "model_class": "CustomConvLSTM",
+      "role": "controlled custom architecture candidate",
+      "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+      "convlstm_layers": [
+        [
+          64,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          32,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          16,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null
+    }
+  ],
+  "split_sizes": {
+    "train": 748,
+    "validation": 160,
+    "test": 161
+  },
+  "split": {
+    "manifest_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+    "manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+    "seed": 42,
+    "requested_ratios": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "counts": {
+      "train": 748,
+      "validation": 160,
+      "test": 161,
+      "total": 1069
+    },
+    "class_counts": {
+      "Begging": {
+        "total": 133,
+        "train": 93,
+        "validation": 20,
+        "test": 20
+      },
+      "Drunkenness": {
+        "total": 90,
+        "train": 63,
+        "validation": 13,
+        "test": 14
+      },
+      "Fight": {
+        "total": 95,
+        "train": 67,
+        "validation": 14,
+        "test": 14
+      },
+      "Harassment": {
+        "total": 89,
+        "train": 62,
+        "validation": 14,
+        "test": 13
+      },
+      "Hijack": {
+        "total": 77,
+        "train": 54,
+        "validation": 12,
+        "test": 11
+      },
+      "Knife Hazard": {
+        "total": 100,
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "Normal Videos": {
+        "total": 115,
+        "train": 80,
+        "validation": 17,
+        "test": 18
+      },
+      "Pollution": {
+        "total": 114,
+        "train": 80,
+        "validation": 17,
+        "test": 17
+      },
+      "Property Damage": {
+        "total": 96,
+        "train": 67,
+        "validation": 14,
+        "test": 15
+      },
+      "Robbery": {
+        "total": 86,
+        "train": 60,
+        "validation": 13,
+        "test": 13
+      },
+      "Terrorism": {
+        "total": 74,
+        "train": 52,
+        "validation": 11,
+        "test": 11
+      }
+    },
+    "split_level": "clip"
+  },
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "macro"
+  },
+  "ranking": [
+    "validation_macro_f1",
+    "validation_accuracy",
+    "parameters"
+  ],
+  "completed_models": {
+    "custom_reference_8": {
+      "checkpoint_selection": {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": 2.389179992675781,
+        "selected_epoch": 8,
+        "dataset_name": "abnormal-activities-dataset",
+        "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+        "seed": 42,
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.389179992675781,
+          "selected_epoch": 8,
+          "patience": 10,
+          "epochs_without_improvement": 0,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        }
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.389179992675781,
+        "selected_epoch": 8,
+        "patience": 10,
+        "epochs_without_improvement": 0,
+        "actual_epochs": 8,
+        "stopped_early": false,
+        "stop_reason": "maximum_epochs_completed"
+      }
+    },
+    "custom_depth_8_8_8": {
+      "checkpoint_selection": {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": 2.3843170404434204,
+        "selected_epoch": 8,
+        "dataset_name": "abnormal-activities-dataset",
+        "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+        "seed": 42,
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3843170404434204,
+          "selected_epoch": 8,
+          "patience": 10,
+          "epochs_without_improvement": 0,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        }
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.3843170404434204,
+        "selected_epoch": 8,
+        "patience": 10,
+        "epochs_without_improvement": 0,
+        "actual_epochs": 8,
+        "stopped_early": false,
+        "stop_reason": "maximum_epochs_completed"
+      }
+    },
+    "custom_capacity_early": {
+      "checkpoint_selection": {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": 2.3906816720962523,
+        "selected_epoch": 7,
+        "dataset_name": "abnormal-activities-dataset",
+        "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+        "seed": 42,
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3906816720962523,
+          "selected_epoch": 7,
+          "patience": 10,
+          "epochs_without_improvement": 1,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        }
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.3906816720962523,
+        "selected_epoch": 7,
+        "patience": 10,
+        "epochs_without_improvement": 1,
+        "actual_epochs": 8,
+        "stopped_early": false,
+        "stop_reason": "maximum_epochs_completed"
+      }
+    },
+    "custom_capacity_middle": {
+      "checkpoint_selection": {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": 2.3872511625289916,
+        "selected_epoch": 6,
+        "dataset_name": "abnormal-activities-dataset",
+        "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+        "seed": 42,
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3872511625289916,
+          "selected_epoch": 6,
+          "patience": 10,
+          "epochs_without_improvement": 2,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        }
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.3872511625289916,
+        "selected_epoch": 6,
+        "patience": 10,
+        "epochs_without_improvement": 2,
+        "actual_epochs": 8,
+        "stopped_early": false,
+        "stop_reason": "maximum_epochs_completed"
+      }
+    },
+    "custom_capacity_late": {
+      "checkpoint_selection": {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": 2.387918305397034,
+        "selected_epoch": 8,
+        "dataset_name": "abnormal-activities-dataset",
+        "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+        "seed": 42,
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.387918305397034,
+          "selected_epoch": 8,
+          "patience": 10,
+          "epochs_without_improvement": 0,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        }
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.387918305397034,
+        "selected_epoch": 8,
+        "patience": 10,
+        "epochs_without_improvement": 0,
+        "actual_epochs": 8,
+        "stopped_early": false,
+        "stop_reason": "maximum_epochs_completed"
+      }
+    },
+    "custom_selected_64_32_16": {
+      "checkpoint_selection": {
+        "checkpoint_role": "validation_selected_lowest_loss",
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_value": 2.3903801679611205,
+        "selected_epoch": 7,
+        "dataset_name": "abnormal-activities-dataset",
+        "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+        "seed": 42,
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3903801679611205,
+          "selected_epoch": 7,
+          "patience": 10,
+          "epochs_without_improvement": 1,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        }
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.3903801679611205,
+        "selected_epoch": 7,
+        "patience": 10,
+        "epochs_without_improvement": 1,
+        "actual_epochs": 8,
+        "stopped_early": false,
+        "stop_reason": "maximum_epochs_completed"
+      }
+    }
+  },
+  "test_access": "locked",
+  "results": {
+    "experiment_config": {
+      "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+      "runs_dir": "runs",
+      "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+      "split_seed": 42,
+      "train_ratio": 0.7,
+      "val_ratio": 0.15,
+      "test_ratio": 0.15,
+      "seed": 42,
+      "sequence_length": 16,
+      "height": 32,
+      "width": 32,
+      "convlstm_layers": [
+        [
+          8,
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          16,
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "hidden_classifier_width": null,
+      "epochs": 8,
+      "early_stopping_patience": 10,
+      "batch_size": 16,
+      "learning_rate": 0.001,
+      "weight_decay": 0.001,
+      "augment": true,
+      "num_workers": 2,
+      "pin_memory": true,
+      "optimizer": "adam",
+      "loss": "cross_entropy",
+      "scheduler": "reduce_on_plateau"
+    },
+    "candidate_manifest": {
+      "content": {
+        "screening_id": "aad_custom_architecture_screen",
+        "candidates": [
+          {
+            "name": "custom_reference_8",
+            "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+            "convlstm_layers": [
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ]
+            ],
+            "hidden_classifier_width": null
+          },
+          {
+            "name": "custom_depth_8_8_8",
+            "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+            "convlstm_layers": [
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ]
+            ],
+            "hidden_classifier_width": null
+          },
+          {
+            "name": "custom_capacity_early",
+            "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+            "convlstm_layers": [
+              [
+                16,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ]
+            ],
+            "hidden_classifier_width": null
+          },
+          {
+            "name": "custom_capacity_middle",
+            "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+            "convlstm_layers": [
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                16,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ]
+            ],
+            "hidden_classifier_width": null
+          },
+          {
+            "name": "custom_capacity_late",
+            "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+            "convlstm_layers": [
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                8,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                16,
+                [
+                  3,
+                  3
+                ]
+              ]
+            ],
+            "hidden_classifier_width": null
+          },
+          {
+            "name": "custom_selected_64_32_16",
+            "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+            "convlstm_layers": [
+              [
+                64,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                32,
+                [
+                  3,
+                  3
+                ]
+              ],
+              [
+                16,
+                [
+                  3,
+                  3
+                ]
+              ]
+            ],
+            "hidden_classifier_width": null
+          }
+        ]
+      },
+      "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+    },
+    "ranked": [
+      {
+        "name": "custom_depth_8_8_8",
+        "family": "ConvLSTM",
+        "model_class": "CustomConvLSTM",
+        "role": "controlled custom architecture candidate",
+        "num_params": 12579,
+        "experiment_config": {
+          "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+          "runs_dir": "runs",
+          "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+          "split_seed": 42,
+          "train_ratio": 0.7,
+          "val_ratio": 0.15,
+          "test_ratio": 0.15,
+          "seed": 42,
+          "sequence_length": 16,
+          "height": 32,
+          "width": 32,
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null,
+          "epochs": 8,
+          "early_stopping_patience": 10,
+          "batch_size": 16,
+          "learning_rate": 0.001,
+          "weight_decay": 0.001,
+          "augment": true,
+          "num_workers": 2,
+          "pin_memory": true,
+          "optimizer": "adam",
+          "loss": "cross_entropy",
+          "scheduler": "reduce_on_plateau"
+        },
+        "candidate_manifest": {
+          "content": {
+            "screening_id": "aad_custom_architecture_screen",
+            "candidates": [
+              {
+                "name": "custom_reference_8",
+                "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_depth_8_8_8",
+                "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_early",
+                "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_middle",
+                "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_late",
+                "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_selected_64_32_16",
+                "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+                "convlstm_layers": [
+                  [
+                    64,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    32,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              }
+            ]
+          },
+          "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+        },
+        "partition": "validation",
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "validation_metrics": {
+          "loss": 2.3843170404434204,
+          "accuracy": 0.11874999850988388,
+          "macro_precision": 0.021763520315289497,
+          "macro_recall": 0.09598930925130844,
+          "macro_f1": 0.03545454517006874
+        },
+        "checkpoint_selection": {
+          "checkpoint_role": "validation_selected_lowest_loss",
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_value": 2.3843170404434204,
+          "selected_epoch": 8,
+          "dataset_name": "abnormal-activities-dataset",
+          "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+          "seed": 42,
+          "metric_protocol": {
+            "loss_aggregation": "sample_weighted_mean",
+            "classification_aggregation": "full_partition",
+            "precision_recall_f1_average": "macro"
+          },
+          "early_stopping": {
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selection_mode": "min",
+            "best_validation_loss": 2.3843170404434204,
+            "selected_epoch": 8,
+            "patience": 10,
+            "epochs_without_improvement": 0,
+            "actual_epochs": 8,
+            "stopped_early": false,
+            "stop_reason": "maximum_epochs_completed"
+          }
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3843170404434204,
+          "selected_epoch": 8,
+          "patience": 10,
+          "epochs_without_improvement": 0,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        },
+        "train_time_s": 334.6,
+        "validation_confusion_matrix": {
+          "png": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8/metrics/validation_confusion_matrix.png",
+          "json": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8/metrics/validation_confusion_matrix.json",
+          "class_names": [
+            "Begging",
+            "Drunkenness",
+            "Fight",
+            "Harassment",
+            "Hijack",
+            "Knife Hazard",
+            "Normal Videos",
+            "Pollution",
+            "Property Damage",
+            "Robbery",
+            "Terrorism"
+          ],
+          "matrix": [
+            [
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              12,
+              0,
+              0,
+              0
+            ],
+            [
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              6,
+              0,
+              0,
+              0
+            ],
+            [
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              7,
+              0,
+              0,
+              0
+            ],
+            [
+              6,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              8,
+              0,
+              0,
+              0
+            ],
+            [
+              9,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              3,
+              0,
+              0,
+              0
+            ],
+            [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              4,
+              0,
+              0,
+              0
+            ],
+            [
+              3,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              14,
+              0,
+              0,
+              0
+            ],
+            [
+              5,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              12,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              5,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              8,
+              0,
+              0,
+              0
+            ],
+            [
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              4,
+              0,
+              0,
+              0
+            ]
+          ],
+          "sample_count": 160
+        },
+        "selected_checkpoint": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8/checkpoints/best_model.pth",
+        "selected_checkpoint_metadata": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8/checkpoints/best_model.json",
+        "history": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8/metrics/history.json",
+        "test_access": "locked",
+        "metrics_path": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_depth_8_8_8/metrics/metrics.json"
+      },
+      {
+        "name": "custom_reference_8",
+        "family": "ConvLSTM",
+        "model_class": "CustomConvLSTM",
+        "role": "controlled custom architecture candidate",
+        "num_params": 3299,
+        "experiment_config": {
+          "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+          "runs_dir": "runs",
+          "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+          "split_seed": 42,
+          "train_ratio": 0.7,
+          "val_ratio": 0.15,
+          "test_ratio": 0.15,
+          "seed": 42,
+          "sequence_length": 16,
+          "height": 32,
+          "width": 32,
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null,
+          "epochs": 8,
+          "early_stopping_patience": 10,
+          "batch_size": 16,
+          "learning_rate": 0.001,
+          "weight_decay": 0.001,
+          "augment": true,
+          "num_workers": 2,
+          "pin_memory": true,
+          "optimizer": "adam",
+          "loss": "cross_entropy",
+          "scheduler": "reduce_on_plateau"
+        },
+        "candidate_manifest": {
+          "content": {
+            "screening_id": "aad_custom_architecture_screen",
+            "candidates": [
+              {
+                "name": "custom_reference_8",
+                "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_depth_8_8_8",
+                "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_early",
+                "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_middle",
+                "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_late",
+                "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_selected_64_32_16",
+                "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+                "convlstm_layers": [
+                  [
+                    64,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    32,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              }
+            ]
+          },
+          "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+        },
+        "partition": "validation",
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "validation_metrics": {
+          "loss": 2.389179992675781,
+          "accuracy": 0.125,
+          "macro_precision": 0.011363636702299118,
+          "macro_recall": 0.09090909361839294,
+          "macro_f1": 0.020202020183205605
+        },
+        "checkpoint_selection": {
+          "checkpoint_role": "validation_selected_lowest_loss",
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_value": 2.389179992675781,
+          "selected_epoch": 8,
+          "dataset_name": "abnormal-activities-dataset",
+          "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+          "seed": 42,
+          "metric_protocol": {
+            "loss_aggregation": "sample_weighted_mean",
+            "classification_aggregation": "full_partition",
+            "precision_recall_f1_average": "macro"
+          },
+          "early_stopping": {
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selection_mode": "min",
+            "best_validation_loss": 2.389179992675781,
+            "selected_epoch": 8,
+            "patience": 10,
+            "epochs_without_improvement": 0,
+            "actual_epochs": 8,
+            "stopped_early": false,
+            "stop_reason": "maximum_epochs_completed"
+          }
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.389179992675781,
+          "selected_epoch": 8,
+          "patience": 10,
+          "epochs_without_improvement": 0,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        },
+        "train_time_s": 313.2,
+        "validation_confusion_matrix": {
+          "png": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8/metrics/validation_confusion_matrix.png",
+          "json": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8/metrics/validation_confusion_matrix.json",
+          "class_names": [
+            "Begging",
+            "Drunkenness",
+            "Fight",
+            "Harassment",
+            "Hijack",
+            "Knife Hazard",
+            "Normal Videos",
+            "Pollution",
+            "Property Damage",
+            "Robbery",
+            "Terrorism"
+          ],
+          "matrix": [
+            [
+              20,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              12,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              15,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "sample_count": 160
+        },
+        "selected_checkpoint": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8/checkpoints/best_model.pth",
+        "selected_checkpoint_metadata": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8/checkpoints/best_model.json",
+        "history": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8/metrics/history.json",
+        "test_access": "locked",
+        "metrics_path": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_reference_8/metrics/metrics.json"
+      },
+      {
+        "name": "custom_capacity_early",
+        "family": "ConvLSTM",
+        "model_class": "CustomConvLSTM",
+        "role": "controlled custom architecture candidate",
+        "num_params": 22691,
+        "experiment_config": {
+          "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+          "runs_dir": "runs",
+          "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+          "split_seed": 42,
+          "train_ratio": 0.7,
+          "val_ratio": 0.15,
+          "test_ratio": 0.15,
+          "seed": 42,
+          "sequence_length": 16,
+          "height": 32,
+          "width": 32,
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null,
+          "epochs": 8,
+          "early_stopping_patience": 10,
+          "batch_size": 16,
+          "learning_rate": 0.001,
+          "weight_decay": 0.001,
+          "augment": true,
+          "num_workers": 2,
+          "pin_memory": true,
+          "optimizer": "adam",
+          "loss": "cross_entropy",
+          "scheduler": "reduce_on_plateau"
+        },
+        "candidate_manifest": {
+          "content": {
+            "screening_id": "aad_custom_architecture_screen",
+            "candidates": [
+              {
+                "name": "custom_reference_8",
+                "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_depth_8_8_8",
+                "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_early",
+                "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_middle",
+                "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_late",
+                "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_selected_64_32_16",
+                "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+                "convlstm_layers": [
+                  [
+                    64,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    32,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              }
+            ]
+          },
+          "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+        },
+        "partition": "validation",
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "validation_metrics": {
+          "loss": 2.3906816720962523,
+          "accuracy": 0.125,
+          "macro_precision": 0.011363636702299118,
+          "macro_recall": 0.09090909361839294,
+          "macro_f1": 0.020202020183205605
+        },
+        "checkpoint_selection": {
+          "checkpoint_role": "validation_selected_lowest_loss",
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_value": 2.3906816720962523,
+          "selected_epoch": 7,
+          "dataset_name": "abnormal-activities-dataset",
+          "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+          "seed": 42,
+          "metric_protocol": {
+            "loss_aggregation": "sample_weighted_mean",
+            "classification_aggregation": "full_partition",
+            "precision_recall_f1_average": "macro"
+          },
+          "early_stopping": {
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selection_mode": "min",
+            "best_validation_loss": 2.3906816720962523,
+            "selected_epoch": 7,
+            "patience": 10,
+            "epochs_without_improvement": 1,
+            "actual_epochs": 8,
+            "stopped_early": false,
+            "stop_reason": "maximum_epochs_completed"
+          }
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3906816720962523,
+          "selected_epoch": 7,
+          "patience": 10,
+          "epochs_without_improvement": 1,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        },
+        "train_time_s": 338.1,
+        "validation_confusion_matrix": {
+          "png": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early/metrics/validation_confusion_matrix.png",
+          "json": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early/metrics/validation_confusion_matrix.json",
+          "class_names": [
+            "Begging",
+            "Drunkenness",
+            "Fight",
+            "Harassment",
+            "Hijack",
+            "Knife Hazard",
+            "Normal Videos",
+            "Pollution",
+            "Property Damage",
+            "Robbery",
+            "Terrorism"
+          ],
+          "matrix": [
+            [
+              20,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              12,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              15,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "sample_count": 160
+        },
+        "selected_checkpoint": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early/checkpoints/best_model.pth",
+        "selected_checkpoint_metadata": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early/checkpoints/best_model.json",
+        "history": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early/metrics/history.json",
+        "test_access": "locked",
+        "metrics_path": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_early/metrics/metrics.json"
+      },
+      {
+        "name": "custom_selected_64_32_16",
+        "family": "ConvLSTM",
+        "model_class": "CustomConvLSTM",
+        "role": "controlled custom architecture candidate",
+        "num_params": 293243,
+        "experiment_config": {
+          "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+          "runs_dir": "runs",
+          "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+          "split_seed": 42,
+          "train_ratio": 0.7,
+          "val_ratio": 0.15,
+          "test_ratio": 0.15,
+          "seed": 42,
+          "sequence_length": 16,
+          "height": 32,
+          "width": 32,
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null,
+          "epochs": 8,
+          "early_stopping_patience": 10,
+          "batch_size": 16,
+          "learning_rate": 0.001,
+          "weight_decay": 0.001,
+          "augment": true,
+          "num_workers": 2,
+          "pin_memory": true,
+          "optimizer": "adam",
+          "loss": "cross_entropy",
+          "scheduler": "reduce_on_plateau"
+        },
+        "candidate_manifest": {
+          "content": {
+            "screening_id": "aad_custom_architecture_screen",
+            "candidates": [
+              {
+                "name": "custom_reference_8",
+                "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_depth_8_8_8",
+                "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_early",
+                "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_middle",
+                "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_late",
+                "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_selected_64_32_16",
+                "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+                "convlstm_layers": [
+                  [
+                    64,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    32,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              }
+            ]
+          },
+          "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+        },
+        "partition": "validation",
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "validation_metrics": {
+          "loss": 2.3903801679611205,
+          "accuracy": 0.125,
+          "macro_precision": 0.011363636702299118,
+          "macro_recall": 0.09090909361839294,
+          "macro_f1": 0.020202020183205605
+        },
+        "checkpoint_selection": {
+          "checkpoint_role": "validation_selected_lowest_loss",
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_value": 2.3903801679611205,
+          "selected_epoch": 7,
+          "dataset_name": "abnormal-activities-dataset",
+          "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+          "seed": 42,
+          "metric_protocol": {
+            "loss_aggregation": "sample_weighted_mean",
+            "classification_aggregation": "full_partition",
+            "precision_recall_f1_average": "macro"
+          },
+          "early_stopping": {
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selection_mode": "min",
+            "best_validation_loss": 2.3903801679611205,
+            "selected_epoch": 7,
+            "patience": 10,
+            "epochs_without_improvement": 1,
+            "actual_epochs": 8,
+            "stopped_early": false,
+            "stop_reason": "maximum_epochs_completed"
+          }
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3903801679611205,
+          "selected_epoch": 7,
+          "patience": 10,
+          "epochs_without_improvement": 1,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        },
+        "train_time_s": 414.2,
+        "validation_confusion_matrix": {
+          "png": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16/metrics/validation_confusion_matrix.png",
+          "json": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16/metrics/validation_confusion_matrix.json",
+          "class_names": [
+            "Begging",
+            "Drunkenness",
+            "Fight",
+            "Harassment",
+            "Hijack",
+            "Knife Hazard",
+            "Normal Videos",
+            "Pollution",
+            "Property Damage",
+            "Robbery",
+            "Terrorism"
+          ],
+          "matrix": [
+            [
+              20,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              12,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              15,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "sample_count": 160
+        },
+        "selected_checkpoint": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16/checkpoints/best_model.pth",
+        "selected_checkpoint_metadata": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16/checkpoints/best_model.json",
+        "history": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16/metrics/history.json",
+        "test_access": "locked",
+        "metrics_path": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_selected_64_32_16/metrics/metrics.json"
+      },
+      {
+        "name": "custom_capacity_middle",
+        "family": "ConvLSTM",
+        "model_class": "CustomConvLSTM",
+        "role": "controlled custom architecture candidate",
+        "num_params": 24131,
+        "experiment_config": {
+          "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+          "runs_dir": "runs",
+          "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+          "split_seed": 42,
+          "train_ratio": 0.7,
+          "val_ratio": 0.15,
+          "test_ratio": 0.15,
+          "seed": 42,
+          "sequence_length": 16,
+          "height": 32,
+          "width": 32,
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null,
+          "epochs": 8,
+          "early_stopping_patience": 10,
+          "batch_size": 16,
+          "learning_rate": 0.001,
+          "weight_decay": 0.001,
+          "augment": true,
+          "num_workers": 2,
+          "pin_memory": true,
+          "optimizer": "adam",
+          "loss": "cross_entropy",
+          "scheduler": "reduce_on_plateau"
+        },
+        "candidate_manifest": {
+          "content": {
+            "screening_id": "aad_custom_architecture_screen",
+            "candidates": [
+              {
+                "name": "custom_reference_8",
+                "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_depth_8_8_8",
+                "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_early",
+                "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_middle",
+                "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_late",
+                "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_selected_64_32_16",
+                "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+                "convlstm_layers": [
+                  [
+                    64,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    32,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              }
+            ]
+          },
+          "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+        },
+        "partition": "validation",
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "validation_metrics": {
+          "loss": 2.3872511625289916,
+          "accuracy": 0.11874999850988388,
+          "macro_precision": 0.011438892222940922,
+          "macro_recall": 0.08636363595724106,
+          "macro_f1": 0.020202020183205605
+        },
+        "checkpoint_selection": {
+          "checkpoint_role": "validation_selected_lowest_loss",
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_value": 2.3872511625289916,
+          "selected_epoch": 6,
+          "dataset_name": "abnormal-activities-dataset",
+          "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+          "seed": 42,
+          "metric_protocol": {
+            "loss_aggregation": "sample_weighted_mean",
+            "classification_aggregation": "full_partition",
+            "precision_recall_f1_average": "macro"
+          },
+          "early_stopping": {
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selection_mode": "min",
+            "best_validation_loss": 2.3872511625289916,
+            "selected_epoch": 6,
+            "patience": 10,
+            "epochs_without_improvement": 2,
+            "actual_epochs": 8,
+            "stopped_early": false,
+            "stop_reason": "maximum_epochs_completed"
+          }
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.3872511625289916,
+          "selected_epoch": 6,
+          "patience": 10,
+          "epochs_without_improvement": 2,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        },
+        "train_time_s": 334.7,
+        "validation_confusion_matrix": {
+          "png": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle/metrics/validation_confusion_matrix.png",
+          "json": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle/metrics/validation_confusion_matrix.json",
+          "class_names": [
+            "Begging",
+            "Drunkenness",
+            "Fight",
+            "Harassment",
+            "Hijack",
+            "Knife Hazard",
+            "Normal Videos",
+            "Pollution",
+            "Property Damage",
+            "Robbery",
+            "Terrorism"
+          ],
+          "matrix": [
+            [
+              19,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              15,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              12,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              9,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2,
+              0,
+              0,
+              0
+            ]
+          ],
+          "sample_count": 160
+        },
+        "selected_checkpoint": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle/checkpoints/best_model.pth",
+        "selected_checkpoint_metadata": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle/checkpoints/best_model.json",
+        "history": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle/metrics/history.json",
+        "test_access": "locked",
+        "metrics_path": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_middle/metrics/metrics.json"
+      },
+      {
+        "name": "custom_capacity_late",
+        "family": "ConvLSTM",
+        "model_class": "CustomConvLSTM",
+        "role": "controlled custom architecture candidate",
+        "num_params": 21915,
+        "experiment_config": {
+          "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+          "runs_dir": "runs",
+          "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+          "split_seed": 42,
+          "train_ratio": 0.7,
+          "val_ratio": 0.15,
+          "test_ratio": 0.15,
+          "seed": 42,
+          "sequence_length": 16,
+          "height": 32,
+          "width": 32,
+          "convlstm_layers": [
+            [
+              8,
+              [
+                3,
+                3
+              ]
+            ],
+            [
+              16,
+              [
+                3,
+                3
+              ]
+            ]
+          ],
+          "hidden_classifier_width": null,
+          "epochs": 8,
+          "early_stopping_patience": 10,
+          "batch_size": 16,
+          "learning_rate": 0.001,
+          "weight_decay": 0.001,
+          "augment": true,
+          "num_workers": 2,
+          "pin_memory": true,
+          "optimizer": "adam",
+          "loss": "cross_entropy",
+          "scheduler": "reduce_on_plateau"
+        },
+        "candidate_manifest": {
+          "content": {
+            "screening_id": "aad_custom_architecture_screen",
+            "candidates": [
+              {
+                "name": "custom_reference_8",
+                "research_question": "How does a single 8-filter ConvLSTM layer perform as the screening reference?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_depth_8_8_8",
+                "research_question": "Does adding depth at a fixed 8-filter width improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_early",
+                "research_question": "Does placing extra capacity at the start of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_middle",
+                "research_question": "Does placing extra capacity in the middle of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_capacity_late",
+                "research_question": "Does placing extra capacity at the end of the stack improve validation performance?",
+                "convlstm_layers": [
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    8,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              },
+              {
+                "name": "custom_selected_64_32_16",
+                "research_question": "Does the previously selected lightweight 64-32-16 candidate remain competitive under the controlled protocol?",
+                "convlstm_layers": [
+                  [
+                    64,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    32,
+                    [
+                      3,
+                      3
+                    ]
+                  ],
+                  [
+                    16,
+                    [
+                      3,
+                      3
+                    ]
+                  ]
+                ],
+                "hidden_classifier_width": null
+              }
+            ]
+          },
+          "sha256": "4f008e237f5018a593eecfe24d3af43365aadcca1107ec44c1f732d096259e12"
+        },
+        "partition": "validation",
+        "metric_protocol": {
+          "loss_aggregation": "sample_weighted_mean",
+          "classification_aggregation": "full_partition",
+          "precision_recall_f1_average": "macro"
+        },
+        "validation_metrics": {
+          "loss": 2.387918305397034,
+          "accuracy": 0.11874999850988388,
+          "macro_precision": 0.01086334977298975,
+          "macro_recall": 0.08636363595724106,
+          "macro_f1": 0.019299136474728584
+        },
+        "checkpoint_selection": {
+          "checkpoint_role": "validation_selected_lowest_loss",
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_value": 2.387918305397034,
+          "selected_epoch": 8,
+          "dataset_name": "abnormal-activities-dataset",
+          "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+          "seed": 42,
+          "metric_protocol": {
+            "loss_aggregation": "sample_weighted_mean",
+            "classification_aggregation": "full_partition",
+            "precision_recall_f1_average": "macro"
+          },
+          "early_stopping": {
+            "selection_partition": "validation",
+            "selection_metric": "loss",
+            "selection_mode": "min",
+            "best_validation_loss": 2.387918305397034,
+            "selected_epoch": 8,
+            "patience": 10,
+            "epochs_without_improvement": 0,
+            "actual_epochs": 8,
+            "stopped_early": false,
+            "stop_reason": "maximum_epochs_completed"
+          }
+        },
+        "early_stopping": {
+          "selection_partition": "validation",
+          "selection_metric": "loss",
+          "selection_mode": "min",
+          "best_validation_loss": 2.387918305397034,
+          "selected_epoch": 8,
+          "patience": 10,
+          "epochs_without_improvement": 0,
+          "actual_epochs": 8,
+          "stopped_early": false,
+          "stop_reason": "maximum_epochs_completed"
+        },
+        "train_time_s": 325.4,
+        "validation_confusion_matrix": {
+          "png": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late/metrics/validation_confusion_matrix.png",
+          "json": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late/metrics/validation_confusion_matrix.json",
+          "class_names": [
+            "Begging",
+            "Drunkenness",
+            "Fight",
+            "Harassment",
+            "Hijack",
+            "Knife Hazard",
+            "Normal Videos",
+            "Pollution",
+            "Property Damage",
+            "Robbery",
+            "Terrorism"
+          ],
+          "matrix": [
+            [
+              19,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              12,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              15,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              17,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              14,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              13,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "sample_count": 160
+        },
+        "selected_checkpoint": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late/checkpoints/best_model.pth",
+        "selected_checkpoint_metadata": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late/checkpoints/best_model.json",
+        "history": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late/metrics/history.json",
+        "test_access": "locked",
+        "metrics_path": "runs/experiments/20260926_151524_238505_abnormal-activities-dataset_architecture-screen/models/custom_capacity_late/metrics/metrics.json"
+      }
+    ]
+  }
+}
