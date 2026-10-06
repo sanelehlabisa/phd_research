@@ -1,16 +1,18 @@
 # Task Prompt
 
 - Ticket: `044-organize-notebook-helpers`
-- Status: Ready
+- Status: Done
 - Depends on: Ticket 043.
 - Aim: Move notebook-only helper modules out of the CLI-oriented `src/` directory without breaking notebook or command-line workflows.
 - Scope: Paper 001 implementation helpers, notebook imports, focused tests, and implementation README.
 - Changes:
   - Move notebook-specific Python helpers into `implementation/notebooks/utils/` as a small importable package.
+  - Use concise helper filenames there; do not repeat `notebook_` when the containing directory already identifies their purpose.
   - Update all notebook, bootstrap, and test references to the new location.
   - Keep reusable model, dataset, metrics, training, evaluation, and experiment CLI modules in `src/`.
 - Acceptance criteria:
   - Notebook helpers live under `notebooks/utils/`; obsolete copies are absent from `src/`.
+  - Helper modules use concise names such as `config.py`, `data.py`, and `workflows.py`.
   - All four modular notebooks and their Colab setup/bootstrap can import the moved helpers from a fresh checkout.
   - Existing modular CLI entry points still import and run their safe `--help`/listing checks.
   - Relevant tests pass and the README documents the concise directory distinction.

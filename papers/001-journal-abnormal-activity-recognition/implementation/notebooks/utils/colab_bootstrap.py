@@ -68,7 +68,7 @@ def import_health_check(implementation_root: Path) -> subprocess.CompletedProces
         [
             sys.executable,
             "-c",
-            "import numpy, numpy.testing; from src.notebook_utils import validate_runtime",
+            "import numpy, numpy.testing; from notebooks.utils.helpers import validate_runtime",
         ],
         cwd=implementation_root,
         capture_output=True,

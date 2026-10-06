@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from notebook_files import NOTEBOOKS
-from src import colab_bootstrap
-from src.colab_bootstrap import exact_requirements, version_matches
+from notebooks.utils import colab_bootstrap
+from notebooks.utils.colab_bootstrap import exact_requirements, version_matches
 
 
 def test_exact_requirements_parses_direct_pins(tmp_path: Path) -> None:
@@ -150,12 +150,16 @@ def test_unrepairable_import_failure_has_short_actionable_message(tmp_path, monk
 
 IMPLEMENTATION = Path("papers/001-journal-abnormal-activity-recognition/implementation")
 HELPERS = (
-    "notebook_data.py",
-    "notebook_display.py",
-    "notebook_workflows.py",
-    "notebook_suite.py",
-    "notebook_models.py",
-    "notebook_diagnostics.py",
+    "colab_bootstrap.py",
+    "config.py",
+    "data.py",
+    "display.py",
+    "workflows.py",
+    "suite.py",
+    "models.py",
+    "diagnostics.py",
+    "helpers.py",
+    "kinetics_subset.py",
     "kinetics600_subset.py",
 )
 
@@ -183,7 +187,7 @@ def test_checkout_checks_helpers_before_installation(
 ):
     (tmp_path / ".git").mkdir()
     if present:
-        source = tmp_path / IMPLEMENTATION / "src"
+        source = tmp_path / IMPLEMENTATION / "notebooks" / "utils"
         source.mkdir(parents=True)
         for name in HELPERS:
             (source / name).touch()
@@ -199,7 +203,7 @@ def test_checkout_checks_helpers_before_installation(
     if present:
         checkout_setup(notebook, tmp_path)
     else:
-        with pytest.raises(RuntimeError, match="NOT pip packages"):
+        with pytest.raises(RuntimeError, match="not pip packages"):
             checkout_setup(notebook, tmp_path)
     assert commands[0] == ["git", "pull", "--ff-only", "origin", "master"]
     assert all(command[0] in ("git", "nvidia-smi") for command in commands)
@@ -211,7 +215,7 @@ def test_checkout_clones_into_empty_folder(tmp_path, monkeypatch):
     def run(command, **kwargs):
         commands.append(command)
         if command[1] == "clone":
-            source = tmp_path / IMPLEMENTATION / "src"
+            source = tmp_path / IMPLEMENTATION / "notebooks" / "utils"
             source.mkdir(parents=True)
             for name in HELPERS:
                 (source / name).touch()
@@ -256,7 +260,7 @@ def test_real_fast_forward_preserves_local_edits(tmp_path, conflict):
     checkout = tmp_path / "checkout"
     git(tmp_path, "clone", str(remote), str(checkout))
     (checkout / "local-settings.txt").write_text("preserve my Colab edits\n")
-    source = remote / IMPLEMENTATION / "src"
+    source = remote / IMPLEMENTATION / "notebooks" / "utils"
     source.mkdir(parents=True)
     for name in HELPERS:
         (source / name).write_text("# test checkout fixture\n")
@@ -270,6 +274,7 @@ def test_real_fast_forward_preserves_local_edits(tmp_path, conflict):
     else:
         checkout_setup(NOTEBOOKS[-1], checkout)
         assert all(
-            (checkout / IMPLEMENTATION / "src" / name).is_file() for name in HELPERS
+            (checkout / IMPLEMENTATION / "notebooks" / "utils" / name).is_file()
+            for name in HELPERS
         )
     assert (checkout / "local-settings.txt").read_text() == "preserve my Colab edits\n"

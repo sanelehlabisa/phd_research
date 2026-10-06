@@ -13,17 +13,17 @@ import torch
 from IPython.display import display
 from torch.utils.data import DataLoader
 
-from . import notebook_config as settings
-from .experiment_config import ExperimentConfig
-from .metrics import evaluate_classifier, rank_validation_results
-from .model import count_trainable_parameters
-from .notebook_data import data_identity, prepare_data
-from .notebook_diagnostics import audit_sources, check_deadline, tiny_learnability
-from .notebook_display import LiveCurves, prediction_examples, show_predictions
-from .notebook_models import BASELINES, build_model
-from .notebook_workflows import _read, _sha, configuration, load_checkpoint
-from .train import train_notebook_model
-from .utils import RunContext, write_json
+from . import config as settings
+from src.experiment_config import ExperimentConfig
+from src.metrics import evaluate_classifier, rank_validation_results
+from src.model import count_trainable_parameters
+from .data import data_identity, prepare_data
+from .diagnostics import audit_sources, check_deadline, tiny_learnability
+from .display import LiveCurves, prediction_examples, show_predictions
+from .models import BASELINES, build_model
+from .workflows import _read, _sha, configuration, load_checkpoint
+from src.train import train_notebook_model
+from src.utils import RunContext, write_json
 
 EVIDENCE = "exploratory_diagnostic_not_independent_paper_evidence"
 

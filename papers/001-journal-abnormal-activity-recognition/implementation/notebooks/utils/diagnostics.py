@@ -7,10 +7,10 @@ import av
 import numpy as np
 import torch
 
-from . import notebook_config as settings
-from .model import CustomConvLSTM
-from .utils import seed_everything, write_json
-from .vdd_diagnostic import balanced_tiny_indices
+from . import config as settings
+from src.model import CustomConvLSTM
+from src.utils import seed_everything, write_json
+from src.vdd_diagnostic import balanced_tiny_indices
 
 
 def check_deadline(deadline):

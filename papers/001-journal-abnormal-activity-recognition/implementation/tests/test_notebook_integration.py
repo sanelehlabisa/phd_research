@@ -7,10 +7,10 @@ import av
 import pytest
 
 from test_kinetics600_subset import add_activity_clips, write_trusted_source
-from src import kinetics600_subset as kinetics
-from src import notebook_config as settings
-from src import notebook_suite as suite
-from src.notebook_data import data_identity, prepare_data
+from notebooks.utils import kinetics600_subset as kinetics
+from notebooks.utils import config as settings
+from notebooks.utils import suite
+from notebooks.utils.data import data_identity, prepare_data
 
 
 @pytest.mark.parametrize("selected,expected", [(64, 96), (96, 96), (128, 128)])

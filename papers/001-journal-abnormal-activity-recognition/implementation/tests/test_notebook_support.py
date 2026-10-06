@@ -6,9 +6,9 @@ from dataclasses import replace
 import pytest
 
 from notebook_files import NOTEBOOKS
-from src import notebook_config
-from src import notebook_utils
-from src.notebook_utils import (
+from notebooks.utils import config
+from notebooks.utils import helpers
+from notebooks.utils.helpers import (
     controlled_plan_list_command,
     controlled_stage_command,
     deterministic_subset_indices,
@@ -23,9 +23,9 @@ from src.notebook_utils import (
 def test_cuda_failure_identifies_kernel_or_package_problem(monkeypatch, visible_gpu):
     import subprocess
 
-    monkeypatch.setattr(notebook_utils.torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(helpers.torch.cuda, "is_available", lambda: False)
     monkeypatch.setattr(
-        notebook_utils.subprocess,
+        helpers.subprocess,
         "run",
         lambda *args, **kwargs: subprocess.CompletedProcess(
             args[0],
@@ -36,13 +36,13 @@ def test_cuda_failure_identifies_kernel_or_package_problem(monkeypatch, visible_
     )
     message = "Restart this notebook" if visible_gpu else "Select Kernel"
     with pytest.raises(RuntimeError, match=message) as error:
-        notebook_utils.validate_runtime(require_cuda=True)
+        helpers.validate_runtime(require_cuda=True)
     assert "Python:" in str(error.value)
     assert "CUDA build:" in str(error.value)
 
 
 def test_kinetics_is_the_default_diagnostic_dataset() -> None:
-    selected = notebook_config.selected_diagnostic_dataset()
+    selected = config.selected_diagnostic_dataset()
     assert selected.key == "kinetics600-subset"
     assert selected.source_url == "https://s3.amazonaws.com/kinetics/600/train"
     assert selected.accepted_classes == (
@@ -55,9 +55,9 @@ def test_kinetics_is_the_default_diagnostic_dataset() -> None:
 
 
 def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
-    monkeypatch.setattr(notebook_config, "SELECTED_DIAGNOSTIC_DATASET", "vdd")
-    monkeypatch.setattr(notebook_config, "CLASSES_OF_INTEREST", ("missing",))
-    selected = notebook_config.selected_diagnostic_dataset()
+    monkeypatch.setattr(config, "SELECTED_DIAGNOSTIC_DATASET", "vdd")
+    monkeypatch.setattr(config, "CLASSES_OF_INTEREST", ("missing",))
+    selected = config.selected_diagnostic_dataset()
     assert selected.key == "vdd"
     assert selected.kaggle_handle == "sanelehlabisa/violence-detection-dataset"
     assert selected.accepted_classes == ("non-violent", "violent")
@@ -65,14 +65,14 @@ def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
 
 def test_disabled_dataset_cannot_be_selected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(
-        notebook_config.DIAGNOSTIC_DATASETS,
+        config.DIAGNOSTIC_DATASETS,
         "kinetics600-subset",
         replace(
-            notebook_config.DIAGNOSTIC_DATASETS["kinetics600-subset"], enabled=False
+            config.DIAGNOSTIC_DATASETS["kinetics600-subset"], enabled=False
         ),
     )
     with pytest.raises(ValueError, match="not ready"):
-        notebook_config.selected_diagnostic_dataset()
+        config.selected_diagnostic_dataset()
 
 
 def test_all_modular_notebooks_check_for_the_shared_kinetics_loader() -> None:

@@ -10,9 +10,9 @@ from urllib.parse import parse_qs, urlparse
 import av
 import pytest
 
-from src import kinetics_subset as subset
-from src import notebook_config as settings
-from src import notebook_data as data
+from notebooks.utils import kinetics_subset as subset
+from notebooks.utils import config as settings
+from notebooks.utils import data
 
 HANDLE = "sanelehlabisa/kinetics-400-dataset/versions/1"
 SLUG = "kinetics-400-dataset"

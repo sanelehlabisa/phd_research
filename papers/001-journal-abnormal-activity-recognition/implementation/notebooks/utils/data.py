@@ -11,8 +11,8 @@ import av
 import kagglehub
 import torch
 
-from . import notebook_config as settings
-from .dataset import AHARDataset, create_split_manifest, load_split_subsets
+from . import config as settings
+from src.dataset import AHARDataset, create_split_manifest, load_split_subsets
 from .kinetics_subset import download_subset, matched_interests, versioned_handle
 from .kinetics600_subset import (
     GROUPING,
@@ -21,7 +21,7 @@ from .kinetics600_subset import (
     prepare_subset,
     unique_clip_records,
 )
-from .vdd_diagnostic import resolve_vdd_root
+from src.vdd_diagnostic import resolve_vdd_root
 
 
 class NotebookVideoDataset(AHARDataset):

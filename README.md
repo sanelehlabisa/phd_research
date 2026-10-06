@@ -22,10 +22,10 @@ Saved notebook outputs are historical; the merged suite needs its Colab run.
 The controlled AAD study stays separate; no new manuscript claims are made.
 Training and experiment notebooks now use fresh filenames to work around stale
 VS Code notebook controllers; use the links in the implementation guide above.
-The Colab experiment notebook now downloads a ZIP of suite artifacts. Ticket
+Notebook-only helpers now live under `implementation/notebooks/utils/`; reusable
+CLI and model code remains in `src/`. Ticket
 [045](agents/work/045-stabilize-colab-script-runtime/prompt.md) hardens the
-exported one-cell Colab runtime; ticket [044](agents/work/044-organize-notebook-helpers/prompt.md)
-remains for helper organization.
+exported one-cell Colab runtime.
 
 ## Structure
 

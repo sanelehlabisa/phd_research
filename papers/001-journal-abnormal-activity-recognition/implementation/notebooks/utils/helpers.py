@@ -11,20 +11,20 @@ from pathlib import Path
 import kagglehub
 import torch
 
-from .dataset import AHARDataset, create_split_manifest, load_split_subsets
-from .metrics import validate_selected_checkpoint
-from .model import (
+from src.dataset import AHARDataset, create_split_manifest, load_split_subsets
+from src.metrics import validate_selected_checkpoint
+from src.model import (
     CustomConvLSTM,
     count_trainable_parameters,
     custom_model_from_checkpoint,
 )
-from .notebook_config import (
+from .config import (
     CONTROLLED_AAD_DATASET_HANDLE,
     DiagnosticDataset,
     selected_diagnostic_dataset,
 )
-from .utils import runtime_environment, seed_everything
-from .vdd_diagnostic import inspect_vdd, resolve_vdd_root
+from src.utils import runtime_environment, seed_everything
+from src.vdd_diagnostic import inspect_vdd, resolve_vdd_root
 
 
 def implementation_root(start: str | Path | None = None) -> Path:

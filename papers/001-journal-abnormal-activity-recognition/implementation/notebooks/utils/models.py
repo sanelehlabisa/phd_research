@@ -3,7 +3,7 @@
 import torch
 from torchvision.models import video
 
-from .model import CustomConvLSTM, PaperConvLSTM, custom_model_from_checkpoint
+from src.model import CustomConvLSTM, PaperConvLSTM, custom_model_from_checkpoint
 
 BASELINES = ("r3d_18", "mc3_18", "r2plus1d_18")
 

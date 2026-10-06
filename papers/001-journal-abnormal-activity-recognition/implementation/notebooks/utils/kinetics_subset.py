@@ -11,7 +11,7 @@ from urllib.request import Request, urlopen
 
 import kagglehub
 
-from .utils import write_json
+from src.utils import write_json
 
 
 def versioned_handle(handle):

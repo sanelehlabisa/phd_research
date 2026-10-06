@@ -12,13 +12,13 @@ import pytest
 import torch
 
 from test_notebook_workflows import prepared
-from src import notebook_config as settings
-from src import notebook_diagnostics as diagnostics
-from src import notebook_models as models
-from src import notebook_suite as suite
+from notebooks.utils import config as settings
+from notebooks.utils import diagnostics
+from notebooks.utils import models
+from notebooks.utils import suite
 from src.model import count_trainable_parameters
-from src.notebook_data import NotebookVideoDataset
-from src.notebook_data import prepare_data
+from notebooks.utils.data import NotebookVideoDataset
+from notebooks.utils.data import prepare_data
 from src.utils import write_video_torchvision
 
 

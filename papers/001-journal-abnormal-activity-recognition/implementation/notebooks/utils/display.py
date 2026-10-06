@@ -12,8 +12,8 @@ import pandas as pd
 import torch
 from IPython.display import HTML, Video, display
 
-from .dataset import VideoAugmentation
-from .utils import write_json, write_video_torchvision
+from src.dataset import VideoAugmentation
+from src.utils import write_json, write_video_torchvision
 
 
 def video_card(path, title, correct=None):

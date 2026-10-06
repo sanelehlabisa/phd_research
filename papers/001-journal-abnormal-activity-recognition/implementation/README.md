@@ -118,13 +118,18 @@ exploratory evidence.
 
 ## Modular Colab notebooks
 
+Notebook-only helpers and the Colab bootstrap live in `notebooks/utils/`;
+reusable model, dataset, training, evaluation and CLI modules remain in `src/`.
+Helper filenames are concise (`config.py`, `data.py`, `workflows.py`); their
+directory already identifies them as notebook support.
+
 Integration [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/prompt.md)
 combines Kinetics-600 (>2,000 unique videos before splitting) with the expanded
 eight-hour suite. Real Colab inventory/training remains pending.
 
 Open one notebook and choose **Run All** on a Colab GPU. All four use
 `SELECTED_DIAGNOSTIC_DATASET = "kinetics600-subset"` in
-[shared configuration](src/notebook_config.py). Preparation downloads only the
+[shared configuration](notebooks/utils/config.py). Preparation downloads only the
 five Kinetics-600 training archives (about 3 GB compressed), extracts them
 safely, prints actual per-class/total counts and stops unless it finds over
 2,000 unique clips. The exact extracted total remains to be observed on Colab.
@@ -262,7 +267,7 @@ Setup prints the GPU attached to each notebook's kernel, accepts CUDA wheel
 version suffixes, and installs the pinned CUDA pair when a visible GPU has a
 CPU-only or incompatible PyTorch installation. Select the Colab kernel separately
 for each notebook; a GPU connection in another notebook does not confirm this one.
-`src.notebook_data` is a repository module, not a pip package: a kernel restart
+`notebooks.utils.data` is a repository module, not a pip package: a kernel restart
 cannot download source files that have not been committed and pushed.
 Active notebooks retain the remote laptop's historical saved outputs unchanged;
 they do not demonstrate the revised code has run. The local versions remain in
@@ -281,7 +286,7 @@ cell in the same session to display them without retraining or rescoring test:
 import json
 from pathlib import Path
 from IPython.display import Video as _Video
-import src.notebook_display as nd
+import notebooks.utils.display as nd
 
 nd.Video = lambda filename, **kwargs: _Video(filename, **kwargs)
 records = json.loads(

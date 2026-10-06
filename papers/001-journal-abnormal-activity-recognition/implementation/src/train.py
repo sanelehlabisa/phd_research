@@ -176,9 +176,9 @@ def train_notebook_model(
 ):
     """Train an exploratory model on explicit train/validation subsets only."""
     from time import perf_counter
-    from .notebook_data import data_identity
-    from . import notebook_config as settings
-    from .notebook_models import build_model
+    from notebooks.utils.data import data_identity
+    from notebooks.utils import config as settings
+    from notebooks.utils.models import build_model
     import time
 
     def check_budget():

@@ -11,23 +11,23 @@ import torch
 from IPython.display import display
 from torch.utils.data import DataLoader
 
-from . import notebook_config as settings
-from .experiment_config import ExperimentConfig
-from .metrics import (
+from . import config as settings
+from src.experiment_config import ExperimentConfig
+from src.metrics import (
     evaluate_classifier,
     rank_validation_results,
     validate_selected_checkpoint,
 )
-from .model import (
+from src.model import (
     CustomConvLSTM,
     count_trainable_parameters,
     custom_model_from_checkpoint,
 )
-from .notebook_data import data_identity, prepare_data
-from .notebook_display import LiveCurves, prediction_examples, show_predictions
-from .notebook_models import from_checkpoint
-from .train import train_notebook_model
-from .utils import RunContext, seed_everything, write_json
+from .data import data_identity, prepare_data
+from .display import LiveCurves, prediction_examples, show_predictions
+from .models import from_checkpoint
+from src.train import train_notebook_model
+from src.utils import RunContext, seed_everything, write_json
 
 
 def _read(path):

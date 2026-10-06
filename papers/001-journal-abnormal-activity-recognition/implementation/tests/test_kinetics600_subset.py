@@ -8,9 +8,9 @@ import tarfile
 import pytest
 import torch
 
-from src import kinetics600_subset as kinetics
-from src import notebook_config as settings
-from src.notebook_data import data_identity, prepare_data
+from notebooks.utils import kinetics600_subset as kinetics
+from notebooks.utils import config as settings
+from notebooks.utils.data import data_identity, prepare_data
 from src.utils import write_json
 
 
@@ -266,7 +266,7 @@ def test_grouped_manifest_is_repeatable_and_keeps_video_ids_together(
     assert repeated["manifest_path"] == prepared["manifest_path"]
     assert repeated["manifest_path"].read_bytes() == manifest_bytes
 
-    from src import notebook_workflows as workflows
+    from notebooks.utils import workflows
 
     checkpoint_path = tmp_path / "old-source.pth"
     torch.save({"data_identity": data_identity(prepared)}, checkpoint_path)

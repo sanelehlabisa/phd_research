@@ -11,10 +11,10 @@ import pytest
 import torch
 
 from notebook_files import NOTEBOOKS
-from src import notebook_config as settings
-from src import notebook_display as visuals
-from src import notebook_workflows as workflows
-from src.notebook_data import NotebookVideoDataset, prepare_data
+from notebooks.utils import config as settings
+from notebooks.utils import display as visuals
+from notebooks.utils import workflows
+from notebooks.utils.data import NotebookVideoDataset, prepare_data
 from src.model import CustomConvLSTM
 from src.utils import seed_everything, write_video_torchvision
 from src.vdd_diagnostic import resolve_vdd_root
@@ -395,8 +395,9 @@ def test_notebook_contracts_and_reference_unchanged():
         compile(source, str(path), "exec")
         if path.name.startswith("04_"):
             assert "prepare_experiment_data(IMPLEMENTATION_ROOT)" in source
-            assert "from src.notebook_suite import prepare_experiment_data" in source
-            assert "from src.notebook_suite import show_experiment_plan" in source
+            assert "from notebooks.utils.suite import prepare_experiment_data" in source
+            assert "from notebooks.utils.suite import (" in source
+            assert "show_experiment_plan" in source
         else:
             assert "prepare_data(IMPLEMENTATION_ROOT)" in source
         assert "RUN_" not in source and "controlled_stage_command" not in source

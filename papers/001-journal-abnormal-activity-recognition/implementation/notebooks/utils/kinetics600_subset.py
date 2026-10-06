@@ -13,14 +13,14 @@ from urllib.request import Request, urlopen
 
 from sklearn.model_selection import StratifiedGroupKFold
 
-from .notebook_config import KINETICS600_CLASSES, KINETICS600_SOURCE_URL
-from .dataset import (
+from .config import KINETICS600_CLASSES, KINETICS600_SOURCE_URL
+from src.dataset import (
     _dataset_inventory,
     _inventory_hash,
     _split_counts,
     load_split_subsets,
 )
-from .utils import write_json
+from src.utils import write_json
 
 MIN_CLIPS = 2001
 RELEASE = "kinetics-600"
