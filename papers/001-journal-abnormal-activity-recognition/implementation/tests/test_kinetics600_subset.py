@@ -66,7 +66,9 @@ def write_trusted_source(root: Path, files: list[dict]) -> dict:
     return report
 
 
-def test_archive_download_is_allowlisted_cached_and_retryable(tmp_path, monkeypatch):
+def test_archive_download_is_allowlisted_cached_and_retryable(
+    tmp_path, monkeypatch, capsys
+):
     url = (
         f"{settings.KINETICS600_SOURCE_URL}/"
         f"{kinetics.quote('headbutting', safe='')}.tar.gz"
@@ -101,9 +103,14 @@ def test_archive_download_is_allowlisted_cached_and_retryable(tmp_path, monkeypa
     assert record["sha256"] == kinetics.file_hash(target)
     extracted = kinetics.extract_archive(target, "headbutting", tmp_path / "dataset")
     assert len(extracted) == 1
+    kinetics.extract_archive(
+        target, "headbutting", tmp_path / "dataset", show_cache=False
+    )
+    assert "Cached class:" not in capsys.readouterr().out
     record["archive_validated"] = True
     write_json(target.with_name(target.name + ".json"), record)
-    assert kinetics.download_archive(url, target) == record
+    assert kinetics.download_archive(url, target, show_cache=False) == record
+    assert "Cached archive:" not in capsys.readouterr().out
     assert requests == ["HEAD", "GET", "HEAD", "GET"]
 
     with pytest.raises(ValueError, match="Only the five approved"):

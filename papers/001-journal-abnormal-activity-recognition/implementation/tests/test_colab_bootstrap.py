@@ -50,6 +50,11 @@ def test_gpu_bootstrap_preserves_or_repairs_cuda_pair(tmp_path, monkeypatch, cpu
         colab_bootstrap, "installed_versions", lambda pins: next(versions)
     )
     monkeypatch.setattr(colab_bootstrap, "gpu_is_visible", lambda: True)
+    monkeypatch.setattr(
+        colab_bootstrap,
+        "import_health_check",
+        lambda *args: subprocess.CompletedProcess([], 0, stdout="", stderr=""),
+    )
     commands = []
 
     def run(command, **kwargs):
@@ -78,6 +83,11 @@ def test_matching_cpu_runtime_skips_requirement_install(tmp_path, monkeypatch):
         colab_bootstrap, "installed_versions", lambda pins: {"numpy": "2.4.3"}
     )
     monkeypatch.setattr(colab_bootstrap, "gpu_is_visible", lambda: False)
+    monkeypatch.setattr(
+        colab_bootstrap,
+        "import_health_check",
+        lambda *args: subprocess.CompletedProcess([], 0, stdout="", stderr=""),
+    )
     commands = []
     monkeypatch.setattr(
         subprocess,
@@ -88,6 +98,54 @@ def test_matching_cpu_runtime_skips_requirement_install(tmp_path, monkeypatch):
     colab_bootstrap.main([str(requirements)])
 
     assert commands == []
+
+
+def test_matching_but_broken_numpy_is_repaired_before_imports(tmp_path, monkeypatch):
+    requirements = tmp_path / "requirements.txt"
+    requirements.write_text("numpy==2.4.3\n")
+    monkeypatch.setattr(
+        colab_bootstrap, "installed_versions", lambda pins: {"numpy": "2.4.3"}
+    )
+    monkeypatch.setattr(colab_bootstrap, "gpu_is_visible", lambda: False)
+    checks = iter(
+        [
+            subprocess.CompletedProcess([], 1, stderr="AttributeError: _blas_supports_fpe"),
+            subprocess.CompletedProcess([], 0, stdout="", stderr=""),
+        ]
+    )
+    monkeypatch.setattr(
+        colab_bootstrap, "import_health_check", lambda *args: next(checks)
+    )
+    repaired = []
+    monkeypatch.setattr(colab_bootstrap, "repair_numpy", repaired.append)
+
+    with pytest.raises(SystemExit) as error:
+        colab_bootstrap.main([str(requirements)])
+
+    assert error.value.code == 75
+    assert repaired == ["numpy==2.4.3"]
+
+
+def test_unrepairable_import_failure_has_short_actionable_message(tmp_path, monkeypatch):
+    requirements = tmp_path / "requirements.txt"
+    requirements.write_text("numpy==2.4.3\n")
+    monkeypatch.setattr(
+        colab_bootstrap, "installed_versions", lambda pins: {"numpy": "2.4.3"}
+    )
+    monkeypatch.setattr(colab_bootstrap, "gpu_is_visible", lambda: False)
+    broken = subprocess.CompletedProcess(
+        [], 1, stderr="long traceback\nAttributeError: _blas_supports_fpe"
+    )
+    monkeypatch.setattr(
+        colab_bootstrap, "import_health_check", lambda *args: broken
+    )
+    monkeypatch.setattr(colab_bootstrap, "repair_numpy", lambda requirement: None)
+
+    with pytest.raises(SystemExit, match="fresh Colab A100 runtime") as error:
+        colab_bootstrap.main([str(requirements)])
+
+    assert "AttributeError: _blas_supports_fpe" in str(error.value)
+    assert "long traceback" not in str(error.value)
 
 
 IMPLEMENTATION = Path("papers/001-journal-abnormal-activity-recognition/implementation")

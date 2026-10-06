@@ -146,6 +146,11 @@ per-model configs, histories, metrics, plots, checkpoints, and generated
 predictions; source datasets are excluded. Original run folders remain under
 `runs/`. The download needs the Colab notebook session to reach its final cell.
 
+The exported one-cell experiment workflow checks actual NumPy and notebook
+imports before loading project code. If the pinned NumPy wheel is inconsistent,
+setup repairs it and asks for one kernel restart. Dataset setup omits per-archive
+cache-reuse lines while retaining download progress and the final unique-video count.
+
 Notebooks 03/04 have fresh filenames to work around VS Code's logged
 `notebook controller is DISPOSED` error: copies ran while the old paths did not.
 Their cells, metadata and saved outputs are preserved. Close the old tabs, open
@@ -245,8 +250,10 @@ models does not establish bad FPS/data: optimization and shared sampling remain
 possible causes. No recurrent state is carried across videos or splits.
 
 Every setup cell safely fast-forwards its checkout, verifies the required source
-files, prints the code revision, and installs `requirements.txt` only when pinned
-versions do not already match. Git preserves unrelated edits and refuses updates
+files, prints the code revision, checks NumPy and notebook imports in a fresh
+Python process, and installs `requirements.txt` only when pinned versions do not
+already match. A broken NumPy wheel is repaired and triggers one kernel restart
+before imports. Git preserves unrelated edits and refuses updates
 that would overwrite conflicting edits; no reset, clean or automatic stash is used.
 If dependency versions change, restart this notebook's Python kernel once and
 rerun from the top; keep the same A100 runtime if it remains attached. Updated

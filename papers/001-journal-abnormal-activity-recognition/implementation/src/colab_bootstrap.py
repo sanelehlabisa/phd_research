@@ -62,6 +62,59 @@ def gpu_is_visible() -> bool:
     return result.returncode == 0 and bool(result.stdout.strip())
 
 
+def import_health_check(implementation_root: Path) -> subprocess.CompletedProcess[str]:
+    """Check notebook imports, including compiled NumPy, in a fresh process."""
+    return subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import numpy, numpy.testing; from src.notebook_utils import validate_runtime",
+        ],
+        cwd=implementation_root,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+
+def concise_error(result: subprocess.CompletedProcess[str]) -> str:
+    """Return the final exception line from a subprocess without its full traceback."""
+    lines = (result.stderr or result.stdout).strip().splitlines()
+    return lines[-1] if lines else f"import check exited with code {result.returncode}"
+
+
+def has_numpy_integrity_error(result: subprocess.CompletedProcess[str]) -> bool:
+    """Identify a broken NumPy Python/native-extension pairing from its traceback."""
+    details = f"{result.stdout}\n{result.stderr}"
+    return any(
+        marker in details
+        for marker in (
+            "_blas_supports_fpe",
+            "numpy._core",
+            "numpy.core.multiarray failed to import",
+            "numpy.dtype size changed",
+            "compiled using NumPy 1.x",
+        )
+    )
+
+
+def repair_numpy(requirement: str) -> None:
+    """Reinstall only the pinned NumPy wheel when its Python/C extension files disagree."""
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--force-reinstall",
+            "--no-cache-dir",
+            "--no-deps",
+            requirement,
+        ],
+        check=True,
+    )
+
+
 def main(argv: list[str] | None = None) -> None:
     """Install requirements and stop when the current kernel must restart."""
     arguments = list(sys.argv[1:] if argv is None else argv)
@@ -95,9 +148,28 @@ def main(argv: list[str] | None = None) -> None:
     pins_match = all(
         version_matches(before[name], required) for name, required in pins.items()
     )
+    changed = False
     if pins_match and not needs_cuda_wheel:
-        print("Pinned requirements already match this runtime; skipped pip install.")
-        return
+        health = import_health_check(requirements.parent)
+        if health.returncode == 0:
+            print("Pinned runtime and NumPy imports verified; skipped pip install.")
+            return
+        if not has_numpy_integrity_error(health):
+            raise SystemExit(
+                "Notebook dependency import check failed before experiment imports: "
+                f"{concise_error(health)}. Check the pinned dependencies and reconnect "
+                "to a fresh Colab runtime if needed."
+            )
+        repair_numpy(f"numpy=={pins['numpy']}")
+        changed = True
+        health = import_health_check(requirements.parent)
+        if health.returncode != 0:
+            raise SystemExit(
+                "NumPy/dependency import check still fails after repairing the pinned "
+                f"NumPy wheel: {concise_error(health)}. Reconnect to a fresh Colab "
+                "A100 runtime and rerun setup."
+            )
+        raise SystemExit(75)
 
     if gpu_visible and needs_cuda_wheel:
         # Install the official CUDA pair rather than a CPU wheel on a GPU VM.
@@ -118,6 +190,7 @@ def main(argv: list[str] | None = None) -> None:
         [sys.executable, "-m", "pip", "install", "-r", str(requirements)],
         check=True,
     )
+    changed = True
     after = installed_versions(pins)
     mismatches = {
         package: {"required": required, "installed": after[package]}
@@ -126,21 +199,28 @@ def main(argv: list[str] | None = None) -> None:
     }
     if mismatches:
         raise SystemExit(f"installed versions do not match exact pins: {mismatches}")
-    changed = {
+    version_changes = {
         package: {"before": before[package], "after": after[package]}
         for package in pins
         if before[package] != after[package]
     }
+    if version_changes:
+        changed = True
+    health = import_health_check(requirements.parent)
+    if health.returncode != 0:
+        if has_numpy_integrity_error(health):
+            repair_numpy(f"numpy=={pins['numpy']}")
+            changed = True
+            health = import_health_check(requirements.parent)
+        if health.returncode != 0:
+            raise SystemExit(
+                "NumPy/dependency import check failed after package setup: "
+                f"{concise_error(health)}. Reconnect to a fresh Colab A100 runtime "
+                "and rerun setup."
+            )
     if changed:
-        print(
-            "Pinned packages changed. Restart this notebook's Python kernel once, "
-            "then rerun the notebook from the top. Keep the same A100 runtime if it "
-            "is still attached; reselect it only if VS Code asks. Changes: "
-            + str(changed),
-            flush=True,
-        )
         raise SystemExit(75)
-    print("Pinned requirements already match this runtime.")
+    print("Pinned runtime and NumPy imports verified.")
 
 
 if __name__ == "__main__":

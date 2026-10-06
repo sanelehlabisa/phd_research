@@ -177,7 +177,7 @@ def prepare_data(
             raise ValueError(
                 "Kinetics-600 requires the approved source and five exact activities"
             )
-        dataset_root, source = prepare_subset(root, dataset_root)
+        dataset_root, source = prepare_subset(root, dataset_root, show_cache=False)
         accepted = specification.accepted_classes
     elif kinetics:
         _, slug, _ = versioned_handle(specification.kaggle_handle)

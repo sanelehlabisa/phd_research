@@ -60,7 +60,7 @@ def _safe_target(path: Path, root: Path) -> None:
             break
 
 
-def download_archive(url: str, target: Path) -> dict:
+def download_archive(url: str, target: Path, *, show_cache: bool = True) -> dict:
     """Reuse verified archives; retry interrupted downloads without a full-release fallback."""
     allowed = {
         f"{KINETICS600_SOURCE_URL}/{quote(name, safe='')}.tar.gz"
@@ -83,7 +83,8 @@ def download_archive(url: str, target: Path) -> dict:
             and saved.get("bytes") == target.stat().st_size
             and saved.get("sha256") == file_hash(target)
         ):
-            print(f"Cached archive: {target.name}", flush=True)
+            if show_cache:
+                print(f"Cached archive: {target.name}", flush=True)
             return saved
     with urlopen(Request(url, method="HEAD"), timeout=30) as response:
         size = int(response.headers.get("Content-Length", 0))
@@ -154,7 +155,13 @@ def unique_clip_records(records: list[dict]) -> list[dict]:
     ]
 
 
-def extract_archive(archive_path: Path, label: str, dataset_root: Path) -> list[dict]:
+def extract_archive(
+    archive_path: Path,
+    label: str,
+    dataset_root: Path,
+    *,
+    show_cache: bool = True,
+) -> list[dict]:
     """Stage safe MP4 members and verify the gzip trailer before publishing a class."""
     if label not in KINETICS600_CLASSES:
         raise ValueError("Unexpected Kinetics-600 activity")
@@ -176,7 +183,8 @@ def extract_archive(archive_path: Path, label: str, dataset_root: Path) -> list[
                 == row
                 for row in saved["files"]
             ):
-                print(f"Cached class: {label} ({len(expected)} clips)", flush=True)
+                if show_cache:
+                    print(f"Cached class: {label} ({len(expected)} clips)", flush=True)
                 return saved["files"]
     dataset_root.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix="extract-", dir=archive_path.parent) as temporary:
@@ -294,7 +302,12 @@ def inventory_clips(dataset_root: Path) -> list[dict]:
     return sorted(records, key=lambda row: row["path"])
 
 
-def prepare_subset(root: Path, dataset_root: Path | None = None) -> tuple[Path, dict]:
+def prepare_subset(
+    root: Path,
+    dataset_root: Path | None = None,
+    *,
+    show_cache: bool = True,
+) -> tuple[Path, dict]:
     """Prepare only five upstream training classes, or inventory an existing local root."""
     archives = None
     if dataset_root is None:
@@ -306,8 +319,8 @@ def prepare_subset(root: Path, dataset_root: Path | None = None) -> tuple[Path, 
             path = cache / "archives" / f"{label}.tar.gz"
             _safe_target(path, cache)
             url = f"{KINETICS600_SOURCE_URL}/{quote(label, safe='')}.tar.gz"
-            record = download_archive(url, path)
-            extract_archive(path, label, dataset_root)
+            record = download_archive(url, path, show_cache=show_cache)
+            extract_archive(path, label, dataset_root, show_cache=show_cache)
             record["archive_validated"] = True
             write_json(path.with_name(path.name + ".json"), record)
             archives.append(dict(class_name=label, **record))
