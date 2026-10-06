@@ -70,7 +70,9 @@ def main(argv: list[str] | None = None) -> None:
     requirements = Path(arguments[0]).resolve()
     pins = exact_requirements(requirements)
     before = installed_versions(pins)
-    if gpu_is_visible():
+    gpu_visible = gpu_is_visible()
+    needs_cuda_wheel = False
+    if gpu_visible:
         probe = subprocess.run(
             [
                 sys.executable,
@@ -80,26 +82,38 @@ def main(argv: list[str] | None = None) -> None:
             capture_output=True,
             text=True,
         )
-        needs_cuda_wheel = probe.returncode != 0 or json.loads(probe.stdout) is None
-        if needs_cuda_wheel or any(
+        try:
+            needs_cuda_wheel = probe.returncode != 0 or json.loads(probe.stdout) is None
+        except json.JSONDecodeError:
+            needs_cuda_wheel = True
+        needs_cuda_wheel = needs_cuda_wheel or any(
             not version_matches(before[name], pins[name])
             or (before[name] or "").endswith("+cpu")
             for name in ("torch", "torchvision")
-        ):
-            # Install the official CUDA pair rather than a CPU wheel on a GPU VM.
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "pip",
-                    "install",
-                    f"torch=={pins['torch']}+cu128",
-                    f"torchvision=={pins['torchvision']}+cu128",
-                    "--index-url",
-                    "https://download.pytorch.org/whl/cu128",
-                ],
-                check=True,
-            )
+        )
+
+    pins_match = all(
+        version_matches(before[name], required) for name, required in pins.items()
+    )
+    if pins_match and not needs_cuda_wheel:
+        print("Pinned requirements already match this runtime; skipped pip install.")
+        return
+
+    if gpu_visible and needs_cuda_wheel:
+        # Install the official CUDA pair rather than a CPU wheel on a GPU VM.
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                f"torch=={pins['torch']}+cu128",
+                f"torchvision=={pins['torchvision']}+cu128",
+                "--index-url",
+                "https://download.pytorch.org/whl/cu128",
+            ],
+            check=True,
+        )
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "-r", str(requirements)],
         check=True,
@@ -119,8 +133,10 @@ def main(argv: list[str] | None = None) -> None:
     }
     if changed:
         print(
-            "Pinned packages changed. Restart the Colab runtime, reconnect to the "
-            "A100, and rerun this notebook from the top. Changes: " + str(changed),
+            "Pinned packages changed. Restart this notebook's Python kernel once, "
+            "then rerun the notebook from the top. Keep the same A100 runtime if it "
+            "is still attached; reselect it only if VS Code asks. Changes: "
+            + str(changed),
             flush=True,
         )
         raise SystemExit(75)

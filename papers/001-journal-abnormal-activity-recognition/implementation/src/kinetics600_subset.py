@@ -145,6 +145,15 @@ def _clip_record(path: Path, label: str) -> dict:
     )
 
 
+def unique_clip_records(records: list[dict]) -> list[dict]:
+    """Return only one unambiguous path for each exact video content hash."""
+    return [
+        row
+        for row in records
+        if "duplicate_of" not in row and "duplicate_label_conflict" not in row
+    ]
+
+
 def extract_archive(archive_path: Path, label: str, dataset_root: Path) -> list[dict]:
     """Stage safe MP4 members and verify the gzip trailer before publishing a class."""
     if label not in KINETICS600_CLASSES:
@@ -233,35 +242,53 @@ def extract_archive(archive_path: Path, label: str, dataset_root: Path) -> list[
 
 
 def inventory_clips(dataset_root: Path) -> list[dict]:
-    """Count unique nonempty MP4 files in all five classes without decoding test videos."""
-    records, hashes = [], set()
+    """Inventory files and flag exact copies without decoding any videos."""
+    records, hashes = [], {}
     for label in KINETICS600_CLASSES:
         directory = dataset_root / label
         if directory.is_symlink() or not directory.is_dir():
             raise ValueError(f"Missing or unsafe activity folder: {directory}")
-        count = 0
         for path in sorted(directory.iterdir()):
             if path.is_symlink() or not path.is_file() or path.suffix.lower() != ".mp4":
                 raise ValueError(f"Unexpected file in activity folder: {path}")
             record = _clip_record(path, label)
             if record["bytes"] <= 0:
                 raise ValueError(f"Empty clip: {path}")
-            if record["sha256"] in hashes:
-                raise ValueError(
-                    f"Duplicate video content: {path}; copies cannot count as new data"
-                )
-            hashes.add(record["sha256"])
+            hashes.setdefault(record["sha256"], []).append(record)
             records.append(record)
-            count += 1
+
+    for copies in hashes.values():
+        canonical = copies[0]
+        labels = sorted({row["class_name"] for row in copies})
+        for duplicate in copies[1:]:
+            duplicate["duplicate_of"] = canonical["path"]
+        if len(labels) > 1:
+            for row in copies:
+                row["duplicate_label_conflict"] = labels
+
+    unique_records = unique_clip_records(records)
+    for label in KINETICS600_CLASSES:
+        count = sum(row["class_name"] == label for row in unique_records)
         if not count:
-            raise ValueError(f"Empty activity folder: {directory}")
+            raise ValueError(
+                f"No usable unique clips remain for {label}; check duplicate-content "
+                "label conflicts in the source inventory"
+            )
         print(f"  {label}: {count} unique clips", flush=True)
-    if len(records) < MIN_CLIPS:
+    if len(unique_records) < MIN_CLIPS:
         raise ValueError(
-            f"Kinetics-600 has {len(records)} unique clips; at least {MIN_CLIPS} required before training"
+            f"Kinetics-600 has {len(unique_records)} usable unique clips after exact "
+            f"duplicate removal; at least {MIN_CLIPS} required before training"
         )
+    conflicting = sum("duplicate_label_conflict" in row for row in records)
+    excluded_copies = sum(
+        "duplicate_of" in row and "duplicate_label_conflict" not in row
+        for row in records
+    )
     print(
-        f"Kinetics-600 subset: {len(records)} unique videos; five activities, no copies.",
+        f"Kinetics-600 subset: {len(unique_records)} usable unique videos; "
+        f"excluded {excluded_copies} exact copies and {conflicting} "
+        "cross-label duplicate files.",
         flush=True,
     )
     return sorted(records, key=lambda row: row["path"])
@@ -346,7 +373,7 @@ def load_grouped_subsets(
 ) -> tuple:
     """Reuse generic manifest validation and additionally enforce source-ID isolation."""
     inventory = _dataset_inventory(dataset)
-    source_by_path = {row["path"]: row for row in source["files"]}
+    source_by_path = {row["path"]: row for row in unique_clip_records(source["files"])}
     if {row["path"] for row in inventory} != set(source_by_path):
         raise ValueError("Dataset differs from the verified source inventory")
     groups = [

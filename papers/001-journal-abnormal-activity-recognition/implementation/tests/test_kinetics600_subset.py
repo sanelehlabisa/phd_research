@@ -154,19 +154,47 @@ def test_inventory_requires_five_classes_and_over_two_thousand_unique_files(
         directory = root / label
         directory.mkdir(parents=True)
         (directory / f"{index:011d}.mp4").write_bytes(f"clip-{index}".encode())
+    (root / kinetics.KINETICS600_CLASSES[0] / "00000000001.mp4").write_bytes(b"clip-0")
     with pytest.raises(ValueError, match="at least 6"):
         kinetics.inventory_clips(root)
 
-    (root / kinetics.KINETICS600_CLASSES[0] / "00000000001.mp4").write_bytes(b"clip-0")
-    with pytest.raises(ValueError, match="Duplicate video content"):
-        kinetics.inventory_clips(root)
-
-    (root / kinetics.KINETICS600_CLASSES[0] / "00000000001.mp4").write_bytes(
-        b"clip-extra"
-    )
+    monkeypatch.setattr(kinetics, "MIN_CLIPS", 5)
     records = kinetics.inventory_clips(root)
+    unique = kinetics.unique_clip_records(records)
     assert len(records) == 6
-    assert {row["class_name"] for row in records} == set(kinetics.KINETICS600_CLASSES)
+    assert len(unique) == 5
+    assert {row["class_name"] for row in unique} == set(kinetics.KINETICS600_CLASSES)
+    duplicate = next(row for row in records if "duplicate_of" in row)
+    assert duplicate["duplicate_of"] == "headbutting/00000000000.mp4"
+
+
+def test_inventory_excludes_identical_content_with_conflicting_labels(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(kinetics, "MIN_CLIPS", 8)
+    root = tmp_path / "dataset"
+    for class_index, label in enumerate(kinetics.KINETICS600_CLASSES):
+        directory = root / label
+        directory.mkdir(parents=True)
+        (directory / f"{class_index:02d}000000000.mp4").write_bytes(
+            f"clip-{class_index}".encode()
+        )
+        (directory / f"{class_index:02d}000000001.mp4").write_bytes(
+            f"second-{class_index}".encode()
+        )
+    (root / kinetics.KINETICS600_CLASSES[1] / "01000000000.mp4").write_bytes(b"clip-0")
+
+    records = kinetics.inventory_clips(root)
+    unique = kinetics.unique_clip_records(records)
+
+    assert len(records) == 10
+    assert len(unique) == 8
+    conflicts = [row for row in records if "duplicate_label_conflict" in row]
+    assert len(conflicts) == 2
+    assert all(
+        row["duplicate_label_conflict"] == sorted(kinetics.KINETICS600_CLASSES[:2])
+        for row in conflicts
+    )
 
 
 def test_default_inventory_gate_is_more_than_two_thousand():
@@ -200,10 +228,14 @@ def test_grouped_manifest_is_repeatable_and_keeps_video_ids_together(
     monkeypatch.setattr(settings, "SELECTED_DIAGNOSTIC_DATASET", "kinetics600-subset")
     root = tmp_path / "kinetics-600-train"
     files = add_activity_clips(root)
+    duplicate_path = root / kinetics.KINETICS600_CLASSES[0] / "99999999999.mp4"
+    duplicate_path.write_bytes((root / files[0]["path"]).read_bytes())
+    files = kinetics.inventory_clips(root)
     source = write_trusted_source(root, files)
     prepared = prepare_data(tmp_path, root)
     assert prepared["dataset"].class_names == sorted(kinetics.KINETICS600_CLASSES)
-    assert len(prepared["dataset"]) == len(files)
+    assert len(prepared["dataset"]) == len(kinetics.unique_clip_records(files))
+    assert all(path != duplicate_path for path, _ in prepared["dataset"].samples)
     assert prepared["split"]["assignment_unit"] == "source_video"
     assert data_identity(prepared)["source_inventory_hash"] == source["inventory_hash"]
     assert all(

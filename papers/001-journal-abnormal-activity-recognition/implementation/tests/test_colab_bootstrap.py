@@ -68,7 +68,26 @@ def test_gpu_bootstrap_preserves_or_repairs_cuda_pair(tmp_path, monkeypatch, cpu
         assert "https://download.pytorch.org/whl/cu128" in commands[1]
     else:
         colab_bootstrap.main([str(requirements)])
-        assert len(commands) == 2  # probe + requirements; healthy wheels retained
+        assert len(commands) == 1  # CUDA probe only; healthy runtime skips pip
+
+
+def test_matching_cpu_runtime_skips_requirement_install(tmp_path, monkeypatch):
+    requirements = tmp_path / "requirements.txt"
+    requirements.write_text("numpy==2.4.3\n")
+    monkeypatch.setattr(
+        colab_bootstrap, "installed_versions", lambda pins: {"numpy": "2.4.3"}
+    )
+    monkeypatch.setattr(colab_bootstrap, "gpu_is_visible", lambda: False)
+    commands = []
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **kwargs: commands.append(command),
+    )
+
+    colab_bootstrap.main([str(requirements)])
+
+    assert commands == []
 
 
 IMPLEMENTATION = Path("papers/001-journal-abnormal-activity-recognition/implementation")

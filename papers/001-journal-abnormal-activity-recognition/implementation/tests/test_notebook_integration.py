@@ -34,7 +34,9 @@ def test_count_gate_rejects_2000_and_accepts_2001_without_decoding(
         directory.mkdir()
         for index in range(400):
             (directory / f"{index:011d}.mp4").write_bytes(f"{label}-{index}".encode())
-    with pytest.raises(ValueError, match="2000 unique clips; at least 2001"):
+    with pytest.raises(
+        ValueError, match="2000 usable unique clips after exact duplicate removal"
+    ):
         kinetics.inventory_clips(tmp_path)
     (tmp_path / kinetics.KINETICS600_CLASSES[0] / "00000000400.mp4").write_bytes(
         b"extra"

@@ -19,6 +19,7 @@ from .kinetics600_subset import (
     content_hash,
     load_grouped_subsets,
     prepare_subset,
+    unique_clip_records,
 )
 from .vdd_diagnostic import resolve_vdd_root
 
@@ -217,6 +218,25 @@ def prepare_data(
         target_fps=target_fps or settings.TARGET_FPS,
         accepted_classes=accepted,
     )
+    if kinetics600:
+        unique_paths = {row["path"] for row in unique_clip_records(source["files"])}
+        samples = [
+            (path, label)
+            for path, label in dataset.samples
+            if path.relative_to(dataset.dataset_dir).as_posix() in unique_paths
+        ]
+        sample_paths = {
+            path.relative_to(dataset.dataset_dir).as_posix() for path, _ in samples
+        }
+        if sample_paths != unique_paths:
+            raise ValueError(
+                "Kinetics-600 unique inventory differs from files found by the dataset"
+            )
+        excluded = len(dataset.samples) - len(samples)
+        dataset.samples = samples
+        print(
+            f"Excluded {excluded} exact-duplicate or ambiguous-label files.", flush=True
+        )
     seed = settings.SEED
     suffix = ""
     if kinetics:

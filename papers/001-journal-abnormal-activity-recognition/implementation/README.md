@@ -200,7 +200,10 @@ AAD configuration and `src.experiments` CLI remain unchanged.
 
 Preparation inventories and hashes files without decoding test frames. It reuses
 the approximately stratified 70:15:15 manifest; Kinetics-600 clips sharing known
-source-video IDs stay together. The diagnostic loader decodes only the
+source-video IDs stay together. Exact byte-identical copies are recorded and
+excluded; if identical content appears under different activity labels, all
+copies are excluded as ambiguous. The 2,001-video gate counts only usable unique
+clips. The diagnostic loader decodes only the
 chosen input window, samples by timestamps and keeps a bounded 64 MiB cache.
 Training windows use seeded random offsets per epoch; validation, clean training
 checks and test use fixed central windows. Cache keys include temporal state.
@@ -236,11 +239,12 @@ models does not establish bad FPS/data: optimization and shared sampling remain
 possible causes. No recurrent state is carried across videos or splits.
 
 Every setup cell safely fast-forwards its checkout, verifies the required source
-files and prints the code revision before installing `requirements.txt` and
-reloading modules. Git preserves unrelated edits and refuses updates that would
-overwrite conflicting edits; no reset, clean or automatic stash is used.
-If dependency versions change, restart the runtime once and
-rerun from the top. Updated local code must be pushed/synced before Colab can use it.
+files, prints the code revision, and installs `requirements.txt` only when pinned
+versions do not already match. Git preserves unrelated edits and refuses updates
+that would overwrite conflicting edits; no reset, clean or automatic stash is used.
+If dependency versions change, restart this notebook's Python kernel once and
+rerun from the top; keep the same A100 runtime if it remains attached. Updated
+local code must be pushed/synced before Colab can use it.
 Setup prints the GPU attached to each notebook's kernel, accepts CUDA wheel
 version suffixes, and installs the pinned CUDA pair when a visible GPU has a
 CPU-only or incompatible PyTorch installation. Select the Colab kernel separately
