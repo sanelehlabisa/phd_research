@@ -6,27 +6,13 @@ Evaluation script for AHAR.
 Author: Sanele Hlabisa
 
 .venv/bin/python -m src.evaluate \
-    --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-    --checkpoint_path "runs/train/<run>/checkpoints/best_model.pth" \
-    --convlstm-layer 8 3 3 \
-    --convlstm-layer 16 3 3 \
-    --runs_dir "runs" \
-    --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-    --seed 42 \
-    --train_ratio 0.7 \
-    --val_ratio 0.15 \
-    --batch_size 32 \
-    --sequence_length 16 \
-    --height 32 \
-    --width 32 \
-    --num_workers 2 \
-    --pin_memory \
-    --num_samples 8
+    --config configs/aad_evaluation_reference.json
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -35,12 +21,12 @@ from torch.utils.data import DataLoader
 
 from .dataset import (
     AHARDataset,
-    DEFAULT_SPLIT_SEED,
     load_split_subsets,
     resolve_split_manifest_path,
 )
+from .experiment_config import ExperimentConfig
 from .metrics import evaluate_classifier, metric_protocol, validate_selected_checkpoint
-from .model import custom_model_from_checkpoint, parse_layer_arguments
+from .model import custom_model_from_checkpoint
 from .utils import (
     RunContext,
     collect_predictions,
@@ -52,75 +38,87 @@ from .utils import (
     write_json,
 )
 
-parser = argparse.ArgumentParser(description="Evaluate ConvLSTM for AHAR")
-parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--checkpoint_path", type=str, required=True)
-parser.add_argument("--runs_dir", type=str, default="runs")
-parser.add_argument("--split_manifest", type=str, default=None)
-parser.add_argument("--seed", type=int, default=42)
-parser.add_argument("--batch_size", type=int, default=8)
-parser.add_argument("--sequence_length", type=int, default=32)
-parser.add_argument("--width", type=int, default=128)
-parser.add_argument("--height", type=int, default=128)
-parser.add_argument(
-    "--convlstm-layer",
-    action="append",
-    nargs=3,
-    type=int,
-    metavar=("FILTERS", "KERNEL_HEIGHT", "KERNEL_WIDTH"),
-    help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
+parser = argparse.ArgumentParser(
+    description="Evaluate the best checkpoint from a training run for AHAR",
 )
-parser.add_argument("--hidden-classifier-width", type=int, default=None)
-parser.add_argument("--train_ratio", type=float, default=0.7)
-parser.add_argument("--val_ratio", type=float, default=0.15)
-parser.add_argument("--num_workers", type=int, default=0)
-parser.add_argument("--pin_memory", action="store_true")
-parser.add_argument("--num_samples", type=int, default=8)
+parser.add_argument("--config", type=Path, required=True)
 
 
 def main() -> None:
     args = parser.parse_args()
-    deterministic_settings = seed_everything(args.seed)
-    deterministic_settings["data_loader_seeds"] = {"test": args.seed + 2}
+    config_file = args.config
+    try:
+        values = json.loads(config_file.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise SystemExit(f"Evaluation config not found: {config_file}") from error
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"Invalid JSON in {config_file}: {error.msg}") from error
+    if not isinstance(values, dict):
+        raise SystemExit("Evaluation config must contain a JSON object")
+
+    training_run_value = values.pop("training_run_dir", None)
+    if not isinstance(training_run_value, str) or not training_run_value.strip():
+        raise SystemExit("Evaluation config must set a non-empty training_run_dir")
+    training_run_dir = Path(training_run_value).expanduser()
+    checkpoint_path = training_run_dir / "checkpoints" / "best_model.pth"
+    try:
+        config = ExperimentConfig.from_mapping(values, defaults=ExperimentConfig())
+    except ValueError as error:
+        raise SystemExit(f"Invalid evaluation config: {error}") from error
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError(
+            f"best checkpoint not found in training run: {checkpoint_path}"
+        )
+
+    deterministic_settings = seed_everything(config.seed)
+    deterministic_settings["data_loader_seeds"] = {"test": config.seed + 2}
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"🖥  Using device: {device}")
 
-    dataset_name = Path(args.dataset_dir).name
+    dataset_name = Path(config.dataset_dir).name
     manifest_path = resolve_split_manifest_path(
-        args.dataset_dir, args.split_manifest, DEFAULT_SPLIT_SEED
+        config.dataset_dir, config.split_manifest, config.split_seed
     )
     run = RunContext(
-        args.runs_dir,
+        config.runs_dir,
         purpose="evaluate",
-        dataset_path=args.dataset_dir,
+        dataset_path=config.dataset_dir,
         label="custom-convlstm",
-        arguments=vars(args),
+        arguments={
+            "config_file": str(config_file) if config_file is not None else None,
+            "experiment_config": config.to_dict(),
+            "training_run_dir": str(training_run_dir),
+            "checkpoint_path": str(checkpoint_path),
+        },
         metadata={
             "input_dimensions": {
-                "sequence_length": args.sequence_length,
+                "sequence_length": config.sequence_length,
                 "channels": 3,
-                "height": args.height,
-                "width": args.width,
+                "height": config.height,
+                "width": config.width,
             },
             "augmentation": False,
             "split_ratios": {
-                "train": args.train_ratio,
-                "validation": args.val_ratio,
-                "test": 1.0 - args.train_ratio - args.val_ratio,
+                "train": config.train_ratio,
+                "validation": config.val_ratio,
+                "test": config.test_ratio,
             },
-            "seed": args.seed,
-            "split_seed": DEFAULT_SPLIT_SEED,
+            "seed": config.seed,
+            "split_seed": config.split_seed,
             "split_manifest": str(manifest_path.resolve()),
             "deterministic_settings": deterministic_settings,
             "device": str(device),
-            "input_checkpoint": args.checkpoint_path,
+            "input_checkpoint": str(checkpoint_path),
+            "training_run_dir": str(training_run_dir),
         },
     )
     run_dir = run.run_dir
     print(f"📁 Run directory → {run_dir}")
 
     dataset = AHARDataset(
-        args.dataset_dir, args.sequence_length, (args.width, args.height)
+        config.dataset_dir,
+        config.sequence_length,
+        (config.width, config.height),
     )
     num_classes = dataset.num_classes
     print(f"📦 {len(dataset)} samples | {num_classes} classes: {dataset.class_names}")
@@ -128,18 +126,14 @@ def main() -> None:
     train_set, val_set, test_set, split_metadata = load_split_subsets(
         dataset,
         manifest_path,
-        train_ratio=args.train_ratio,
-        val_ratio=args.val_ratio,
-        seed=DEFAULT_SPLIT_SEED,
+        train_ratio=config.train_ratio,
+        val_ratio=config.val_ratio,
+        seed=config.split_seed,
     )
     n_total = len(dataset)
     n_train, n_val, n_test = len(train_set), len(val_set), len(test_set)
     print(f"📊 Test split: {n_test} samples")
 
-    layers = parse_layer_arguments(args.convlstm_layer)
-    checkpoint_path = Path(args.checkpoint_path)
-    if not checkpoint_path.is_file():
-        raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
     try:
         checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
         checkpoint_selection = validate_selected_checkpoint(
@@ -148,21 +142,33 @@ def main() -> None:
             str(split_metadata["manifest_hash"]),
         )
         model = custom_model_from_checkpoint(checkpoint).to(device)
-        if args.convlstm_layer is not None and model.layers != layers:
-            raise ValueError("checkpoint layers do not match --convlstm-layer values")
-        if (
-            args.hidden_classifier_width is not None
-            and model.hidden_classifier_width != args.hidden_classifier_width
-        ):
-            raise ValueError(
-                "checkpoint hidden width does not match --hidden-classifier-width"
-            )
         if model.num_classes != num_classes:
             raise ValueError(
                 "checkpoint class count does not match the dataset class count"
             )
     except (KeyError, RuntimeError, TypeError, ValueError) as error:
         raise SystemExit(f"Checkpoint is incompatible: {error}") from error
+    checkpoint_config = checkpoint.get("experiment_config")
+    if isinstance(checkpoint_config, dict):
+        expected_input = {
+            "sequence_length": checkpoint_config.get("sequence_length"),
+            "height": checkpoint_config.get("height"),
+            "width": checkpoint_config.get("width"),
+        }
+        actual_input = {
+            "sequence_length": config.sequence_length,
+            "height": config.height,
+            "width": config.width,
+        }
+        if all(value is not None for value in expected_input.values()) and (
+            expected_input != actual_input
+        ):
+            raise SystemExit(
+                "Evaluation input dimensions do not match the checkpoint config: "
+                f"checkpoint={expected_input}, evaluation={actual_input}. Use the "
+                "training JSON config or explicitly override its dimensions."
+            )
+    prediction_samples = config.prediction_samples
     print(
         "📂 Validation-selected checkpoint → "
         f"epoch={checkpoint_selection['selected_epoch']}, "
@@ -171,12 +177,12 @@ def main() -> None:
 
     test_loader = DataLoader(
         test_set,
-        batch_size=args.batch_size,
+        batch_size=config.batch_size,
         shuffle=False,
-        num_workers=args.num_workers,
-        pin_memory=args.pin_memory,
+        num_workers=config.num_workers,
+        pin_memory=config.pin_memory,
         worker_init_fn=seed_data_loader_worker,
-        generator=data_loader_generator(args.seed + 2),
+        generator=data_loader_generator(config.seed + 2),
     )
 
     configuration = {
@@ -188,6 +194,9 @@ def main() -> None:
         "deterministic_settings": deterministic_settings,
         "metric_protocol": metric_protocol(),
         "evaluation_partition": "test",
+        "prediction_samples": prediction_samples,
+        "experiment_config": config.to_dict(),
+        "config_file": str(config_file) if config_file is not None else None,
         "checkpoint": {
             "path": str(checkpoint_path.resolve()),
             **checkpoint_selection,
@@ -239,7 +248,7 @@ def main() -> None:
         dataset.class_names,
         device,
         run_dir / "predictions",
-        args.num_samples,
+        prediction_samples,
     )
 
     report = {
@@ -253,6 +262,7 @@ def main() -> None:
             **checkpoint_selection,
         },
         "metrics": {k: round(v, 6) for k, v in results.items()},
+        "prediction_samples": prediction_samples,
         "artifacts": {
             "confusion_matrix": confusion_artifacts,
             "prediction_clips": clip_records,

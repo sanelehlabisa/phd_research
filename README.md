@@ -26,8 +26,8 @@ Notebook-only helpers now live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Ticket
 [045](agents/work/045-stabilize-colab-script-runtime/prompt.md) hardens the
 exported one-cell Colab runtime. Next is [ticket
-025](agents/work/025-run-controlled-aad-experiments/prompt.md), after the
-screening configuration is safely separated from the local training profile.
+048](agents/work/048-trim-aad-architecture-screen/prompt.md), to reduce the
+controlled AAD screen to a small shortlist grounded in prior runs.
 Separately, [ticket 047](agents/work/047-larger-colab-training/prompt.md) is ready
 for approval: larger notebook-03 inputs/model with a 200-epoch, eight-hour cap.
 

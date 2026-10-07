@@ -22,8 +22,9 @@
   own local run folder. The split manifest and full-pipeline seeding are now
   reproducible. Metrics now cover full partitions, validation loss selects and
   restores checkpoints, and only the evaluation command opens the test split.
-  Training and comparisons now share a validated JSON configuration with
-  explicit CLI overrides and complete checkpoint provenance. A portable cloud
+  Training and comparison runners use validated JSON configuration with
+  explicit CLI overrides; evaluation uses a JSON-only command that names its
+  training run. Run provenance is retained. A portable cloud
   approved 11-model screen, practical-baseline confirmation, native published
   topology, and focused ablations share one validated plan. Tickets 022–024 now
   rebuild the notebook specifically for the Colab VS Code extension, progressing

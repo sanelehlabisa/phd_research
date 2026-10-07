@@ -198,6 +198,7 @@ class ExperimentConfig:
     epochs: int = 16
     early_stopping_patience: int = 10
     batch_size: int = 8
+    prediction_samples: int = 5
     learning_rate: float = 1e-3
     weight_decay: float = 1e-4
     augment: bool = False
@@ -311,6 +312,12 @@ class ExperimentConfig:
             value = getattr(self, field_name)
             if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
                 raise ValueError(f"{field_name} must be a positive integer")
+        if (
+            not isinstance(self.prediction_samples, int)
+            or isinstance(self.prediction_samples, bool)
+            or self.prediction_samples < 0
+        ):
+            raise ValueError("prediction_samples must be a non-negative integer")
         if self.hidden_classifier_width is not None and (
             not isinstance(self.hidden_classifier_width, int)
             or isinstance(self.hidden_classifier_width, bool)
@@ -442,6 +449,7 @@ def add_config_arguments(parser: argparse.ArgumentParser) -> None:
         "epochs",
         "early_stopping_patience",
         "batch_size",
+        "prediction_samples",
         "num_workers",
     ):
         parser.add_argument(f"--{field_name}", type=int)

@@ -547,30 +547,26 @@ access locked.
 
 After freezing a configuration, deliberately evaluate its validation-selected
 checkpoint on the AAD test split (writes metrics, a confusion matrix, and
-prediction clips):
+five prediction clips by default). Evaluation reads the shared JSON config;
+`prediction_samples` controls the clip count. The evaluation config names the
+training run, and the evaluator loads that run's best checkpoint automatically.
+The resolved config is saved with each evaluation run. Clips are saved
+under the evaluation run's `predictions/correct/` and `predictions/wrong/`
+directories; the evaluation report links them to the exact checkpoint. Test
+access stays in this evaluation step only.
 
 ```bash
 .venv/bin/python -m src.evaluate \
-  --dataset_dir "datasets/abnormal-activities-dataset/abnormal-activities-dataset" \
-  --checkpoint_path "runs/train/<run>/checkpoints/best_model.pth" \
-  --runs_dir "runs" \
-  --split_manifest "splits/abnormal-activities-dataset_seed42.json" \
-  --seed 42 \
-  --train_ratio 0.7 \
-  --val_ratio 0.15 \
-  --convlstm-layer 8 3 3 \
-  --convlstm-layer 16 3 3 \
-  --batch_size 32 \
-  --sequence_length 16 \
-  --height 32 \
-  --width 32 \
-  --num_workers 2 \
-  --pin_memory \
-  --num_samples 8
+  --config configs/aad_evaluation_reference.json
 ```
 
-Output: `runs/evaluate/<run>/`. The checkpoint is read as input and is never
-copied or overwritten by evaluation.
+To evaluate another training run, update `training_run_dir` in the JSON file.
+Keep its input size and split aligned with that run; set `prediction_samples`
+there to change how many prediction clips are saved. The command needs no other
+arguments.
+
+Output: `runs/evaluate/<run>/`. Evaluation reads the selected checkpoint and
+never saves or overwrites training checkpoints.
 
 The AAD plan names `custom_depth_8_8_8` only as the preliminary reference used
 to make the plan executable; replace it only with validation-screen evidence

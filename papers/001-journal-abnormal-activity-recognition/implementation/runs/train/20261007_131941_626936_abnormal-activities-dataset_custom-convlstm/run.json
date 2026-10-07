@@ -1,0 +1,515 @@
+{
+  "purpose": "train",
+  "status": "complete",
+  "started_at": "2026-10-07T13:19:41.626909+02:00",
+  "ended_at": "2026-10-07T13:22:08.549779+02:00",
+  "duration_seconds": 146.922881,
+  "command": [
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/src/train.py",
+    "--config",
+    "configs/aad_screening_reference.json"
+  ],
+  "arguments": {
+    "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "runs_dir": "runs",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 8,
+    "height": 64,
+    "width": 64,
+    "convlstm_layers": [
+      [
+        32,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        16,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": null,
+    "epochs": 128,
+    "early_stopping_patience": 20,
+    "batch_size": 16,
+    "prediction_samples": 5,
+    "learning_rate": 0.02,
+    "weight_decay": 0.0,
+    "augment": false,
+    "num_workers": 2,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "reduce_on_plateau",
+    "convlstm_layer": [
+      [
+        32,
+        3,
+        3
+      ],
+      [
+        16,
+        3,
+        3
+      ]
+    ],
+    "checkpoint_path": null,
+    "resume": false,
+    "finetune_last": false,
+    "finetune_full": false
+  },
+  "dataset_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+  "dataset_name": "abnormal-activities-dataset",
+  "environment": {
+    "python": "3.12.12",
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.43",
+    "pytorch": "2.9.1+cu128",
+    "torchvision": "0.24.1+cu128",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "cudnn_version": 91002
+  },
+  "git_revision": "d672da644f29c2df9c5ea523c9248f5c16febbaa",
+  "artifacts": {
+    "resolved_configuration": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/resolved_config.json",
+    "configuration": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/config.json",
+    "history": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/metrics/history.json",
+    "best_checkpoint": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/checkpoints/best_model.pth",
+    "best_checkpoint_metadata": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/checkpoints/best_model.json",
+    "training_curves": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/plots/training_curves.png",
+    "final_metrics": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/metrics/final.json",
+    "validation_confusion_matrix": {
+      "png": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/metrics/validation_confusion_matrix.png",
+      "json": "runs/train/20261007_131941_626936_abnormal-activities-dataset_custom-convlstm/metrics/validation_confusion_matrix.json",
+      "class_names": [
+        "Begging",
+        "Drunkenness",
+        "Fight",
+        "Harassment",
+        "Hijack",
+        "Knife Hazard",
+        "Normal Videos",
+        "Pollution",
+        "Property Damage",
+        "Robbery",
+        "Terrorism"
+      ],
+      "matrix": [
+        [
+          19,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          12,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          12,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          17,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          11,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "sample_count": 160
+    }
+  },
+  "input_dimensions": {
+    "sequence_length": 8,
+    "channels": 3,
+    "height": 64,
+    "width": 64
+  },
+  "augmentation": false,
+  "split_ratios": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "seed": 42,
+  "split_seed": 42,
+  "split_manifest": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+  "deterministic_settings": {
+    "seed": 42,
+    "python_random": true,
+    "numpy": true,
+    "pytorch_cpu": true,
+    "pytorch_cuda": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": true,
+    "data_loader_seeds": {
+      "train": 42,
+      "validation": 43
+    }
+  },
+  "device": "cuda",
+  "input_checkpoint": null,
+  "class_names": [
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism"
+  ],
+  "model_configuration": {
+    "model_name": "CustomConvLSTM",
+    "num_classes": 11,
+    "input_channels": 3,
+    "layers": [
+      {
+        "filters": 32,
+        "kernel_size": [
+          3,
+          3
+        ]
+      },
+      {
+        "filters": 16,
+        "kernel_size": [
+          3,
+          3
+        ]
+      }
+    ],
+    "dropout": 0.5,
+    "hidden_classifier_width": null
+  },
+  "trainable_parameters": 68347,
+  "split_sizes": {
+    "train": 748,
+    "validation": 160,
+    "test": 161
+  },
+  "split": {
+    "manifest_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+    "manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+    "seed": 42,
+    "requested_ratios": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "counts": {
+      "train": 748,
+      "validation": 160,
+      "test": 161,
+      "total": 1069
+    },
+    "class_counts": {
+      "Begging": {
+        "total": 133,
+        "train": 93,
+        "validation": 20,
+        "test": 20
+      },
+      "Drunkenness": {
+        "total": 90,
+        "train": 63,
+        "validation": 13,
+        "test": 14
+      },
+      "Fight": {
+        "total": 95,
+        "train": 67,
+        "validation": 14,
+        "test": 14
+      },
+      "Harassment": {
+        "total": 89,
+        "train": 62,
+        "validation": 14,
+        "test": 13
+      },
+      "Hijack": {
+        "total": 77,
+        "train": 54,
+        "validation": 12,
+        "test": 11
+      },
+      "Knife Hazard": {
+        "total": 100,
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "Normal Videos": {
+        "total": 115,
+        "train": 80,
+        "validation": 17,
+        "test": 18
+      },
+      "Pollution": {
+        "total": 114,
+        "train": 80,
+        "validation": 17,
+        "test": 17
+      },
+      "Property Damage": {
+        "total": 96,
+        "train": 67,
+        "validation": 14,
+        "test": 15
+      },
+      "Robbery": {
+        "total": 86,
+        "train": 60,
+        "validation": 13,
+        "test": 13
+      },
+      "Terrorism": {
+        "total": 74,
+        "train": 52,
+        "validation": 11,
+        "test": 11
+      }
+    },
+    "split_level": "clip"
+  },
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "macro"
+  },
+  "checkpoint_selection": {
+    "checkpoint_role": "validation_selected_lowest_loss",
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_value": 2.3826870203018187,
+    "selected_epoch": 2,
+    "dataset_name": "abnormal-activities-dataset",
+    "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "seed": 42,
+    "metric_protocol": {
+      "loss_aggregation": "sample_weighted_mean",
+      "classification_aggregation": "full_partition",
+      "precision_recall_f1_average": "macro"
+    },
+    "early_stopping": {
+      "selection_partition": "validation",
+      "selection_metric": "loss",
+      "selection_mode": "min",
+      "best_validation_loss": 2.3826870203018187,
+      "selected_epoch": 2,
+      "patience": 20,
+      "epochs_without_improvement": 20,
+      "actual_epochs": 22,
+      "stopped_early": true,
+      "stop_reason": "early_stopping_patience_reached"
+    }
+  },
+  "early_stopping": {
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_mode": "min",
+    "best_validation_loss": 2.3826870203018187,
+    "selected_epoch": 2,
+    "patience": 20,
+    "epochs_without_improvement": 20,
+    "actual_epochs": 22,
+    "stopped_early": true,
+    "stop_reason": "early_stopping_patience_reached"
+  },
+  "test_access": "locked",
+  "results": {
+    "evaluated_model": "validation_selected_checkpoint",
+    "partition": "validation",
+    "metric_protocol": {
+      "loss_aggregation": "sample_weighted_mean",
+      "classification_aggregation": "full_partition",
+      "precision_recall_f1_average": "macro"
+    },
+    "validation_metrics": {
+      "loss": 2.3826870203018187,
+      "accuracy": 0.15000000596046448,
+      "macro_precision": 0.0869736298918724,
+      "macro_recall": 0.11310160160064697,
+      "macro_f1": 0.059379398822784424
+    },
+    "checkpoint_selection": {
+      "checkpoint_role": "validation_selected_lowest_loss",
+      "selection_partition": "validation",
+      "selection_metric": "loss",
+      "selection_value": 2.3826870203018187,
+      "selected_epoch": 2,
+      "dataset_name": "abnormal-activities-dataset",
+      "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+      "seed": 42,
+      "metric_protocol": {
+        "loss_aggregation": "sample_weighted_mean",
+        "classification_aggregation": "full_partition",
+        "precision_recall_f1_average": "macro"
+      },
+      "early_stopping": {
+        "selection_partition": "validation",
+        "selection_metric": "loss",
+        "selection_mode": "min",
+        "best_validation_loss": 2.3826870203018187,
+        "selected_epoch": 2,
+        "patience": 20,
+        "epochs_without_improvement": 20,
+        "actual_epochs": 22,
+        "stopped_early": true,
+        "stop_reason": "early_stopping_patience_reached"
+      }
+    },
+    "early_stopping": {
+      "selection_partition": "validation",
+      "selection_metric": "loss",
+      "selection_mode": "min",
+      "best_validation_loss": 2.3826870203018187,
+      "selected_epoch": 2,
+      "patience": 20,
+      "epochs_without_improvement": 20,
+      "actual_epochs": 22,
+      "stopped_early": true,
+      "stop_reason": "early_stopping_patience_reached"
+    },
+    "test_access": "locked"
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "checkpoint_role": "validation_selected_lowest_loss",
+  "selection_partition": "validation",
+  "selection_metric": "loss",
+  "selection_value": 2.38327956199646,
+  "selected_epoch": 14,
+  "epoch": 14,
+  "loss": 2.38327956199646,
+  "validation_metrics": {
+    "loss": 2.38327956199646,
+    "accuracy": 0.125,
+    "macro_precision": 0.011363636702299118,
+    "macro_recall": 0.09090909361839294,
+    "macro_f1": 0.020202020183205605
+  },
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "macro"
+  },
+  "dataset_name": "abnormal-activities-dataset",
+  "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+  "seed": 42,
+  "timestamp": "2026-10-07T12:31:03.406735",
+  "trainable_parameters": 75203,
+  "model_config": {
+    "model_name": "CustomConvLSTM",
+    "num_classes": 11,
+    "input_channels": 3,
+    "layers": [
+      {
+        "filters": 32,
+        "kernel_size": [
+          3,
+          3
+        ]
+      },
+      {
+        "filters": 16,
+        "kernel_size": [
+          3,
+          3
+        ]
+      },
+      {
+        "filters": 8,
+        "kernel_size": [
+          3,
+          3
+        ]
+      }
+    ],
+    "dropout": 0.5,
+    "hidden_classifier_width": null
+  },
+  "experiment_config": {
+    "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "runs_dir": "runs",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 8,
+    "height": 64,
+    "width": 64,
+    "convlstm_layers": [
+      [
+        32,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        16,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        8,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": null,
+    "epochs": 128,
+    "early_stopping_patience": 20,
+    "batch_size": 16,
+    "learning_rate": 0.01,
+    "weight_decay": 0.0,
+    "augment": false,
+    "num_workers": 2,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "reduce_on_plateau"
+  },
+  "early_stopping": {
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_mode": "min",
+    "best_validation_loss": 2.38327956199646,
+    "selected_epoch": 14,
+    "patience": 20,
+    "epochs_without_improvement": 20,
+    "actual_epochs": 34,
+    "stopped_early": true,
+    "stop_reason": "early_stopping_patience_reached"
+  }
+}

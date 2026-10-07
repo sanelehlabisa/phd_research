@@ -1,0 +1,102 @@
+{
+  "checkpoint_role": "validation_selected_lowest_loss",
+  "selection_partition": "validation",
+  "selection_metric": "loss",
+  "selection_value": 1.8605059802532196,
+  "selected_epoch": 26,
+  "epoch": 26,
+  "loss": 1.8605059802532196,
+  "validation_metrics": {
+    "loss": 1.8605059802532196,
+    "accuracy": 0.3812499940395355,
+    "macro_precision": 0.3864164650440216,
+    "macro_recall": 0.3559214770793915,
+    "macro_f1": 0.304534375667572
+  },
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "macro"
+  },
+  "dataset_name": "abnormal-activities-dataset",
+  "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+  "seed": 42,
+  "timestamp": "2026-10-07T09:39:07.423909",
+  "trainable_parameters": 271627,
+  "model_config": {
+    "model_name": "CustomConvLSTM",
+    "num_classes": 11,
+    "input_channels": 3,
+    "layers": [
+      {
+        "filters": 32,
+        "kernel_size": [
+          3,
+          3
+        ]
+      },
+      {
+        "filters": 64,
+        "kernel_size": [
+          3,
+          3
+        ]
+      }
+    ],
+    "dropout": 0.5,
+    "hidden_classifier_width": 128
+  },
+  "experiment_config": {
+    "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "runs_dir": "runs",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 8,
+    "height": 50,
+    "width": 50,
+    "convlstm_layers": [
+      [
+        32,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        64,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": 128,
+    "epochs": 96,
+    "early_stopping_patience": 24,
+    "batch_size": 8,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0,
+    "augment": false,
+    "num_workers": 2,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "reduce_on_plateau"
+  },
+  "early_stopping": {
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_mode": "min",
+    "best_validation_loss": 1.8605059802532196,
+    "selected_epoch": 26,
+    "patience": 24,
+    "epochs_without_improvement": 24,
+    "actual_epochs": 50,
+    "stopped_early": true,
+    "stop_reason": "early_stopping_patience_reached"
+  }
+}
