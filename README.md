@@ -26,6 +26,13 @@ prediction examples. Ticket 052 implements a single-JSON AAD comparison with
 seven models and validation-selected one-factor trials; full runs remain pending. Gradio deployment
 is planned after final model selection and results.
 
+Next: ticket 053 runs/analyses the current AAD study, then 026 trains/freezes the
+selection and 027 evaluates it. Ticket 054 updates Paper 001 from verified results;
+no test evaluation or manuscript result claims precede those prerequisites.
+
+Ticket 055 prepares a separate [AAD final-training notebook and Python export](papers/001-journal-abnormal-activity-recognition/implementation/README.md#aad-final-training-and-test-colab);
+actual 026/027 execution still requires the completed current study.
+
 ## Structure
 
 ```text

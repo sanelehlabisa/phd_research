@@ -120,6 +120,12 @@ Older multi-file `--plan-config` / `--candidates-config` inputs remain available
 only for historical notebooks and reproducibility; they are not inputs to the
 new study. Kinetics diagnostic settings and saved outputs are unchanged.
 
+Execution and validation analysis are tracked in
+[ticket 053](../../../agents/work/053-run-and-analyse-aad-experiments/prompt.md).
+Its complete evidence is required before final training (026), then final test
+evaluation (027); those stages must not run concurrently. The evidence-backed
+manuscript update is [ticket 054](../../../agents/work/054-update-paper-from-verified-results/prompt.md).
+
 ## Experiment protocol
 
 - Fixed 70:15:15 stratified clip split using the committed
@@ -150,6 +156,50 @@ retain their original macro protocol in checkpoint provenance; newly evaluated
 metrics use the current micro protocol.
 
 ## Modular Colab notebooks
+
+### AAD final training and test (Colab)
+
+Use [05 AAD final training/evaluation](notebooks/05_aad_train_and_evaluate.ipynb)
+after the current 052/053 study completes. Set `STUDY_RUN_DIR` to its exact
+`runs/studies/<run>` directory and Run All on a Colab GPU. Keep its linked leaf
+runs, dataset and split manifest available at their recorded paths.
+This separate AAD workflow does not change diagnostic notebooks 01-04.
+
+The matching [plain-Python export](notebooks/05_aad_train_and_evaluate.py) uses
+the same setup, pinned requirements and GPU check. From the Colab implementation
+directory, run:
+
+```bash
+AAD_STUDY_RUN_DIR="runs/studies/<completed-run>" \
+  python notebooks/05_aad_train_and_evaluate.py
+```
+
+The notebook contains no magics, so a normal Python export or one-cell copy
+also works. Push the complete code update before using its checkout setup.
+If dependency installation requests a restart, restart once and rerun.
+
+It validates every study job, chooses the best tested single-factor configuration
+of the architecture winner by seed-mean validation accuracy/loss/parameter count,
+then confirms seeds 42/2026 for at most 64 epochs. No factors are combined.
+This is ticket 026's confirmation budget, not longer training than the current
+160-epoch screen. Each seed restores its minimum-validation-loss checkpoint;
+lowest confirmation validation loss selects the final checkpoint, with accuracy
+then seed as tie-breakers. Both seeds' mean/sample SD and curves remain available.
+
+Only then does final testing export overall micro and per-class metrics, full
+prediction records, confusion output and up to three correct/incorrect videos.
+Inference timing includes data loading/decoding; it is not pure model latency.
+Custom, practical 3D-CNN and Swin winners use their unchanged registered topology.
+
+Selection/progress/checkpoint hashes live in `<study>/final/`; training leaves
+reuse `runs/experiments/`, and evaluation uses `runs/evaluate/`. Completed
+reruns verify and reuse evidence. Interrupted seed/test attempts stop for
+inspection instead of silently repeating; do not delete guards to tune on test.
+The final display cell can be rerun independently after a renderer failure.
+Save the study, linked runs/checkpoints and evaluation folder before Colab
+disconnects: `/content` is temporary. Real 026/027 runs are still pending.
+
+### Diagnostic notebooks
 
 Notebook-only helpers and the Colab bootstrap live in `notebooks/utils/`;
 reusable model, dataset, training, evaluation and CLI modules remain in `src/`.

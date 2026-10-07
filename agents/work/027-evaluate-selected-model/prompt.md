@@ -1,7 +1,9 @@
 # Task Prompt
 
 - Ticket: `027-evaluate-selected-model`
-- Status: Ready
+- Status: Blocked
+- Code preparation: Ticket 055 supplies guarded final testing; no real test evaluation has occurred.
+- Execution check (2026-10-07): Ticket 026 has not produced the required frozen model/checkpoint. Keep test locked; final evaluation must follow training and selection, not run concurrently.
 - Aim: Perform the one-time final AAD test evaluation and export complete
   quantitative and visual evidence for the frozen model.
 - Scope:
@@ -14,7 +16,7 @@
     without consulting test results.
   - Open the committed AAD test partition once for the frozen checkpoint. Do not
     tune, retrain, switch seeds, or select another checkpoint after viewing it.
-  - Export sample-weighted loss, accuracy, macro precision/recall/F1, per-class
+  - Export sample-weighted loss, accuracy, overall micro precision/recall/F1 (050), per-class
     precision/recall/F1/support, confusion matrix, parameter count, inference
     runtime, resolved configuration, split hash, seed, and code revision.
   - Save reusable prediction records with source clip, true class, predicted

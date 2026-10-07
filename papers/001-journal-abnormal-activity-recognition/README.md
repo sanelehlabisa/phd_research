@@ -30,6 +30,10 @@ reference architecture for ablation.
 
 ## Next tasks
 
+- [x] [055 Colab final-training/test preparation](../../agents/work/055-colab-final-training-evaluation/prompt.md) adds notebook 05 plus a Python export; 202 CPU tests passed. Actual 026/027 runs follow 053.
+
+- [ ] [053 run and analyse AAD experiments](../../agents/work/053-run-and-analyse-aad-experiments/prompt.md) — current study; validation-only evidence required before 026, then 027.
+- [ ] [054 update paper from verified results](../../agents/work/054-update-paper-from-verified-results/prompt.md) — after analysis, frozen training and final testing; consolidates roadmap items 029–031.
 - [x] [049 AAD dataset auto-resolution](../../agents/work/049-aad-dataset-auto-resolution/prompt.md)
 - [x] [050 overall micro metrics](../../agents/work/050-overall-micro-metrics/prompt.md) — overall micro metrics, validation-only ranking; 160 tests passed.
 - [x] [051 save run prediction examples](../../agents/work/051-save-run-prediction-examples/prompt.md) — shared per-category limits and split-safe playable clips.
@@ -101,17 +105,17 @@ reference architecture for ablation.
 - [x] [`041-larger-kinetics-diagnostic`](../../agents/work/041-larger-kinetics-diagnostic/prompt.md) — added selective Kinetics-600 downloads, source-video grouped splits and a more-than-2,000 unique-clip gate. Actual archive count awaits the first Colab preparation.
 - [x] [`046-separate-aad-screen-config`](../../agents/work/046-separate-aad-screen-config/prompt.md) — separated the fixed 24-epoch AAD screen from the local longer-training profile.
 - [ ] [`025-run-controlled-aad-experiments`](../../agents/work/025-run-controlled-aad-experiments/prompt.md) — Draft/superseded; do not execute the older matrix. Use 052's updated plan.
-- [ ] `026-train-selected-model` — confirm and freeze the selected architecture,
+- [ ] `026-train-selected-model` — blocked on 053's current validation evidence; confirm and freeze the selected architecture,
   input size, augmentation, and regularisation across both planned seeds.
-- [ ] `027-evaluate-selected-model` — perform the one-time final AAD test and
+- [ ] `027-evaluate-selected-model` — blocked until 026 freezes the checkpoint; perform the one-time final AAD test and
   export complete metrics, confusion output, and playable prediction examples.
 - [ ] `028-validate-second-dataset` — define and run the frozen VDD
   generalisation protocol without changing the selected AAD model.
-- [ ] `029-aggregate-ablation-evidence` — produce paper-ready tables, figures,
+- [ ] `029-aggregate-ablation-evidence` — tracked by 053/054; produce paper-ready tables, figures,
   uncertainty, efficiency comparisons, and error-analysis inputs.
-- [ ] `030-rewrite-experimental-results` — revise the experiment and discussion
+- [ ] `030-rewrite-experimental-results` — tracked by 054; revise the experiment and discussion
   section using only verified outputs.
-- [ ] `031-align-paper-claims` — align the abstract, contributions, methods,
+- [ ] `031-align-paper-claims` — tracked by 054; align the abstract, contributions, methods,
   limitations, and conclusion with the final evidence.
 - [ ] `032-assess-kinetics-transfer` — conditional only if frozen AAD/VDD
   evidence remains weak; define the exact Kinetics variant and use it for

@@ -1,15 +1,17 @@
 # Task Prompt
 
 - Ticket: `026-train-selected-model`
-- Status: Ready
+- Status: Blocked
+- Code preparation: Ticket 055 supplies notebook 05 and its script export; actual GPU execution remains pending.
+- Execution check (2026-10-07): No completed ticket-052 study/selection exists locally. Await ticket 053's current validation evidence and an authorised GPU runtime; do not select from the older six-model screen.
 - Aim: Train and freeze the validation-selected architecture and input protocol
   with the full confirmation budget.
 - Scope:
   - Paper 001 selected experiment configuration and training workflow
-  - local ignored `runs/train/` evidence
+  - local ignored study/final and linked `runs/experiments/` evidence (shared runner)
   - concise Paper 001 and implementation status notes
 - Changes:
-  - Execute only after ticket 025 has complete comparable architecture and
+  - Execute only after ticket 053 (current 052 study, superseding 025) has comparable architecture and
     one-factor validation evidence.
   - Freeze the selected architecture, augmentation state, weight decay, spatial
     size, and sequence length from validation evidence. Do not assume that
@@ -27,7 +29,7 @@
     before opening the test partition.
 - Acceptance criteria:
   - The final configuration is reconstructable and each chosen factor has
-    ticket-025 validation evidence.
+    ticket-053 validation evidence.
   - Both confirmation seeds complete or have an explicit failure record, and
     their aggregate validation results are reported without cherry-picking.
   - Reusable best checkpoints and complete histories exist under timestamped
@@ -35,7 +37,7 @@
 - Out of scope:
   - Test evaluation, VDD, Kinetics, architecture expansion, additional
     hyperparameter search, manuscript claims, or committed generated runs.
-- Open questions: None. Concrete selected values are outputs of ticket 025, not
+- Open questions: None. Concrete selected values are outputs of ticket 053, not
   assumptions made before it.
 - Verification:
   - Validate resolved configurations and checkpoint reconstruction.

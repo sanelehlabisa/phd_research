@@ -1312,6 +1312,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         t0 = timer()
 
         for epoch in tqdm(range(args.epochs), leave=False, desc=name):
+            epoch_learning_rate = opt.param_groups[0]["lr"]
             training_metrics = train_classifier_epoch(
                 model,
                 train_loader,
@@ -1333,6 +1334,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             history.append(
                 {
                     "epoch": epoch + 1,
+                    "learning_rate": epoch_learning_rate,
                     "training_metrics": training_metrics,
                     "validation_metrics": validation_metrics,
                     "selected_checkpoint": selected,

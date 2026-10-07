@@ -14,9 +14,11 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from time import perf_counter
 
 import torch
 import torch.nn as nn
+from sklearn.metrics import precision_recall_fscore_support
 from torch.utils.data import DataLoader
 
 from .dataset import (
@@ -30,7 +32,6 @@ from .metrics import evaluate_classifier, metric_protocol, validate_selected_che
 from .model import custom_model_from_checkpoint
 from .utils import (
     RunContext,
-    collect_predictions,
     data_loader_generator,
     plot_confusion_matrix,
     save_prediction_examples,
@@ -45,8 +46,63 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--config", type=Path, required=True)
 
 
-def main() -> None:
-    args = parser.parse_args()
+def model_from_checkpoint(checkpoint):
+    """Restore a custom or registered practical baseline without pretrained weights."""
+    description = checkpoint.get("model_config", {})
+    registry = description.get("registry_name")
+    if registry is None:
+        return custom_model_from_checkpoint(checkpoint)
+    if registry not in {"r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t"}:
+        raise ValueError(f"unsupported final model registry: {registry}")
+    from .experiments import build_registered_model
+
+    dimensions = description["input_dimensions"]
+    with torch.device("meta"):
+        model = build_registered_model(
+            registry,
+            description["num_classes"],
+            (3, dimensions["height"], dimensions["width"]),
+            dimensions["sequence_length"],
+        )
+    model.load_state_dict(checkpoint["model_state_dict"], strict=True, assign=True)
+    return model
+
+
+@torch.inference_mode()
+def prediction_records(model, loader, device, class_names):
+    """Keep full test predictions and sample losses for independent recalculation."""
+    records = []
+    subset = loader.dataset
+    model.eval()
+    for inputs, labels in loader:
+        logits = model(inputs.to(device))
+        losses = nn.functional.cross_entropy(
+            logits, labels.to(device), reduction="none"
+        )
+        probabilities = logits.softmax(dim=1)
+        confidence, predicted = probabilities.max(dim=1)
+        for target, prediction, score, loss in zip(
+            labels.tolist(), predicted.tolist(), confidence.tolist(), losses.tolist()
+        ):
+            source = subset.dataset.samples[subset.indices[len(records)]][0]
+            records.append(
+                {
+                    "source": str(source),
+                    "partition": "test",
+                    "target": target,
+                    "predicted": prediction,
+                    "true_class": class_names[target],
+                    "predicted_class": class_names[prediction],
+                    "confidence": score,
+                    "correct": target == prediction,
+                    "loss": loss,
+                }
+            )
+    return records
+
+
+def main(argv=None) -> Path:
+    args = parser.parse_args(argv)
     config_file = args.config
     try:
         values = json.loads(config_file.read_text(encoding="utf-8"))
@@ -58,10 +114,20 @@ def main() -> None:
         raise SystemExit("Evaluation config must contain a JSON object")
 
     training_run_value = values.pop("training_run_dir", None)
-    if not isinstance(training_run_value, str) or not training_run_value.strip():
-        raise SystemExit("Evaluation config must set a non-empty training_run_dir")
-    training_run_dir = Path(training_run_value).expanduser()
-    checkpoint_path = training_run_dir / "checkpoints" / "best_model.pth"
+    checkpoint_value = values.pop("checkpoint_path", None)
+    if (training_run_value is None) == (checkpoint_value is None):
+        raise SystemExit("Set exactly one of training_run_dir or checkpoint_path")
+    selected_path = training_run_value if checkpoint_value is None else checkpoint_value
+    if not isinstance(selected_path, str) or not selected_path.strip():
+        raise SystemExit("Checkpoint/training path must be non-empty")
+    training_run_dir = (
+        Path(selected_path).expanduser() if checkpoint_value is None else None
+    )
+    checkpoint_path = (
+        training_run_dir / "checkpoints" / "best_model.pth"
+        if training_run_dir is not None
+        else Path(checkpoint_value).expanduser()
+    )
     try:
         config = ExperimentConfig.from_mapping(values, defaults=ExperimentConfig())
     except ValueError as error:
@@ -92,7 +158,7 @@ def main() -> None:
         config.runs_dir,
         purpose="evaluate",
         dataset_path=config.dataset_dir,
-        label="custom-convlstm",
+        label="selected-model",
         arguments={
             "config_file": str(config_file) if config_file is not None else None,
             "experiment_config": config.to_dict(),
@@ -150,8 +216,8 @@ def main() -> None:
             dataset_name,
             str(split_metadata["manifest_hash"]),
         )
-        model = custom_model_from_checkpoint(checkpoint).to(device)
-        if model.num_classes != num_classes:
+        model = model_from_checkpoint(checkpoint).to(device)
+        if checkpoint["model_config"]["num_classes"] != num_classes:
             raise ValueError(
                 "checkpoint class count does not match the dataset class count"
             )
@@ -195,7 +261,7 @@ def main() -> None:
     )
 
     configuration = {
-        "model": model.configuration(),
+        "model": checkpoint["model_config"],
         "class_names": dataset.class_names,
         "dataset_size": n_total,
         "split_sizes": {"train": n_train, "validation": n_val, "test": n_test},
@@ -218,7 +284,7 @@ def main() -> None:
     run.update(
         {
             "class_names": dataset.class_names,
-            "model_configuration": model.configuration(),
+            "model_configuration": checkpoint["model_config"],
             "split_sizes": configuration["split_sizes"],
             "split": split_metadata,
             "deterministic_settings": deterministic_settings,
@@ -229,6 +295,9 @@ def main() -> None:
     )
 
     criterion = nn.CrossEntropyLoss()
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+    started = perf_counter()
     results = evaluate_classifier(
         model,
         test_loader,
@@ -236,12 +305,21 @@ def main() -> None:
         device,
         num_classes,
     )
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+    metric_pass_seconds = perf_counter() - started
     print("\n🏁 Final test results")
     print("─" * 32)
     for name, value in results.items():
         print(f"  {name:<12}: {value:.4f}")
 
-    all_true, all_pred = collect_predictions(model, test_loader, device)
+    records = prediction_records(model, test_loader, device, dataset.class_names)
+    records_path = write_json(run_dir / "metrics" / "test_predictions.json", records)
+    all_true = [record["target"] for record in records]
+    all_pred = [record["predicted"] for record in records]
+    precision, recall, f1, support = precision_recall_fscore_support(
+        all_true, all_pred, labels=list(range(num_classes)), zero_division=0
+    )
     confusion_artifacts = plot_confusion_matrix(
         all_true,
         all_pred,
@@ -273,6 +351,22 @@ def main() -> None:
             **checkpoint_selection,
         },
         "metrics": {k: round(v, 6) for k, v in results.items()},
+        "per_class": [
+            {
+                "class": name,
+                "precision": float(precision[i]),
+                "recall": float(recall[i]),
+                "f1": float(f1[i]),
+                "support": int(support[i]),
+            }
+            for i, name in enumerate(dataset.class_names)
+        ],
+        "num_params": sum(p.numel() for p in model.parameters() if p.requires_grad),
+        "metric_pass_seconds": metric_pass_seconds,
+        "runtime_note": "Full metric pass including decoding/data loading; not pure model latency.",
+        "experiment_config": config.to_dict(),
+        "split": split_metadata,
+        "predictions": str(records_path),
         "prediction_samples_per_category": prediction_samples,
         "prediction_examples": prediction_examples,
         "artifacts": {
@@ -288,10 +382,12 @@ def main() -> None:
             "metrics": str(json_path),
             "confusion_matrix": confusion_artifacts,
             "prediction_examples": prediction_examples,
+            "predictions": str(records_path),
         },
         results=report["metrics"],
     )
     print(f"📄 Report → {json_path}")
+    return run_dir
 
 
 if __name__ == "__main__":
