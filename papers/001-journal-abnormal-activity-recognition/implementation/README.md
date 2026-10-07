@@ -104,8 +104,9 @@ exploratory evidence.
   160 validation, and 161 test clips.
 - AAD for architecture screening and most ablations; VDD for final
   generalisation evaluation.
-- `--augment` applies one fresh, clip-consistent online view per training
-  sample without changing dataset length; validation and test remain clean.
+- `--augment` applies no transform or one randomly selected, clip-consistent
+  transform per training sample; it never combines transforms or changes
+  dataset length. Validation and test remain clean.
 - Validation-only model and checkpoint selection; test data remains locked.
 - Seeds `42` and `2026` for reported confirmation runs; both reuse the same
   split created with split seed `42`.

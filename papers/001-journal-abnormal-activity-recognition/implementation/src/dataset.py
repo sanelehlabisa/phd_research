@@ -43,7 +43,7 @@ DEFAULT_SPLIT_SEED = 42
 
 
 class VideoAugmentation:
-    """Apply one conservative, temporally consistent transform to a video.
+    """Apply at most one temporally consistent augmentation to a video.
 
     Parameters:
         None.
@@ -78,7 +78,7 @@ class VideoAugmentation:
         return lower + (upper - lower) * torch.rand(()).item()
 
     def __call__(self, video: torch.Tensor) -> torch.Tensor:
-        """Augment a complete clip using one parameter set for every frame.
+        """Apply no transform or one randomly selected transform to a clip.
 
         Parameters:
             video: Clip shaped `(T, C, H, W)` with values in `[0, 1]`.
@@ -89,12 +89,14 @@ class VideoAugmentation:
         if video.ndim != 4:
             raise ValueError("video must have shape (T, C, H, W)")
         _, _, height, width = video.shape
-        augmented = video
+        if not self._chance(0.5):
+            return video
 
-        if self._chance(0.5):
-            augmented = transform_functional.hflip(augmented)
+        operation = torch.randint(0, 5, ()).item()
 
-        if self._chance(0.3):
+        if operation == 0:
+            augmented = transform_functional.hflip(video)
+        elif operation == 1:
             angle = self._uniform(-8.0, 8.0)
             translate = [
                 round(self._uniform(-0.05, 0.05) * width),
@@ -111,29 +113,36 @@ class VideoAugmentation:
                         shear=[0.0, 0.0],
                         interpolation=InterpolationMode.BILINEAR,
                     )
-                    for frame in augmented
+                    for frame in video
                 ]
             )
-
-        if self._chance(0.3):
+        elif operation == 2:
             brightness = self._uniform(0.85, 1.15)
+            augmented = torch.stack(
+                [
+                    transform_functional.adjust_brightness(frame, brightness)
+                    for frame in video
+                ]
+            )
+        elif operation == 3:
             contrast = self._uniform(0.85, 1.15)
             augmented = torch.stack(
                 [
-                    transform_functional.adjust_contrast(
-                        transform_functional.adjust_brightness(frame, brightness),
-                        contrast,
-                    )
-                    for frame in augmented
+                    transform_functional.adjust_contrast(frame, contrast)
+                    for frame in video
                 ]
             )
-
-        if self._chance(0.1):
+        else:
             sigma = self._uniform(0.1, 1.0)
-            augmented = transform_functional.gaussian_blur(
-                augmented,
-                kernel_size=[3, 3],
-                sigma=[sigma, sigma],
+            augmented = torch.stack(
+                [
+                    transform_functional.gaussian_blur(
+                        frame,
+                        kernel_size=[3, 3],
+                        sigma=[sigma, sigma],
+                    )
+                    for frame in video
+                ]
             )
 
         return augmented.clamp(0.0, 1.0)

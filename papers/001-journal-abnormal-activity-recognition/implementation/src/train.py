@@ -576,10 +576,10 @@ def main(argv: list[str] | None = None) -> None:
         AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
     )
     augmentation_state = "enabled" if args.augment else "disabled"
-    print(
-        f"🎞️  Augmentation: {augmentation_state} | "
-        f"Train samples: {len(train_set)} → {len(train_data)}"
+    augmentation_detail = (
+        " (one transform or none per clip)" if args.augment else ""
     )
+    print(f"🎞️  Online augmentation: {augmentation_state}{augmentation_detail}")
 
     loader_kw = dict(
         batch_size=args.batch_size,
