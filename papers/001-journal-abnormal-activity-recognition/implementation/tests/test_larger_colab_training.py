@@ -30,6 +30,7 @@ def test_training_profile_is_explicit_and_independent(tmp_path, monkeypatch):
     assert settings.SUITE_FINAL_EPOCHS == 64
     data = dict(
         root=tmp_path,
+        specification=SimpleNamespace(key="kinetics600-subset"),
         manifest_path=tmp_path / "manifest.json",
         dataset=SimpleNamespace(
             dataset_dir=tmp_path / "videos",
@@ -57,6 +58,7 @@ def test_training_profile_is_explicit_and_independent(tmp_path, monkeypatch):
     def run(prepared, config, label, callback, **kwargs):
         assert prepared is data and label == "single-model"
         assert config.convlstm_layers == settings.TRAIN_LAYERS
+        assert config.dataset_name == "kinetics600-subset"
         assert (config.epochs, config.height, config.width, config.batch_size) == (
             200,
             96,
@@ -208,3 +210,53 @@ def test_training_rejects_preview_input(prepared, monkeypatch):
 def test_predictions_require_successful_training():
     with pytest.raises(ValueError, match="Train a model"):
         workflows.show_validation_predictions({}, None)
+
+
+def test_decoder_timeout_is_not_hidden_after_training_deadline(prepared, monkeypatch):
+    now = [1000.0]
+    monkeypatch.setattr(time, "time", lambda: now[0])
+
+    def fail(*args):
+        now[0] += settings.TRAIN_HOURS * 3600 + 1
+        raise TimeoutError("decoder timed out, not the training budget")
+
+    monkeypatch.setattr(training, "train_classifier_epoch", fail)
+    with pytest.raises(TimeoutError, match="decoder timed out"):
+        workflows.train_single(prepared)
+    manifest = next((prepared["root"] / "runs/train").glob("*/run.json"))
+    assert json.loads(manifest.read_text())["status"] == "failed"
+
+
+def test_full_larger_input_shape_without_allocating_gpu_memory():
+    with torch.device("meta"), torch.inference_mode():
+        model = CustomConvLSTM(
+            5, layers=list(settings.TRAIN_LAYERS), dropout=0.1
+        ).eval()
+        output = model(torch.zeros(8, 32, 3, 96, 96))
+    assert output.shape == (8, 5)
+
+
+def test_fresh_notebook_export_and_current_helper_imports():
+    import ast
+
+    root = Path(__file__).resolve().parents[1]
+    path = root / "notebooks/03_train_model.ipynb"
+    notebook = json.loads(path.read_text(encoding="utf-8"))
+    code = "\n\n".join(
+        "".join(cell["source"])
+        for cell in notebook["cells"]
+        if cell["cell_type"] == "code"
+    )
+    tree = ast.parse(code, filename=str(path))
+    compile(tree, "fresh_03_export.py", "exec")
+    modules = [
+        node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+    ]
+    assert not any(name and name.startswith("src.notebook_") for name in modules)
+    for name in modules:
+        if name and name.startswith("notebooks.utils."):
+            assert root.joinpath(*name.split(".")).with_suffix(".py").is_file()
+    assert "prepared = prepare_training_data(IMPLEMENTATION_ROOT)" in code
+    assert "training_result = None" in code
+    assert "['git', 'pull', '--ff-only', 'origin', 'master']" in code
+    assert "reset" not in code and "checkout --" not in code

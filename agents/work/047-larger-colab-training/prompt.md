@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `047-larger-colab-training`
-- Status: In progress
+- Status: Done
 - Aim: Run notebook 03 with a larger, bounded Kinetics training profile on Colab.
 - Scope: Paper 001 `03_train_model.ipynb`, `notebooks/utils/` helpers,
   `src/train.py` only where needed for the time limit, tests and README guides.

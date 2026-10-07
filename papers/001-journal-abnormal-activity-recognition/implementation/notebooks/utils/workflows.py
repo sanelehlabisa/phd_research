@@ -134,6 +134,7 @@ def train_single(prepared):
     config = replace(
         configuration(prepared, settings.TRAIN_EPOCHS, settings.TRAIN_LAYERS),
         batch_size=settings.TRAIN_BATCH_SIZE,
+        dataset_name=prepared["specification"].key,
     )
     print("Single-model profile:", config.to_json(), flush=True)
     print(

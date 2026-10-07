@@ -16,18 +16,18 @@ from __future__ import annotations
 
 import argparse
 import json
-import random
 from pathlib import Path
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .dataset import AHARDataset
+from .dataset import AHARDataset, load_split_subsets, resolve_split_manifest_path
+from .experiment_config import ExperimentConfig
 from .dataset_source import resolve_dataset
 from .utils import (
     RunContext,
     plot_confusion_matrix,
-    safe_filename,
+    save_prediction_examples,
     seed_everything,
     write_json,
     write_video_torchvision,
@@ -664,7 +664,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sequence-length", type=int, default=64)
     parser.add_argument("--height", type=int, default=16)
     parser.add_argument("--width", type=int, default=16)
-    parser.add_argument("--num-samples", type=int, default=2)
+    parser.add_argument(
+        "--num-samples",
+        type=int,
+        default=None,
+        help="Deprecated: set prediction_samples_per_category in JSON",
+    )
     parser.add_argument("--fps", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
@@ -696,6 +701,7 @@ def main() -> None:
         raise SystemExit(f"Invalid model smoke config: {error.msg}") from error
     if not isinstance(config_values, dict):
         raise SystemExit("Model smoke config must contain a JSON object")
+    config = ExperimentConfig.from_mapping(config_values)
     args.dataset_name = args.dataset_name or config_values.get("dataset_name", "aad")
     args.dataset_dir = args.dataset_dir or config_values.get("dataset_dir")
     args.runs_dir = args.runs_dir or config_values.get("runs_dir", "runs")
@@ -708,8 +714,8 @@ def main() -> None:
     )
     if args.sequence_length != 64:
         raise ValueError("the ticket-011 smoke command requires T=64")
-    if args.num_samples <= 0:
-        raise ValueError("num_samples must be positive")
+    if args.num_samples is not None:
+        print("--num-samples is deprecated; using JSON prediction_samples_per_category")
     deterministic_settings = seed_everything(args.seed)
     device = torch.device("cpu")
     dataset_name = Path(args.dataset_dir).resolve().name
@@ -741,9 +747,16 @@ def main() -> None:
     )
     if not dataset.samples:
         raise ValueError("dataset contains no usable samples")
-    sample_count = min(args.num_samples, len(dataset))
-    indices = random.sample(range(len(dataset)), sample_count)
-    samples = [(index, *dataset[index]) for index in indices]
+    manifest = resolve_split_manifest_path(
+        args.dataset_dir, config.split_manifest, config.split_seed
+    )
+    _, validation_set, _, split_metadata = load_split_subsets(
+        dataset,
+        manifest,
+        train_ratio=config.train_ratio,
+        val_ratio=config.val_ratio,
+        seed=config.split_seed,
+    )
     custom_layers = parse_layer_arguments(args.convlstm_layer)
     custom_model = CustomConvLSTM(
         dataset.num_classes,
@@ -770,6 +783,10 @@ def main() -> None:
     run.update(
         {
             "class_names": dataset.class_names,
+            "split": split_metadata,
+            "partition": "validation",
+            "test_access": "locked",
+            "prediction_samples_per_category": config.prediction_samples_per_category,
             "model_configurations": {
                 name: configuration for name, _, configuration in models
             },
@@ -787,7 +804,9 @@ def main() -> None:
             "fps": args.fps,
         },
         "class_names": dataset.class_names,
-        "sample_indices": indices,
+        "split": split_metadata,
+        "partition": "validation",
+        "test_access": "locked",
         "models": {},
     }
     model_summaries = summary["models"]
@@ -795,61 +814,40 @@ def main() -> None:
         raise RuntimeError("internal summary structure is invalid")
     print("Random-weight smoke predictions; not experimental evidence.")
     print(
-        f"Input: ({sample_count}, {args.sequence_length}, 3, {args.height}, {args.width})"
+        f"Input per example: (1, {args.sequence_length}, 3, {args.height}, {args.width})"
     )
     for model_name, model, configuration in models:
         model = model.to(device).eval()
         model_dir = run_dir / model_name
-        (model_dir / "correct").mkdir(parents=True)
-        (model_dir / "incorrect").mkdir()
-        true_labels: list[int] = []
-        predicted_labels: list[int] = []
-        prediction_records: list[dict[str, object]] = []
-        with torch.inference_mode():
-            for index, frames, true_label in samples:
-                logits = model(frames.unsqueeze(0).to(device))
-                predicted_label = int(logits.argmax(dim=1).item())
-                is_correct = predicted_label == true_label
-                true_name = dataset.class_names[true_label]
-                predicted_name = dataset.class_names[predicted_label]
-                source_stem = safe_filename(Path(dataset.samples[index][0]).stem)
-                filename = (
-                    f"{source_stem}_true-{safe_filename(true_name)}_"
-                    f"pred-{safe_filename(predicted_name)}.mp4"
-                )
-                category = "correct" if is_correct else "incorrect"
-                video_path = model_dir / category / filename
-                _save_viewable_video(frames, video_path, args.fps)
-                true_labels.append(true_label)
-                predicted_labels.append(predicted_label)
-                prediction_records.append(
-                    {
-                        "sample_index": index,
-                        "source": str(dataset.samples[index][0]),
-                        "true_class": true_name,
-                        "predicted_class": predicted_name,
-                        "correct": is_correct,
-                        "logits_shape": list(logits.shape),
-                        "video": str(video_path),
-                    }
-                )
-                print(
-                    f"{model_name}: {source_stem} -> {predicted_name} "
-                    f"(true: {true_name}, logits: {tuple(logits.shape)})"
-                )
-        confusion_artifacts = plot_confusion_matrix(
-            true_labels,
-            predicted_labels,
+        examples = save_prediction_examples(
+            model,
+            validation_set,
             dataset.class_names,
-            dataset_name=model_name,
-            save_path=str(model_dir / "confusion_matrix.png"),
+            device,
+            model_dir / "predictions",
+            config.prediction_samples_per_category,
+            partition="validation",
+            seed=args.seed,
+            fps=args.fps,
+        )
+        records = examples["records"]
+        confusion_artifacts = (
+            plot_confusion_matrix(
+                [item["true_index"] for item in records],
+                [item["predicted_index"] for item in records],
+                dataset.class_names,
+                dataset_name=model_name,
+                save_path=str(model_dir / "confusion_matrix.png"),
+            )
+            if records
+            else None
         )
         parameter_count = count_trainable_parameters(model)
         model_summaries[model_name] = {
             "configuration": configuration,
             "trainable_parameters": parameter_count,
             "confusion_matrix": confusion_artifacts,
-            "predictions": prediction_records,
+            "prediction_examples": examples,
         }
         print(f"{model_name}: {parameter_count:,} trainable parameters")
     summary_path = run_dir / "summary.json"

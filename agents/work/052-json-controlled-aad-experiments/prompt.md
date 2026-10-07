@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `052-json-controlled-aad-experiments`
-- Status: Ready
+- Status: Done
 - Aim: Make one concise AAD experiment JSON the source for a small, staged, reproducible model/input/regularization comparison.
 - Scope: Paper 001 experiment configuration, model registry, runner, example JSON, commands, and implementation guide.
 - Changes:

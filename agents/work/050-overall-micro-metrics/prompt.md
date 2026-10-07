@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `050-overall-micro-metrics`
-- Status: Ready
+- Status: Done
 - Aim: Report the requested overall classification metrics without macro-averaging.
 - Scope: Paper 001 metric utilities, training/evaluation/experiment logs and JSON outputs, rankings, and concise documentation.
 - Changes:

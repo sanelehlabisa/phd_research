@@ -76,43 +76,49 @@ The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
 not architecture-equivalent reproductions.
 
-Inspect the five approved entries without a dataset or model allocation:
-
-```bash
-.venv/bin/python -m src.experiments --list-models
-```
-
-List the three custom AAD candidates without loading data or allocating models:
+The current AAD study uses one editable JSON:
+[`aad_staged_experiments.json`](configs/experiments/aad_staged_experiments.json).
+List every stage, model, input, weight decay, run count and generated command
+without loading data or allocating models:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_architecture_screen_reference.json \
-  --candidates-config configs/experiments/aad_architecture_candidates.json \
-  --list-models
-```
-
-Inspect every controlled stage, model, protocol, factor, run count, and command:
-
-```bash
-.venv/bin/python -m src.experiments \
-  --plan-config configs/experiments/aad_controlled_experiment_plan.json \
+  --study-config configs/experiments/aad_staged_experiments.json \
   --list-plan
 ```
 
-Start the configured architecture screen after reviewing the safe listing. The
-active stage is stored in the plan JSON, so no stage or model arguments are
-needed:
+Run the complete staged comparison after reviewing the listing:
 
 ```bash
-# Expensive: trains three candidates on AAD, up to 160 epochs each.
+# Expensive: 22 model runs, up to 160 epochs each; no wall-clock guarantee.
 .venv/bin/python -m src.experiments \
-  --plan-config configs/experiments/aad_controlled_experiment_plan.json
+  --study-config configs/experiments/aad_staged_experiments.json
 ```
 
-An interrupted screen leaves evidence only for models whose training completed;
-do not treat an incomplete ranking as the final shortlist. Historical local
-outputs lack the current complete protocol and remain non-comparable
-exploratory evidence.
+The default screen compares three custom stacks, three 3D CNNs and
+[`swin3d_t`](https://docs.pytorch.org/vision/0.24/models/generated/torchvision.models.video.swin3d_t.html)
+with `weights=None`, at 8 frames and 64x64, for seeds 42/2026 (14 runs).
+Mean validation accuracy, then loss and parameter count, freezes the reference.
+Its screen runs are reused as controls for 96x96, 16-frame, and weight-decay
+0.0001/0.001 trials (8 runs); factors are never combined. LR 0.01, scheduler,
+augmentation, epoch cap and patience stay fixed across comparable jobs.
+
+Set `published_topology.enabled` to true for two additional, separate
+50-frame/50x50 native PaperConvLSTM runs (batch 1); these never enter the screen
+ranking. Do not shrink this baseline if memory is insufficient.
+`max_runs` rejects an oversized plan before training. The JSON/schema rejects
+extra search dimensions, unknown models and invalid sizes.
+
+Study config, generated commands, progress, seed means/standard deviations and
+the frozen selection live in `runs/studies/<run>/`; linked leaf artifacts stay
+in `runs/experiments/<run>/`. Each candidate retains dimensions, dataset/split,
+parameter count, runtime, validation history/checkpoint and prediction examples.
+Interrupted studies are marked failed/partial; an incomplete screen cannot pick
+a winner. Test stays locked. This is implementation, not completed paper evidence.
+
+Older multi-file `--plan-config` / `--candidates-config` inputs remain available
+only for historical notebooks and reproducibility; they are not inputs to the
+new study. Kinetics diagnostic settings and saved outputs are unchanged.
 
 ## Experiment protocol
 
@@ -127,12 +133,21 @@ exploratory evidence.
 - Validation-only model and checkpoint selection; test data remains locked.
 - Seeds `42` and `2026` for reported confirmation runs; both reuse the same
   split created with split seed `42`.
-- Validation-loss early stopping with patience `10` and restoration of the
+- Validation-loss early stopping (current staged AAD patience `20`) and restoration of the
   selected checkpoint.
-- Sample-weighted loss plus full-partition accuracy and macro
+- Sample-weighted loss plus full-partition accuracy and micro
   precision/recall/F1, confusion matrix, trainable parameters, runtime, and
   uncertainty across confirmation seeds.
 - One factor changed at a time with the split and training budget fixed.
+
+New classification outputs use `loss`, `accuracy`, `precision`, `recall`, and
+`f1`. Precision/recall/F1 use micro aggregation over the full partition; all
+three equal accuracy for single-label multiclass classification. Per-class
+confusion matrices remain unchanged. Candidates rank by validation accuracy
+(descending), then loss, parameter count and name; checkpoints still use minimum
+validation loss. Historical run files are not rewritten. Legacy checkpoints
+retain their original macro protocol in checkpoint provenance; newly evaluated
+metrics use the current micro protocol.
 
 ## Modular Colab notebooks
 
@@ -146,9 +161,11 @@ and re-export the current notebook from master: the helpers moved to
 `notebooks/utils/`. Pulling inside an old setup cell updates repository files,
 not that cell's source. All current notebooks use `notebooks.utils` imports.
 
-[Ticket 047](../../../agents/work/047-larger-colab-training/prompt.md) is ready
-for approval for a larger notebook-03-only model/input profile. Its 200-epoch,
-eight-hour budget is planned, not implemented; the current defaults below remain.
+[Ticket 047](../../../agents/work/047-larger-colab-training/prompt.md) implements
+the larger notebook-03-only profile below. After pulling master, close and reopen
+notebook 03 and create a fresh export; pulling inside an old export cannot replace
+that export's removed `src.notebook_*` imports. Setup uses a safe fast-forward
+pull and stops on conflicts without discarding local edits.
 
 Integration [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/prompt.md)
 combines Kinetics-600 (>2,000 unique videos before splitting) with the expanded
@@ -165,8 +182,8 @@ Change the shared setting to `"vdd"` for the unchanged VDD labels or
 `"kinetics-subset"` for the previous 87-clip Kinetics-400 copy. Existing saved
 notebook outputs describe earlier VDD/Kinetics-400 runs. Notebook 04 keeps its
 own 11-model manifest at
-`configs/experiments/kinetics_diagnostic_candidates.json`; the three-model AAD
-screen uses the separate `aad_architecture_candidates.json`.
+`configs/experiments/kinetics_diagnostic_candidates.json`; current AAD comparisons
+use the separate `aad_staged_experiments.json`.
 
 | Notebook | End-to-end workflow |
 |---|---|
@@ -192,8 +209,21 @@ Their cells, metadata and saved outputs are preserved. Close the old tabs, open
 the files linked above and select the working Colab GPU kernel for each.
 This is a filename-based workaround; local tests cannot verify the editor's Run button.
 
-Notebooks 01–03 retain 16 frames at 16 FPS, batch 8, seed 42 and 32×32 input;
-notebook 03 trains for 128 epochs. Notebook 04 has separate `SUITE_*` settings:
+Notebooks 01/02 retain 16 frames at 16 FPS, batch 8, seed 42 and 32×32 input.
+Notebook 03 uses ConvLSTM `32 → 64 → 64` (3×3 kernels), 32 RGB frames at 8 FPS,
+96×96, batch 8 and seed 42, for at most 200 epochs or eight hours after preparation.
+The five Kinetics-600 classes, all usable clips, >2,000-video gate and source-grouped
+split are unchanged. Edit only `TRAIN_*` for this profile. Its resolved configuration,
+parameter count and live curves are printed; the lowest-validation-loss checkpoint
+supplies five validation predictions. Test stays locked.
+
+The clock is checked between batches/epochs; in-flight work and output saving can
+overrun it. Time-limited runs retain completed validation epochs and are labelled
+partial, never 200-epoch results. If no validation epoch completed, no checkpoint
+or predictions are claimed. Decoder errors remain failures, not handled budget stops.
+The larger profile has local synthetic tests, not an A100 accuracy/memory guarantee.
+
+Notebook 04 has separate `SUITE_*` settings:
 32 frames at 8 FPS, 64×64 screening input, 24 screening epochs and 64 confirmation
 epochs. The retained legacy `SCREEN_*` quick-grid lists do not control notebook 04.
 The notebook-only Adam schedule starts at 0.001, halves after six
@@ -235,7 +265,7 @@ cannot trigger final testing. Completed trials and checkpoint/history files
 remain saved, but automatic mid-trial resume is not implemented. Run All starts
 a new suite, so do not rerun it merely to recover display.
 Checkpoints use minimum validation loss; candidate ranking uses validation
-macro-F1, accuracy, parameter count, then name. Batch progress is printed,
+accuracy, loss, parameter count, then name. Batch progress is printed,
 loss/accuracy plots update each epoch, and artifacts go under ignored `runs/`.
 
 These are **exploratory diagnostics**, not the paper's controlled
@@ -504,7 +534,6 @@ Smoke-test both random-weight ConvLSTM models (writes sample predictions):
   --height 8 \
   --width 8 \
   --seed 42 \
-  --num-samples 2 \
   --convlstm-layer 8 3 3 \
   --convlstm-layer 16 3 3
 ```
@@ -529,7 +558,10 @@ Train the configured custom reference. This starts expensive training:
 Output: `runs/train/<run>/`. Training restores the lowest-validation-loss
 checkpoint and never opens the test split.
 
-Run practical-baseline confirmation only after replacing `REFERENCE` with the
+Legacy multi-file plan commands below are retained for old notebook workflows;
+new paper runs should use the single-JSON staged command above.
+
+Run legacy practical-baseline confirmation only after replacing `REFERENCE` with the
 validation-selected custom candidate. This runs both confirmation seeds and
 starts expensive training:
 
@@ -567,13 +599,23 @@ access locked.
 
 After freezing a configuration, deliberately evaluate its validation-selected
 checkpoint on the AAD test split (writes metrics, a confusion matrix, and
-five prediction clips by default). Evaluation reads the shared JSON config;
-`prediction_samples` controls the clip count. The evaluation config names the
+up to three correct and three incorrect clips by default). All four CLI
+commands use JSON `prediction_samples_per_category` (default `3`, `0` disables
+videos). Training, experiment candidates, and random-weight model smoke use
+validation; only final evaluation uses test. The evaluation config names the
 training run, and the evaluator loads that run's best checkpoint automatically.
 The resolved config is saved with each evaluation run. Clips are saved
-under the evaluation run's `predictions/correct/` and `predictions/wrong/`
+under the run/model's `predictions/correct/` and `predictions/incorrect/`
 directories; the evaluation report links them to the exact checkpoint. Test
 access stays in this evaluation step only.
+
+Each prediction manifest records configured/actual counts, source paths, labels,
+confidence, and partition. A missing category is reported as zero; finding it
+can require scanning the full partition. These illustrative clips are not a
+metric sample. The old `prediction_samples` field remains readable for historical
+configs but does not control the new per-category exports. Model smoke predictions
+are random-weight checks, not research evidence. Training no longer eagerly
+caches the entire dataset, which would decode locked test clips before splitting.
 
 ```bash
 .venv/bin/python -m src.evaluate \
@@ -581,7 +623,7 @@ access stays in this evaluation step only.
 ```
 
 To evaluate another training run, update `training_run_dir` in the JSON file.
-Keep its input size and split aligned with that run; set `prediction_samples`
+Keep its input size and split aligned with that run; set `prediction_samples_per_category`
 there to change how many prediction clips are saved. The command needs no other
 arguments.
 

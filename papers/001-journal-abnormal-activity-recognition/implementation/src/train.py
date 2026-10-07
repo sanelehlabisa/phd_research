@@ -25,7 +25,6 @@ from torch.utils.data import DataLoader
 from .dataset import (
     AHARDataset,
     AugmentSubset,
-    CachedAHARDataset,
     VideoAugmentation,
     load_split_subsets,
     resolve_split_manifest_path,
@@ -55,6 +54,7 @@ from .utils import (
     data_loader_generator,
     plot_confusion_matrix,
     plot_training_curves,
+    save_prediction_examples,
     seed_data_loader_worker,
     seed_everything,
     write_json,
@@ -166,6 +166,10 @@ def _save_custom_checkpoint(
     print(f"✅ Saved checkpoint to {checkpoint_path}")
 
 
+class DiagnosticBudgetExpired(TimeoutError):
+    """Only the explicit training clock may trigger a handled partial result."""
+
+
 def train_notebook_model(
     prepared,
     config: ExperimentConfig,
@@ -188,7 +192,7 @@ def train_notebook_model(
 
     def check_budget():
         if deadline is not None and time.time() >= deadline:
-            raise TimeoutError(
+            raise DiagnosticBudgetExpired(
                 "Diagnostic compute budget exhausted; evidence is partial"
             )
 
@@ -471,7 +475,7 @@ def train_notebook_model(
     except BaseException as error:
         if (
             return_on_timeout
-            and isinstance(error, TimeoutError)
+            and isinstance(error, DiagnosticBudgetExpired)
             and deadline is not None
             and time.time() >= deadline
         ):
@@ -553,18 +557,9 @@ def main(argv: list[str] | None = None) -> None:
 
     resolved_config_path = experiment_config.save_json(run_dir / "resolved_config.json")
 
-    _probe = AHARDataset(
+    # Eager full-dataset caching would decode locked test clips before splitting.
+    dataset = AHARDataset(
         args.dataset_dir, args.sequence_length, (args.width, args.height)
-    )
-    DatasetClass = CachedAHARDataset if len(_probe) <= 2000 else AHARDataset
-    effective_dir = args.dataset_dir
-    del _probe
-
-    if DatasetClass is CachedAHARDataset:
-        print("Small dataset - caching into RAM")
-
-    dataset = DatasetClass(
-        effective_dir, args.sequence_length, (args.width, args.height)
     )
     dataset_name = Path(args.dataset_dir).name
     num_classes = dataset.num_classes
@@ -586,9 +581,7 @@ def main(argv: list[str] | None = None) -> None:
         AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
     )
     augmentation_state = "enabled" if args.augment else "disabled"
-    augmentation_detail = (
-        " (one transform or none per clip)" if args.augment else ""
-    )
+    augmentation_detail = " (one transform or none per clip)" if args.augment else ""
     print(f"🎞️  Online augmentation: {augmentation_state}{augmentation_detail}")
 
     loader_kw = dict(
@@ -779,7 +772,8 @@ def main(argv: list[str] | None = None) -> None:
             f"Val: {validation_metrics['loss']:.4f} | Acc → "
             f"Train: {train_metrics['accuracy']:.4f} "
             f"Val: {validation_metrics['accuracy']:.4f} | "
-            f"Val macro-F1: {validation_metrics['macro_f1']:.4f}"
+            f"Val precision={validation_metrics['precision']:.4f}, "
+            f"recall={validation_metrics['recall']:.4f}, F1={validation_metrics['f1']:.4f} (micro)"
         )
 
         if selected:
@@ -849,7 +843,18 @@ def main(argv: list[str] | None = None) -> None:
         dataset_name=f"{dataset_name}_validation",
         save_path=run_dir / "metrics" / "validation_confusion_matrix.png",
     )
+    prediction_examples = save_prediction_examples(
+        model,
+        val_set,
+        dataset.class_names,
+        device,
+        run_dir / "predictions",
+        experiment_config.prediction_samples_per_category,
+        partition="validation",
+        seed=args.seed,
+    )
     final_metrics = {
+        "prediction_examples": prediction_examples,
         "evaluated_model": "validation_selected_checkpoint",
         "partition": "validation",
         "metric_protocol": metric_protocol(),

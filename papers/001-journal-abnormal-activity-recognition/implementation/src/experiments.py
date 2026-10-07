@@ -58,6 +58,7 @@ from .utils import (
     data_loader_generator,
     plot_confusion_matrix,
     safe_filename,
+    save_prediction_examples,
     seed_data_loader_worker,
     seed_everything,
     write_json,
@@ -99,6 +100,11 @@ parser.add_argument(
     help="Compare one named custom candidate with the three practical baselines",
 )
 parser.add_argument("--plan-config", type=Path)
+parser.add_argument(
+    "--study-config",
+    type=Path,
+    help="Single-JSON staged AAD study; --list-plan performs no training",
+)
 parser.add_argument("--list-plan", action="store_true", default=False)
 parser.add_argument(
     "--run-plan-stage",
@@ -702,6 +708,8 @@ class Video3DModelWrapper(nn.Module):
         if hasattr(self.model, "fc"):
             in_features = self.model.fc.in_features
             self.model.fc = nn.Linear(in_features, num_classes)
+        elif hasattr(self.model, "head"):
+            self.model.head = nn.Linear(self.model.head.in_features, num_classes)
 
     def forward(self, x):
         # x is (B, T, C, H, W) -> PyTorch 3D CNNs expect (B, C, T, H, W)
@@ -777,10 +785,24 @@ def model_registry(
             "role": "study practical baseline trained from scratch",
         },
     ]
+    transformer_entry = {
+        "name": "swin3d_t",
+        "family": "Video-Transformer",
+        "model_class": "torchvision.models.video.swin3d_t",
+        "role": "study practical baseline trained from scratch; weights=None",
+    }
+    # Legacy confirmation stays three CNNs; the new staged study explicitly
+    # requests Swin, so old notebook plans keep their existing model counts.
+    if selected_models is not None and "swin3d_t" in selected_models:
+        standard_entries.append(transformer_entry)
     if candidate_manifest is None:
         registry = standard_entries
     elif confirmation_candidate is None:
-        registry = custom_entries
+        registry = (
+            custom_entries
+            if selected_models is None
+            else [*custom_entries, *standard_entries[2:]]
+        )
     else:
         selected_candidate = next(
             (
@@ -870,6 +892,8 @@ def build_registered_model(
             video_models.r2plus1d_18(weights=None),
             num_classes,
         )
+    if model_name == "swin3d_t":
+        return Video3DModelWrapper(video_models.swin3d_t(weights=None), num_classes)
     raise ValueError(f"unknown registered model: {model_name}")
 
 
@@ -999,17 +1023,40 @@ def build_experiment_criterion() -> nn.CrossEntropyLoss:
     return nn.CrossEntropyLoss()
 
 
-def main(argv: list[str] | None = None) -> None:
+def main(argv: list[str] | None = None) -> Path | None:
     """Resolve configuration and run validation-only model comparisons."""
     args, experiment_config, candidate_manifest, print_only = _resolved_arguments(
         vars(parser.parse_args(argv))
     )
     if print_only:
+        if getattr(args, "study_config", None) is not None:
+            raise ValueError("use --list-plan with --study-config, not --print-config")
         print(experiment_config.to_json())
         return
     plan_path = getattr(args, "plan_config", None)
     list_plan = getattr(args, "list_plan", False)
     plan_stage = getattr(args, "run_plan_stage", None)
+    study_path = getattr(args, "study_config", None)
+    if study_path is not None:
+        from .study_config import load_study, print_study, execute_study
+
+        # A study has one source of truth; no silently ignored leaf overrides.
+        raw = vars(parser.parse_args(argv))
+        allowed = {"study_config", "list_plan", "list_models"}
+        extras = {
+            key
+            for key, value in raw.items()
+            if key not in allowed and value is not None
+        }
+        if extras or raw.get("list_models", False):
+            raise ValueError(
+                "study-config cannot be combined with leaf/legacy overrides"
+            )
+        study, config, manifest = load_study(study_path)
+        if list_plan:
+            print_study(study_path, study, config)
+            return None
+        return execute_study(study_path, study, config, manifest, main)
     if plan_path is not None:
         if list_plan:
             print_controlled_plan(plan_path)
@@ -1044,15 +1091,6 @@ def main(argv: list[str] | None = None) -> None:
             selected_models,
         )
         return
-    resolved_dataset = resolve_dataset(
-        args.dataset_name,
-        args.dataset_dir,
-        Path(__file__).resolve().parent.parent,
-    )
-    args.dataset_dir = str(resolved_dataset)
-    experiment_config = ExperimentConfig.from_mapping(
-        {**experiment_config.to_dict(), "dataset_dir": str(resolved_dataset)}
-    )
     if any(entry["model_class"] == "PaperConvLSTM" for entry in registry) and (
         args.sequence_length,
         args.height,
@@ -1062,6 +1100,15 @@ def main(argv: list[str] | None = None) -> None:
             "PaperConvLSTM must use its native 50-frame 50x50 protocol; "
             "run it as the separate published-topology stage"
         )
+    resolved_dataset = resolve_dataset(
+        args.dataset_name,
+        args.dataset_dir,
+        Path(__file__).resolve().parent.parent,
+    )
+    args.dataset_dir = str(resolved_dataset)
+    experiment_config = ExperimentConfig.from_mapping(
+        {**experiment_config.to_dict(), "dataset_dir": str(resolved_dataset)}
+    )
     candidate_provenance = (
         candidate_manifest.provenance() if candidate_manifest is not None else None
     )
@@ -1151,9 +1198,7 @@ def main(argv: list[str] | None = None) -> None:
         AugmentSubset(train_set, VideoAugmentation()) if args.augment else train_set
     )
     augmentation_state = "enabled" if args.augment else "disabled"
-    augmentation_detail = (
-        " (one transform or none per clip)" if args.augment else ""
-    )
+    augmentation_detail = " (one transform or none per clip)" if args.augment else ""
     print(f"Online augmentation: {augmentation_state}{augmentation_detail}")
 
     loader_kw = dict(
@@ -1202,7 +1247,7 @@ def main(argv: list[str] | None = None) -> None:
             "metric_protocol": metric_protocol(),
             "checkpoint_selection": "lowest_validation_loss",
             "early_stopping_patience": args.early_stopping_patience,
-            "ranking": ["validation_macro_f1", "validation_accuracy", "parameters"],
+            "ranking": ["validation_accuracy", "validation_loss", "parameters"],
             "test_access": "locked",
         },
         "augmentation": args.augment,
@@ -1359,7 +1404,28 @@ def main(argv: list[str] | None = None) -> None:
             },
         )
 
+        prediction_examples = save_prediction_examples(
+            model,
+            val_set,
+            dataset.class_names,
+            device,
+            model_dir / "predictions",
+            experiment_config.prediction_samples_per_category,
+            partition="validation",
+            seed=args.seed,
+        )
         result = {
+            "prediction_examples": prediction_examples,
+            "input_dimensions": {
+                "sequence_length": args.sequence_length,
+                "height": args.height,
+                "width": args.width,
+                "channels": 3,
+            },
+            "dataset_name": args.dataset_name,
+            "dataset_dir": args.dataset_dir,
+            "split": split_metadata,
+            "seed": args.seed,
             "name": name,
             "family": entry["family"],
             "model_class": entry["model_class"],
@@ -1386,7 +1452,10 @@ def main(argv: list[str] | None = None) -> None:
         result["metrics_path"] = str(metrics_path)
         all_results.append(result)
         print(
-            f"  val_f1={selected_validation_metrics['macro_f1']:.4f}  "
+            f"  val_loss={selected_validation_metrics['loss']:.4f}  "
+            f"val_precision={selected_validation_metrics['precision']:.4f}  "
+            f"val_recall={selected_validation_metrics['recall']:.4f}  "
+            f"val_f1={selected_validation_metrics['f1']:.4f}  "
             f"val_acc={selected_validation_metrics['accuracy']:.4f}  "
             f"selected_epoch={checkpoint_selection['selected_epoch']}  "
             f"time={elapsed:.0f}s"
@@ -1407,12 +1476,13 @@ def main(argv: list[str] | None = None) -> None:
     }
     write_json(config_path, shared_configuration)
 
-    print("\nTop 5 (validation macro-F1, accuracy, fewest parameters):")
+    print("\nTop 5 (validation accuracy, lowest loss, fewest parameters):")
     print("-" * 70)
     for r in ranked[:5]:
         validation_metrics = r["validation_metrics"]
         print(
-            f"  {r['name']:<30} val_f1={validation_metrics['macro_f1']:.4f}  "
+            f"  {r['name']:<30} val_f1={validation_metrics['f1']:.4f}  "
+            f"val_loss={validation_metrics['loss']:.4f}  "
             f"val_acc={validation_metrics['accuracy']:.4f}  "
             f"params={r['num_params']:,}"
         )
@@ -1422,8 +1492,8 @@ def main(argv: list[str] | None = None) -> None:
         "candidate_manifest": candidate_provenance,
         "study_trial": trial_metadata,
         "ranking": [
-            "validation_macro_f1",
             "validation_accuracy",
+            "validation_loss",
             "parameters",
         ],
         "ranked": ranked,
@@ -1435,8 +1505,8 @@ def main(argv: list[str] | None = None) -> None:
         {
             "metric_protocol": metric_protocol(),
             "ranking": [
-                "validation_macro_f1",
                 "validation_accuracy",
+                "validation_loss",
                 "parameters",
             ],
             "completed_models": shared_configuration["completed_models"],
@@ -1467,6 +1537,7 @@ def main(argv: list[str] | None = None) -> None:
         },
     )
     print(f"\nFull results saved to {out_path}")
+    return run_dir
 
 
 if __name__ == "__main__":

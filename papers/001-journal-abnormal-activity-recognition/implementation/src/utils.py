@@ -197,14 +197,14 @@ def create_run_directory(
 
     Parameters:
         runs_dir: Common root for local runs.
-        purpose: One of model, train, evaluate, or experiments.
+        purpose: One of model, train, evaluate, experiments, or studies.
         dataset_name: Dataset identifier for the leaf name.
         label: Concise model or study identifier.
 
     Returns:
         The new unique run directory.
     """
-    allowed_purposes = {"model", "train", "evaluate", "experiments"}
+    allowed_purposes = {"model", "train", "evaluate", "experiments", "studies"}
     if purpose not in allowed_purposes:
         raise ValueError(f"purpose must be one of {sorted(allowed_purposes)}")
     timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%f")
@@ -674,6 +674,106 @@ def write_video_torchvision(frames: torch.Tensor, path: Path, fps: int = 8) -> N
                 container.mux(packet)
         for packet in stream.encode():
             container.mux(packet)
+
+
+@torch.inference_mode()
+def save_prediction_examples(
+    model,
+    dataset,
+    class_names,
+    device,
+    output,
+    samples_per_category=3,
+    *,
+    partition,
+    seed=42,
+    fps=8,
+) -> dict:
+    """Save bounded examples from an explicitly supplied, unaugmented partition.
+
+    Scan a seeded local permutation until both quotas are filled or exhausted.
+    A missing category may require scanning the full partition. These selected
+    illustrations are not a representative metric sample.
+    """
+    if (
+        not isinstance(samples_per_category, int)
+        or isinstance(samples_per_category, bool)
+        or samples_per_category < 0
+    ):
+        raise ValueError(
+            "prediction_samples_per_category must be a non-negative integer"
+        )
+    if partition not in {"validation", "test"}:
+        raise ValueError("prediction examples require validation or final test")
+    if not isinstance(dataset, torch.utils.data.Subset):
+        raise ValueError("prediction examples require an explicit split Subset")
+    output = Path(output)
+    records = []
+    counts = {"correct": 0, "incorrect": 0}
+    indices = list(range(len(dataset))) if samples_per_category else []
+    random.Random(seed).shuffle(indices)
+    scanned = 0
+    was_training = model.training
+    model.eval()
+    try:
+        for index in indices:
+            if all(count >= samples_per_category for count in counts.values()):
+                break
+            frames, target = dataset[index]
+            target = int(target)
+            probabilities = model(frames.unsqueeze(0).to(device)).softmax(dim=1)
+            predicted = int(probabilities.argmax(dim=1).item())
+            scanned += 1
+            category = "correct" if predicted == target else "incorrect"
+            if counts[category] >= samples_per_category:
+                continue
+            base, source_index = dataset, index
+            while isinstance(base, torch.utils.data.Subset):
+                source_index = int(base.indices[source_index])
+                base = base.dataset
+            source = Path(base.samples[source_index][0])
+            true_name, predicted_name = class_names[target], class_names[predicted]
+            filename = (
+                f"{source_index:06d}_{safe_filename(source.stem)[:48]}_"
+                f"true-{safe_filename(true_name)[:32]}_"
+                f"pred-{safe_filename(predicted_name)[:32]}.mp4"
+            )
+            path = output / category / filename
+            write_video_torchvision(frames, path, fps)
+            records.append(
+                {
+                    "path": str(path),
+                    "source": str(source.resolve()),
+                    "source_index": source_index,
+                    "partition": partition,
+                    "true": true_name,
+                    "pred": predicted_name,
+                    "true_index": target,
+                    "predicted_index": predicted,
+                    "correct": predicted == target,
+                    "confidence": float(probabilities[0, predicted].item()),
+                }
+            )
+            counts[category] += 1
+    finally:
+        model.train(was_training)
+    report = {
+        "partition": partition,
+        "prediction_samples_per_category": samples_per_category,
+        "saved_counts": counts,
+        "scanned_count": scanned,
+        "seed": seed,
+        "playback_fps": fps,
+        "records": records,
+        "manifest": str(output / "predictions.json"),
+    }
+    write_json(output / "predictions.json", report)
+    print(
+        f"Prediction examples ({partition}): limit={samples_per_category} per category; "
+        f"correct={counts['correct']}, incorrect={counts['incorrect']}",
+        flush=True,
+    )
+    return report
 
 
 def save_prediction_clips(

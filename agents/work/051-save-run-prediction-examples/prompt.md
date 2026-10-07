@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `051-save-run-prediction-examples`
-- Status: Ready
+- Status: Done
 - Aim: Save a small, configurable set of playable correct and incorrect predictions with each model, training, evaluation, and experiment run.
 - Scope: Paper 001 `src/model.py`, `src/train.py`, `src/evaluate.py`, `src/experiments.py`, shared output helpers, their JSON configs, and documentation.
 - Changes:

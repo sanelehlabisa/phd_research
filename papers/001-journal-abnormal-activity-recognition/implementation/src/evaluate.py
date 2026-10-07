@@ -33,7 +33,7 @@ from .utils import (
     collect_predictions,
     data_loader_generator,
     plot_confusion_matrix,
-    save_prediction_clips,
+    save_prediction_examples,
     seed_data_loader_worker,
     seed_everything,
     write_json,
@@ -177,7 +177,7 @@ def main() -> None:
                 f"checkpoint={expected_input}, evaluation={actual_input}. Use the "
                 "training JSON config or explicitly override its dimensions."
             )
-    prediction_samples = config.prediction_samples
+    prediction_samples = config.prediction_samples_per_category
     print(
         "📂 Validation-selected checkpoint → "
         f"epoch={checkpoint_selection['selected_epoch']}, "
@@ -203,7 +203,7 @@ def main() -> None:
         "deterministic_settings": deterministic_settings,
         "metric_protocol": metric_protocol(),
         "evaluation_partition": "test",
-        "prediction_samples": prediction_samples,
+        "prediction_samples_per_category": prediction_samples,
         "experiment_config": config.to_dict(),
         "config_file": str(config_file) if config_file is not None else None,
         "checkpoint": {
@@ -251,13 +251,15 @@ def main() -> None:
     )
 
     print("\n🎬 Saving prediction clips...")
-    clip_records = save_prediction_clips(
+    prediction_examples = save_prediction_examples(
         model,
         test_set,
         dataset.class_names,
         device,
         run_dir / "predictions",
         prediction_samples,
+        partition="test",
+        seed=config.seed,
     )
 
     report = {
@@ -271,10 +273,11 @@ def main() -> None:
             **checkpoint_selection,
         },
         "metrics": {k: round(v, 6) for k, v in results.items()},
-        "prediction_samples": prediction_samples,
+        "prediction_samples_per_category": prediction_samples,
+        "prediction_examples": prediction_examples,
         "artifacts": {
             "confusion_matrix": confusion_artifacts,
-            "prediction_clips": clip_records,
+            "prediction_clips": prediction_examples["records"],
         },
     }
     json_path = write_json(run_dir / "metrics" / "final.json", report)
@@ -284,7 +287,7 @@ def main() -> None:
             "checkpoint_reference": str(checkpoint_reference_path),
             "metrics": str(json_path),
             "confusion_matrix": confusion_artifacts,
-            "prediction_videos": clip_records,
+            "prediction_examples": prediction_examples,
         },
         results=report["metrics"],
     )

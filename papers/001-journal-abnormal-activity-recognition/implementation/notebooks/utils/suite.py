@@ -40,7 +40,9 @@ def prepare_experiment_data(root, dataset_root=None):
 
 
 def candidate_specs(root):
-    manifest = _read(Path(root) / "configs/experiments/kinetics_diagnostic_candidates.json")
+    manifest = _read(
+        Path(root) / "configs/experiments/kinetics_diagnostic_candidates.json"
+    )
     specs = {
         c["name"]: dict(
             name="custom",
@@ -75,7 +77,7 @@ def suite_plan(prepared):
         final_size=settings.SUITE_FINAL_FRAME_SIZE,
         hours=settings.SUITE_HOURS,
         paper_minutes=settings.PAPER_MAX_MINUTES,
-        selection="validation macro-F1, accuracy, parameter count, name; never test",
+        selection="validation accuracy, loss, parameter count, name; never test",
         confirmation="selected custom plus all three practical baselines, identical inputs/budgets, both seeds",
         paper="separate native 50-frame/50x50 topology; dataset-specific head; not a faithful training-protocol reproduction",
     )
@@ -398,9 +400,7 @@ def create_suite_artifact_archive(prepared, directory=None):
     """Bundle the current suite and its registered model-run artifacts."""
     root = Path(prepared["root"]).resolve()
     runs_root = (root / "runs").resolve()
-    suite_dir = Path(
-        directory or prepared.get("suite_run_dir") or ""
-    ).resolve()
+    suite_dir = Path(directory or prepared.get("suite_run_dir") or "").resolve()
     experiments_root = (runs_root / "experiments").resolve()
     if not suite_dir.is_relative_to(experiments_root) or not suite_dir.is_dir():
         raise ValueError("A current experiment-suite directory is required")
@@ -515,13 +515,13 @@ def confirmation_ranking(results):
     rows = []
     for group, runs in groups.items():
         row = dict(name=group, parameters=runs[0]["num_params"])
-        for key in ("loss", "accuracy", "macro_precision", "macro_recall", "macro_f1"):
+        for key in ("loss", "accuracy", "precision", "recall", "f1"):
             values = [r["validation_metrics"][key] for r in runs]
             row[key] = statistics.mean(values)
             row[key + "_std"] = statistics.stdev(values) if len(values) > 1 else 0.0
         rows.append(row)
     return sorted(
-        rows, key=lambda r: (-r["macro_f1"], -r["accuracy"], r["parameters"], r["name"])
+        rows, key=lambda r: (-r["accuracy"], r["loss"], r["parameters"], r["name"])
     )
 
 

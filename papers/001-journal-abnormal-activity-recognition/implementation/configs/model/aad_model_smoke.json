@@ -1,5 +1,7 @@
 {
   "dataset_name": "aad",
   "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
-  "runs_dir": "runs"
+  "runs_dir": "runs",
+  "prediction_samples_per_category": 3,
+  "split_manifest": "splits/abnormal-activities-dataset_seed42.json"
 }

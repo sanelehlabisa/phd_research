@@ -31,15 +31,15 @@ reference architecture for ablation.
 ## Next tasks
 
 - [x] [049 AAD dataset auto-resolution](../../agents/work/049-aad-dataset-auto-resolution/prompt.md)
-- [ ] [050 overall micro metrics](../../agents/work/050-overall-micro-metrics/prompt.md)
-- [ ] [051 save run prediction examples](../../agents/work/051-save-run-prediction-examples/prompt.md)
-- [ ] [052 JSON-controlled AAD experiments](../../agents/work/052-json-controlled-aad-experiments/prompt.md)
+- [x] [050 overall micro metrics](../../agents/work/050-overall-micro-metrics/prompt.md) — overall micro metrics, validation-only ranking; 160 tests passed.
+- [x] [051 save run prediction examples](../../agents/work/051-save-run-prediction-examples/prompt.md) — shared per-category limits and split-safe playable clips.
+- [x] [052 JSON-controlled AAD experiments](../../agents/work/052-json-controlled-aad-experiments/prompt.md) — one JSON, seven-model screen and validation-selected one-factor trials; real runs pending.
 - [ ] Later, after final results: prepare a small Gradio demo using the selected model for presentation.
 
 ## Tasks
 
 - [x] [`049-aad-dataset-auto-resolution`](../../agents/work/049-aad-dataset-auto-resolution/prompt.md) — shared local-first AAD resolver and optional Kaggle download for modular runners and notebook selection.
-- [ ] [`047-larger-colab-training`](../../agents/work/047-larger-colab-training/prompt.md) — In progress as a separate Kinetics notebook task; not a prerequisite for AAD paper experiments.
+- [x] [`047-larger-colab-training`](../../agents/work/047-larger-colab-training/prompt.md) — larger, eight-hour-bounded notebook-03 profile verified locally; real Colab run pending and separate from AAD experiments.
 - [x] [`042-merge-expanded-kinetics-suite`](../../agents/work/042-merge-expanded-kinetics-suite/prompt.md) — Integrated both laptops' work: Kinetics-600 (>2,000 videos before splitting), 14-model screen, spatial/weight-decay comparisons and two-seed confirmation within an eight-hour deadline. 115 local tests passed; real Colab run pending.
 - [x] [`043-download-colab-run-artifacts`](../../agents/work/043-download-colab-run-artifacts/prompt.md) — Downloads one ZIP of the current suite's saved artifacts after completion or a handled time limit.
 - [x] [`044-organize-notebook-helpers`](../../agents/work/044-organize-notebook-helpers/prompt.md) — Moved notebook-only helpers to `implementation/notebooks/utils/`; kept core CLI modules in `src/`.

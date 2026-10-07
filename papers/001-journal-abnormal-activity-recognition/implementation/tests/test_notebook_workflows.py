@@ -114,9 +114,19 @@ def test_previews_model_and_single_training(prepared, monkeypatch):
     trained = workflows.train_single(prepared)
     assert trained["status"] == "complete" and trained["actual_epochs"] == 1
     assert trained["test_access"] == "locked"
+    assert set(trained["validation_metrics"]) == {
+        "loss",
+        "accuracy",
+        "precision",
+        "recall",
+        "f1",
+    }
+    saved_run = json.loads(Path(trained["run_dir"], "run.json").read_text())
+    assert saved_run["results"]["validation_metrics"] == trained["validation_metrics"]
     checkpoint = torch.load(
         trained["selected_checkpoint"], map_location="cpu", weights_only=True
     )
+    assert checkpoint["metric_protocol"]["precision_recall_f1_average"] == "micro"
     seed_everything(settings.SEED)
     initial = CustomConvLSTM(
         num_classes=dataset.num_classes, layers=list(settings.DEFAULT_LAYERS)
@@ -416,6 +426,6 @@ def test_notebook_contracts_and_controlled_reference_snapshot():
         assert "requirements.txt" in source
     reference = root / "notebooks" / "aad_experiment_workflow.ipynb"
     assert (
-        hashlib.sha256(reference.read_bytes()).hexdigest()
+        hashlib.sha256(reference.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
         == "7a9ff80a155857d694c2095aefe4554f5a09eb081b66a2018936d7ddfda3f00b"
     )

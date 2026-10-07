@@ -183,7 +183,9 @@ class ExperimentConfig:
     """Store the reproducible controls used by one experiment run."""
 
     dataset_name: str = "aad"
-    dataset_dir: str = "datasets/abnormal-activities-dataset/abnormal-activities-dataset"
+    dataset_dir: str = (
+        "datasets/abnormal-activities-dataset/abnormal-activities-dataset"
+    )
     runs_dir: str = "runs"
     split_manifest: str | None = None
     split_seed: int = 42
@@ -200,6 +202,7 @@ class ExperimentConfig:
     early_stopping_patience: int = 10
     batch_size: int = 8
     prediction_samples: int = 5
+    prediction_samples_per_category: int = 3
     learning_rate: float = 1e-3
     weight_decay: float = 1e-4
     augment: bool = False
@@ -319,6 +322,14 @@ class ExperimentConfig:
             or self.prediction_samples < 0
         ):
             raise ValueError("prediction_samples must be a non-negative integer")
+        if (
+            not isinstance(self.prediction_samples_per_category, int)
+            or isinstance(self.prediction_samples_per_category, bool)
+            or self.prediction_samples_per_category < 0
+        ):
+            raise ValueError(
+                "prediction_samples_per_category must be a non-negative integer"
+            )
         if self.hidden_classifier_width is not None and (
             not isinstance(self.hidden_classifier_width, int)
             or isinstance(self.hidden_classifier_width, bool)
@@ -451,6 +462,7 @@ def add_config_arguments(parser: argparse.ArgumentParser) -> None:
         "early_stopping_patience",
         "batch_size",
         "prediction_samples",
+        "prediction_samples_per_category",
         "num_workers",
     ):
         parser.add_argument(f"--{field_name}", type=int)

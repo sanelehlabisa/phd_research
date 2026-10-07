@@ -77,9 +77,7 @@ def test_disabled_dataset_cannot_be_selected(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setitem(
         config.DIAGNOSTIC_DATASETS,
         "kinetics600-subset",
-        replace(
-            config.DIAGNOSTIC_DATASETS["kinetics600-subset"], enabled=False
-        ),
+        replace(config.DIAGNOSTIC_DATASETS["kinetics600-subset"], enabled=False),
     )
     with pytest.raises(ValueError, match="not ready"):
         config.selected_diagnostic_dataset()
@@ -108,7 +106,10 @@ def test_manifest_is_dataset_specific_and_ignored_location(tmp_path: Path) -> No
 def test_controlled_plan_command_is_fixed_to_aad(tmp_path: Path) -> None:
     command = controlled_plan_list_command(tmp_path)
     assert command[-1] == "--list-plan"
-    assert "experiments/aad_controlled_experiment_plan.json" in command[-2]
+    assert (
+        "experiments/aad_controlled_experiment_plan.json"
+        in Path(command[-2]).as_posix()
+    )
     assert "vdd" not in " ".join(command).lower()
 
 
@@ -137,7 +138,7 @@ def test_screen_winner_comes_from_complete_validation_ranking(tmp_path: Path) ->
         "name": "candidate-a",
         "partition": "validation",
         "selected_checkpoint": "best.pth",
-        "validation_metrics": {"macro_f1": 0.8},
+        "validation_metrics": {"accuracy": 0.8, "loss": 0.2, "f1": 0.8},
     }
     (tmp_path / "summary.json").write_text(
         json.dumps(

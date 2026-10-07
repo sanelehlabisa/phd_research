@@ -253,7 +253,7 @@ def test_full_suite_freeze_and_saved_display_recovery(prepared, monkeypatch):
     with zipfile.ZipFile(archive_path) as archive:
         names = set(archive.namelist())
     for run_dir in prepared["suite_train_run_dirs"]:
-        prefix = f"{Path(run_dir).relative_to(prepared['root'])}/"
+        prefix = f"{Path(run_dir).relative_to(prepared['root']).as_posix()}/"
         assert f"{prefix}config.json" in names
         assert f"{prefix}history.json" in names
         assert any(name.startswith(prefix + "checkpoints/") for name in names)
@@ -358,8 +358,7 @@ def test_suite_artifact_download_uses_colab_browser(tmp_path, monkeypatch):
 
 def test_experiment_notebook_cells_download_even_after_budget_timeout():
     notebook_path = (
-        Path(__file__).resolve().parents[1]
-        / "notebooks/04_run_experiments.ipynb"
+        Path(__file__).resolve().parents[1] / "notebooks/04_run_experiments.ipynb"
     )
     notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
     cells = notebook["cells"]

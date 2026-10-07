@@ -24,7 +24,7 @@ def metric_protocol() -> dict[str, str]:
     return {
         "loss_aggregation": "sample_weighted_mean",
         "classification_aggregation": "full_partition",
-        "precision_recall_f1_average": "macro",
+        "precision_recall_f1_average": "micro",
     }
 
 
@@ -41,7 +41,7 @@ def classification_metrics(
         num_classes: Number of classes in the dataset.
 
     Returns:
-        Accuracy and macro precision, recall, and F1.
+        Accuracy and micro precision, recall, and F1 (equal for single labels).
     """
     if predictions.ndim != 1 or targets.ndim != 1:
         raise ValueError("predictions and targets must be one-dimensional")
@@ -51,15 +51,17 @@ def classification_metrics(
         raise ValueError("num_classes must be greater than one")
 
     metric_objects = {
-        "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=num_classes),
-        "macro_precision": torchmetrics.Precision(
-            task="multiclass", num_classes=num_classes, average="macro"
+        "accuracy": torchmetrics.Accuracy(
+            task="multiclass", num_classes=num_classes, average="micro"
         ),
-        "macro_recall": torchmetrics.Recall(
-            task="multiclass", num_classes=num_classes, average="macro"
+        "precision": torchmetrics.Precision(
+            task="multiclass", num_classes=num_classes, average="micro"
         ),
-        "macro_f1": torchmetrics.F1Score(
-            task="multiclass", num_classes=num_classes, average="macro"
+        "recall": torchmetrics.Recall(
+            task="multiclass", num_classes=num_classes, average="micro"
+        ),
+        "f1": torchmetrics.F1Score(
+            task="multiclass", num_classes=num_classes, average="micro"
         ),
     }
     return {
@@ -85,7 +87,7 @@ def _complete_partition_metrics(
         num_classes: Number of dataset classes.
 
     Returns:
-        Loss, accuracy, and macro precision, recall, and F1.
+        Loss, accuracy, and micro precision, recall, and F1.
     """
     if total_samples <= 0:
         raise ValueError("cannot calculate metrics for an empty partition")
@@ -344,7 +346,10 @@ def validate_selected_checkpoint(
         raise ValueError("checkpoint selection partition must be validation")
     if checkpoint.get("selection_metric") != "loss":
         raise ValueError("checkpoint selection metric must be loss")
-    if checkpoint.get("metric_protocol") != metric_protocol():
+    # Read historical checkpoints without renaming or rewriting their evidence.
+    protocol = checkpoint.get("metric_protocol")
+    legacy_protocol = dict(metric_protocol(), precision_recall_f1_average="macro")
+    if protocol not in (metric_protocol(), legacy_protocol):
         raise ValueError("checkpoint metric protocol is missing or unsupported")
     if checkpoint.get("dataset_name") != dataset_name:
         raise ValueError("checkpoint dataset does not match the requested dataset")
@@ -372,12 +377,13 @@ def validate_selected_checkpoint(
         raise ValueError("checkpoint seed must be a non-negative integer")
     if not isinstance(validation_metrics, dict):
         raise ValueError("checkpoint validation_metrics are missing")
+    prefix = "macro_" if protocol == legacy_protocol else ""
     for metric_name in (
         "loss",
         "accuracy",
-        "macro_precision",
-        "macro_recall",
-        "macro_f1",
+        prefix + "precision",
+        prefix + "recall",
+        prefix + "f1",
     ):
         metric_value = validation_metrics.get(metric_name)
         if (
@@ -420,26 +426,39 @@ def rank_validation_results(
         results: Candidate records containing validation metrics and parameters.
 
     Returns:
-        Candidates ordered by F1, accuracy, parameters, and name.
+        Candidates ordered by descending accuracy, loss, parameters, and name.
     """
 
     def ranking_key(result: dict[str, object]) -> tuple[float, float, int, str]:
+        if result.get("partition", "validation") != "validation":
+            raise ValueError("candidates must use validation metrics, never test")
         metrics = result.get("validation_metrics")
         if not isinstance(metrics, dict):
             raise ValueError("candidate validation_metrics are missing")
-        f1 = metrics.get("macro_f1")
+        loss = metrics.get("loss")
         accuracy = metrics.get("accuracy")
         parameters = result.get("num_params")
         name = result.get("name")
         if (
-            not isinstance(f1, (int, float))
-            or isinstance(f1, bool)
+            not isinstance(loss, (int, float))
+            or isinstance(loss, bool)
             or not isinstance(accuracy, (int, float))
             or isinstance(accuracy, bool)
+            or not math.isfinite(loss)
+            or not math.isfinite(accuracy)
+            or not 0 <= accuracy <= 1
+            or loss < 0
         ):
-            raise ValueError("candidate validation F1 or accuracy is missing")
-        if not isinstance(parameters, int) or not isinstance(name, str):
+            raise ValueError(
+                "candidate validation accuracy or loss is missing or invalid"
+            )
+        if (
+            not isinstance(parameters, int)
+            or isinstance(parameters, bool)
+            or parameters < 0
+            or not isinstance(name, str)
+        ):
             raise ValueError("candidate parameter count or name is missing")
-        return (-float(f1), -float(accuracy), parameters, name)
+        return (-float(accuracy), float(loss), parameters, name)
 
     return sorted(results, key=ranking_key)

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "name": "aad",
+    "path": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json"
+  },
+  "models": [
+    "custom_two_layer_32_16", "custom_two_layer_16_32", "custom_depth_32_16_8",
+    "r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t"
+  ],
+  "custom_candidates": [
+    {
+      "name": "custom_two_layer_32_16",
+      "research_question": "Does the historical two-layer reference remain competitive?",
+      "convlstm_layers": [[32, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_two_layer_16_32",
+      "research_question": "Does reversing the width order improve validation performance?",
+      "convlstm_layers": [[16, [3, 3]], [32, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_depth_32_16_8",
+      "research_question": "Does a third narrower recurrent layer improve validation performance?",
+      "convlstm_layers": [[32, [3, 3]], [16, [3, 3]], [8, [3, 3]]],
+      "hidden_classifier_width": null
+    }
+  ],
+  "reference_input": {"frame_size": 64, "sequence_length": 8, "weight_decay": 0.0},
+  "factors": {
+    "frame_sizes": [64, 96],
+    "sequence_lengths": [8, 16],
+    "weight_decays": [0.0, 0.0001, 0.001]
+  },
+  "training": {
+    "epochs": 160,
+    "early_stopping_patience": 20,
+    "batch_size": 16,
+    "learning_rate": 0.01,
+    "scheduler": "reduce_on_plateau",
+    "augment": false,
+    "num_workers": 2,
+    "pin_memory": true,
+    "prediction_samples_per_category": 3
+  },
+  "seeds": [42, 2026],
+  "runs_dir": "runs",
+  "max_runs": 24,
+  "published_topology": {"enabled": false, "batch_size": 1}
+}

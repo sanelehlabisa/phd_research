@@ -429,8 +429,8 @@ def frozen_confirmation_checkpoint(
     selected = sorted(
         matching,
         key=lambda result: (
-            -float(result["validation_metrics"]["macro_f1"]),
             -float(result["validation_metrics"]["accuracy"]),
+            float(result["validation_metrics"]["loss"]),
             int(result["num_params"]),
         ),
     )[0]
@@ -522,15 +522,47 @@ def final_test_evaluation_command(
 
 
 def final_test_report(evaluation_run_dir: str | Path) -> dict[str, object]:
-    """Load one completed final-test report containing exactly five examples."""
+    """Read current per-category exports or historical five-example reports."""
     run_dir = Path(evaluation_run_dir).resolve()
     manifest = _json_object(run_dir / "run.json")
     report = _json_object(run_dir / "metrics" / "final.json")
     if manifest.get("status") != "complete" or report.get("partition") != "test":
         raise ValueError("final test evaluation is incomplete")
     clips = report.get("artifacts", {}).get("prediction_clips")
-    if not isinstance(clips, list) or len(clips) != 5:
-        raise ValueError("final test evaluation must contain exactly five predictions")
+    examples = report.get("prediction_examples")
+    if examples is None:
+        if not isinstance(clips, list) or len(clips) != 5:
+            raise ValueError(
+                "legacy final test evaluation must contain exactly five predictions"
+            )
+    else:
+        limit = report.get("prediction_samples_per_category")
+        if (
+            type(limit) is not int
+            or limit < 0
+            or not isinstance(clips, list)
+            or not isinstance(examples, dict)
+            or examples.get("partition") != "test"
+            or examples.get("prediction_samples_per_category") != limit
+            or examples.get("records") != clips
+            or any(
+                not isinstance(item, dict)
+                or item.get("partition") != "test"
+                or type(item.get("correct")) is not bool
+                for item in clips
+            )
+        ):
+            raise ValueError("invalid per-category final test prediction provenance")
+        counts = {
+            "correct": sum(item["correct"] for item in clips),
+            "incorrect": sum(not item["correct"] for item in clips),
+        }
+        if counts != examples.get("saved_counts") or any(
+            value > limit for value in counts.values()
+        ):
+            raise ValueError(
+                "final test prediction counts exceed or differ from their report"
+            )
     return {
         "evidence_role": "final_test_evaluation",
         "partition": "test",
