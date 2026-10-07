@@ -11,6 +11,7 @@ from notebooks.utils import kinetics600_subset as kinetics
 from notebooks.utils import config as settings
 from notebooks.utils import suite
 from notebooks.utils.data import data_identity, prepare_data
+from notebooks.utils.workflows import prepare_training_data
 
 
 @pytest.mark.parametrize("selected,expected", [(64, 96), (96, 96), (128, 128)])
@@ -54,6 +55,16 @@ def test_suite_views_keep_kinetics_source_grouping_and_test_lock(tmp_path, monke
     files = add_activity_clips(dataset_root)
     write_trusted_source(dataset_root, files)
     preview = prepare_data(tmp_path, dataset_root)
+    training = prepare_training_data(tmp_path, dataset_root)
+    assert training["dataset"].sequence_length == 32
+    assert training["dataset"].frame_size == (96, 96)
+    assert training["dataset"].target_fps == 8
+    assert training["manifest_path"] == preview["manifest_path"]
+    assert training["source"] == preview["source"]
+    assert training["dataset"].class_names == preview["dataset"].class_names
+    for partition in ("train", "validation", "test"):
+        assert training[partition].indices == preview[partition].indices
+    assert training["dataset"].allowed_indices.isdisjoint(training["test"].indices)
     prepared = suite.prepare_experiment_data(tmp_path, dataset_root)
     assert preview["dataset"].sequence_length == 16
     assert preview["dataset"].frame_size == (32, 32)

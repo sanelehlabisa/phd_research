@@ -123,6 +123,15 @@ reusable model, dataset, training, evaluation and CLI modules remain in `src/`.
 Helper filenames are concise (`config.py`, `data.py`, `workflows.py`); their
 directory already identifies them as notebook support.
 
+If an old export reports missing `src/notebook_data.py` or similar files, reopen
+and re-export the current notebook from master: the helpers moved to
+`notebooks/utils/`. Pulling inside an old setup cell updates repository files,
+not that cell's source. All current notebooks use `notebooks.utils` imports.
+
+[Ticket 047](../../../agents/work/047-larger-colab-training/prompt.md) is ready
+for approval for a larger notebook-03-only model/input profile. Its 200-epoch,
+eight-hour budget is planned, not implemented; the current defaults below remain.
+
 Integration [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/prompt.md)
 combines Kinetics-600 (>2,000 unique videos before splitting) with the expanded
 eight-hour suite. Real Colab inventory/training remains pending.

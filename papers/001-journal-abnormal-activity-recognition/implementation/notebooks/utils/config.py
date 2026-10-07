@@ -78,7 +78,14 @@ CONTROLLED_AAD_DATASET_HANDLE = "sanelehlabisa/abnormal-activities-dataset"
 SEQUENCE_LENGTH = 16
 TARGET_FPS = 16
 FRAME_SIZE = 32
-TRAIN_EPOCHS = 128
+# Notebook 03 only; never mutate the preview or SUITE_* settings to train it.
+TRAIN_EPOCHS = 200
+TRAIN_HOURS = 8
+TRAIN_SEQUENCE_LENGTH = 32
+TRAIN_TARGET_FPS = 8
+TRAIN_FRAME_SIZE = 96
+TRAIN_BATCH_SIZE = 8
+TRAIN_LAYERS = ((32, (3, 3)), (64, (3, 3)), (64, (3, 3)))
 SCREEN_EPOCHS = 4
 FINAL_EPOCHS = 8
 # Retained legacy quick-grid API only; notebook 04 now uses SUITE_* below.

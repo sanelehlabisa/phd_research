@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import math
+import time
 from dataclasses import replace
 from itertools import product
 from pathlib import Path
@@ -107,16 +109,56 @@ def load_checkpoint(prepared, path):
     return model, checkpoint
 
 
+def prepare_training_data(root, dataset_root=None):
+    """Apply notebook 03's input profile without changing shared defaults."""
+    return prepare_data(
+        root,
+        dataset_root,
+        frame_size=settings.TRAIN_FRAME_SIZE,
+        sequence_length=settings.TRAIN_SEQUENCE_LENGTH,
+        target_fps=settings.TRAIN_TARGET_FPS,
+    )
+
+
 def train_single(prepared):
+    """Train the larger diagnostic; return labelled partial evidence on timeout."""
+    dataset = prepared["dataset"]
+    if (
+        dataset.frame_size != (settings.TRAIN_FRAME_SIZE, settings.TRAIN_FRAME_SIZE)
+        or dataset.sequence_length != settings.TRAIN_SEQUENCE_LENGTH
+        or dataset.target_fps != settings.TRAIN_TARGET_FPS
+    ):
+        raise ValueError("Use prepare_training_data for notebook 03's input profile")
+    if not math.isfinite(settings.TRAIN_HOURS) or settings.TRAIN_HOURS <= 0:
+        raise ValueError("TRAIN_HOURS must be finite and positive")
+    config = replace(
+        configuration(prepared, settings.TRAIN_EPOCHS, settings.TRAIN_LAYERS),
+        batch_size=settings.TRAIN_BATCH_SIZE,
+    )
+    print("Single-model profile:", config.to_json(), flush=True)
+    print(
+        f"Sampling: {dataset.sequence_length} frames at {dataset.target_fps} FPS | "
+        f"training limit: {settings.TRAIN_HOURS:g} hours | test locked",
+        flush=True,
+    )
     return train_notebook_model(
         prepared,
-        configuration(prepared, settings.TRAIN_EPOCHS),
+        config,
         "single-model",
         LiveCurves(),
+        deadline=time.time() + settings.TRAIN_HOURS * 3600,
+        return_on_timeout=True,
     )
 
 
 def show_validation_predictions(prepared, result):
+    if result is None:
+        raise ValueError("Train a model successfully before showing predictions")
+    if result.get("status") == "partial":
+        print(f"Partial training: {result['actual_epochs']} completed epochs.")
+        if not result.get("selected_checkpoint"):
+            print("No complete validation-selected checkpoint; skipping predictions.")
+            return []
     model, _ = load_checkpoint(prepared, result["selected_checkpoint"])
     return prediction_examples(
         model, prepared, "validation", Path(result["run_dir"]) / "predictions"

@@ -34,6 +34,7 @@ reference architecture for ablation.
 
 ## Tasks
 
+- [ ] [`047-larger-colab-training`](../../agents/work/047-larger-colab-training/prompt.md) — Ready for approval: larger notebook-03 model/inputs, same five Kinetics classes, at most 200 epochs/eight hours; test stays locked.
 - [x] [`042-merge-expanded-kinetics-suite`](../../agents/work/042-merge-expanded-kinetics-suite/prompt.md) — Integrated both laptops' work: Kinetics-600 (>2,000 videos before splitting), 14-model screen, spatial/weight-decay comparisons and two-seed confirmation within an eight-hour deadline. 115 local tests passed; real Colab run pending.
 - [x] [`043-download-colab-run-artifacts`](../../agents/work/043-download-colab-run-artifacts/prompt.md) — Downloads one ZIP of the current suite's saved artifacts after completion or a handled time limit.
 - [x] [`044-organize-notebook-helpers`](../../agents/work/044-organize-notebook-helpers/prompt.md) — Moved notebook-only helpers to `implementation/notebooks/utils/`; kept core CLI modules in `src/`.

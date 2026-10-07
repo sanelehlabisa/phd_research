@@ -173,6 +173,7 @@ def train_notebook_model(
     *,
     model_spec=None,
     deadline=None,
+    return_on_timeout=False,
 ):
     """Train an exploratory model on explicit train/validation subsets only."""
     from time import perf_counter
@@ -180,6 +181,9 @@ def train_notebook_model(
     from notebooks.utils import config as settings
     from notebooks.utils.models import build_model
     import time
+
+    started = perf_counter()
+    budget_started = time.time()
 
     def check_budget():
         if deadline is not None and time.time() >= deadline:
@@ -209,6 +213,9 @@ def train_notebook_model(
             "evidence_role": "exploratory_diagnostic",
             "data_identity": identity,
             "determinism": deterministic,
+            "deadline_unix": deadline,
+            "budget_started_unix": budget_started,
+            "test_access": "locked",
         },
     )
     if prepared.get("suite_run_dir") is not None:
@@ -234,9 +241,11 @@ def train_notebook_model(
     except BaseException as error:
         run.update({"status": "failed", "error": f"Model allocation: {error}"})
         raise
+    parameter_count = count_trainable_parameters(model)
     run.update(
         {
             "notebook_model": model_spec,
+            "trainable_parameters": parameter_count,
             "scheduler_parameters": dict(
                 factor=settings.LR_FACTOR,
                 patience=settings.LR_PATIENCE,
@@ -283,6 +292,80 @@ def train_notebook_model(
     last_print = 0.0
     gradient_norm = None
 
+    def finish(status, *, reason=None, clean_training=None):
+        """Finalize only epochs whose full validation partition completed."""
+        checkpoint = None
+        if history:
+            checkpoint = torch.load(
+                checkpoint_path, map_location="cpu", weights_only=True
+            )
+            selection = selector.state(len(history))
+            if status == "partial":
+                selection.update(
+                    stop_reason="time_budget_exhausted",
+                    stopped_early=len(history) < config.epochs,
+                )
+            checkpoint.update(
+                early_stopping=selection,
+                data_identity=identity,
+                notebook_model=model_spec,
+                training_status=status,
+                scheduler_parameters=dict(
+                    factor=settings.LR_FACTOR,
+                    patience=settings.LR_PATIENCE,
+                    min_lr=settings.MIN_LR,
+                ),
+            )
+            torch.save(checkpoint, checkpoint_path)
+            write_json(
+                checkpoint_path.with_suffix(".json"),
+                {
+                    k: v
+                    for k, v in checkpoint.items()
+                    if k not in {"model_state_dict", "optimizer_state_dict"}
+                },
+            )
+        write_json(run.run_dir / "history.json", history)
+        result = dict(
+            name=label,
+            status=status,
+            stop_reason=reason,
+            partition="validation",
+            test_access="locked",
+            run_dir=str(run.run_dir),
+            selected_checkpoint=str(checkpoint_path) if checkpoint else None,
+            config=config.to_dict(),
+            data_identity=identity,
+            actual_epochs=len(history),
+            validation_metrics=checkpoint["validation_metrics"] if checkpoint else None,
+            num_params=parameter_count,
+            model_spec=model_spec,
+            training_seconds=sum(row["seconds"] for row in history),
+            elapsed_seconds=perf_counter() - started,
+            clean_training_metrics=clean_training,
+        )
+        artifacts = {"history": str(run.run_dir / "history.json")}
+        if checkpoint:
+            artifacts["checkpoint"] = str(checkpoint_path)
+        if status == "partial":
+            run.update(
+                dict(
+                    status="partial",
+                    ended_at=datetime.now().astimezone(),
+                    duration_seconds=result["elapsed_seconds"],
+                    artifacts=artifacts,
+                    results=result,
+                )
+            )
+            print(
+                f"Time limit reached: {len(history)}/{config.epochs} complete epochs. "
+                f"Partial evidence saved in {run.run_dir}; test remains locked.",
+                flush=True,
+            )
+        else:
+            run.complete(artifacts, result)
+        return result
+
     def progress(done, total, loss):
         nonlocal last_print, gradient_norm
         check_budget()
@@ -310,6 +393,7 @@ def train_notebook_model(
         flush=True,
     )
     print(f"Artifacts: {run.run_dir}", flush=True)
+    print(f"Trainable parameters: {parameter_count:,}", flush=True)
     try:
         for epoch in range(1, config.epochs + 1):
             check_budget()
@@ -382,48 +466,15 @@ def train_notebook_model(
             dataset.num_classes,
             progress,
         )
-        checkpoint.update(
-            early_stopping=selector.state(len(history)),
-            data_identity=identity,
-            notebook_model=model_spec,
-            scheduler_parameters=dict(
-                factor=settings.LR_FACTOR,
-                patience=settings.LR_PATIENCE,
-                min_lr=settings.MIN_LR,
-            ),
-        )
-        torch.save(checkpoint, checkpoint_path)
-        write_json(
-            checkpoint_path.with_suffix(".json"),
-            {
-                k: v
-                for k, v in checkpoint.items()
-                if k not in {"model_state_dict", "optimizer_state_dict"}
-            },
-        )
-        result = dict(
-            name=label,
-            partition="validation",
-            run_dir=str(run.run_dir),
-            selected_checkpoint=str(checkpoint_path),
-            config=config.to_dict(),
-            data_identity=identity,
-            actual_epochs=len(history),
-            validation_metrics=checkpoint["validation_metrics"],
-            num_params=count_trainable_parameters(model),
-            model_spec=model_spec,
-            training_seconds=sum(row["seconds"] for row in history),
-            clean_training_metrics=clean_training,
-        )
-        run.complete(
-            {
-                "checkpoint": str(checkpoint_path),
-                "history": str(run.run_dir / "history.json"),
-            },
-            result,
-        )
-        return result
+        return finish("complete", clean_training=clean_training)
     except BaseException as error:
+        if (
+            return_on_timeout
+            and isinstance(error, TimeoutError)
+            and deadline is not None
+            and time.time() >= deadline
+        ):
+            return finish("partial", reason="time_budget_exhausted")
         run.update(
             {
                 "status": (

@@ -28,6 +28,8 @@ CLI and model code remains in `src/`. Ticket
 exported one-cell Colab runtime. Next is [ticket
 025](agents/work/025-run-controlled-aad-experiments/prompt.md), after the
 screening configuration is safely separated from the local training profile.
+Separately, [ticket 047](agents/work/047-larger-colab-training/prompt.md) is ready
+for approval: larger notebook-03 inputs/model with a 200-epoch, eight-hour cap.
 
 ## Structure
 

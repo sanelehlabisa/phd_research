@@ -29,6 +29,11 @@ def prepared(tmp_path, monkeypatch, request):
     monkeypatch.setattr(settings, "FRAME_SIZE", 8)
     monkeypatch.setattr(settings, "BATCH_SIZE", 8)
     monkeypatch.setattr(settings, "TRAIN_EPOCHS", 1)
+    monkeypatch.setattr(settings, "TRAIN_SEQUENCE_LENGTH", 2)
+    monkeypatch.setattr(settings, "TRAIN_TARGET_FPS", 8)
+    monkeypatch.setattr(settings, "TRAIN_FRAME_SIZE", 8)
+    monkeypatch.setattr(settings, "TRAIN_BATCH_SIZE", 8)
+    monkeypatch.setattr(settings, "TRAIN_LAYERS", ((2, (3, 3)),))
     monkeypatch.setattr(settings, "SCREEN_EPOCHS", 1)
     monkeypatch.setattr(settings, "FINAL_EPOCHS", 2)
     monkeypatch.setattr(settings, "SCREEN_FRAME_SIZES", [8, 12])
@@ -107,6 +112,8 @@ def test_previews_model_and_single_training(prepared, monkeypatch):
     assert len(inspected) == 1 and inspected[0]["partition"] == "train"
     assert sum(inspected[0]["probabilities"]) == pytest.approx(1)
     trained = workflows.train_single(prepared)
+    assert trained["status"] == "complete" and trained["actual_epochs"] == 1
+    assert trained["test_access"] == "locked"
     checkpoint = torch.load(
         trained["selected_checkpoint"], map_location="cpu", weights_only=True
     )
@@ -398,6 +405,11 @@ def test_notebook_contracts_and_reference_unchanged():
             assert "from notebooks.utils.suite import prepare_experiment_data" in source
             assert "from notebooks.utils.suite import (" in source
             assert "show_experiment_plan" in source
+        elif path.name.startswith("03_"):
+            assert "prepare_training_data(IMPLEMENTATION_ROOT)" in source
+            assert (
+                "from notebooks.utils.workflows import prepare_training_data" in source
+            )
         else:
             assert "prepare_data(IMPLEMENTATION_ROOT)" in source
         assert "RUN_" not in source and "controlled_stage_command" not in source
