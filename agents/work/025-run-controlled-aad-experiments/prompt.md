@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `025-run-controlled-aad-experiments`
-- Status: Ready
+- Status: Draft
 - Aim: Execute the frozen AAD comparison plan and select a reference
   configuration using validation evidence only.
 - Scope:
@@ -45,19 +45,16 @@
 - Out of scope:
   - Final test evaluation, VDD, unplanned hyperparameter grids, Kinetics,
     manuscript rewriting, or committing generated datasets/checkpoints/runs.
-- Open questions: `None`. Ticket 021 is recorded as skipped; ticket 046 must
-  first separate the fixed screening profile from the user's local longer-run
-  configuration.
+- Open questions: Superseded by ticket 052's updated JSON-driven AAD plan; do not
+  execute this older run matrix. Ticket 021 remains recorded as skipped.
 - Verification:
   - Validate the plan and list exact commands before execution.
   - Inspect every produced run manifest and validation-only summary.
   - Verify expected run counts, seeds, split hashes, configurations, and locked
     test access; run the focused suite and `git diff --check`.
 
-## Execution Prompt
+## Superseded
 
-Execute ticket `025-run-controlled-aad-experiments` exactly as written in
-`agents/work/025-run-controlled-aad-experiments/prompt.md`. Follow
-`AGENTS.md`, `agents/rules.md`, and `agents/config.md`. Make only the
-approved changes, verify every acceptance criterion, set the ticket status to
-`Done`, and create `completion.md` from `agents/templates/completion.md`.
+Do not execute this older prompt. Use the updated AAD experiment plan in
+`agents/work/052-json-controlled-aad-experiments/prompt.md` after the earlier
+foundation tickets are reviewed and completed.

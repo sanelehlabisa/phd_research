@@ -11,25 +11,18 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-All four modular Colab notebooks default to five Kinetics-600 activity archives.
-Preparation requires more than 2,000 unique videos before splitting; the actual
-count remains to be observed on Colab. Shared configuration retains VDD and
-Kinetics-400 alternatives. Ticket [042](agents/work/042-merge-expanded-kinetics-suite/prompt.md)
-integrates the two laptops' work: an eight-hour exploratory suite with 14 matched
-models, spatial/temporal/regularization comparisons, a separate native paper
-model and two-seed confirmation. See the [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
-Saved notebook outputs are historical; the merged suite needs its Colab run.
-The controlled AAD study stays separate; no new manuscript claims are made.
+The Kinetics-600 notebook workflow is a separate diagnostic; controlled paper
+experiments use AAD. The latest saved AAD run reached 96.25% validation accuracy
+on 160 clips; test data remains locked. See the [Paper 001 guide](papers/001-journal-abnormal-activity-recognition/README.md)
+and its [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
 Training and experiment notebooks now use fresh filenames to work around stale
 VS Code notebook controllers; use the links in the implementation guide above.
-Notebook-only helpers now live under `implementation/notebooks/utils/`; reusable
-CLI and model code remains in `src/`. Ticket
-[045](agents/work/045-stabilize-colab-script-runtime/prompt.md) hardens the
-exported one-cell Colab runtime. Ticket
-[048](agents/work/048-trim-aad-architecture-screen/completion.md) records the
-three-candidate controlled AAD screen and JSON-selected active stage. Separately,
-[ticket 047](agents/work/047-larger-colab-training/prompt.md) is ready for approval:
-larger notebook-03 inputs/model with a 200-epoch, eight-hour cap.
+Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
+CLI and model code remains in `src/`. Ticket 047's larger Kinetics notebook
+profile remains a separate in-progress task. Next AAD tickets 049–052 cover
+dataset auto-resolution, overall metrics, split-safe prediction examples, and
+a staged JSON-controlled comparison. Gradio deployment is planned after final
+model selection and results.
 
 ## Structure
 

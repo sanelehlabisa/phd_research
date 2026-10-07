@@ -1,17 +1,13 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Larger Kinetics diagnostic suite integrated; real Colab inventory and GPU training pending
+- Status: AAD validation run saved; controlled comparisons and final test evaluation pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
-The diagnostic suite screens 14 models, compares input sizes and regularisation,
-then confirms validation-selected configurations across two seeds. See the
-[implementation guide](implementation/README.md#modular-colab-notebooks) for the
-full plan and renamed training/experiment notebooks (a VS Code controller workaround).
-The shared notebooks selectively download five Kinetics-600 activity archives;
-preparation reports the actual unique clip count and requires more than 2,000
-before training.
+The committed AAD run reached 96.25% validation accuracy; it is one run, not a
+final result. The Kinetics-600 notebook workflow remains a separate diagnostic.
+See the [implementation guide](implementation/README.md) for current commands.
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
 from surveillance video. Earlier width experiments made `64-32-16` a useful
@@ -32,9 +28,17 @@ reference architecture for ablation.
    model on the second dataset.
 6. Export versioned tables and plots before changing manuscript claims.
 
+## Next tasks
+
+- [ ] [049 AAD dataset auto-resolution](../../agents/work/049-aad-dataset-auto-resolution/prompt.md)
+- [ ] [050 overall micro metrics](../../agents/work/050-overall-micro-metrics/prompt.md)
+- [ ] [051 save run prediction examples](../../agents/work/051-save-run-prediction-examples/prompt.md)
+- [ ] [052 JSON-controlled AAD experiments](../../agents/work/052-json-controlled-aad-experiments/prompt.md)
+- [ ] Later, after final results: prepare a small Gradio demo using the selected model for presentation.
+
 ## Tasks
 
-- [ ] [`047-larger-colab-training`](../../agents/work/047-larger-colab-training/prompt.md) — Ready for approval: larger notebook-03 model/inputs, same five Kinetics classes, at most 200 epochs/eight hours; test stays locked.
+- [ ] [`047-larger-colab-training`](../../agents/work/047-larger-colab-training/prompt.md) — In progress as a separate Kinetics notebook task; not a prerequisite for AAD paper experiments.
 - [x] [`042-merge-expanded-kinetics-suite`](../../agents/work/042-merge-expanded-kinetics-suite/prompt.md) — Integrated both laptops' work: Kinetics-600 (>2,000 videos before splitting), 14-model screen, spatial/weight-decay comparisons and two-seed confirmation within an eight-hour deadline. 115 local tests passed; real Colab run pending.
 - [x] [`043-download-colab-run-artifacts`](../../agents/work/043-download-colab-run-artifacts/prompt.md) — Downloads one ZIP of the current suite's saved artifacts after completion or a handled time limit.
 - [x] [`044-organize-notebook-helpers`](../../agents/work/044-organize-notebook-helpers/prompt.md) — Moved notebook-only helpers to `implementation/notebooks/utils/`; kept core CLI modules in `src/`.
@@ -95,8 +99,7 @@ reference architecture for ablation.
 - [x] [`041-learning-and-temporal-diagnostics`](../../agents/work/041-learning-and-temporal-diagnostics/prompt.md) — implemented and locally verified: gentle scheduling, temporal audit, 14-model screen, separate native topology and two-seed confirmation under an eight-hour cap. GPU run pending; existing Kinetics test is exploratory, not fresh paper evidence.
 - [x] [`041-larger-kinetics-diagnostic`](../../agents/work/041-larger-kinetics-diagnostic/prompt.md) — added selective Kinetics-600 downloads, source-video grouped splits and a more-than-2,000 unique-clip gate. Actual archive count awaits the first Colab preparation.
 - [x] [`046-separate-aad-screen-config`](../../agents/work/046-separate-aad-screen-config/prompt.md) — separated the fixed 24-epoch AAD screen from the local longer-training profile.
-- [ ] [`025-run-controlled-aad-experiments`](../../agents/work/025-run-controlled-aad-experiments/prompt.md) — **Next:** run the architecture screen,
-  baselines, published topology, and one-factor ablations; select by validation.
+- [ ] [`025-run-controlled-aad-experiments`](../../agents/work/025-run-controlled-aad-experiments/prompt.md) — Draft/superseded; do not execute the older matrix. Use 052's updated plan.
 - [ ] `026-train-selected-model` — confirm and freeze the selected architecture,
   input size, augmentation, and regularisation across both planned seeds.
 - [ ] `027-evaluate-selected-model` — perform the one-time final AAD test and
