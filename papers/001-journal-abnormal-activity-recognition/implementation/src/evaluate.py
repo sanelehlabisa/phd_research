@@ -6,7 +6,7 @@ Evaluation script for AHAR.
 Author: Sanele Hlabisa
 
 .venv/bin/python -m src.evaluate \
-    --config configs/aad_evaluation_reference.json
+    --config configs/evaluate/aad_evaluation_reference.json
 """
 
 from __future__ import annotations

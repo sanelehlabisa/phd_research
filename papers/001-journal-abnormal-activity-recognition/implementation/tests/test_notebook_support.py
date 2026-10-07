@@ -98,7 +98,7 @@ def test_manifest_is_dataset_specific_and_ignored_location(tmp_path: Path) -> No
 def test_controlled_plan_command_is_fixed_to_aad(tmp_path: Path) -> None:
     command = controlled_plan_list_command(tmp_path)
     assert command[-1] == "--list-plan"
-    assert "aad_controlled_experiment_plan.json" in command[-2]
+    assert "experiments/aad_controlled_experiment_plan.json" in command[-2]
     assert "vdd" not in " ".join(command).lower()
 
 

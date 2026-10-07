@@ -19,25 +19,17 @@ from src.experiments import (
 
 
 CONFIG_DIR = Path(__file__).resolve().parents[1] / "configs"
-CANDIDATE_PATH = CONFIG_DIR / "aad_architecture_candidates.json"
-PLAN_PATH = CONFIG_DIR / "aad_controlled_experiment_plan.json"
+CANDIDATE_PATH = CONFIG_DIR / "experiments" / "aad_architecture_candidates.json"
+PLAN_PATH = CONFIG_DIR / "experiments" / "aad_controlled_experiment_plan.json"
 
 
 def test_candidate_manifest_has_exact_approved_order() -> None:
-    """Keep the eleven approved custom stacks in their declared order."""
+    """Keep the three approved custom stacks in their declared order."""
     manifest = CandidateManifest.from_json(CANDIDATE_PATH)
     expected = [
-        ("custom_reference_8", (8,)),
-        ("custom_two_layer_8_16", (8, 16)),
-        ("custom_two_layer_16_8", (16, 8)),
-        ("custom_two_layer_32_8", (32, 8)),
-        ("custom_two_layer_64_8", (64, 8)),
-        ("custom_depth_8_8_8", (8, 8, 8)),
-        ("custom_capacity_early", (16, 8, 8)),
-        ("custom_capacity_middle", (8, 16, 8)),
-        ("custom_capacity_late", (8, 8, 16)),
-        ("custom_funnel_64_16_8", (64, 16, 8)),
-        ("custom_selected_64_32_16", (64, 32, 16)),
+        ("custom_two_layer_32_16", (32, 16)),
+        ("custom_two_layer_16_32", (16, 32)),
+        ("custom_depth_32_16_8", (32, 16, 8)),
     ]
     actual = [
         (
@@ -52,6 +44,16 @@ def test_candidate_manifest_has_exact_approved_order() -> None:
         for candidate in manifest.candidates
         for _, kernel in candidate.convlstm_layers
     )
+
+
+def test_runner_configs_are_grouped_by_owner() -> None:
+    """Keep runner configs in clear subdirectories, not a flat config pile."""
+    assert not list(CONFIG_DIR.glob("*.json"))
+    assert {path.parent.name for path in CONFIG_DIR.glob("*/*.json")} == {
+        "train",
+        "evaluate",
+        "experiments",
+    }
 
 
 def test_candidate_manifest_rejects_duplicate_question() -> None:
@@ -76,23 +78,29 @@ def _copy_plan_files(tmp_path: Path) -> Path:
     """Copy controlled-plan inputs to one isolated implementation layout."""
     config_dir = tmp_path / "implementation" / "configs"
     config_dir.mkdir(parents=True)
-    for filename in (
-        "aad_architecture_candidates.json",
-        "aad_architecture_screen_reference.json",
-        "aad_screening_reference.json",
-        "aad_confirmation_reference.json",
-        "aad_paper_topology_reference.json",
-        "aad_controlled_experiment_plan.json",
-    ):
-        shutil.copy(CONFIG_DIR / filename, config_dir / filename)
-    return config_dir / "aad_controlled_experiment_plan.json"
+    for folder, filenames in {
+        "experiments": (
+            "aad_architecture_candidates.json",
+            "aad_architecture_screen_reference.json",
+            "aad_confirmation_reference.json",
+            "aad_paper_topology_reference.json",
+            "aad_controlled_experiment_plan.json",
+        ),
+        "train": ("aad_screening_reference.json",),
+    }.items():
+        target_dir = config_dir / folder
+        target_dir.mkdir()
+        for filename in filenames:
+            shutil.copy(CONFIG_DIR / folder / filename, target_dir / filename)
+    return config_dir / "experiments" / "aad_controlled_experiment_plan.json"
 
 
 def test_plan_has_one_factor_trials_and_fixed_learning_rate() -> None:
     """Validate approved factors, protocols, and exact generated run counts."""
     plan, manifest = load_controlled_plan(PLAN_PATH)
-    assert plan["reference_candidate"] == "custom_depth_8_8_8"
-    assert len(manifest.candidates) == 11
+    assert plan["reference_candidate"] == "custom_two_layer_32_16"
+    assert plan["active_stage"] == "architecture-screen"
+    assert len(manifest.candidates) == 3
     all_commands = [
         *build_plan_commands(PLAN_PATH, "architecture-screen"),
         *build_plan_commands(PLAN_PATH, "baseline-confirmation"),
@@ -110,34 +118,34 @@ def test_plan_has_one_factor_trials_and_fixed_learning_rate() -> None:
         assert "--epochs" not in command
 
     reference = ExperimentConfig.from_json(
-        CONFIG_DIR / "aad_confirmation_reference.json"
+        CONFIG_DIR / "experiments" / "aad_confirmation_reference.json"
     )
     assert reference.learning_rate == 0.001
     assert reference.epochs == 64
 
 
-def test_architecture_screen_uses_its_fixed_24_epoch_profile() -> None:
-    """Keep candidate screening independent from a local longer-run config."""
+def test_architecture_screen_matches_historical_high_validation_profile() -> None:
+    """Use the previously strongest validation run as the screen protocol."""
     plan, manifest = load_controlled_plan(PLAN_PATH)
     assert plan["screening"]["config"] == (
-        "configs/aad_architecture_screen_reference.json"
+        "configs/experiments/aad_architecture_screen_reference.json"
     )
-    screen_path = CONFIG_DIR / "aad_architecture_screen_reference.json"
+    screen_path = CONFIG_DIR / "experiments" / "aad_architecture_screen_reference.json"
     screen = ExperimentConfig.from_json(screen_path)
 
     assert screen_path.name == "aad_architecture_screen_reference.json"
-    assert len(manifest.candidates) == 11
-    assert screen.epochs == 24
+    assert len(manifest.candidates) == 3
+    assert screen.epochs == 160
     assert screen.batch_size == 16
-    assert screen.sequence_length == 16
-    assert (screen.height, screen.width) == (32, 32)
-    assert screen.learning_rate == 0.001
-    assert screen.weight_decay == 0.001
-    assert screen.augment is True
+    assert screen.sequence_length == 8
+    assert (screen.height, screen.width) == (64, 64)
+    assert screen.learning_rate == 0.01
+    assert screen.weight_decay == 0.0
+    assert screen.augment is False
     assert screen.optimizer == "adam"
     assert screen.scheduler == "reduce_on_plateau"
     assert screen.loss == "cross_entropy"
-    assert screen.early_stopping_patience == 10
+    assert screen.early_stopping_patience == 20
     assert screen.seed == screen.split_seed == 42
     assert (screen.train_ratio, screen.val_ratio, screen.test_ratio) == (
         0.7,
@@ -147,6 +155,23 @@ def test_architecture_screen_uses_its_fixed_24_epoch_profile() -> None:
     assert screen.split_manifest == "splits/abnormal-activities-dataset_seed42.json"
 
 
+def test_plan_config_alone_runs_its_active_stage(monkeypatch) -> None:
+    """Use the stage in the plan without requiring extra execution flags."""
+    commands: list[list[str]] = []
+
+    def capture(command, cwd, check):
+        commands.append(command)
+
+    monkeypatch.setattr("src.experiments.subprocess.run", capture)
+    main(["--plan-config", str(PLAN_PATH)])
+
+    assert len(commands) == 1
+    assert "--candidates-config" in commands[0]
+    assert "aad_architecture_candidates.json" in commands[0][-1]
+    assert "--model" not in commands[0]
+    assert "--run-plan-stage" not in commands[0]
+
+
 def test_plan_rows_expose_every_controlled_factor() -> None:
     """Provide a complete notebook table without allocating data or models."""
     rows = controlled_plan_rows(PLAN_PATH)
@@ -154,7 +179,7 @@ def test_plan_rows_expose_every_controlled_factor() -> None:
     assert len(rows) == 9
     assert sum(int(row["expected_runs"]) for row in rows) == 16
     assert rows[0]["stage"] == "architecture-screen"
-    assert rows[0]["model_role"] == "11 custom candidates"
+    assert rows[0]["model_role"] == "3 custom candidates"
     by_trial = {str(row["trial"]): row for row in rows}
     assert by_trial["augmentation_off"]["augmentation"] is False
     assert by_trial["spatial_64"]["input_size"] == "T=16, 64x64"
@@ -236,10 +261,10 @@ def test_confirmation_registry_has_selected_custom_and_three_baselines() -> None
     manifest = CandidateManifest.from_json(CANDIDATE_PATH)
     registry = model_registry(
         candidate_manifest=manifest,
-        confirmation_candidate="custom_depth_8_8_8",
+        confirmation_candidate="custom_two_layer_32_16",
     )
     assert [entry["name"] for entry in registry] == [
-        "custom_depth_8_8_8",
+        "custom_two_layer_32_16",
         "r3d_18",
         "mc3_18",
         "r2plus1d_18",
@@ -252,7 +277,7 @@ def test_published_model_rejects_reduced_input_before_dataset_access() -> None:
         main(
             [
                 "--config",
-                str(CONFIG_DIR / "aad_screening_reference.json"),
+                str(CONFIG_DIR / "train" / "aad_screening_reference.json"),
                 "--model",
                 "paper_convlstm_published",
             ]

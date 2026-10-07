@@ -7,7 +7,7 @@ Saves all results to JSON.
 Author: Sanele Hlabisa
 
 .venv/bin/python -m src.experiments \
-    --plan-config configs/aad_controlled_experiment_plan.json \
+    --plan-config configs/experiments/aad_controlled_experiment_plan.json \
     --list-plan
 """
 
@@ -136,7 +136,8 @@ def _resolve_plan_path(plan_path: Path, configured_path: object) -> Path:
         raise ValueError("controlled plan paths must be non-empty strings")
     path = Path(configured_path).expanduser()
     if not path.is_absolute():
-        path = plan_path.resolve().parent.parent / path
+        implementation_root = plan_path.resolve().parent.parent.parent
+        path = implementation_root / path
     return path.resolve()
 
 
@@ -159,6 +160,10 @@ def _validate_protocol(
     height: int,
     width: int,
     batch_size: int | None = None,
+    learning_rate: float = 0.001,
+    weight_decay: float = 0.001,
+    augment: bool = True,
+    early_stopping_patience: int = 10,
 ) -> None:
     """Validate fixed settings shared by one approved study stage."""
     expected = {
@@ -166,10 +171,10 @@ def _validate_protocol(
         "sequence_length": sequence_length,
         "height": height,
         "width": width,
-        "learning_rate": 0.001,
-        "weight_decay": 0.001,
-        "augment": True,
-        "early_stopping_patience": 10,
+        "learning_rate": learning_rate,
+        "weight_decay": weight_decay,
+        "augment": augment,
+        "early_stopping_patience": early_stopping_patience,
         "split_seed": 42,
         "scheduler": "reduce_on_plateau",
     }
@@ -193,6 +198,7 @@ def load_controlled_plan(
         plan,
         {
             "plan_id",
+            "active_stage",
             "candidate_manifest",
             "reference_candidate",
             "screening",
@@ -204,6 +210,13 @@ def load_controlled_plan(
     )
     if plan["plan_id"] != "aad_controlled_experiment_suite":
         raise ValueError("unexpected controlled plan_id")
+    if plan["active_stage"] not in {
+        "architecture-screen",
+        "baseline-confirmation",
+        "published-topology",
+        "focused-ablations",
+    }:
+        raise ValueError("active_stage must name an approved controlled-plan stage")
 
     candidate_path = _resolve_plan_path(resolved_plan_path, plan["candidate_manifest"])
     candidate_manifest = CandidateManifest.from_json(candidate_path)
@@ -269,11 +282,15 @@ def load_controlled_plan(
     )
     _validate_protocol(
         screening_config,
-        epochs=24,
-        sequence_length=16,
-        height=32,
-        width=32,
+        epochs=160,
+        sequence_length=8,
+        height=64,
+        width=64,
         batch_size=16,
+        learning_rate=0.01,
+        weight_decay=0.0,
+        augment=False,
+        early_stopping_patience=20,
     )
     _validate_protocol(
         confirmation_config,
@@ -305,6 +322,8 @@ def load_controlled_plan(
         for candidate in candidate_manifest.candidates
         if candidate.name == reference_candidate
     )
+    if screening_config.convlstm_layers != reference.convlstm_layers:
+        raise ValueError("screening config must match the named reference candidate")
     if confirmation_config.convlstm_layers != reference.convlstm_layers:
         raise ValueError("confirmation config must match the named reference candidate")
     if ablation_config.to_dict() != confirmation_config.to_dict():
@@ -595,14 +614,23 @@ def print_controlled_plan(plan_path: str | Path) -> None:
     """Print every approved stage and leaf command without starting a run."""
     plan, candidate_manifest = load_controlled_plan(plan_path)
     print(f"Controlled plan: {plan['plan_id']}")
+    print(f"Active stage: {plan['active_stage']}")
     print(f"Reference candidate: {plan['reference_candidate']}")
     print(f"Custom candidates: {len(candidate_manifest.candidates)}")
     print(
         "Screening models: "
         + ", ".join(candidate.name for candidate in candidate_manifest.candidates)
     )
+    screen_path = _resolve_plan_path(
+        Path(plan_path).expanduser().resolve(), plan["screening"]["config"]
+    )
+    screen_config = ExperimentConfig.from_json(screen_path)
     print(
-        "Screening protocol: seed=42, T=16, 32x32, epochs=24, lr=0.001, wd=0.001, augment=on"
+        "Screening protocol: "
+        f"seed={screen_config.seed}, T={screen_config.sequence_length}, "
+        f"{screen_config.height}x{screen_config.width}, epochs={screen_config.epochs}, "
+        f"lr={screen_config.learning_rate}, wd={screen_config.weight_decay}, "
+        f"augment={'on' if screen_config.augment else 'off'}"
     )
     print("Confirmation models: reference_candidate, r3d_18, mc3_18, " "r2plus1d_18")
     print("Confirmation protocol: seeds=42/2026, T=16, 32x32, epochs=64")
@@ -985,16 +1013,15 @@ def main(argv: list[str] | None = None) -> None:
         if list_plan:
             print_controlled_plan(plan_path)
             return
-        if plan_stage is not None:
-            execute_plan_stage(
-                plan_path,
-                plan_stage,
-                getattr(args, "reference_candidate", None),
-                getattr(args, "plan_dataset_dir", None),
-                getattr(args, "plan_runs_dir", None),
-            )
-            return
-        raise ValueError("--plan-config requires --list-plan or --run-plan-stage")
+        plan, _ = load_controlled_plan(plan_path)
+        execute_plan_stage(
+            plan_path,
+            plan_stage or str(plan["active_stage"]),
+            getattr(args, "reference_candidate", None),
+            getattr(args, "plan_dataset_dir", None),
+            getattr(args, "plan_runs_dir", None),
+        )
+        return
     if list_plan or plan_stage is not None:
         raise ValueError("--list-plan and --run-plan-stage require --plan-config")
 

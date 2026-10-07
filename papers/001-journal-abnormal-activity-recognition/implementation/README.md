@@ -55,6 +55,9 @@ model uses it and the results are labelled preliminary.
 
 ## Baseline warning
 
+Runner configs are grouped under `configs/train/`, `configs/evaluate/`, and
+`configs/experiments/`.
+
 The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 `weights=None` as this study's practical 18-layer 3D-CNN baselines. The source
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
@@ -66,12 +69,12 @@ Inspect the five approved entries without a dataset or model allocation:
 .venv/bin/python -m src.experiments --list-models
 ```
 
-List the eleven custom AAD candidates without loading data or allocating models:
+List the three custom AAD candidates without loading data or allocating models:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --config configs/aad_architecture_screen_reference.json \
-  --candidates-config configs/aad_architecture_candidates.json \
+  --config configs/experiments/aad_architecture_screen_reference.json \
+  --candidates-config configs/experiments/aad_architecture_candidates.json \
   --list-models
 ```
 
@@ -79,17 +82,18 @@ Inspect every controlled stage, model, protocol, factor, run count, and command:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --plan-config configs/aad_controlled_experiment_plan.json \
+  --plan-config configs/experiments/aad_controlled_experiment_plan.json \
   --list-plan
 ```
 
-Start the full architecture screen only after reviewing both safe listings:
+Start the configured architecture screen after reviewing the safe listing. The
+active stage is stored in the plan JSON, so no stage or model arguments are
+needed:
 
 ```bash
-# Expensive: trains eleven candidates on AAD.
+# Expensive: trains three candidates on AAD, up to 160 epochs each.
 .venv/bin/python -m src.experiments \
-  --plan-config configs/aad_controlled_experiment_plan.json \
-  --run-plan-stage architecture-screen
+  --plan-config configs/experiments/aad_controlled_experiment_plan.json
 ```
 
 An interrupted screen leaves evidence only for models whose training completed;
@@ -146,7 +150,10 @@ safely, prints actual per-class/total counts and stops unless it finds over
 This is an exploratory five-activity diagnostic, not surveillance-paper evidence.
 Change the shared setting to `"vdd"` for the unchanged VDD labels or
 `"kinetics-subset"` for the previous 87-clip Kinetics-400 copy. Existing saved
-notebook outputs describe earlier VDD/Kinetics-400 runs.
+notebook outputs describe earlier VDD/Kinetics-400 runs. Notebook 04 keeps its
+own 11-model manifest at
+`configs/experiments/kinetics_diagnostic_candidates.json`; the three-model AAD
+screen uses the separate `aad_architecture_candidates.json`.
 
 | Notebook | End-to-end workflow |
 |---|---|
@@ -495,7 +502,7 @@ Inspect the AAD screening reference without loading data or creating a run:
 
 ```bash
 .venv/bin/python -m src.train \
-  --config configs/aad_screening_reference.json \
+  --config configs/train/aad_screening_reference.json \
   --print-config
 ```
 
@@ -503,7 +510,7 @@ Train the configured custom reference. This starts expensive training:
 
 ```bash
 .venv/bin/python -m src.train \
-  --config configs/aad_screening_reference.json
+  --config configs/train/aad_screening_reference.json
 ```
 
 Output: `runs/train/<run>/`. Training restores the lowest-validation-loss
@@ -515,7 +522,7 @@ starts expensive training:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --plan-config configs/aad_controlled_experiment_plan.json \
+  --plan-config configs/experiments/aad_controlled_experiment_plan.json \
   --run-plan-stage baseline-confirmation \
   --reference-candidate REFERENCE
 ```
@@ -526,7 +533,7 @@ one factor and both seeds are run:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --plan-config configs/aad_controlled_experiment_plan.json \
+  --plan-config configs/experiments/aad_controlled_experiment_plan.json \
   --run-plan-stage focused-ablations \
   --reference-candidate REFERENCE
 ```
@@ -535,7 +542,7 @@ The audited published topology is a separate, very expensive native-input run:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --plan-config configs/aad_controlled_experiment_plan.json \
+  --plan-config configs/experiments/aad_controlled_experiment_plan.json \
   --run-plan-stage published-topology
 ```
 
@@ -557,7 +564,7 @@ access stays in this evaluation step only.
 
 ```bash
 .venv/bin/python -m src.evaluate \
-  --config configs/aad_evaluation_reference.json
+  --config configs/evaluate/aad_evaluation_reference.json
 ```
 
 To evaluate another training run, update `training_run_dir` in the JSON file.
@@ -568,17 +575,13 @@ arguments.
 Output: `runs/evaluate/<run>/`. Evaluation reads the selected checkpoint and
 never saves or overwrites training checkpoints.
 
-The AAD plan names `custom_depth_8_8_8` only as the preliminary reference used
-to make the plan executable; replace it only with validation-screen evidence
-before confirmation or ablation. The 24-epoch screen and 64-epoch confirmation
-are compute stages, not an epoch ablation. Random-weight inference and the
-512-step learning sanity check remain pipeline checks, not research evidence.
-
-The controlled AAD screen uses `configs/aad_architecture_screen_reference.json`:
-eleven candidates, 16 frames at `32x32`, and a 24-epoch maximum. The separate
-`aad_screening_reference.json` remains a standalone training profile and is not
-read by the controlled plan. Ticket 026 reserves up to 64 epochs for training
-the validation-selected model.
+The controlled AAD plan uses `[32, 16]` as the validation-screen reference and
+compares three previously run custom architectures. Its screen uses the
+historical high-validation settings: seed 42, 8 frames at `64x64`, augmentation
+off, batch 16, learning rate `0.01`, weight decay `0`, patience 20, and a
+160-epoch maximum. The screen does not open the test split. Standalone training
+uses `configs/train/aad_screening_reference.json`; it is separate from the
+experiment plan.
 
 The standalone profile now reproduces the strongest local exploratory run so
 far: custom `[32, 16, 8]`, 16 frames at `64x64`, batch 32, learning rate `0.002`,

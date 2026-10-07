@@ -6,7 +6,7 @@ Training script for ConvLSTM-based Abnormal Human Activity Recognition (AHAR).
 Author: Sanele Hlabisa
 
 .venv/bin/python -m src.train \
-    --config configs/aad_screening_reference.json
+    --config configs/train/aad_screening_reference.json
 """
 
 from __future__ import annotations

@@ -71,7 +71,7 @@ DIAGNOSTIC_DATASETS = {
     ),
 }
 
-CONTROLLED_AAD_PLAN = "configs/aad_controlled_experiment_plan.json"
+CONTROLLED_AAD_PLAN = "configs/experiments/aad_controlled_experiment_plan.json"
 CONTROLLED_AAD_DATASET_HANDLE = "sanelehlabisa/abnormal-activities-dataset"
 
 # Bounded exploratory budgets, not the paper's controlled AAD protocol.

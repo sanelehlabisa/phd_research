@@ -25,11 +25,11 @@ VS Code notebook controllers; use the links in the implementation guide above.
 Notebook-only helpers now live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Ticket
 [045](agents/work/045-stabilize-colab-script-runtime/prompt.md) hardens the
-exported one-cell Colab runtime. Next is [ticket
-048](agents/work/048-trim-aad-architecture-screen/prompt.md), to reduce the
-controlled AAD screen to a small shortlist grounded in prior runs.
-Separately, [ticket 047](agents/work/047-larger-colab-training/prompt.md) is ready
-for approval: larger notebook-03 inputs/model with a 200-epoch, eight-hour cap.
+exported one-cell Colab runtime. Ticket
+[048](agents/work/048-trim-aad-architecture-screen/completion.md) records the
+three-candidate controlled AAD screen and JSON-selected active stage. Separately,
+[ticket 047](agents/work/047-larger-colab-training/prompt.md) is ready for approval:
+larger notebook-03 inputs/model with a 200-epoch, eight-hour cap.
 
 ## Structure
 

@@ -1,0 +1,23 @@
+{
+  "screening_id": "aad_custom_architecture_screen",
+  "candidates": [
+    {
+      "name": "custom_two_layer_32_16",
+      "research_question": "Does the historically strongest validation architecture remain strong in the controlled screen?",
+      "convlstm_layers": [[32, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_two_layer_16_32",
+      "research_question": "Does reversing the width order improve the two-layer reference?",
+      "convlstm_layers": [[16, [3, 3]], [32, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_depth_32_16_8",
+      "research_question": "Does adding a narrower final layer improve the two-layer reference?",
+      "convlstm_layers": [[32, [3, 3]], [16, [3, 3]], [8, [3, 3]]],
+      "hidden_classifier_width": null
+    }
+  ]
+}

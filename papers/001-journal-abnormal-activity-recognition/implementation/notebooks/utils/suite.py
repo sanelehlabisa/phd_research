@@ -40,7 +40,7 @@ def prepare_experiment_data(root, dataset_root=None):
 
 
 def candidate_specs(root):
-    manifest = _read(Path(root) / "configs/aad_architecture_candidates.json")
+    manifest = _read(Path(root) / "configs/experiments/kinetics_diagnostic_candidates.json")
     specs = {
         c["name"]: dict(
             name="custom",

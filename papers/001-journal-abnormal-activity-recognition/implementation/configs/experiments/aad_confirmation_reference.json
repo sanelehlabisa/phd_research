@@ -1,10 +1,10 @@
 {
   "augment": true,
   "batch_size": 16,
-  "convlstm_layers": [[8, [3, 3]], [8, [3, 3]], [8, [3, 3]]],
+  "convlstm_layers": [[32, [3, 3]], [16, [3, 3]]],
   "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
   "early_stopping_patience": 10,
-  "epochs": 24,
+  "epochs": 64,
   "height": 32,
   "hidden_classifier_width": null,
   "learning_rate": 0.001,

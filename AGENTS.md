@@ -10,9 +10,9 @@
   model width and dense-layer size. Their missing current split, seed, metric,
   selection, and checkpoint provenance makes them non-comparable exploratory
   evidence; never rank new candidates from their test metrics.
-- The earlier `64-32-16` model and preliminary `8-8-8` screen leader are both
-  candidates, not an optimum. Use **validation-screen candidate** until the
-  controlled 11-model evidence selects a reference.
+- The historical `[32, 16]` model is a validation-screen reference, not a
+  proven optimum. Compare it with `[16, 32]` and `[32, 16, 8]` before selecting
+  a controlled reference.
 - The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
   `CustomConvLSTM`. Express each custom recurrent layer as
   `(filters, (kernel_height, kernel_width))`; do not expand this into an
@@ -25,7 +25,7 @@
   Training and comparison runners use validated JSON configuration with
   explicit CLI overrides; evaluation uses a JSON-only command that names its
   training run. Run provenance is retained. A portable cloud
-  approved 11-model screen, practical-baseline confirmation, native published
+  approved three-model screen, practical-baseline confirmation, native published
   topology, and focused ablations share one validated plan. Tickets 022–024 now
   rebuild the notebook specifically for the Colab VS Code extension, progressing
   from interactive data inspection to model inspection and finally guarded

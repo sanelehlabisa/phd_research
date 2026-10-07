@@ -292,7 +292,7 @@ def controlled_plan_list_command(root: Path) -> list[str]:
         "-m",
         "src.experiments",
         "--plan-config",
-        str(root / "configs" / "aad_controlled_experiment_plan.json"),
+        str(root / "configs" / "experiments" / "aad_controlled_experiment_plan.json"),
         "--list-plan",
     ]
 
@@ -317,7 +317,7 @@ def controlled_stage_command(
         "-m",
         "src.experiments",
         "--plan-config",
-        str(root / "configs" / "aad_controlled_experiment_plan.json"),
+        str(root / "configs" / "experiments" / "aad_controlled_experiment_plan.json"),
         "--run-plan-stage",
         stage,
         "--plan-dataset-dir",

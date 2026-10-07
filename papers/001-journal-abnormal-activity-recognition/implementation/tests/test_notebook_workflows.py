@@ -391,7 +391,7 @@ def test_video_card_validates_path(tmp_path):
         visuals.video_card(tmp_path / "missing.mp4", "Missing")
 
 
-def test_notebook_contracts_and_reference_unchanged():
+def test_notebook_contracts_and_controlled_reference_snapshot():
     root = Path(__file__).resolve().parents[1]
     assert len(NOTEBOOKS) == 4
     for path in NOTEBOOKS:
@@ -417,5 +417,5 @@ def test_notebook_contracts_and_reference_unchanged():
     reference = root / "notebooks" / "aad_experiment_workflow.ipynb"
     assert (
         hashlib.sha256(reference.read_bytes()).hexdigest()
-        == "cbe430531729e6d0444c783cea799b99467928ab5964a526adb58dad986b078b"
+        == "7a9ff80a155857d694c2095aefe4554f5a09eb081b66a2018936d7ddfda3f00b"
     )

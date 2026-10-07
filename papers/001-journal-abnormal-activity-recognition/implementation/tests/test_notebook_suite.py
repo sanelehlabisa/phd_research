@@ -26,6 +26,14 @@ def test_declared_models_and_native_counts():
     root = Path(__file__).resolve().parents[1]
     specs = suite.candidate_specs(root)
     assert len(specs) == 14
+    kinetics_manifest = json.loads(
+        (root / "configs/experiments/kinetics_diagnostic_candidates.json").read_text()
+    )
+    aad_manifest = json.loads(
+        (root / "configs/experiments/aad_architecture_candidates.json").read_text()
+    )
+    assert len(kinetics_manifest["candidates"]) == 11
+    assert len(aad_manifest["candidates"]) == 3
     assert set(models.BASELINES) <= set(specs)
     with torch.device("meta"):
         for name, spec in specs.items():
