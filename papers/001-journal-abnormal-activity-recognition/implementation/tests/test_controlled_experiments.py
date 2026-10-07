@@ -53,6 +53,7 @@ def test_runner_configs_are_grouped_by_owner() -> None:
         "train",
         "evaluate",
         "experiments",
+        "model",
     }
 
 

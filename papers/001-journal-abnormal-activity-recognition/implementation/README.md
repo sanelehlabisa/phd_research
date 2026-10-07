@@ -55,8 +55,21 @@ model uses it and the results are labelled preliminary.
 
 ## Baseline warning
 
-Runner configs are grouped under `configs/train/`, `configs/evaluate/`, and
-`configs/experiments/`.
+Runner configs are grouped under `configs/model/`, `configs/train/`,
+`configs/evaluate/`, and `configs/experiments/`.
+
+AAD configs include a dataset name and optional local path. To reuse the local
+copy or download it from Kaggle when missing, run:
+
+```bash
+.venv/bin/python -m src.dataset_source --config configs/train/aad_screening_reference.json
+```
+
+If a download is needed, configure Kaggle authentication in the runtime; never
+put credentials in a config or the repository. Dataset files stay local and
+are ignored by Git. Notebook diagnostics still default to Kinetics-600; set
+`SELECTED_DIAGNOSTIC_DATASET = "aad"` in `notebooks/utils/config.py` to use the
+same resolver there.
 
 The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 `weights=None` as this study's practical 18-layer 3D-CNN baselines. The source

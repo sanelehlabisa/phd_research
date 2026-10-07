@@ -19,10 +19,10 @@ Training and experiment notebooks now use fresh filenames to work around stale
 VS Code notebook controllers; use the links in the implementation guide above.
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Ticket 047's larger Kinetics notebook
-profile remains a separate in-progress task. Next AAD tickets 049–052 cover
-dataset auto-resolution, overall metrics, split-safe prediction examples, and
-a staged JSON-controlled comparison. Gradio deployment is planned after final
-model selection and results.
+profile remains a separate in-progress task. Ticket 049 now provides local-first
+AAD dataset resolution; tickets 050–052 cover overall metrics, split-safe
+prediction examples, and a staged JSON-controlled comparison. Gradio deployment
+is planned after final model selection and results.
 
 ## Structure
 

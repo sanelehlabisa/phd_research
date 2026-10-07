@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from src.dataset_source import AAD_CLASS_NAMES, AAD_DATASET_NAME, AAD_KAGGLE_HANDLE
+
 
 @dataclass(frozen=True)
 class DiagnosticDataset:
@@ -52,6 +54,11 @@ CLASSES_OF_INTEREST = (
 )
 
 DIAGNOSTIC_DATASETS = {
+    AAD_DATASET_NAME: DiagnosticDataset(
+        key=AAD_DATASET_NAME,
+        kaggle_handle=AAD_KAGGLE_HANDLE,
+        accepted_classes=AAD_CLASS_NAMES,
+    ),
     "kinetics600-subset": DiagnosticDataset(
         key="kinetics600-subset",
         kaggle_handle="",  # This release uses direct class archives, not Kaggle.

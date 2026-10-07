@@ -30,7 +30,7 @@ reference architecture for ablation.
 
 ## Next tasks
 
-- [ ] [049 AAD dataset auto-resolution](../../agents/work/049-aad-dataset-auto-resolution/prompt.md)
+- [x] [049 AAD dataset auto-resolution](../../agents/work/049-aad-dataset-auto-resolution/prompt.md)
 - [ ] [050 overall micro metrics](../../agents/work/050-overall-micro-metrics/prompt.md)
 - [ ] [051 save run prediction examples](../../agents/work/051-save-run-prediction-examples/prompt.md)
 - [ ] [052 JSON-controlled AAD experiments](../../agents/work/052-json-controlled-aad-experiments/prompt.md)
@@ -38,6 +38,7 @@ reference architecture for ablation.
 
 ## Tasks
 
+- [x] [`049-aad-dataset-auto-resolution`](../../agents/work/049-aad-dataset-auto-resolution/prompt.md) — shared local-first AAD resolver and optional Kaggle download for modular runners and notebook selection.
 - [ ] [`047-larger-colab-training`](../../agents/work/047-larger-colab-training/prompt.md) — In progress as a separate Kinetics notebook task; not a prerequisite for AAD paper experiments.
 - [x] [`042-merge-expanded-kinetics-suite`](../../agents/work/042-merge-expanded-kinetics-suite/prompt.md) — Integrated both laptops' work: Kinetics-600 (>2,000 videos before splitting), 14-model screen, spatial/weight-decay comparisons and two-seed confirmation within an eight-hour deadline. 115 local tests passed; real Colab run pending.
 - [x] [`043-download-colab-run-artifacts`](../../agents/work/043-download-colab-run-artifacts/prompt.md) — Downloads one ZIP of the current suite's saved artifacts after completion or a handled time limit.

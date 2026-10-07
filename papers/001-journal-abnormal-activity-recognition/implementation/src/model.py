@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import random
 from pathlib import Path
 
@@ -22,6 +23,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .dataset import AHARDataset
+from .dataset_source import resolve_dataset
 from .utils import (
     RunContext,
     plot_confusion_matrix,
@@ -650,8 +652,15 @@ def _build_parser() -> argparse.ArgumentParser:
         Configured argument parser.
     """
     parser = argparse.ArgumentParser(description="Smoke-test both ConvLSTM models")
-    parser.add_argument("--dataset-dir", required=True)
-    parser.add_argument("--runs_dir", default="runs")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent
+        / "configs/model/aad_model_smoke.json",
+    )
+    parser.add_argument("--dataset-name")
+    parser.add_argument("--dataset-dir")
+    parser.add_argument("--runs_dir")
     parser.add_argument("--sequence-length", type=int, default=64)
     parser.add_argument("--height", type=int, default=16)
     parser.add_argument("--width", type=int, default=16)
@@ -679,6 +688,24 @@ def main() -> None:
         None.
     """
     args = _build_parser().parse_args()
+    try:
+        config_values = json.loads(args.config.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise SystemExit(f"Model smoke config not found: {args.config}") from error
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"Invalid model smoke config: {error.msg}") from error
+    if not isinstance(config_values, dict):
+        raise SystemExit("Model smoke config must contain a JSON object")
+    args.dataset_name = args.dataset_name or config_values.get("dataset_name", "aad")
+    args.dataset_dir = args.dataset_dir or config_values.get("dataset_dir")
+    args.runs_dir = args.runs_dir or config_values.get("runs_dir", "runs")
+    args.dataset_dir = str(
+        resolve_dataset(
+            args.dataset_name,
+            args.dataset_dir,
+            Path(__file__).resolve().parent.parent,
+        )
+    )
     if args.sequence_length != 64:
         raise ValueError("the ticket-011 smoke command requires T=64")
     if args.num_samples <= 0:

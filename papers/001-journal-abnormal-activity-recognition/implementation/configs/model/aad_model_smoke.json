@@ -1,0 +1,5 @@
+{
+  "dataset_name": "aad",
+  "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+  "runs_dir": "runs"
+}

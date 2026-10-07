@@ -54,6 +54,16 @@ def test_kinetics_is_the_default_diagnostic_dataset() -> None:
     )
 
 
+def test_aad_can_be_selected_for_notebook_dataset_resolution(monkeypatch) -> None:
+    from src.dataset_source import AAD_CLASS_NAMES, AAD_KAGGLE_HANDLE
+
+    monkeypatch.setattr(config, "SELECTED_DIAGNOSTIC_DATASET", "aad")
+    selected = config.selected_diagnostic_dataset()
+    assert selected.key == "aad"
+    assert selected.kaggle_handle == AAD_KAGGLE_HANDLE
+    assert selected.accepted_classes == AAD_CLASS_NAMES
+
+
 def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
     monkeypatch.setattr(config, "SELECTED_DIAGNOSTIC_DATASET", "vdd")
     monkeypatch.setattr(config, "CLASSES_OF_INTEREST", ("missing",))

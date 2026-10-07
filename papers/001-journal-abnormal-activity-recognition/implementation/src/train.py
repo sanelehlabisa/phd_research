@@ -30,6 +30,7 @@ from .dataset import (
     load_split_subsets,
     resolve_split_manifest_path,
 )
+from .dataset_source import resolve_dataset
 from .experiment_config import (
     ExperimentConfig,
     add_config_arguments,
@@ -499,6 +500,15 @@ def main(argv: list[str] | None = None) -> None:
     if print_only:
         print(experiment_config.to_json())
         return
+    resolved_dataset = resolve_dataset(
+        args.dataset_name,
+        args.dataset_dir,
+        Path(__file__).resolve().parent.parent,
+    )
+    args.dataset_dir = str(resolved_dataset)
+    experiment_config = ExperimentConfig.from_mapping(
+        {**experiment_config.to_dict(), "dataset_dir": str(resolved_dataset)}
+    )
     deterministic_settings = seed_everything(args.seed)
     deterministic_settings["data_loader_seeds"] = {
         "train": args.seed,

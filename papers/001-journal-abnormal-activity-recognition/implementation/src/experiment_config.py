@@ -182,7 +182,8 @@ class CandidateManifest:
 class ExperimentConfig:
     """Store the reproducible controls used by one experiment run."""
 
-    dataset_dir: str = "datasets/abnormal_activities"
+    dataset_name: str = "aad"
+    dataset_dir: str = "datasets/abnormal-activities-dataset/abnormal-activities-dataset"
     runs_dir: str = "runs"
     split_manifest: str | None = None
     split_seed: int = 42
@@ -267,7 +268,7 @@ class ExperimentConfig:
 
     def validate(self) -> None:
         """Reject invalid or unsupported experiment settings."""
-        for field_name in ("dataset_dir", "runs_dir"):
+        for field_name in ("dataset_name", "dataset_dir", "runs_dir"):
             _require_non_empty_string(field_name, getattr(self, field_name))
         if self.split_manifest is not None:
             _require_non_empty_string("split_manifest", self.split_manifest)
@@ -438,7 +439,7 @@ def add_config_arguments(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Print the resolved configuration without starting a run",
     )
-    for field_name in ("dataset_dir", "runs_dir", "split_manifest"):
+    for field_name in ("dataset_name", "dataset_dir", "runs_dir", "split_manifest"):
         parser.add_argument(f"--{field_name}", type=str)
     for field_name in (
         "split_seed",

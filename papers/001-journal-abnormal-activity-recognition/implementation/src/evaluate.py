@@ -25,6 +25,7 @@ from .dataset import (
     resolve_split_manifest_path,
 )
 from .experiment_config import ExperimentConfig
+from .dataset_source import resolve_dataset
 from .metrics import evaluate_classifier, metric_protocol, validate_selected_checkpoint
 from .model import custom_model_from_checkpoint
 from .utils import (
@@ -65,6 +66,14 @@ def main() -> None:
         config = ExperimentConfig.from_mapping(values, defaults=ExperimentConfig())
     except ValueError as error:
         raise SystemExit(f"Invalid evaluation config: {error}") from error
+    resolved_dataset = resolve_dataset(
+        config.dataset_name,
+        config.dataset_dir,
+        Path(__file__).resolve().parent.parent,
+    )
+    config = ExperimentConfig.from_mapping(
+        {**config.to_dict(), "dataset_dir": str(resolved_dataset)}
+    )
     if not checkpoint_path.is_file():
         raise FileNotFoundError(
             f"best checkpoint not found in training run: {checkpoint_path}"

@@ -13,6 +13,7 @@ import torch
 
 from . import config as settings
 from src.dataset import AHARDataset, create_split_manifest, load_split_subsets
+from src.dataset_source import resolve_dataset
 from .kinetics_subset import download_subset, matched_interests, versioned_handle
 from .kinetics600_subset import (
     GROUPING,
@@ -168,8 +169,12 @@ def prepare_data(
     )
     kinetics = specification.key == "kinetics-subset"
     kinetics600 = specification.key == "kinetics600-subset"
+    aad = specification.key == settings.AAD_DATASET_NAME
     source = None
-    if kinetics600:
+    if aad:
+        dataset_root = resolve_dataset(settings.AAD_DATASET_NAME, dataset_root, root)
+        accepted = specification.accepted_classes
+    elif kinetics600:
         if (
             specification.source_url != settings.KINETICS600_SOURCE_URL
             or specification.accepted_classes != settings.KINETICS600_CLASSES
@@ -195,13 +200,13 @@ def prepare_data(
             )
     else:
         accepted = specification.accepted_classes
-    if not kinetics and not kinetics600 and dataset_root is None:
+    if not kinetics and not kinetics600 and not aad and dataset_root is None:
         print(
             "Downloading/reusing Kaggle cache (download/extraction may take time)...",
             flush=True,
         )
         dataset_root = kagglehub.dataset_download(specification.kaggle_handle)
-    if not kinetics and not kinetics600:
+    if not kinetics and not kinetics600 and not aad:
         dataset_root = resolve_vdd_root(dataset_root)
     print(f"Accepted classes: {accepted}", flush=True)
     print(

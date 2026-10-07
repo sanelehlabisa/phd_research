@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `049-aad-dataset-auto-resolution`
-- Status: Ready
+- Status: Done
 - Aim: Let each runner and notebook select a dataset by name; for AAD, reuse a local copy when available or download it from the approved Kaggle source.
 - Scope: Paper 001 implementation dataset setup, JSON configs, and notebook integration.
 - Changes:

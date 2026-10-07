@@ -42,6 +42,7 @@ from .experiment_config import (
     add_config_arguments,
     resolve_config_arguments,
 )
+from .dataset_source import resolve_dataset
 from .model import CustomConvLSTM, PaperConvLSTM, count_trainable_parameters
 from .metrics import (
     ValidationLossSelector,
@@ -1043,6 +1044,15 @@ def main(argv: list[str] | None = None) -> None:
             selected_models,
         )
         return
+    resolved_dataset = resolve_dataset(
+        args.dataset_name,
+        args.dataset_dir,
+        Path(__file__).resolve().parent.parent,
+    )
+    args.dataset_dir = str(resolved_dataset)
+    experiment_config = ExperimentConfig.from_mapping(
+        {**experiment_config.to_dict(), "dataset_dir": str(resolved_dataset)}
+    )
     if any(entry["model_class"] == "PaperConvLSTM" for entry in registry) and (
         args.sequence_length,
         args.height,
