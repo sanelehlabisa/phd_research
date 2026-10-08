@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `058-separate-search-and-comparison`
-- Status: Ready
+- Status: Done
 - Aim: Use the existing experiment runner for two distinct AAD studies: custom ConvLSTM search and fixed-setting model-family comparison.
 - Scope: Paper 001 modular experiment runner, its JSON profiles, focused tests, and implementation guide; depends on 057.
 - Changes:

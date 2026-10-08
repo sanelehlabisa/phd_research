@@ -786,24 +786,26 @@ def model_registry(
             "model_class": "torchvision.models.video.r2plus1d_18",
             "role": "study practical baseline trained from scratch",
         },
+        {
+            "name": "swin3d_t",
+            "family": "Video-Transformer",
+            "model_class": "torchvision.models.video.swin3d_t",
+            "role": "study practical baseline trained from scratch; weights=None",
+        },
+        {
+            "name": "swin3d_s",
+            "family": "Video-Transformer",
+            "model_class": "torchvision.models.video.swin3d_s",
+            "role": "study practical baseline trained from scratch; weights=None",
+        },
     ]
-    transformer_entry = {
-        "name": "swin3d_t",
-        "family": "Video-Transformer",
-        "model_class": "torchvision.models.video.swin3d_t",
-        "role": "study practical baseline trained from scratch; weights=None",
-    }
-    # Legacy confirmation stays three CNNs; the new staged study explicitly
-    # requests Swin, so old notebook plans keep their existing model counts.
-    if selected_models is not None and "swin3d_t" in selected_models:
-        standard_entries.append(transformer_entry)
     if candidate_manifest is None:
         registry = standard_entries
     elif confirmation_candidate is None:
         registry = (
             custom_entries
             if selected_models is None
-            else [*custom_entries, *standard_entries[2:]]
+            else [*custom_entries, *standard_entries]
         )
     else:
         selected_candidate = next(
@@ -818,7 +820,14 @@ def model_registry(
             raise ValueError(
                 f"unknown confirmation candidate: {confirmation_candidate}"
             )
-        registry = [selected_candidate, *standard_entries[2:]]
+        registry = [
+            selected_candidate,
+            *[
+                entry
+                for entry in standard_entries
+                if entry["name"] in {"r3d_18", "mc3_18", "r2plus1d_18"}
+            ],
+        ]
 
     if selected_models is None:
         return registry
@@ -896,6 +905,11 @@ def build_registered_model(
         )
     if model_name == "swin3d_t":
         return Video3DModelWrapper(video_models.swin3d_t(weights=None), num_classes)
+    if model_name == "swin3d_s":
+        return Video3DModelWrapper(
+            video_models.swin3d_s(weights=None),
+            num_classes,
+        )
     raise ValueError(f"unknown registered model: {model_name}")
 
 

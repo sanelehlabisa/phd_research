@@ -52,7 +52,13 @@ def model_from_checkpoint(checkpoint):
     registry = description.get("registry_name")
     if registry is None:
         return custom_model_from_checkpoint(checkpoint)
-    if registry not in {"r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t"}:
+    if registry not in {
+        "r3d_18",
+        "mc3_18",
+        "r2plus1d_18",
+        "swin3d_t",
+        "swin3d_s",
+    }:
         raise ValueError(f"unsupported final model registry: {registry}")
     from .experiments import build_registered_model
 

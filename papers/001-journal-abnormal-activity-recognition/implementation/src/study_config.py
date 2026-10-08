@@ -17,7 +17,7 @@ from .experiment_config import CandidateManifest, ExperimentConfig
 from .metrics import rank_validation_results
 from .utils import RunContext, write_json
 
-BASELINES = ("r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t")
+BASELINES = ("r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t", "swin3d_s")
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -216,11 +216,11 @@ def load_study(path):
         }
     )
     names = [candidate.name for candidate in manifest.candidates]
-    if len(names) > 3 or set(names).intersection(
+    if len(names) > 6 or set(names).intersection(
         (*BASELINES, "paper_convlstm_published")
     ):
         raise ValueError(
-            "declare at most three custom candidates with distinct registry names"
+            "declare at most six custom candidates with distinct registry names"
         )
     models = study["models"]
     if (
@@ -230,9 +230,9 @@ def load_study(path):
         or len(set(models)) != len(models)
     ):
         raise ValueError("models must be a non-empty unique list")
-    if set(models) - set([*names, *BASELINES]):
+    if set(models) - set([*names, *BASELINES, "paper_convlstm_published"]):
         raise ValueError(
-            "unknown model; PaperConvLSTM belongs only in published_topology"
+            "unknown model; use a registered candidate or model family"
         )
     if not set(names) <= set(models):
         raise ValueError("every declared custom candidate must be included in models")
@@ -421,6 +421,9 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
 def print_study(path, study, config):
     """List all fixed and conditional jobs without allocating a model/dataset."""
     rows = study_rows(study, config)
+    candidate_names = {
+        candidate["name"] for candidate in study["custom_candidates"]
+    }
     if study.get("mode", "staged") == "grid":
         label = "local pipeline smoke" if study["profile"] == "local_smoke" else "A100 screening"
         print(
@@ -432,7 +435,9 @@ def print_study(path, study, config):
             )
         )
     else:
-        print(f"AAD staged study: {len(rows)} model runs; no Cartesian expansion.")
+        is_comparison = bool(set(study["models"]) - candidate_names)
+        label = "model-family comparison" if is_comparison else "custom architecture search"
+        print(f"AAD {label}: {len(rows)} declared runs; no Cartesian expansion.")
     print(f"Dataset={config.dataset_dir}; split={config.split_manifest}; split_seed=42")
     print(
         f"Fixed: epochs<={config.epochs}, patience={config.early_stopping_patience}, "
@@ -476,15 +481,16 @@ def print_study(path, study, config):
             f"--model {row['model']}{candidate_flag}"
         )
     print("Leaf JSON/commands are generated and recorded from this one file at execution.")
-    print(
-        "Native PaperConvLSTM: T=50, 50x50, batch=1, separate/unranked; "
-        f"enabled={study['published_topology']['enabled']}"
-        + (
-            f" ({len(study['seeds'])} additional runs)."
-            if study["published_topology"]["enabled"]
-            else "."
+    if "paper_convlstm_published" in study["models"]:
+        print(
+            "PaperConvLSTM is included at its native shared comparison input: "
+            f"T={config.sequence_length}, {config.height}x{config.width}, "
+            f"batch={config.batch_size}."
         )
-    )
+    elif study["published_topology"]["enabled"]:
+        print("Separate native PaperConvLSTM runs are enabled (not ranked).")
+    else:
+        print("Native PaperConvLSTM: T=50, 50x50, batch=1, separate/unranked; enabled=False.")
 
 
 def aggregate_screen(records, models, seeds):
@@ -526,6 +532,8 @@ def aggregate_screen(records, models, seeds):
         aggregated.append(
             {
                 "name": name,
+                "family": entries[0].get("family"),
+                "model_class": entries[0].get("model_class"),
                 "partition": "validation",
                 "num_params": entries[0]["num_params"],
                 "validation_metrics": {
@@ -578,6 +586,13 @@ def execute_study(path, study, config, manifest, run_trial):
         {**config.to_dict(), "dataset_dir": str(root)}
     )
     canonical = json.dumps(study, sort_keys=True).encode()
+    candidate_names = {candidate.name for candidate in manifest.candidates}
+    if study.get("mode") == "grid" and study["profile"] == "local_smoke":
+        study_kind = "local_smoke"
+    elif set(study["models"]) <= candidate_names:
+        study_kind = "custom_architecture_search"
+    else:
+        study_kind = "model_family_comparison"
     group = RunContext(
         config.runs_dir,
         purpose="studies",
@@ -585,11 +600,12 @@ def execute_study(path, study, config, manifest, run_trial):
         label=(
             config.dataset_name + "-" + study["profile"]
             if study.get("mode") == "grid"
-            else config.dataset_name + "-staged"
+            else config.dataset_name + "-" + study_kind
         ),
         arguments={"study_file": str(Path(path).resolve()), "study": study},
         metadata={
             "study_sha256": hashlib.sha256(canonical).hexdigest(),
+            "study_kind": study_kind,
             "test_access": "locked",
             "pipeline_smoke_only": study.get("mode") == "grid"
             and study["profile"] == "local_smoke",
@@ -709,6 +725,7 @@ def execute_study(path, study, config, manifest, run_trial):
             )
             smoke_only = study["profile"] == "local_smoke"
             selection = {
+                "study_kind": study_kind,
                 "selected_trial": winner["name"],
                 "selected_model": winner["model"],
                 "selection_partition": "validation",
@@ -745,6 +762,7 @@ def execute_study(path, study, config, manifest, run_trial):
         ranking = aggregate_screen(screen, study["models"], study["seeds"])
         winner = ranking[0]["name"]
         selection = {
+            "study_kind": study_kind,
             "selected_model": winner,
             "selection_partition": "validation",
             "ranking": ranking,
@@ -786,6 +804,7 @@ def execute_study(path, study, config, manifest, run_trial):
             for key, entries in ablation_groups.items()
         ]
         summary = {
+            "study_kind": study_kind,
             **selection,
             "jobs": completed,
             "ablation_comparisons": ablation_comparisons,

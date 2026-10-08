@@ -88,119 +88,44 @@ The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
 not architecture-equivalent reproductions.
 
-The full AAD study remains in one editable JSON:
-[`aad_staged_experiments.json`](configs/experiments/aad_staged_experiments.json).
-The local quick check and Colab A100 screen have separate flat JSON profiles:
-[`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) uses two tiny
-custom models at 32×32 with 8 frames for 8 epochs (2 runs);
-[`aad_colab_a100.json`](configs/experiments/aad_colab_a100.json) uses three
-custom models plus `r3d_18`, `frame_sizes: [32, 48]` crossed with
-`num_frames: [8, 16]`, 16 epochs, early stopping after 4 epochs without
-validation-loss improvement, and two weight-decay values (32 runs). Both use the full AAD dataset
-and fixed split. The local profile is pipeline-only; the A100 screen is
-single-seed preliminary evidence and needs confirmation before paper claims.
-Models and sweep choices are listed at the top level (`models`, `frame_sizes`,
-`num_frames`, `epochs`, `weight_decays`) to make editing straightforward. The
-local profile uses the same four-epoch early-stopping patience.
+Use one runner and one JSON path for each active AAD profile:
 
-List and run the local smoke grid with one JSON path:
+| Profile | Purpose | Planned work |
+|---|---|---|
+| [`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) | Tiny local pipeline check | 8 short custom-model jobs; not paper evidence |
+| [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Find a useful custom ConvLSTM and test one factor at a time | 6 custom stacks, two seeds, then input-size/frame-count/weight-decay checks (20 jobs) |
+| [`aad_model_comparison_colab.json`](configs/experiments/aad_model_comparison_colab.json) | Compare selected custom stack with the published model and other families | 6 models, two seeds, same AAD split, 50 frames at 50×50 (12 jobs) |
+
+List a plan before running it; the same command executes it after review:
 
 ```bash
-.venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_local_smoke.json \
-  --list-plan
-
-.venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_local_smoke.json
+.venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json --list-plan
+.venv/bin/python -m src.experiments --config configs/experiments/aad_custom_search_colab.json --list-plan
+.venv/bin/python -m src.experiments --config configs/experiments/aad_model_comparison_colab.json --list-plan
 ```
-
-When that succeeds, list and run the longer A100 screen from Colab:
 
 ```bash
-.venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_colab_a100.json \
-  --list-plan
-
-.venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_colab_a100.json
+.venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json
+.venv/bin/python -m src.experiments --config configs/experiments/aad_custom_search_colab.json
+.venv/bin/python -m src.experiments --config configs/experiments/aad_model_comparison_colab.json
 ```
 
-Each run saves its configuration, history, checkpoint, validation metrics,
-confusion matrix and prediction examples under `runs/studies/` and
-`runs/experiments/`. `selected_config.json` is the validation-selected training
-configuration. After the A100 screen selects a configuration, retrain a selected custom
-ConvLSTM for longer (replace `<study-run>` with the listed run directory):
+For the comparison, copy the selected layer list from the custom-search run's
+`selected_config.json` into the `custom_selected` entry in the comparison JSON.
+All other comparison settings stay fixed. The faithful PaperConvLSTM requires
+50 frames at 50×50, so the comparison uses that input for every model and batch
+size 1. It includes `r3d_18`, `mc3_18`, Swin3D-T, and Swin3D-S, all initialized
+without pretrained weights. Results record model family, parameter count,
+runtime, validation loss/accuracy/precision/recall/F1, confusion matrices, and
+per-run provenance. Selection is validation-only; test remains locked.
 
-```bash
-.venv/bin/python -m src.train \
-  --config runs/studies/<study-run>/selected_config.json \
-  --epochs 128
-```
-
-If `selection.json` names `r3d_18`, use the comparison runner for the longer
-training instead:
-
-```bash
-.venv/bin/python -m src.experiments \
-  --config runs/studies/<study-run>/selected_config.json \
-  --model r3d_18 \
-  --epochs 128
-```
-
-After that training run finishes, set `training_run_dir` in
-`configs/evaluate/aad_evaluation_reference.json` to its printed run directory,
-then evaluate the frozen checkpoint:
-
-```bash
-.venv/bin/python -m src.evaluate \
-  --config configs/evaluate/aad_evaluation_reference.json
-```
-
-Run final test evaluation only after the model/configuration has been selected
-and longer training is complete.
-
-The full study can be listed and run separately:
-List every stage, model, input, weight decay, run count and generated command
-without loading data or allocating models:
-
-```bash
-.venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_staged_experiments.json \
-  --list-plan
-```
-
-Run the complete staged comparison after reviewing the listing:
-
-```bash
-# Expensive: 22 model runs, up to 160 epochs each; no wall-clock guarantee.
-.venv/bin/python -m src.experiments \
-  --config configs/experiments/aad_staged_experiments.json
-```
-
-The default screen compares three custom stacks, three 3D CNNs and
-[`swin3d_t`](https://docs.pytorch.org/vision/0.24/models/generated/torchvision.models.video.swin3d_t.html)
-with `weights=None`, at 8 frames and 64x64, for seeds 42/2026 (14 runs).
-Mean validation accuracy, then loss and parameter count, freezes the reference.
-Its screen runs are reused as controls for 96x96, 16-frame, and weight-decay
-0.0001/0.001 trials (8 runs); factors are never combined. LR 0.01, scheduler,
-augmentation, epoch cap and patience stay fixed across comparable jobs.
-
-Set `published_topology.enabled` to true for two additional, separate
-50-frame/50x50 native PaperConvLSTM runs (batch 1); these never enter the screen
-ranking. Do not shrink this baseline if memory is insufficient.
-`max_runs` rejects an oversized plan before training. The JSON/schema rejects
-extra search dimensions, unknown models and invalid sizes.
-
-Study config, generated commands, progress, seed means/standard deviations and
-the frozen selection live in `runs/studies/<run>/`; linked leaf artifacts stay
-in `runs/experiments/<run>/`. Each candidate retains dimensions, dataset/split,
-parameter count, runtime, validation history/checkpoint and prediction examples.
-Interrupted studies are marked failed/partial; an incomplete screen cannot pick
-a winner. Test stays locked. This is implementation, not completed paper evidence.
-
-Older multi-file `--plan-config` / `--candidates-config` inputs remain available
-only for historical notebooks and reproducibility; they are not inputs to the
-new study. Kinetics diagnostic settings and saved outputs are unchanged.
+Each study saves its selection and aggregate table under `runs/studies/`, plus
+the leaf run configs, histories, checkpoints, metrics, confusion matrices, and
+prediction videos under `runs/experiments/`. Search and model-family comparison
+produce separate tables. The smoke profile is pipeline-only; Colab results are
+not paper evidence until reviewed and confirmed. Older JSONs still referenced
+by legacy notebooks are inactive and will be removed after their migration in
+[ticket 061](../../../agents/work/061-colab-script-runner-and-artifacts/prompt.md).
 
 Execution and validation analysis are tracked in
 [ticket 053](../../../agents/work/053-run-and-analyse-aad-experiments/prompt.md).
@@ -314,8 +239,9 @@ Change the shared setting to `"vdd"` for the unchanged VDD labels or
 `"kinetics-subset"` for the previous 87-clip Kinetics-400 copy. Existing saved
 notebook outputs describe earlier VDD/Kinetics-400 runs. Notebook 04 keeps its
 own 11-model manifest at
-`configs/experiments/kinetics_diagnostic_candidates.json`; current AAD comparisons
-use the separate `aad_staged_experiments.json`.
+`configs/experiments/kinetics_diagnostic_candidates.json`. Older notebook
+helpers still reference legacy AAD experiment configs; the active modular AAD
+profiles are listed above and the old references are migrated in ticket 061.
 
 | Notebook | End-to-end workflow |
 |---|---|
@@ -762,13 +688,11 @@ arguments.
 Output: `runs/evaluate/<run>/`. Evaluation reads the selected checkpoint and
 never saves or overwrites training checkpoints.
 
-The controlled AAD plan uses `[32, 16]` as the validation-screen reference and
-compares three previously run custom architectures. Its screen uses the
-historical high-validation settings: seed 42, 8 frames at `64x64`, augmentation
-off, batch 16, learning rate `0.01`, weight decay `0`, patience 20, and a
-160-epoch maximum. The screen does not open the test split. Standalone training
-uses `configs/train/aad_screening_reference.json`; it is separate from the
-experiment plan.
+Legacy AAD plan/config files remain temporarily for existing notebook
+references; do not use them for new experiments. Use the three active profiles
+documented above. Standalone single-model training remains available through
+`configs/train/aad_screening_reference.json` and is separate from those study
+profiles.
 
 The standalone profile now reproduces the strongest local exploratory run so
 far: custom `[32, 16, 8]`, 16 frames at `64x64`, batch 32, learning rate `0.002`,

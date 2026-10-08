@@ -24,6 +24,151 @@ COLAB_CONFIG = (
     Path(__file__).resolve().parents[1]
     / "configs/experiments/aad_colab_a100.json"
 )
+CUSTOM_SEARCH_CONFIG = (
+    Path(__file__).resolve().parents[1]
+    / "configs/experiments/aad_custom_search_colab.json"
+)
+MODEL_COMPARISON_CONFIG = (
+    Path(__file__).resolve().parents[1]
+    / "configs/experiments/aad_model_comparison_colab.json"
+)
+
+
+def test_custom_search_config_has_reference_and_one_factor_variants():
+    study, config, manifest = study_config.load_study(CUSTOM_SEARCH_CONFIG)
+    rows = study_config.study_rows(study, config)
+    names = [candidate.name for candidate in manifest.candidates]
+
+    assert len(rows) == study["max_runs"] == 20
+    assert names == [
+        "custom_flat_16_16_16",
+        "custom_depth_16_16",
+        "custom_depth_16_16_16_16",
+        "custom_width_early_32_16_16",
+        "custom_width_middle_16_32_16",
+        "custom_width_late_16_16_32",
+    ]
+    assert study["models"] == names
+    assert [candidate.convlstm_layers for candidate in manifest.candidates] == [
+        ((16, (3, 3)), (16, (3, 3)), (16, (3, 3))),
+        ((16, (3, 3)), (16, (3, 3))),
+        ((16, (3, 3)), (16, (3, 3)), (16, (3, 3)), (16, (3, 3))),
+        ((32, (3, 3)), (16, (3, 3)), (16, (3, 3))),
+        ((16, (3, 3)), (32, (3, 3)), (16, (3, 3))),
+        ((16, (3, 3)), (16, (3, 3)), (32, (3, 3))),
+    ]
+    assert study["seeds"] == [42, 2026]
+    assert {row["stage"] for row in rows} == {"screen", "ablation"}
+    assert all(
+        row["model"] in names or row["model"] == "VALIDATION_WINNER"
+        for row in rows
+    )
+    assert all(row["partition"] == "validation" for row in rows)
+    assert all(row["test_access"] == "locked" for row in rows)
+
+
+def test_model_comparison_config_fixes_protocol_and_includes_model_families():
+    study, config, manifest = study_config.load_study(MODEL_COMPARISON_CONFIG)
+    rows = study_config.study_rows(study, config)
+    registry = experiments.model_registry(
+        config, manifest, selected_models=study["models"]
+    )
+
+    assert len(rows) == study["max_runs"] == 12
+    assert study["models"] == [
+        "custom_selected",
+        "paper_convlstm_published",
+        "r3d_18",
+        "mc3_18",
+        "swin3d_t",
+        "swin3d_s",
+    ]
+    assert [entry["name"] for entry in registry] == study["models"]
+    assert {row["seed"] for row in rows} == {42, 2026}
+    assert all(row["stage"] == "screen" for row in rows)
+    assert all(
+        (
+            row["config"]["sequence_length"],
+            row["config"]["height"],
+            row["config"]["width"],
+            row["config"]["batch_size"],
+        )
+        == (50, 50, 50, 1)
+        for row in rows
+    )
+    assert all(row["config"]["weight_decay"] == 0.0001 for row in rows)
+    assert all(row["test_access"] == "locked" for row in rows)
+
+    family_by_name = {entry["name"]: entry["family"] for entry in registry}
+    records = [
+        {
+            "name": row["model"],
+            "seed": row["seed"],
+            "family": family_by_name[row["model"]],
+            "model_class": next(
+                entry["model_class"]
+                for entry in registry
+                if entry["name"] == row["model"]
+            ),
+            "partition": "validation",
+            "test_access": "locked",
+            "split": {"manifest_hash": "same-split"},
+            "dataset_dir": "aad",
+            "num_params": 123,
+            "experiment_config": row["config"],
+            "validation_metrics": {
+                "loss": 1.0,
+                "accuracy": 0.5,
+                "precision": 0.5,
+                "recall": 0.5,
+                "f1": 0.5,
+            },
+        }
+        for row in rows
+    ]
+    table_rows = study_config.aggregate_screen(
+        records, study["models"], study["seeds"]
+    )
+    assert {row["family"] for row in table_rows} == {
+        "ConvLSTM",
+        "3D-CNN",
+        "Video-Transformer",
+    }
+
+
+def test_new_colab_profiles_list_without_training(monkeypatch, capsys):
+    monkeypatch.setattr(
+        experiments,
+        "build_registered_model",
+        lambda *a, **k: pytest.fail("model allocated while listing"),
+    )
+    experiments.main(["--config", str(CUSTOM_SEARCH_CONFIG), "--list-plan"])
+    search_output = capsys.readouterr().out
+    assert "custom architecture search: 20 declared runs" in search_output
+    assert "custom_flat_16_16_16" in search_output
+
+    experiments.main(["--config", str(MODEL_COMPARISON_CONFIG), "--list-plan"])
+    comparison_output = capsys.readouterr().out
+    assert "model-family comparison: 12 declared runs" in comparison_output
+    assert "paper_convlstm_published" in comparison_output
+    assert "swin3d_s" in comparison_output
+
+
+def test_comparison_models_are_feasible_on_native_paper_input():
+    study, config, manifest = study_config.load_study(MODEL_COMPARISON_CONFIG)
+    with torch.device("meta"), torch.inference_mode():
+        for name in study["models"]:
+            model = experiments.build_registered_model(
+                name,
+                11,
+                (3, 50, 50),
+                50,
+                config,
+                manifest,
+            ).eval()
+            logits = model(torch.zeros(1, 50, 3, 50, 50))
+            assert logits.shape == (1, 11), name
+            assert count_trainable_parameters(model) > 0
 
 
 def test_local_smoke_is_an_eight_run_tiny_custom_grid():
@@ -260,7 +405,6 @@ def test_additive_stages_and_fixed_protocol():
     "change",
     [
         lambda s: s["models"].append("unknown"),
-        lambda s: s["models"].append("paper_convlstm_published"),
         lambda s: s["factors"]["frame_sizes"].append(-8),
         lambda s: s["factors"]["frame_sizes"].append(65),
         lambda s: s["factors"]["sequence_lengths"].append(True),
@@ -292,7 +436,7 @@ def test_no_training_listing_and_override_rejection(monkeypatch, capsys):
     )
     experiments.main(["--study-config", str(CONFIG), "--list-plan"])
     listing = capsys.readouterr().out
-    assert "22 model runs" in listing and "swin3d_t" in listing
+    assert "22 declared runs" in listing and "swin3d_t" in listing
     assert "VALIDATION_WINNER" in listing and "separate/unranked" in listing
     for override in (
         ["--seed", "0"],

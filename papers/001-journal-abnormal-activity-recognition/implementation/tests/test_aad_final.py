@@ -35,7 +35,9 @@ def test_notebook_has_matching_plain_python_export():
     assert not any(c.get("outputs") for c in notebook["cells"])
 
 
-@pytest.mark.parametrize("name", ["r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t"])
+@pytest.mark.parametrize(
+    "name", ["r3d_18", "mc3_18", "r2plus1d_18", "swin3d_t", "swin3d_s"]
+)
 def test_evaluator_reconstructs_every_practical_baseline(name):
     # Meta tensors exercise exact architecture/state keys without large allocations.
     with torch.device("meta"):

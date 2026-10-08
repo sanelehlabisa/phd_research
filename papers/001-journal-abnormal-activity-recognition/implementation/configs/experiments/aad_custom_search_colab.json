@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "name": "aad",
+    "path": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "split_manifest": null
+  },
+  "models": [
+    "custom_flat_16_16_16",
+    "custom_depth_16_16",
+    "custom_depth_16_16_16_16",
+    "custom_width_early_32_16_16",
+    "custom_width_middle_16_32_16",
+    "custom_width_late_16_16_32"
+  ],
+  "custom_candidates": [
+    {
+      "name": "custom_flat_16_16_16",
+      "research_question": "Reference: how does a flat three-layer 16-filter stack perform?",
+      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_depth_16_16",
+      "research_question": "Does removing the final layer improve the flat reference?",
+      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_depth_16_16_16_16",
+      "research_question": "Does adding one 16-filter layer improve the flat reference?",
+      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [16, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_width_early_32_16_16",
+      "research_question": "Does widening only the first recurrent layer help?",
+      "convlstm_layers": [[32, [3, 3]], [16, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_width_middle_16_32_16",
+      "research_question": "Does widening only the middle recurrent layer help?",
+      "convlstm_layers": [[16, [3, 3]], [32, [3, 3]], [16, [3, 3]]],
+      "hidden_classifier_width": null
+    },
+    {
+      "name": "custom_width_late_16_16_32",
+      "research_question": "Does widening only the final recurrent layer help?",
+      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]],
+      "hidden_classifier_width": null
+    }
+  ],
+  "reference_input": {
+    "frame_size": 32,
+    "sequence_length": 8,
+    "weight_decay": 0.0001
+  },
+  "factors": {
+    "frame_sizes": [32, 48],
+    "sequence_lengths": [8, 16],
+    "weight_decays": [0.0, 0.0001, 0.001]
+  },
+  "training": {
+    "epochs": 16,
+    "early_stopping_patience": 4,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "scheduler": "reduce_on_plateau",
+    "augment": false,
+    "num_workers": 2,
+    "pin_memory": true,
+    "prediction_samples_per_category": 1
+  },
+  "seeds": [42, 2026],
+  "runs_dir": "runs",
+  "max_runs": 20,
+  "published_topology": {
+    "enabled": false,
+    "batch_size": 1
+  }
+}
