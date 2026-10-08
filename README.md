@@ -25,11 +25,10 @@ CLI and model code remains in `src/`. Existing run folders stay local and are
 not included in source commits. A Gradio presentation demo is a later task,
 after model selection and verified results.
 
-Tickets 057–060 established configurable datasets/classes, separate search and
-comparison profiles on one runner, retired the VDD-only diagnostic, and aligned
-the guides. Next is ticket 061: make the Colab notebook a thin runner for the
-modular scripts with artifact download. Manuscript changes wait for verified
-AAD results (062).
+Tickets 057–061 established configurable datasets/classes, separate search and
+comparison profiles, aligned the guides, and made the Colab notebook a thin
+runner with artifact download. Next, run and review the AAD profiles; manuscript
+changes wait for verified results (062).
 
 ## Structure
 

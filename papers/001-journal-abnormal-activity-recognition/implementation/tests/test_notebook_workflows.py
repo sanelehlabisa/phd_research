@@ -1,6 +1,5 @@
 """Exercise all four workflows on real tiny videos, without Kaggle or CUDA."""
 
-import hashlib
 import json
 import os
 from dataclasses import replace
@@ -424,8 +423,15 @@ def test_notebook_contracts_and_controlled_reference_snapshot():
             assert "prepare_data(IMPLEMENTATION_ROOT)" in source
         assert "RUN_" not in source and "controlled_stage_command" not in source
         assert "requirements.txt" in source
-    reference = root / "notebooks" / "aad_experiment_workflow.ipynb"
-    assert (
-        hashlib.sha256(reference.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-        == "962461a62968c25cf7234150b8d6e974c18f1ea81fc1039a877584df7d6a9bab"
-    )
+    aad_notebook = root / "notebooks" / "aad_experiment_workflow.ipynb"
+    aad_source = json.loads(aad_notebook.read_text(encoding="utf-8"))
+    aad_code = [
+        cell for cell in aad_source["cells"] if cell["cell_type"] == "code"
+    ]
+    assert len(aad_code) == 1
+    source = "".join(aad_code[0]["source"])
+    assert "aad_custom_search_colab.json" in source
+    assert "aad_model_comparison_colab.json" in source
+    assert "run_aad_study" in source
+    assert "RUN_FULL_STUDY = True" in source
+    assert "forced stop may precede the final download" in source

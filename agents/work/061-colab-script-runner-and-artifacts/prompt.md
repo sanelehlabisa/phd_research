@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `061-colab-script-runner-and-artifacts`
-- Status: Ready
+- Status: Done
 - Aim: Make the experiment notebook easy to export as a Python script and run in one Colab cell using the modular workflows.
 - Scope: Active Paper 001 Colab experiment notebook, its generated/exported Python script if repository practice requires it, minimal artifact helper, and implementation guide; depends on 057–060.
 - Changes:

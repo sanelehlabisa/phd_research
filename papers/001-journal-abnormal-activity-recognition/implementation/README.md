@@ -16,8 +16,9 @@ VDD remains optional through the same JSON dataset fields as AAD, with a local
 class-folder path and classes discovered from its folders. Preserve historical
 VDD runs, but do not treat runs lacking the current split, seeds, metrics and
 provenance as comparable new evidence. Kinetics notebooks are exploratory
-diagnostics, not part of the active AAD paper study. Ticket 061 will reconcile
-the Colab notebook with these modular profiles.
+diagnostics, not part of the active AAD paper study. The active notebook is
+[`aad_experiment_workflow.ipynb`](notebooks/aad_experiment_workflow.ipynb), with
+a matching [Python export](notebooks/aad_experiment_workflow.py).
 
 ## Model context
 
@@ -113,6 +114,9 @@ Use one runner and one JSON path for each active AAD profile:
 | [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Find a useful custom ConvLSTM and test one factor at a time | 6 custom stacks, two seeds, then input-size/frame-count/weight-decay checks (20 jobs) |
 | [`aad_model_comparison_colab.json`](configs/experiments/aad_model_comparison_colab.json) | Compare selected custom stack with the published model and other families | 6 models, two seeds, same AAD split, 50 frames at 50×50 (12 jobs) |
 
+`aad_colab_a100.json` is a retained legacy grid for historical reproduction;
+the active notebook does not run it.
+
 List a plan before running it; the same command executes it after review:
 
 ```bash
@@ -140,9 +144,9 @@ Each study saves its selection and aggregate table under `runs/studies/`, plus
 the leaf run configs, histories, checkpoints, metrics, confusion matrices, and
 prediction videos under `runs/experiments/`. Search and model-family comparison
 produce separate tables. The smoke profile is pipeline-only; Colab results are
-not paper evidence until reviewed and confirmed. Older JSONs still referenced
-by legacy notebooks are inactive and will be removed after their migration in
-[ticket 061](../../../agents/work/061-colab-script-runner-and-artifacts/prompt.md).
+not paper evidence until reviewed and confirmed. Legacy plan JSONs remain for
+older CLI/helper workflows; the active AAD notebook uses only the three profiles
+above.
 
 Execution and validation analysis are tracked in
 [ticket 053](../../../agents/work/053-run-and-analyse-aad-experiments/prompt.md).
@@ -185,10 +189,10 @@ metrics use the current micro protocol.
 ### AAD final training and test (Colab)
 
 The [05 AAD final training/evaluation](notebooks/05_aad_train_and_evaluate.ipynb)
-workflow is retained from the earlier study scaffolding. Do not use it for the
-current search/comparison outputs until ticket 061 aligns its inputs with the
-active JSON profiles. Keep its linked runs, dataset and split manifest available
-at their recorded paths when using it.
+workflow is retained from the earlier study scaffolding. It is separate from
+the current search/comparison notebook and is not used by the active profiles.
+Keep its linked runs, dataset and split manifest available at their recorded
+paths when using it for later final training/evaluation.
 
 The matching [plain-Python export](notebooks/05_aad_train_and_evaluate.py) uses
 the same setup, pinned requirements and GPU check. From the Colab implementation
@@ -247,8 +251,8 @@ combines Kinetics-600 (>2,000 unique videos before splitting) with the expanded
 eight-hour suite. Real Colab inventory/training remains pending.
 
 These independent notebook flows are not the active AAD experiment runner and
-their Kinetics/VDD outputs are not new comparable paper evidence. Open one
-notebook and choose **Run All** on a Colab GPU. The four notebooks use
+their Kinetics/VDD outputs are not new comparable paper evidence. Open a
+diagnostic notebook and choose **Run All** on a Colab GPU. The four notebooks use
 `SELECTED_DIAGNOSTIC_DATASET = "kinetics600-subset"` in
 [shared configuration](notebooks/utils/config.py). Preparation downloads only the
 five Kinetics-600 training archives (about 3 GB compressed), extracts them
@@ -257,29 +261,35 @@ safely, prints actual per-class/total counts and stops unless it finds over
 This is an exploratory five-activity diagnostic, not surveillance-paper evidence.
 The notebook-only dataset selector can use VDD or the previous Kinetics-400 copy,
 but the active modular paper profiles select datasets in JSON. Existing saved
-notebook outputs describe earlier runs. Notebook 04 keeps its
-own 11-model manifest at
-`configs/experiments/kinetics_diagnostic_candidates.json`. Older notebook
-helpers still reference legacy AAD experiment configs; the active modular AAD
-profiles are listed above and the old references are migrated in ticket 061.
+notebook outputs describe earlier runs. Kinetics diagnostic notebook 04 keeps
+its separate model manifest at
+`configs/experiments/kinetics_diagnostic_candidates.json`.
 
 | Notebook | End-to-end workflow |
 |---|---|
+| [AAD experiments](notebooks/aad_experiment_workflow.ipynb) | One Colab cell validates profiles, resolves public AAD, runs custom search then model comparison, and downloads the current study ZIP |
 | [01 Dataset](notebooks/01_dataset_setup.ipynb) | Split summary; the same training video at native FPS, sampled FPS, then augmented |
 | [02 Model](notebooks/02_model_inspection.ipynb) | Architecture, parameter count, one random-weight prediction, playable labelled video and probabilities |
 | [03 Training](notebooks/03_train_model.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
-| [04 Experiments](notebooks/04_run_experiments.ipynb) | Visible candidate screen, validation winner, longer/finer retraining, freeze, final test metrics then test videos |
+| [04 Kinetics diagnostics](notebooks/04_run_experiments.ipynb) | Exploratory temporal audit, small learnability check, diagnostic comparisons and test examples; not current AAD paper evidence |
 
-Notebook 04 creates one ZIP for its current suite and triggers a Colab browser
-download after completion or a handled time-budget timeout. It includes run and
-per-model configs, histories, metrics, plots, checkpoints, and generated
-predictions; source datasets are excluded. Original run folders remain under
-`runs/`. The download needs the Colab notebook session to reach its final cell.
+The active AAD notebook uses the local smoke profile for a no-training
+configuration check, then runs the custom-search and model-comparison JSON
+profiles through `src.experiments`. Set `RUN_FULL_STUDY = False` for the smoke
+path. Successful runs write directly to `runs/`; the notebook records each
+stage and downloads one ZIP with the current profiles, progress record, and new
+run folders (including histories, metrics, checkpoints, confusion matrices, and
+prediction videos). It imposes no wall-clock cutoff. Colab may still terminate
+the runtime externally before the final ZIP can be created or downloaded; the
+notebook does not promise recovery after forced termination. Dataset files and
+unrelated older runs are excluded from the ZIP.
 
-The exported one-cell experiment workflow checks actual NumPy and notebook
-imports before loading project code. If the pinned NumPy wheel is inconsistent,
-setup repairs it and asks for one kernel restart. Dataset setup omits per-archive
-cache-reuse lines while retaining download progress and the final unique-video count.
+The notebook is the source of truth; the committed `.py` file is its matching
+one-cell export. Both clone/update the repository, prepare pinned dependencies,
+check the attached GPU, validate all three profiles, and call the same modular
+commands. If the pinned runtime needs repair, restart Colab and rerun the cell.
+AAD uses the existing public tokenless KaggleHub resolver when not already
+present; no manual dataset upload is needed.
 
 Notebooks 03/04 have fresh filenames to work around VS Code's logged
 `notebook controller is DISPOSED` error: copies ran while the old paths did not.
@@ -289,7 +299,7 @@ This is a filename-based workaround; local tests cannot verify the editor's Run 
 
 Notebooks 01/02 retain 16 frames at 16 FPS, batch 8, seed 42 and 32×32 input.
 Notebook 03 uses ConvLSTM `32 → 64 → 64` (3×3 kernels), 32 RGB frames at 8 FPS,
-96×96, batch 8 and seed 42, for at most 200 epochs or eight hours after preparation.
+96×96, batch 8 and seed 42, for at most 200 epochs or eight diagnostic hours after preparation.
 The five Kinetics-600 classes, all usable clips, >2,000-video gate and source-grouped
 split are unchanged. Edit only `TRAIN_*` for this profile. Its resolved configuration,
 parameter count and live curves are printed; the lowest-validation-loss checkpoint
@@ -346,11 +356,10 @@ Checkpoints use minimum validation loss; candidate ranking uses validation
 accuracy, loss, parameter count, then name. Batch progress is printed,
 loss/accuracy plots update each epoch, and artifacts go under ignored `runs/`.
 
-These are **exploratory diagnostics**, not the paper's controlled
-AAD protocol or evidence of cross-dataset generalisation. Notebook 04 follows
-the selected diagnostic dataset. The
-[original reference notebook](notebooks/aad_experiment_workflow.ipynb), controlled
-AAD configuration and `src.experiments` CLI remain unchanged.
+These are **exploratory diagnostics**, not the active AAD paper workflow or
+evidence of cross-dataset generalisation. Notebook 04 follows the selected
+diagnostic dataset. The active AAD profiles and CLI commands are listed above;
+the diagnostic notebook's separate budget does not impose a limit on them.
 
 Preparation inventories and hashes files without decoding test frames. It reuses
 the approximately stratified 70:15:15 manifest; Kinetics-600 clips sharing known
@@ -542,8 +551,8 @@ source independence or absence of near duplicates.
     generic JSON dataset selection; its historical outputs are preserved.
 18. [x] **Align dataset documentation (`060`).** These guides now describe the
     AAD-first two-stage study and distinguish old diagnostics.
-19. [ ] **Colab runner and artifact download (`061`).** Simplify notebooks to
-    run the modular profiles and save artifacts locally.
+19. [x] **Colab runner and artifact download (`061`).** The AAD notebook runs
+    the modular profiles and downloads one archive of current run artifacts.
 20. [ ] **Analyze verified results (`053–054`).** Prepare paper tables and
     figures only after the new AAD runs are complete and reviewed.
 21. [ ] **Final training/evaluation (`026–027`).** Confirm the selected model
@@ -712,9 +721,9 @@ arguments.
 Output: `runs/evaluate/<run>/`. Evaluation reads the selected checkpoint and
 never saves or overwrites training checkpoints.
 
-Legacy AAD plan/config files remain temporarily for existing notebook
-references; do not use them for new experiments. Use the three active profiles
-documented above. Standalone single-model training remains available through
+Legacy multi-file AAD plan/config files remain for the older plan CLI and
+notebook helper functions; the active AAD notebook does not reference them.
+Use the three active profiles documented above. Standalone single-model training remains available through
 `configs/train/aad_screening_reference.json` and is separate from those study
 profiles.
 

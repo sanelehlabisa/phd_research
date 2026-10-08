@@ -5,7 +5,7 @@
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
-AAD is the planned primary dataset. VDD remains available as an optional dataset
+AAD is the primary dataset for the active study. VDD remains available as an optional dataset
 choice in configuration; its existing run artifacts will be kept, but it is not
 part of the current study. Do not treat the earlier validation result as final.
 See the [implementation guide](implementation/README.md) for the current code
@@ -34,7 +34,7 @@ reference architecture for ablation.
 - [x] [058 separate custom search and model-family comparison](../../agents/work/058-separate-search-and-comparison/prompt.md) — two AAD profiles and one local smoke profile on the same runner.
 - [x] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — VDD remains optional through generic dataset configuration; old runs are preserved.
 - [x] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
-- [ ] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md)
+- [x] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md) — one-cell notebook/export runs the two active JSON profiles and downloads run artifacts.
 - [ ] [062 update manuscript after verified AAD results](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — do not execute before the new study is complete.
 
 After final results, prepare a small Gradio demo for presentation.

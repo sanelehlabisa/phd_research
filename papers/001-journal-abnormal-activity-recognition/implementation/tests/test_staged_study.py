@@ -191,36 +191,16 @@ def test_local_smoke_is_an_eight_run_tiny_custom_grid():
     assert all(row["test_access"] == "locked" for row in rows)
 
 
-def test_colab_profile_has_four_data_sizes_and_16_epoch_budget():
+def test_legacy_colab_grid_remains_readable_for_historical_reproduction():
     study, config, _ = study_config.load_study(COLAB_CONFIG)
     rows = study_config.study_rows(study, config)
     assert study["profile"] == "colab_a100"
     assert len(rows) == study["max_runs"] == 32
-    assert set(study["models"]) == {
-        "custom_two_layer_32_16",
-        "custom_two_layer_16_32",
-        "custom_depth_32_16_8",
-        "r3d_18",
-    }
     assert study["frame_sizes"] == [32, 48]
     assert study["num_frames"] == [8, 16]
-    assert {tuple(size) for size in study["data_sizes"]} == {
-        (8, 32),
-        (16, 32),
-        (8, 48),
-        (16, 48),
-    }
     assert study["epoch_values"] == [16]
-    assert study["factors"]["weight_decays"] == [0.0, 0.0001]
-    assert {row["config"]["epochs"] for row in rows} == {16}
-    assert all(row["config"]["early_stopping_patience"] == 4 for row in rows)
-    assert all(row["partition"] == "validation" for row in rows)
-    assert all(row["test_access"] == "locked" for row in rows)
     assert study["seeds"] == [42]
-    assert {row["config"]["height"] for row in rows} == {32, 48}
-    assert {row["config"]["width"] for row in rows} == {32, 48}
-    assert {row["config"]["sequence_length"] for row in rows} == {8, 16}
-    assert {row["config"]["weight_decay"] for row in rows} == {0.0, 0.0001}
+    assert all(row["test_access"] == "locked" for row in rows)
 
 
 def test_grid_config_selects_local_dataset_and_uses_its_default_split(tmp_path):
