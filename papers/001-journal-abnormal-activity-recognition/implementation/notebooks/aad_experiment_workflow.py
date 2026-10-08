@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-RUN_FULL_STUDY = True  # False runs a quick profile-validation smoke check only.
+RUN_FULL_STUDY = False  # Set True only after the smoke check passes.
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 REPO_ROOT = Path("/content/phd_research")
 REPO_ROOT.parent.mkdir(parents=True, exist_ok=True)
