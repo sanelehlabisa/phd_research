@@ -26,22 +26,22 @@ COLAB_CONFIG = (
 )
 
 
-def test_local_smoke_is_a_two_run_tiny_custom_grid():
+def test_local_smoke_is_an_eight_run_tiny_custom_grid():
     study, config, _ = study_config.load_study(SMOKE_CONFIG)
     rows = study_config.study_rows(study, config)
-    assert len(rows) == study["max_runs"] == 2
+    assert len(rows) == study["max_runs"] == 8
     assert len(study["models"]) == 2
     assert study["profile"] == "local_smoke"
     assert set(study["models"]) == {"local_tiny_8_4", "local_tiny_4_8"}
     assert study["frame_sizes"] == [32]
-    assert study["num_frames"] == [8]
-    assert study["data_sizes"] == [[8, 32]]
+    assert study["num_frames"] == [4, 8]
+    assert study["data_sizes"] == [[4, 32], [8, 32]]
     assert study["epoch_values"] == [8]
-    assert study["factors"]["weight_decays"] == [0.0]
+    assert study["factors"]["weight_decays"] == [0.0, 0.001]
     assert all(row["config"]["epochs"] == 8 for row in rows)
     assert all(row["config"]["early_stopping_patience"] == 4 for row in rows)
     assert all(row["config"]["batch_size"] == 8 for row in rows)
-    assert len({row["trial_id"] for row in rows}) == 2
+    assert len({row["trial_id"] for row in rows}) == 8
     assert all(row["partition"] == "validation" for row in rows)
     assert all(row["test_access"] == "locked" for row in rows)
 
@@ -76,6 +76,43 @@ def test_colab_profile_has_four_data_sizes_and_16_epoch_budget():
     assert {row["config"]["width"] for row in rows} == {32, 48}
     assert {row["config"]["sequence_length"] for row in rows} == {8, 16}
     assert {row["config"]["weight_decay"] for row in rows} == {0.0, 0.0001}
+
+
+def test_grid_config_selects_local_dataset_and_uses_its_default_split(tmp_path):
+    from src.dataset import resolve_split_manifest_path
+
+    values = json.loads(SMOKE_CONFIG.read_text(encoding="utf-8"))
+    values["dataset_name"] = "vdd"
+    values["dataset_dir"] = str(tmp_path / "vdd")
+    values["split_manifest"] = None
+    path = write_json(tmp_path / "vdd-grid.json", values)
+
+    study, config, _ = study_config.load_study(path)
+
+    assert study["dataset"]["name"] == "vdd"
+    assert config.dataset_name == "vdd"
+    assert config.dataset_dir == str((tmp_path / "vdd").resolve())
+    assert config.split_manifest is None
+    assert resolve_split_manifest_path(
+        config.dataset_dir, config.split_manifest, config.split_seed
+    ).name == "vdd_seed42.json"
+
+
+def test_staged_config_selects_dataset_without_aad_specific_validation(tmp_path):
+    values = json.loads(CONFIG.read_text(encoding="utf-8"))
+    values["dataset"].update(
+        name="vdd",
+        path=str(tmp_path / "custom-vdd"),
+        split_manifest=None,
+    )
+    path = write_json(tmp_path / "vdd-study.json", values)
+
+    study, config, _ = study_config.load_study(path)
+
+    assert study["dataset"]["name"] == "vdd"
+    assert config.dataset_name == "vdd"
+    assert config.dataset_dir == str((tmp_path / "custom-vdd").resolve())
+    assert config.split_manifest is None
 
 
 def test_smoke_selection_is_validation_only_and_requires_one_fixed_split():
@@ -126,7 +163,7 @@ def test_config_command_lists_smoke_without_training(monkeypatch, capsys):
     )
     experiments.main(["--config", str(SMOKE_CONFIG), "--list-plan"])
     listing = capsys.readouterr().out
-    assert "2 Cartesian configurations" in listing
+    assert "8 Cartesian configurations" in listing
     assert "not paper evidence" in listing
     assert "--config" in listing
     assert "local_tiny_8_4" in listing
@@ -185,9 +222,9 @@ def test_smoke_writes_selected_train_config_and_keeps_test_locked(
     assert selection["test_access"] == "locked"
     assert selection["selected_config"] == str(selected_config)
     restored = ExperimentConfig.from_json(selected_config)
-    assert restored.sequence_length == 8 and restored.epochs == 8
+    assert restored.sequence_length in {4, 8} and restored.epochs == 8
     summary = json.loads((result_dir / "summary.json").read_text())
-    assert len(summary["jobs"]) == 2
+    assert len(summary["jobs"]) == 8
     assert all(job["result"]["partition"] == "validation" for job in summary["jobs"])
 
 
@@ -232,7 +269,7 @@ def test_additive_stages_and_fixed_protocol():
         lambda s: s["training"].update(learning_rate=[0.001, 0.01]),
         lambda s: s.update(max_runs=10),
         lambda s: s.update(seeds=[42, 42]),
-        lambda s: s["dataset"].update(name="kinetics-subset"),
+        lambda s: s["dataset"].update(name=""),
         lambda s: s["reference_input"].update(frame_size=63),
     ],
 )

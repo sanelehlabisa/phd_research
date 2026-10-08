@@ -718,7 +718,7 @@ def main() -> None:
         print("--num-samples is deprecated; using JSON prediction_samples_per_category")
     deterministic_settings = seed_everything(args.seed)
     device = torch.device("cpu")
-    dataset_name = Path(args.dataset_dir).resolve().name
+    dataset_name = args.dataset_name
     run = RunContext(
         args.runs_dir,
         purpose="model",

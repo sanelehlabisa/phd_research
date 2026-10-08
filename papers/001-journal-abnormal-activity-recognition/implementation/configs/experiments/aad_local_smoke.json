@@ -4,7 +4,7 @@
   "profile": "local_smoke",
   "dataset_name": "aad",
   "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
-  "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+  "split_manifest": null,
   "runs_dir": "runs",
   "models": ["local_tiny_8_4", "local_tiny_4_8"],
   "custom_candidates": [

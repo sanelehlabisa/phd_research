@@ -4,7 +4,7 @@
   "profile": "colab_a100",
   "dataset_name": "aad",
   "dataset_dir": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
-  "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+  "split_manifest": null,
   "runs_dir": "runs",
   "models": [
     "custom_two_layer_32_16",

@@ -7,8 +7,10 @@ hyperparameter grid.
 ## Current roadmap
 
 The current JSON profiles predate the planned two-stage study; do not use them
-as the final AAD experiment plan. Tickets 057–058 first make datasets/classes
-configurable and separate custom ConvLSTM search from family comparison. VDD
+as the final AAD experiment plan. Ticket 057 made datasets/classes configurable.
+Ticket 058 will reduce experiment profiles to one local smoke config and two AAD
+Colab configs—custom ConvLSTM search and fixed-setting model-family comparison—
+using the same runner. VDD
 will remain selectable by config while its dedicated workflow is retired; old
 runs are preserved. The Colab notebook cleanup follows after the modular
 commands are ready.

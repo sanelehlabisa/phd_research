@@ -171,7 +171,7 @@ def test_architecture_screen_matches_historical_high_validation_profile() -> Non
         0.15,
         0.15,
     )
-    assert screen.split_manifest == "splits/abnormal-activities-dataset_seed42.json"
+    assert screen.split_manifest is None
 
 
 def test_plan_config_alone_runs_its_active_stage(monkeypatch) -> None:

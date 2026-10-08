@@ -561,7 +561,7 @@ def main(argv: list[str] | None = None) -> None:
     dataset = AHARDataset(
         args.dataset_dir, args.sequence_length, (args.width, args.height)
     )
-    dataset_name = Path(args.dataset_dir).name
+    dataset_name = args.dataset_name
     num_classes = dataset.num_classes
     print(f"{len(dataset)} samples | {num_classes} classes")
 

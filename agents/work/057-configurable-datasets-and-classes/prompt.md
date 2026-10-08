@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `057-configurable-datasets-and-classes`
-- Status: Ready
+- Status: Done
 - Aim: Make modular runs select a dataset in JSON and infer its complete class set from its directory layout.
 - Scope: Paper 001 modular dataset, model, training, evaluation, and experiment configuration/resolution code and focused tests.
 - Changes:

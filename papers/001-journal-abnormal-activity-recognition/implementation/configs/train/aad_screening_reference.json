@@ -21,7 +21,7 @@
   "scheduler": "reduce_on_plateau",
   "seed": 42,
   "sequence_length": 8,
-  "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+  "split_manifest": null,
   "split_seed": 42,
   "test_ratio": 0.15,
   "train_ratio": 0.7,

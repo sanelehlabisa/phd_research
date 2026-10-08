@@ -150,7 +150,7 @@ def main(argv=None) -> Path:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"🖥  Using device: {device}")
 
-    dataset_name = Path(config.dataset_dir).name
+    dataset_name = config.dataset_name
     manifest_path = resolve_split_manifest_path(
         config.dataset_dir, config.split_manifest, config.split_seed
     )

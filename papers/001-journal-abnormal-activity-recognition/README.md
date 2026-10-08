@@ -30,8 +30,8 @@ reference architecture for ablation.
 
 ## Next tasks
 
-- [ ] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
-- [ ] [058 separate custom search and model comparison](../../agents/work/058-separate-search-and-comparison/prompt.md)
+- [x] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
+- [ ] [058 simplify custom search and model-family comparison configs](../../agents/work/058-separate-search-and-comparison/prompt.md) — two study profiles on the same runner, plus one local smoke profile.
 - [ ] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — keep VDD selectable in JSON and preserve old runs.
 - [ ] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
 - [ ] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md)

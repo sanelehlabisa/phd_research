@@ -1,4 +1,4 @@
-"""Single-source AAD study schema and staged orchestration for src.experiments.
+"""Single-source configured-dataset study schema for src.experiments.
 
 Old multi-file plans remain readable for historical notebooks, not this study.
 """
@@ -62,8 +62,14 @@ def _normalise_grid(study):
     _fields(study, expected, "flat experiment grid")
     if study["schema_version"] != 1 or study["mode"] != "grid":
         raise ValueError("flat experiment grid requires schema_version=1 and mode=grid")
-    if study["dataset_name"] != "aad":
-        raise ValueError("flat experiment grids currently support AAD only")
+    if not isinstance(study["dataset_name"], str) or not study[
+        "dataset_name"
+    ].strip():
+        raise ValueError("dataset_name must be a non-empty string")
+    if not isinstance(study["dataset_dir"], str) or not study[
+        "dataset_dir"
+    ].strip():
+        raise ValueError("dataset_dir must be a non-empty path")
     if study["profile"] not in {"local_smoke", "colab_a100"}:
         raise ValueError("profile must be local_smoke or colab_a100")
     frame_sizes = study["frame_sizes"]
@@ -133,7 +139,7 @@ def _normalise_grid(study):
         "mode": "grid",
         "profile": study["profile"],
         "dataset": {
-            "name": "aad",
+            "name": study["dataset_name"],
             "path": study["dataset_dir"],
             "split_manifest": study["split_manifest"],
         },
@@ -194,10 +200,15 @@ def load_study(path):
         raise ValueError("unsupported study schema_version")
     data = study["dataset"]
     _fields(data, {"name", "path", "split_manifest"}, "dataset")
-    if data["name"] != "aad":
-        raise ValueError(
-            "this controlled study supports AAD only; keep Kinetics separate"
-        )
+    if not isinstance(data["name"], str) or not data["name"].strip():
+        raise ValueError("dataset.name must be a non-empty string")
+    if not isinstance(data["path"], str) or not data["path"].strip():
+        raise ValueError("dataset.path must be a non-empty local path")
+    if data["split_manifest"] is not None and (
+        not isinstance(data["split_manifest"], str)
+        or not data["split_manifest"].strip()
+    ):
+        raise ValueError("dataset.split_manifest must be null or a non-empty path")
     manifest = CandidateManifest.from_mapping(
         {
             "screening_id": "aad_staged_architectures",
@@ -263,9 +274,13 @@ def load_study(path):
     config = ExperimentConfig.from_mapping(
         {
             **training,
-            "dataset_name": "aad",
+            "dataset_name": data["name"],
             "dataset_dir": _path(data["path"]),
-            "split_manifest": _path(data["split_manifest"]),
+            "split_manifest": (
+                _path(data["split_manifest"])
+                if data["split_manifest"] is not None
+                else None
+            ),
             "runs_dir": _path(study["runs_dir"]),
             "seed": seeds[0],
             "height": reference["frame_size"],
@@ -558,7 +573,7 @@ def execute_study(path, study, config, manifest, run_trial):
     """Execute existing comparison leaves sequentially; never invoke test evaluation."""
     from .dataset_source import resolve_dataset
 
-    root = resolve_dataset("aad", config.dataset_dir, ROOT)
+    root = resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
     config = ExperimentConfig.from_mapping(
         {**config.to_dict(), "dataset_dir": str(root)}
     )
@@ -568,9 +583,9 @@ def execute_study(path, study, config, manifest, run_trial):
         purpose="studies",
         dataset_path=root,
         label=(
-            "aad-" + study["profile"]
+            config.dataset_name + "-" + study["profile"]
             if study.get("mode") == "grid"
-            else "aad-staged"
+            else config.dataset_name + "-staged"
         ),
         arguments={"study_file": str(Path(path).resolve()), "study": study},
         metadata={

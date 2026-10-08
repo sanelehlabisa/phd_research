@@ -1,4 +1,4 @@
-"""Resolve the approved AAD dataset from a local path or Kaggle."""
+"""Resolve configured video datasets and download public AAD when needed."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import kagglehub
 
 AAD_DATASET_NAME = "aad"
 AAD_KAGGLE_HANDLE = "sanelehlabisa/abnormal-activities-dataset"
+# Used by the existing notebook diagnostics; modular runs discover labels from disk.
 AAD_CLASS_NAMES = (
     "Begging",
     "Drunkenness",
@@ -27,30 +28,41 @@ AAD_CLASS_NAMES = (
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
 
 
-def _is_aad_root(path: Path) -> bool:
-    """Check that a directory has the expected AAD class folders and videos."""
+def _is_video_dataset_root(path: Path) -> bool:
+    """Check for two or more populated class folders with supported videos."""
     if not path.is_dir():
         return False
-    folders = {item.name for item in path.iterdir() if item.is_dir()}
-    if folders != set(AAD_CLASS_NAMES):
+    class_directories = sorted(
+        item
+        for item in path.iterdir()
+        if item.is_dir() and not item.name.startswith(".")
+    )
+    if len(class_directories) < 2:
         return False
     return all(
         any(
             video.is_file() and video.suffix.lower() in VIDEO_EXTENSIONS
-            for video in (path / class_name).rglob("*")
+            for video in class_directory.iterdir()
         )
-        for class_name in AAD_CLASS_NAMES
+        for class_directory in class_directories
     )
 
 
-def _find_aad_root(path: Path) -> Path | None:
-    """Find the dataset root itself or one nested directory below it."""
+def _find_video_dataset_root(path: Path) -> Path | None:
+    """Find a class-folder root itself or one nested directory below it."""
     candidates = [path]
     if path.is_dir():
         candidates.extend(
             sorted(child for child in path.iterdir() if child.is_dir())
         )
-    return next((candidate.resolve() for candidate in candidates if _is_aad_root(candidate)), None)
+    return next(
+        (
+            candidate.resolve()
+            for candidate in candidates
+            if _is_video_dataset_root(candidate)
+        ),
+        None,
+    )
 
 
 def resolve_dataset(
@@ -58,42 +70,58 @@ def resolve_dataset(
     dataset_dir: str | Path | None = None,
     implementation_root: str | Path | None = None,
 ) -> Path:
-    """Reuse a valid local AAD dataset or download the approved Kaggle source.
+    """Resolve a local class-folder dataset or download public AAD.
 
     Parameters:
-        dataset_name: Registered dataset name; currently `aad`.
+        dataset_name: Dataset label saved with run provenance.
         dataset_dir: Optional local dataset path, relative to the implementation.
         implementation_root: Implementation directory for relative paths.
 
     Returns:
-        The validated directory containing AAD's eleven class folders.
+        The validated directory containing at least two populated class folders.
     """
-    if dataset_name != AAD_DATASET_NAME:
-        raise ValueError(
-            f"unknown dataset {dataset_name!r}; supported dataset: 'aad'"
-        )
+    if not isinstance(dataset_name, str) or not dataset_name.strip():
+        raise ValueError("dataset_name must be a non-empty string")
+    dataset_name = dataset_name.strip()
 
     root = (
         Path(implementation_root).expanduser().resolve()
         if implementation_root is not None
         else Path(__file__).resolve().parent.parent
     )
-    configured_path = (
-        Path(dataset_dir).expanduser()
-        if dataset_dir is not None and str(dataset_dir).strip()
-        else Path("datasets/abnormal-activities-dataset/abnormal-activities-dataset")
+    if dataset_dir is None or not str(dataset_dir).strip():
+        if dataset_name != AAD_DATASET_NAME:
+            raise ValueError(
+                f"dataset_dir is required for {dataset_name!r}; only 'aad' has "
+                "an automatic public download"
+            )
+        configured_path = Path(
+            "datasets/abnormal-activities-dataset/abnormal-activities-dataset"
+        )
+    else:
+        configured_path = Path(dataset_dir).expanduser()
+    local_path = (
+        configured_path
+        if configured_path.is_absolute()
+        else root / configured_path
     )
-    local_path = configured_path if configured_path.is_absolute() else root / configured_path
 
     if local_path.exists():
-        resolved = _find_aad_root(local_path)
+        resolved = _find_video_dataset_root(local_path)
         if resolved is None:
             raise ValueError(
-                f"AAD path has an unexpected layout: {local_path}. Expected the "
-                "eleven AAD class folders, each containing video files."
+                f"dataset path has an unexpected layout: {local_path}. Expected "
+                "at least two class folders, each containing supported video files."
             )
-        print(f"Using local AAD dataset: {resolved}", flush=True)
+        print(f"Using local {dataset_name} dataset: {resolved}", flush=True)
         return resolved
+
+    if dataset_name != AAD_DATASET_NAME:
+        raise FileNotFoundError(
+            f"dataset {dataset_name!r} was not found at {local_path}. Set "
+            "dataset_dir in the JSON config to its local class-folder directory; "
+            "only 'aad' has an automatic public download."
+        )
 
     print(f"Downloading AAD from Kaggle: {AAD_KAGGLE_HANDLE}", flush=True)
     try:
@@ -107,11 +135,11 @@ def resolve_dataset(
             f"Details: {error}"
         ) from error
 
-    resolved = _find_aad_root(downloaded_path)
+    resolved = _find_video_dataset_root(downloaded_path)
     if resolved is None:
         raise RuntimeError(
-            "Kaggle returned files, but the expected eleven-class AAD video "
-            f"layout was not found under {downloaded_path}."
+            "Kaggle returned files, but a valid AAD video class-folder layout "
+            f"was not found under {downloaded_path}."
         )
     print(f"AAD dataset ready: {resolved}", flush=True)
     return resolved

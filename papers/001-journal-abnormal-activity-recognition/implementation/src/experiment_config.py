@@ -13,6 +13,9 @@ from typing import Any
 
 
 SAFE_CANDIDATE_NAME = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
+DEFAULT_AAD_DATASET_DIR = (
+    "datasets/abnormal-activities-dataset/abnormal-activities-dataset"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -183,9 +186,7 @@ class ExperimentConfig:
     """Store the reproducible controls used by one experiment run."""
 
     dataset_name: str = "aad"
-    dataset_dir: str = (
-        "datasets/abnormal-activities-dataset/abnormal-activities-dataset"
-    )
+    dataset_dir: str = DEFAULT_AAD_DATASET_DIR
     runs_dir: str = "runs"
     split_manifest: str | None = None
     split_seed: int = 42
@@ -273,6 +274,14 @@ class ExperimentConfig:
         """Reject invalid or unsupported experiment settings."""
         for field_name in ("dataset_name", "dataset_dir", "runs_dir"):
             _require_non_empty_string(field_name, getattr(self, field_name))
+        if (
+            self.dataset_name.strip().lower() != "aad"
+            and Path(self.dataset_dir) == Path(DEFAULT_AAD_DATASET_DIR)
+        ):
+            raise ValueError(
+                "dataset_dir must point to the selected local dataset when "
+                "dataset_name is not 'aad'"
+            )
         if self.split_manifest is not None:
             _require_non_empty_string("split_manifest", self.split_manifest)
 
@@ -281,7 +290,7 @@ class ExperimentConfig:
             if not isinstance(value, int) or isinstance(value, bool) or value < 0:
                 raise ValueError(f"{field_name} must be a non-negative integer")
         if self.split_seed != 42:
-            raise ValueError("split_seed must be 42 for the committed AAD split")
+            raise ValueError("split_seed must be 42 for the reproducible split")
 
         for field_name in ("train_ratio", "val_ratio", "test_ratio"):
             value = getattr(self, field_name)

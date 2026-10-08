@@ -3,7 +3,7 @@
   "dataset": {
     "name": "aad",
     "path": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
-    "split_manifest": "splits/abnormal-activities-dataset_seed42.json"
+    "split_manifest": null
   },
   "models": [
     "custom_two_layer_32_16", "custom_two_layer_16_32", "custom_depth_32_16_8",

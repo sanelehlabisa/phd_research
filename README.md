@@ -23,8 +23,9 @@ CLI and model code remains in `src/`. Existing run folders stay local and are
 not included in source commits. A Gradio presentation demo is a later task,
 after model selection and verified results.
 
-Next tickets: 057 makes dataset selection and class discovery config-driven;
-058 separates custom architecture search from model-family comparison; 059
+Next tickets: 057 made dataset selection and class discovery config-driven;
+058 simplifies experiment profiles to one local smoke config and two AAD Colab
+configs using the same runner; 059
 retires VDD-only workflow code while retaining config-selectable VDD; 060 aligns
 the docs; 061 makes the Colab notebook a thin script runner with artifact
 download. Manuscript changes wait for verified AAD results (062).
