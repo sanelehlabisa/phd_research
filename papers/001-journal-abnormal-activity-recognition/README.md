@@ -1,13 +1,15 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: AAD validation run saved; controlled comparisons and final test evaluation pending
+- Status: Planning a config-driven AAD study; existing run outputs remain local
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
 
-The committed AAD run reached 96.25% validation accuracy; it is one run, not a
-final result. The Kinetics-600 notebook workflow remains a separate diagnostic.
-See the [implementation guide](implementation/README.md) for current commands.
+AAD is the planned primary dataset. VDD remains available as an optional dataset
+choice in configuration; its existing run artifacts will be kept, but it is not
+part of the current study. Do not treat the earlier validation result as final.
+See the [implementation guide](implementation/README.md) for the current code
+status and ticket links.
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
 from surveillance video. Earlier width experiments made `64-32-16` a useful
@@ -17,29 +19,25 @@ reference architecture for ablation.
 
 ## Evidence plan
 
-1. Implement the published ConvLSTM topology faithfully and add configurable
-   stacked ConvLSTM depth, width, and kernel sizes.
-2. Keep the paper baseline separate from the new pooled stacked family, and align
-   the 3D-CNN comparison registry before training comparisons.
-3. Make splits, seeds, metrics, checkpoint selection, and outputs reproducible.
-4. Screen a small, predeclared model set using validation performance, parameter
-   count, and runtime—not test results.
-5. Run one-factor ablations on the selected reference, then confirm the frozen
-   model on the second dataset.
-6. Export versioned tables and plots before changing manuscript claims.
+1. Search custom ConvLSTM architectures from a flat `[16, 16, 16]` reference,
+   changing one depth/width factor at a time.
+2. Compare the selected custom model against the faithful paper model, practical
+   3D CNNs, and two video transformers if both are practical to train.
+3. Use dataset and input settings from JSON; derive all class labels from data.
+   Select on validation, confirm shortlisted models across seeds, and keep test
+   data locked until the comparison is frozen.
+4. Update manuscript claims only from verified run artifacts.
 
 ## Next tasks
 
-- [x] [056 local AAD experiment smoke](../../agents/work/056-local-aad-experiment-smoke/prompt.md) — added two flat profiles: a 2-run tiny local check and a 32-run, 16-epoch A100 screen; see the implementation README.
-- [x] [055 Colab final-training/test preparation](../../agents/work/055-colab-final-training-evaluation/prompt.md) adds notebook 05 plus a Python export; 202 CPU tests passed. Actual 026/027 runs follow 053.
+- [ ] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
+- [ ] [058 separate custom search and model comparison](../../agents/work/058-separate-search-and-comparison/prompt.md)
+- [ ] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — keep VDD selectable in JSON and preserve old runs.
+- [ ] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
+- [ ] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md)
+- [ ] [062 update manuscript after verified AAD results](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — do not execute before the new study is complete.
 
-- [ ] [053 run and analyse AAD experiments](../../agents/work/053-run-and-analyse-aad-experiments/prompt.md) — current study; validation-only evidence required before 026, then 027.
-- [ ] [054 update paper from verified results](../../agents/work/054-update-paper-from-verified-results/prompt.md) — after analysis, frozen training and final testing; consolidates roadmap items 029–031.
-- [x] [049 AAD dataset auto-resolution](../../agents/work/049-aad-dataset-auto-resolution/prompt.md)
-- [x] [050 overall micro metrics](../../agents/work/050-overall-micro-metrics/prompt.md) — overall micro metrics, validation-only ranking; 160 tests passed.
-- [x] [051 save run prediction examples](../../agents/work/051-save-run-prediction-examples/prompt.md) — shared per-category limits and split-safe playable clips.
-- [x] [052 JSON-controlled AAD experiments](../../agents/work/052-json-controlled-aad-experiments/prompt.md) — one JSON, seven-model screen and validation-selected one-factor trials; real runs pending.
-- [ ] Later, after final results: prepare a small Gradio demo using the selected model for presentation.
+After final results, prepare a small Gradio demo for presentation.
 
 ## Tasks
 

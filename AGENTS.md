@@ -10,9 +10,9 @@
   model width and dense-layer size. Their missing current split, seed, metric,
   selection, and checkpoint provenance makes them non-comparable exploratory
   evidence; never rank new candidates from their test metrics.
-- The historical `[32, 16]` model is a validation-screen reference, not a
-  proven optimum. Compare it with `[16, 32]` and `[32, 16, 8]` before selecting
-  a controlled reference.
+- The next custom architecture search starts from flat `[16, 16, 16]` and
+  changes one depth/width factor at a time. Keep this search separate from the
+  later comparison against the paper topology and other model families.
 - The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
   `CustomConvLSTM`. Express each custom recurrent layer as
   `(filters, (kernel_height, kernel_width))`; do not expand this into an
@@ -51,9 +51,10 @@
 - Every reported run must retain its full configuration, split reference, code
   revision, parameter count, validation history, selected checkpoint, and final
   metrics. Mark older runs as non-comparable when required fields are missing.
-- Use AAD for architecture screening and most ablations, then evaluate the
-  selected configuration on VDD. If the manuscript states a different protocol,
-  flag the conflict instead of silently changing the paper or code.
+- Keep AAD as the current primary study. Select the dataset in each JSON config
+  and derive classes from its directory layout. VDD remains optional when
+  explicitly selected; retire only its dedicated workflow, not its generic
+  dataset support or historical run artifacts.
 - Do not rewrite reported manuscript results until versioned experiment outputs
   exist. Preserve the author's academic voice and distinguish observation from
   interpretation.

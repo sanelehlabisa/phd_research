@@ -11,28 +11,23 @@ manuscript sources, and—when needed—its implementation.
 | [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
-The Kinetics-600 notebook workflow is a separate diagnostic; controlled paper
-experiments use AAD. The latest saved AAD run reached 96.25% validation accuracy
-on 160 clips; test data remains locked. See the [Paper 001 guide](papers/001-journal-abnormal-activity-recognition/README.md)
-and its [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
-Training and experiment notebooks now use fresh filenames to work around stale
-VS Code notebook controllers; use the links in the implementation guide above.
+Paper 001 will use AAD as its main study. Dataset choice will live in each JSON
+config, and class labels will be read from the selected dataset. VDD remains an
+optional dataset choice; its historical run artifacts are preserved. The next
+work first separates custom ConvLSTM architecture search from cross-family
+comparison, then streamlines the Colab notebook/export workflow. See the
+[Paper 001 guide](papers/001-journal-abnormal-activity-recognition/README.md)
+and [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
-CLI and model code remains in `src/`. Ticket 047's larger Kinetics notebook
-profile is implemented and locally verified; its Colab run remains pending.
-Ticket 049 now provides local-first
-AAD dataset resolution; tickets 050–051 add overall micro metrics and split-safe
-prediction examples. Ticket 052 implements a single-JSON AAD comparison with
-seven models and validation-selected one-factor trials; full runs remain pending. Gradio deployment
-is planned after final model selection and results.
+CLI and model code remains in `src/`. Existing run folders stay local and are
+not included in source commits. A Gradio presentation demo is a later task,
+after model selection and verified results.
 
-Next: ticket 053 runs/analyses the full AAD study after the 056 local smoke
-check; 026 trains/freezes the
-selection and 027 evaluates it. Ticket 054 updates Paper 001 from verified results;
-no test evaluation or manuscript result claims precede those prerequisites.
-
-Ticket 055 prepares a separate [AAD final-training notebook and Python export](papers/001-journal-abnormal-activity-recognition/implementation/README.md#aad-final-training-and-test-colab);
-actual 026/027 execution still requires the completed current study.
+Next tickets: 057 makes dataset selection and class discovery config-driven;
+058 separates custom architecture search from model-family comparison; 059
+retires VDD-only workflow code while retaining config-selectable VDD; 060 aligns
+the docs; 061 makes the Colab notebook a thin script runner with artifact
+download. Manuscript changes wait for verified AAD results (062).
 
 ## Structure
 

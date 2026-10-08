@@ -4,6 +4,15 @@ Code for the [journal paper](../README.md). It now provides a small, explicit
 family of ConvLSTM architectures for controlled comparison—not an unrestricted
 hyperparameter grid.
 
+## Current roadmap
+
+The current JSON profiles predate the planned two-stage study; do not use them
+as the final AAD experiment plan. Tickets 057–058 first make datasets/classes
+configurable and separate custom ConvLSTM search from family comparison. VDD
+will remain selectable by config while its dedicated workflow is retired; old
+runs are preserved. The Colab notebook cleanup follows after the modular
+commands are ready.
+
 ## Model context
 
 `ConvLSTM` returns either its full sequence or final hidden state.
