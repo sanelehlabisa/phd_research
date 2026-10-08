@@ -274,4 +274,3 @@ def test_interest_list_contains_existing_labels_and_verified_subset():
         ).read_text()
     )
     assert set(aad["class_names"]) <= set(settings.CLASSES_OF_INTEREST)
-    assert {"non-violent", "violent"} <= set(settings.CLASSES_OF_INTEREST)

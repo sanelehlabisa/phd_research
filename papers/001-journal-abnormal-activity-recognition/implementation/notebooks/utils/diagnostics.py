@@ -2,6 +2,7 @@
 
 import hashlib
 import time
+from collections import Counter
 
 import av
 import numpy as np
@@ -10,7 +11,27 @@ import torch
 from . import config as settings
 from src.model import CustomConvLSTM
 from src.utils import seed_everything, write_json
-from src.vdd_diagnostic import balanced_tiny_indices
+
+
+def balanced_tiny_indices(dataset, train_indices, per_class):
+    """Choose a stable, balanced subset using training indices only."""
+    selected = []
+    counts = Counter()
+    for index in sorted(
+        train_indices, key=lambda item: dataset.samples[item][0].as_posix()
+    ):
+        label = dataset.samples[index][1]
+        if counts[label] < per_class:
+            selected.append(index)
+            counts[label] += 1
+    missing = [
+        name
+        for index, name in enumerate(dataset.class_names)
+        if counts[index] < per_class
+    ]
+    if missing:
+        raise ValueError(f"not enough training clips for tiny subset classes: {missing}")
+    return selected
 
 
 def check_deadline(deadline):

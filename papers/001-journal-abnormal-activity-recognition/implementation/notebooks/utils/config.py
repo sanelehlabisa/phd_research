@@ -44,8 +44,6 @@ CLASSES_OF_INTEREST = (
     "Property Damage",
     "Robbery",
     "Terrorism",
-    "non-violent",
-    "violent",
     "headbutting",
     "slapping",
     "punching_person__boxing_",
@@ -68,7 +66,7 @@ DIAGNOSTIC_DATASETS = {
     "vdd": DiagnosticDataset(
         key="vdd",
         kaggle_handle="sanelehlabisa/violence-detection-dataset",
-        accepted_classes=("non-violent", "violent"),
+        accepted_classes=(),
     ),
     "kinetics-subset": DiagnosticDataset(
         key="kinetics-subset",
@@ -160,9 +158,9 @@ def selected_diagnostic_dataset() -> DiagnosticDataset:
         if dataset.key == "kinetics-subset"
         else dataset.accepted_classes
     )
-    if not dataset.enabled or len(set(requested)) < 2:
+    if not dataset.enabled or (requested and len(set(requested)) < 2):
         raise ValueError(
             f"diagnostic dataset {dataset.key!r} is not ready; declare at least two "
-            "exact accepted classes and enable it first"
+            "exact accepted classes when filtering, and enable it first"
         )
     return dataset

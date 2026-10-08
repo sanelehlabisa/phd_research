@@ -64,13 +64,13 @@ def test_aad_can_be_selected_for_notebook_dataset_resolution(monkeypatch) -> Non
     assert selected.accepted_classes == AAD_CLASS_NAMES
 
 
-def test_vdd_switch_preserves_its_classes(monkeypatch) -> None:
+def test_vdd_uses_all_classes_from_its_configured_folders(monkeypatch) -> None:
     monkeypatch.setattr(config, "SELECTED_DIAGNOSTIC_DATASET", "vdd")
     monkeypatch.setattr(config, "CLASSES_OF_INTEREST", ("missing",))
     selected = config.selected_diagnostic_dataset()
     assert selected.key == "vdd"
     assert selected.kaggle_handle == "sanelehlabisa/violence-detection-dataset"
-    assert selected.accepted_classes == ("non-violent", "violent")
+    assert selected.accepted_classes == ()
 
 
 def test_disabled_dataset_cannot_be_selected(monkeypatch: pytest.MonkeyPatch) -> None:

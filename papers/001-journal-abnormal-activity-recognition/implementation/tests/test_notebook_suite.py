@@ -108,7 +108,7 @@ def test_temporal_windows_seed_cache_and_test_lock(prepared):
 def test_center_window_reaches_later_action_and_low_fps_padding(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "SELECTED_DIAGNOSTIC_DATASET", "vdd")
     root = tmp_path / "clips"
-    for name in ("violent", "non-violent"):
+    for name in ("calm_scene", "unusual_event"):
         for number in range(6):
             frames = torch.zeros(32, 3, 8, 8)
             frames[8:24] = 1.0  # the first second contains no action

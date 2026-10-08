@@ -17,7 +17,7 @@ from notebooks.utils import workflows
 from notebooks.utils.data import NotebookVideoDataset, prepare_data
 from src.model import CustomConvLSTM
 from src.utils import seed_everything, write_video_torchvision
-from src.vdd_diagnostic import resolve_vdd_root
+from src.dataset_source import resolve_downloaded_dataset_root
 
 
 @pytest.fixture(params=["vdd", "kinetics-subset"])
@@ -56,7 +56,7 @@ def prepared(tmp_path, monkeypatch, request):
     monkeypatch.setattr(workflows, "display", lambda *a, **kw: None)
     dataset_root = tmp_path / request.param
     classes = (
-        ("non-violent", "violent")
+        ("calm_scene", "unusual_event")
         if request.param == "vdd"
         else (
             "headbutting",
@@ -368,7 +368,7 @@ def test_no_corrupt_fallback_and_bounded_root_lookup(prepared, monkeypatch):
     monkeypatch.setattr(
         Path, "rglob", lambda *a: pytest.fail("recursive full-tree scan")
     )
-    assert resolve_vdd_root(dataset.dataset_dir) == dataset.dataset_dir
+    assert resolve_downloaded_dataset_root(dataset.dataset_dir) == dataset.dataset_dir
 
 
 def test_live_curves_update_the_existing_display(tmp_path, monkeypatch):
@@ -427,5 +427,5 @@ def test_notebook_contracts_and_controlled_reference_snapshot():
     reference = root / "notebooks" / "aad_experiment_workflow.ipynb"
     assert (
         hashlib.sha256(reference.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-        == "7a9ff80a155857d694c2095aefe4554f5a09eb081b66a2018936d7ddfda3f00b"
+        == "962461a62968c25cf7234150b8d6e974c18f1ea81fc1039a877584df7d6a9bab"
     )

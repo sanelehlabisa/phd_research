@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `059-retire-vdd-specific-workflow`
-- Status: Ready
+- Status: Done
 - Aim: Remove VDD-only diagnostic workflow code while retaining VDD as an optional dataset selected through JSON.
 - Scope: Paper 001 VDD-specific diagnostics/helpers, their tests and notebook references; depends on 057–058.
 - Changes:

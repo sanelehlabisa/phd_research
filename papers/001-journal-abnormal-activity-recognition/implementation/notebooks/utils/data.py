@@ -22,7 +22,7 @@ from .kinetics600_subset import (
     prepare_subset,
     unique_clip_records,
 )
-from src.vdd_diagnostic import resolve_vdd_root
+from src.dataset_source import resolve_downloaded_dataset_root
 
 
 class NotebookVideoDataset(AHARDataset):
@@ -199,7 +199,7 @@ def prepare_data(
                 settings.CLASSES_OF_INTEREST,
             )
     else:
-        accepted = specification.accepted_classes
+        accepted = specification.accepted_classes or None
     if not kinetics and not kinetics600 and not aad and dataset_root is None:
         print(
             "Downloading/reusing Kaggle cache (download/extraction may take time)...",
@@ -207,7 +207,7 @@ def prepare_data(
         )
         dataset_root = kagglehub.dataset_download(specification.kaggle_handle)
     if not kinetics and not kinetics600 and not aad:
-        dataset_root = resolve_vdd_root(dataset_root)
+        dataset_root = resolve_downloaded_dataset_root(dataset_root)
     print(f"Accepted classes: {accepted}", flush=True)
     print(
         "Locating class folders and building file inventory (no video decoding)...",

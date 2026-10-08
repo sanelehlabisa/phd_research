@@ -65,6 +65,33 @@ def _find_video_dataset_root(path: Path) -> Path | None:
     )
 
 
+def resolve_downloaded_dataset_root(download_root: str | Path) -> Path:
+    """Find a downloaded dataset's class-folder root without dataset-specific names."""
+    root = Path(download_root).expanduser().resolve()
+    pending = [root]
+    while pending:
+        candidate = pending.pop(0)
+        class_directories = sorted(
+            item
+            for item in candidate.iterdir()
+            if item.is_dir() and not item.name.startswith(".")
+        )
+        populated = [
+            directory
+            for directory in class_directories
+            if any(
+                video.is_file() and video.suffix.lower() in VIDEO_EXTENSIONS
+                for video in directory.iterdir()
+            )
+        ]
+        if len(populated) >= 2:
+            return candidate
+        pending.extend(directory for directory in class_directories if directory not in populated)
+    raise FileNotFoundError(
+        f"could not find at least two populated video class folders under {root}"
+    )
+
+
 def resolve_dataset(
     dataset_name: str,
     dataset_dir: str | Path | None = None,

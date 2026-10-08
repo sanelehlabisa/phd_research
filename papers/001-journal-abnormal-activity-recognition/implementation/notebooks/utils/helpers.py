@@ -24,7 +24,7 @@ from .config import (
     selected_diagnostic_dataset,
 )
 from src.utils import runtime_environment, seed_everything
-from src.vdd_diagnostic import inspect_vdd, resolve_vdd_root
+from src.dataset_source import resolve_downloaded_dataset_root
 
 
 def implementation_root(start: str | Path | None = None) -> Path:
@@ -85,7 +85,7 @@ def download_selected_dataset() -> tuple[DiagnosticDataset, Path]:
     """Download and resolve the single shared diagnostic dataset selection."""
     specification = selected_diagnostic_dataset()
     download_root = Path(kagglehub.dataset_download(specification.kaggle_handle))
-    return specification, resolve_vdd_root(download_root)
+    return specification, resolve_downloaded_dataset_root(download_root)
 
 
 def load_selected_dataset(
@@ -98,7 +98,7 @@ def load_selected_dataset(
         dataset_root,
         sequence_length=sequence_length,
         frame_size=(frame_size, frame_size),
-        accepted_classes=list(specification.accepted_classes),
+        accepted_classes=list(specification.accepted_classes) or None,
     )
     return specification, dataset
 
@@ -119,7 +119,6 @@ def prepare_selected_splits(
     if not manifest_path.is_file():
         create_split_manifest(dataset, manifest_path, seed=42)
     train, validation, test, split = load_split_subsets(dataset, manifest_path, seed=42)
-    inventory = inspect_vdd(dataset)
     return {
         "specification": specification,
         "dataset": dataset,
@@ -128,7 +127,6 @@ def prepare_selected_splits(
         "validation": validation,
         "test_count_locked": len(test),
         "split": split,
-        "inventory": inventory,
     }
 
 
@@ -206,85 +204,6 @@ def selected_training_examples(root: Path, count: int = 5) -> list[dict[str, obj
     return examples
 
 
-def latest_completed_diagnostic_run(root: Path) -> Path:
-    """Find the newest completed selected-dataset diagnostic run."""
-    candidates: list[Path] = []
-    for manifest_path in (root / "runs" / "train").glob("*/run.json"):
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if (
-            manifest.get("status") == "complete"
-            and manifest.get("evidence_role") == "pipeline_learnability_diagnostic"
-            and manifest.get("results", {}).get("tiny_passed") is True
-        ):
-            candidates.append(manifest_path.parent)
-    if not candidates:
-        raise FileNotFoundError("no completed learnability diagnostic run was found")
-    return max(candidates, key=lambda path: path.stat().st_mtime_ns)
-
-
-def validation_prediction_examples(
-    root: Path,
-    run_dir: str | Path | None = None,
-    count: int = 5,
-) -> dict[str, object]:
-    """Load the selected diagnostic checkpoint and predict validation examples."""
-    prepared = prepare_selected_splits(root)
-    dataset = prepared["dataset"]
-    selected_run = (
-        Path(run_dir) if run_dir is not None else latest_completed_diagnostic_run(root)
-    )
-    checkpoint_path = selected_run / "checkpoints" / "bounded_validation_selected.pth"
-    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
-    selection = validate_selected_checkpoint(
-        checkpoint,
-        dataset.dataset_dir.resolve().name,
-        str(prepared["split"]["manifest_hash"]),
-    )
-    model = custom_model_from_checkpoint(checkpoint)
-    indices = deterministic_subset_indices(prepared["validation"], count=count, seed=43)
-    clips = torch.stack([dataset[index][0] for index in indices])
-    labels = torch.tensor([dataset.samples[index][1] for index in indices])
-    with torch.inference_mode():
-        probabilities = model(clips).softmax(dim=1)
-    predicted = probabilities.argmax(dim=1)
-    return {
-        "partition": "validation",
-        "evidence_role": "pipeline_learnability_diagnostic",
-        "checkpoint": str(checkpoint_path),
-        "selection": selection,
-        "examples": [
-            {
-                "path": str(dataset.samples[index][0]),
-                "expected": dataset.class_names[int(labels[position])],
-                "predicted": dataset.class_names[int(predicted[position])],
-                "confidence": float(probabilities[position, predicted[position]]),
-                "correct": bool(predicted[position] == labels[position]),
-            }
-            for position, index in enumerate(indices)
-        ],
-    }
-
-
-def diagnostic_training_command(root: Path) -> list[str]:
-    """Build the selected-dataset training command without running it."""
-    specification = selected_diagnostic_dataset()
-    download_root = Path(kagglehub.dataset_download(specification.kaggle_handle))
-    command = [
-        sys.executable,
-        "-m",
-        "src.vdd_diagnostic",
-        "--dataset-dir",
-        str(download_root),
-        "--runs-dir",
-        str(root / "runs"),
-        "--manifest",
-        str(diagnostic_manifest_path(root, specification.key)),
-    ]
-    for class_name in specification.accepted_classes:
-        command.extend(["--accepted-class", class_name])
-    return command
-
-
 def controlled_plan_list_command(root: Path) -> list[str]:
     """Build the safe, fixed-AAD controlled-plan listing command."""
     return [
@@ -311,7 +230,7 @@ def controlled_stage_command(
     if candidate_expansion_decision not in {"skip", "expanded"}:
         raise ValueError("candidate expansion decision must be skip or expanded")
     aad_download = Path(kagglehub.dataset_download(CONTROLLED_AAD_DATASET_HANDLE))
-    aad_root = resolve_vdd_root(aad_download)
+    aad_root = resolve_downloaded_dataset_root(aad_download)
     command = [
         sys.executable,
         "-m",
@@ -464,7 +383,7 @@ def final_test_evaluation_command(
     experiment = metadata.get("experiment_config")
     if not isinstance(experiment, dict):
         raise ValueError("confirmed checkpoint lacks resolved experiment configuration")
-    dataset_root = resolve_vdd_root(
+    dataset_root = resolve_downloaded_dataset_root(
         Path(kagglehub.dataset_download(CONTROLLED_AAD_DATASET_HANDLE))
     )
     manifest_path = Path(str(experiment["split_manifest"]))
