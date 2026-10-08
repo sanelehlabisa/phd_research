@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `060-align-dataset-documentation`
-- Status: Ready
+- Status: Done
 - Aim: Make repository and Paper 001 guides match the AAD-first, config-selectable dataset workflow.
 - Scope: `AGENTS.md`, root README, Paper 001 README, implementation README, and concise workflow references; depends on 057–059.
 - Changes:

@@ -2,35 +2,25 @@
 
 ## Repository context
 
-- This repository contains numbered PhD papers and the research code supporting
-  their claims. Read the root README and the relevant paper and implementation
-  READMEs before changing anything.
-- Paper 001 studies lightweight ConvLSTM-based abnormal human-activity
-  recognition from surveillance video. More than 30 earlier runs mainly varied
-  model width and dense-layer size. Their missing current split, seed, metric,
-  selection, and checkpoint provenance makes them non-comparable exploratory
-  evidence; never rank new candidates from their test metrics.
-- The next custom architecture search starts from flat `[16, 16, 16]` and
-  changes one depth/width factor at a time. Keep this search separate from the
-  later comparison against the paper topology and other model families.
-- The model API now consists of `ConvLSTM`, `PaperConvLSTM`, and
-  `CustomConvLSTM`. Express each custom recurrent layer as
-  `(filters, (kernel_height, kernel_width))`; do not expand this into an
-  unrestricted hyperparameter search. The comparison baselines are now audited,
-  and augmentation is one optional, clip-consistent online view per training
-  sample. Every model, training, evaluation, and experiment command now has its
-  own local run folder. The split manifest and full-pipeline seeding are now
-  reproducible. Metrics now cover full partitions, validation loss selects and
-  restores checkpoints, and only the evaluation command opens the test split.
-  Training and comparison runners use validated JSON configuration with
-  explicit CLI overrides; evaluation uses a JSON-only command that names its
-  training run. Run provenance is retained. A portable cloud
-  approved three-model screen, practical-baseline confirmation, native published
-  topology, and focused ablations share one validated plan. Tickets 022–024 now
-  rebuild the notebook specifically for the Colab VS Code extension, progressing
-  from interactive data inspection to model inspection and finally guarded
-  experiment execution. Ticket 021's optional candidate-block decision must
-  still occur before the full screen and never from favourable results.
+- This repository contains numbered PhD papers and their supporting research
+  code. Read the root README and the relevant paper and implementation READMEs
+  before changing anything.
+- Paper 001's current study uses AAD as its primary dataset and proceeds in two
+  stages: search custom ConvLSTM architectures, then compare the selected model
+  with the published topology and other model families under fixed settings.
+  Both stages use `src.experiments --config <json>`; a small local profile checks
+  the pipeline. JSON selects the dataset and classes are read from its folders.
+- VDD remains an optional dataset when its local class-folder path is selected
+  in JSON. Preserve its historical runs, but treat older runs lacking current
+  split, seed, metric, selection, and checkpoint provenance as exploratory and
+  non-comparable. Kinetics notebook workflows are diagnostics, not Paper 001
+  evidence. Do not report manuscript results until verified run artifacts exist.
+- The model API consists of `ConvLSTM`, `PaperConvLSTM`, and `CustomConvLSTM`.
+  Express custom recurrent layers as `(filters, (kernel_height, kernel_width))`;
+  keep the architecture search focused and change one factor at a time.
+  Augmentation is one optional clip-consistent online transform per training
+  sample. Splits and full-pipeline seeding are reproducible; select checkpoints
+  with validation data, and keep test data locked until model selection is frozen.
 
 ## Research rules
 

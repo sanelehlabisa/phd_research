@@ -6,14 +6,18 @@ hyperparameter grid.
 
 ## Current roadmap
 
-The current JSON profiles predate the planned two-stage study; do not use them
-as the final AAD experiment plan. Ticket 057 made datasets/classes configurable.
-Ticket 058 will reduce experiment profiles to one local smoke config and two AAD
-Colab configs—custom ConvLSTM search and fixed-setting model-family comparison—
-using the same runner. VDD
-will remain selectable by config while its dedicated workflow is retired; old
-runs are preserved. The Colab notebook cleanup follows after the modular
-commands are ready.
+AAD is the primary dataset for the active paper study. Run the custom
+ConvLSTM architecture search first, then compare its validation-selected model
+against the published topology and other model families under fixed settings.
+Both stages use `src.experiments --config <json>`; the local profile is only a
+short pipeline check. See the three active profiles and copyable commands below.
+
+VDD remains optional through the same JSON dataset fields as AAD, with a local
+class-folder path and classes discovered from its folders. Preserve historical
+VDD runs, but do not treat runs lacking the current split, seeds, metrics and
+provenance as comparable new evidence. Kinetics notebooks are exploratory
+diagnostics, not part of the active AAD paper study. Ticket 061 will reconcile
+the Colab notebook with these modular profiles.
 
 ## Model context
 
@@ -69,19 +73,32 @@ model uses it and the results are labelled preliminary.
 Runner configs are grouped under `configs/model/`, `configs/train/`,
 `configs/evaluate/`, and `configs/experiments/`.
 
-AAD configs include a dataset name and optional local path. To reuse the local
-copy or download the public Kaggle copy when missing, run:
+Training configs include a dataset name and optional local path. To reuse the
+local AAD copy or download the public Kaggle copy when missing, run:
 
 ```bash
 .venv/bin/python -m src.dataset_source --config configs/train/aad_screening_reference.json
 ```
 
-Public AAD downloads use KaggleHub without a token. If a download fails, check
-the runtime's internet connection and dataset availability; Kaggle may require
-accepting terms in a browser. Dataset files stay local and are ignored by Git.
-Notebook diagnostics still default to Kinetics-600; set
-`SELECTED_DIAGNOSTIC_DATASET = "aad"` in `notebooks/utils/config.py` to use the
-same resolver there.
+Public AAD downloads use KaggleHub without a token. VDD and other local datasets
+must supply their class-folder path in JSON; the same generic pipeline discovers
+their classes. Dataset files stay local and are ignored by Git. Notebook
+diagnostics still use their separate Kinetics-oriented configuration and do not
+produce the active paper's AAD results.
+
+For an experiment profile, dataset selection is under `dataset`; for example,
+replace the AAD fields in a copied profile with:
+
+```json
+"dataset": {
+  "name": "vdd",
+  "path": "datasets/violence-detection-dataset",
+  "split_manifest": null
+}
+```
+
+The directory should contain one subdirectory per class. Do not add fixed VDD
+class names; labels are inferred from the folders.
 
 The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 `weights=None` as this study's practical 18-layer 3D-CNN baselines. The source
@@ -138,16 +155,17 @@ manuscript update is [ticket 054](../../../agents/work/054-update-paper-from-ver
 - Fixed 70:15:15 stratified clip split using the committed
   [AAD manifest](splits/abnormal-activities-dataset_seed42.json): 748 training,
   160 validation, and 161 test clips.
-- AAD for architecture screening and most ablations; VDD for final
-  generalisation evaluation.
+- AAD for both custom architecture search and model-family comparison. VDD is
+  optional for a separately configured future generalisation study, not an
+  active stage in the current experiment plan.
 - `--augment` applies no transform or one randomly selected, clip-consistent
   transform per training sample; it never combines transforms or changes
   dataset length. Validation and test remain clean.
 - Validation-only model and checkpoint selection; test data remains locked.
 - Seeds `42` and `2026` for reported confirmation runs; both reuse the same
   split created with split seed `42`.
-- Validation-loss early stopping (current staged AAD patience `20`) and restoration of the
-  selected checkpoint.
+- Validation-loss early stopping (16-epoch active profile budget, patience `4`)
+  and restoration of the selected checkpoint.
 - Sample-weighted loss plus full-partition accuracy and micro
   precision/recall/F1, confusion matrix, trainable parameters, runtime, and
   uncertainty across confirmation seeds.
@@ -166,11 +184,11 @@ metrics use the current micro protocol.
 
 ### AAD final training and test (Colab)
 
-Use [05 AAD final training/evaluation](notebooks/05_aad_train_and_evaluate.ipynb)
-after the current 052/053 study completes. Set `STUDY_RUN_DIR` to its exact
-`runs/studies/<run>` directory and Run All on a Colab GPU. Keep its linked leaf
-runs, dataset and split manifest available at their recorded paths.
-This separate AAD workflow does not change diagnostic notebooks 01-04.
+The [05 AAD final training/evaluation](notebooks/05_aad_train_and_evaluate.ipynb)
+workflow is retained from the earlier study scaffolding. Do not use it for the
+current search/comparison outputs until ticket 061 aligns its inputs with the
+active JSON profiles. Keep its linked runs, dataset and split manifest available
+at their recorded paths when using it.
 
 The matching [plain-Python export](notebooks/05_aad_train_and_evaluate.py) uses
 the same setup, pinned requirements and GPU check. From the Colab implementation
@@ -206,7 +224,7 @@ The final display cell can be rerun independently after a renderer failure.
 Save the study, linked runs/checkpoints and evaluation folder before Colab
 disconnects: `/content` is temporary. Real 026/027 runs are still pending.
 
-### Diagnostic notebooks
+### Exploratory diagnostic notebooks (not paper results)
 
 Notebook-only helpers and the Colab bootstrap live in `notebooks/utils/`;
 reusable model, dataset, training, evaluation and CLI modules remain in `src/`.
@@ -228,16 +246,18 @@ Integration [ticket 042](../../../agents/work/042-merge-expanded-kinetics-suite/
 combines Kinetics-600 (>2,000 unique videos before splitting) with the expanded
 eight-hour suite. Real Colab inventory/training remains pending.
 
-Open one notebook and choose **Run All** on a Colab GPU. All four use
+These independent notebook flows are not the active AAD experiment runner and
+their Kinetics/VDD outputs are not new comparable paper evidence. Open one
+notebook and choose **Run All** on a Colab GPU. The four notebooks use
 `SELECTED_DIAGNOSTIC_DATASET = "kinetics600-subset"` in
 [shared configuration](notebooks/utils/config.py). Preparation downloads only the
 five Kinetics-600 training archives (about 3 GB compressed), extracts them
 safely, prints actual per-class/total counts and stops unless it finds over
 2,000 unique clips. The exact extracted total remains to be observed on Colab.
 This is an exploratory five-activity diagnostic, not surveillance-paper evidence.
-Change the shared setting to `"vdd"` for the unchanged VDD labels or
-`"kinetics-subset"` for the previous 87-clip Kinetics-400 copy. Existing saved
-notebook outputs describe earlier VDD/Kinetics-400 runs. Notebook 04 keeps its
+The notebook-only dataset selector can use VDD or the previous Kinetics-400 copy,
+but the active modular paper profiles select datasets in JSON. Existing saved
+notebook outputs describe earlier runs. Notebook 04 keeps its
 own 11-model manifest at
 `configs/experiments/kinetics_diagnostic_candidates.json`. Older notebook
 helpers still reference legacy AAD experiment configs; the active modular AAD
@@ -436,7 +456,7 @@ changing the shared dataset setting to `kinetics-subset`.
 
 ### Previous Kinetics-400 interest-filtered subset
 
-`CLASSES_OF_INTEREST` contains the existing AAD/VDD labels and these exact
+`CLASSES_OF_INTEREST` contains the existing AAD labels and these exact
 Kinetics folders. Only Kinetics uses the intersection with available classes;
 absent names are printed and skipped. Labels stay separate activities, not a
 binary violence mapping. Fewer than two matches or an impossible stratified
@@ -466,14 +486,15 @@ training. All 87 selected clips and the existing split are retained; ticket 041
 changes input/training protocols, so its runs are not matched to older results.
 Kinetics manifests are keyed by pinned version, matched classes and seed, so
 changing the subset preserves older manifests and rejects old checkpoints.
-Controlled AAD and the original reference notebook remain unchanged.
+These historical Kinetics workflows are separate from the current AAD
+custom-search and model-family comparison profiles.
 
 This is a tiny learnability diagnostic, not the full official Kinetics release
 or surveillance evidence; held-out estimates are noisy. The broader audit in
 ticket 036 remains incomplete: metadata does not establish clip quality,
 source independence or absence of near duplicates.
 
-## Implementation tasks
+## Implementation history and next steps
 
 1. [x] **Architecture preparation (`010`).** Added the faithful paper model,
    sequence-returning ConvLSTM, explicit `(filters, kernel_size)` stacks, a
@@ -505,9 +526,8 @@ source independence or absence of near duplicates.
 11. [x] **Controlled experiment expansion (`020`).** Added the approved 11-model
     screen, practical-baseline confirmation, separate published topology, and
     validated one-factor ablation plan to the Colab workflow.
-12. [ ] **Optional cloud expansion (`021`, pre-screen decision).** Before
-    screening, add the
-    entire predeclared five-model block when a timing check shows enough runtime.
+12. [x] **Optional cloud expansion (`021`).** Skipped; retain the existing
+    focused architecture screen.
 13. [x] **Notebook foundation (`022`).** Added the Colab VS Code runtime,
     committed-split, class-balance, training-sample, and augmentation walkthrough.
 14. [x] **Model inspection (`023`).** Added inline clean and augmented videos,
@@ -515,20 +535,23 @@ source independence or absence of near duplicates.
     and one labelled random-weight GPU prediction with cleanup.
 15. [x] **Experiment notebook (`024`).** Added bounded learning checks, guarded
     single-stage execution, and validation-only result displays.
-16. [ ] **Controlled AAD runs (`025`).** Run the frozen screen, baselines,
-    published topology, and ablations; select from validation only.
-17. [ ] **Selected-model training (`026`).** Confirm the selected architecture
-    and validated input/regularisation choices across both seeds.
-18. [ ] **Final AAD evaluation (`027`).** Open test once for the frozen
-    checkpoint and export complete metrics plus prediction examples.
-19. [ ] **VDD and evidence (`028–029`).** Validate generalisation, then export
-    paper-ready aggregate tables and figures.
-20. [ ] **Manuscript alignment (`030–031`).** Rewrite results and align all
-    affected claims only from versioned evidence.
-21. [ ] **Kinetics transfer decision (`032`, conditional).** Consider an exact
-    pretraining/transfer protocol only if frozen AAD/VDD evidence remains weak.
-22. [ ] **Stateful streaming (`033`, later).** Carry custom ConvLSTM state across
-    video chunks and predict after each chunk without altering `PaperConvLSTM`.
+16. [x] **Separate AAD search and comparison (`058`).** The active profiles
+    below now search custom ConvLSTM architectures first, then compare the
+    selected model with fixed settings.
+17. [x] **Retire VDD-only workflow (`059`).** VDD remains optional through
+    generic JSON dataset selection; its historical outputs are preserved.
+18. [x] **Align dataset documentation (`060`).** These guides now describe the
+    AAD-first two-stage study and distinguish old diagnostics.
+19. [ ] **Colab runner and artifact download (`061`).** Simplify notebooks to
+    run the modular profiles and save artifacts locally.
+20. [ ] **Analyze verified results (`053–054`).** Prepare paper tables and
+    figures only after the new AAD runs are complete and reviewed.
+21. [ ] **Final training/evaluation (`026–027`).** Confirm the selected model
+    across seeds, then open the locked test set once.
+22. [ ] **Optional VDD generalization (`028`).** Consider separately after AAD
+    results only if a cross-dataset study is needed; it is not active now.
+23. [ ] **Kinetics transfer (`032`, conditional).** Consider only if justified
+    by verified AAD evidence and a separate transfer protocol.
 
 Generated datasets, environments, checkpoints, and experiment runs remain
 untracked. New command artifacts live under
@@ -616,8 +639,9 @@ Train the configured custom reference. This starts expensive training:
 Output: `runs/train/<run>/`. Training restores the lowest-validation-loss
 checkpoint and never opens the test split.
 
-Legacy multi-file plan commands below are retained for old notebook workflows;
-new paper runs should use the single-JSON staged command above.
+The older multi-file plan commands below remain available to the legacy notebook
+workflow only. Use the three active single-JSON profiles above for the current
+paper study; they all share `src.experiments --config <json>`.
 
 Run legacy practical-baseline confirmation only after replacing `REFERENCE` with the
 validation-selected custom candidate. This runs both confirmation seeds and

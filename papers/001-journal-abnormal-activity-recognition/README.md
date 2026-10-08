@@ -22,7 +22,7 @@ reference architecture for ablation.
 1. Search custom ConvLSTM architectures from a flat `[16, 16, 16]` reference,
    changing one depth/width factor at a time.
 2. Compare the selected custom model against the faithful paper model, practical
-   3D CNNs, and two video transformers if both are practical to train.
+   3D CNNs, and two video transformers under the same input and training settings.
 3. Use dataset and input settings from JSON; derive all class labels from data.
    Select on validation, confirm shortlisted models across seeds, and keep test
    data locked until the comparison is frozen.
@@ -31,9 +31,9 @@ reference architecture for ablation.
 ## Next tasks
 
 - [x] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
-- [ ] [058 simplify custom search and model-family comparison configs](../../agents/work/058-separate-search-and-comparison/prompt.md) — two study profiles on the same runner, plus one local smoke profile.
-- [ ] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — keep VDD selectable in JSON and preserve old runs.
-- [ ] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
+- [x] [058 separate custom search and model-family comparison](../../agents/work/058-separate-search-and-comparison/prompt.md) — two AAD profiles and one local smoke profile on the same runner.
+- [x] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — VDD remains optional through generic dataset configuration; old runs are preserved.
+- [x] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
 - [ ] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md)
 - [ ] [062 update manuscript after verified AAD results](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — do not execute before the new study is complete.
 
@@ -85,9 +85,8 @@ After final results, prepare a small Gradio demo for presentation.
   random-weight GPU check.
 - [x] `024-notebook-experiment-workflow` — added guarded single-stage execution
   and visual validation-only result inspection to the Colab notebook.
-- [ ] `035-vdd-learnability-check` — **Blocked diagnostic:** verify that the current
-  model and optimizer can overfit a tiny balanced VDD subset, then run one
-  bounded VDD train/validation check before resuming expensive AAD experiments.
+- [x] `035-vdd-learnability-check` — retired by ticket 059; VDD is optional and
+  uses the generic dataset pipeline, not a VDD-specific diagnostic.
 - [ ] `036-kinetics-subset-audit` — inventory the available Kinetics copy and
   propose a small relevant class subset and resource budget; do not train yet.
 - [x] `037-modular-colab-notebooks` — split routine Colab work into independent
@@ -108,8 +107,8 @@ After final results, prepare a small Gradio demo for presentation.
   input size, augmentation, and regularisation across both planned seeds.
 - [ ] `027-evaluate-selected-model` — blocked until 026 freezes the checkpoint; perform the one-time final AAD test and
   export complete metrics, confusion output, and playable prediction examples.
-- [ ] `028-validate-second-dataset` — define and run the frozen VDD
-  generalisation protocol without changing the selected AAD model.
+- [ ] `028-validate-second-dataset` — optional future VDD generalisation study
+  after AAD model selection; not part of the active experiment sequence.
 - [ ] `029-aggregate-ablation-evidence` — tracked by 053/054; produce paper-ready tables, figures,
   uncertainty, efficiency comparisons, and error-analysis inputs.
 - [ ] `030-rewrite-experimental-results` — tracked by 054; revise the experiment and discussion
@@ -126,8 +125,11 @@ After final results, prepare a small Gradio demo for presentation.
 
 1. Experimental Setup
 2. Comparison and Ablation Protocol
-3. Main Comparative Results (AAD, then VDD)
+3. Main Comparative Results (AAD)
 4. Ablation Studies
 5. Error Analysis
 6. Efficiency and Deployment Trade-offs
 7. Discussion and Limitations
+
+VDD may be used for a separate, explicitly configured generalisation study;
+its historical runs are preserved but are not new comparable evidence.
