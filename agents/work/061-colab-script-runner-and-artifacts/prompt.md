@@ -7,10 +7,12 @@
 - Changes:
   - Keep the notebook as the source of truth and make it a thin orchestrator for dataset resolution, GPU/runtime check, custom search, model comparison, and result summaries; do not duplicate training logic.
   - Ensure the exported Python script follows the same stages and can run as one Colab UI cell with back execution; use the JSON configs as the only experiment settings source.
+  - Migrate active notebook/helper references from superseded AAD experiment configs to the three profiles established by ticket 058, then remove only the obsolete AAD experiment JSON files with no remaining code or documentation references. Preserve unrelated dataset diagnostics and all run artifacts.
   - Remove the project-imposed wall-clock cutoff. Preserve progress and completed run artifacts at stage boundaries and provide one final ZIP download to the local computer.
   - State clearly that Colab can still terminate a runtime externally; do not promise an end-of-run download after forced termination.
 - Acceptance criteria:
   - Notebook and exported script invoke the same modular commands and config files.
+  - The active AAD experiment workflow has one local smoke profile and two Colab profiles; obsolete AAD config JSONs are removed only after references are migrated, with no dangling paths.
   - AAD is resolved/downloaded by the existing tokenless public-data path when absent; no manual dataset upload is required.
   - Successful completion packages metrics, histories, configs, checkpoints, confusion matrices, and prediction videos from the current run for download.
   - A short notebook/script smoke path runs without launching the full study.
