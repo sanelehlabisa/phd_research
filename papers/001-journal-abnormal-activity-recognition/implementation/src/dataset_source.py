@@ -100,9 +100,10 @@ def resolve_dataset(
         downloaded_path = Path(kagglehub.dataset_download(AAD_KAGGLE_HANDLE))
     except Exception as error:
         raise RuntimeError(
-            "Could not download AAD from Kaggle. Check that the dataset is "
-            "accessible and configure Kaggle access with a Colab secret named "
-            "KAGGLE_API_TOKEN, ~/.kaggle/access_token, or ~/.kaggle/kaggle.json. "
+            "Could not download the public AAD dataset through KaggleHub. "
+            "This download does not require a Kaggle token. Check the internet "
+            "connection and that the public dataset is available; Kaggle may "
+            "require accepting dataset terms in a browser. "
             f"Details: {error}"
         ) from error
 

@@ -30,6 +30,7 @@ from torch.utils.data import Dataset, Subset
 from torchvision.transforms import InterpolationMode
 from torchvision.transforms import functional as transform_functional
 
+from .dataset_source import resolve_dataset
 from .utils import (
     TARGET_FPS,
     read_video_torchvision,
@@ -724,11 +725,9 @@ def load_split_subsets(
     )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--dataset_dir", type=str, default="datasets/raw/abnormal_activities"
-    )
+    parser.add_argument("--dataset_dir", type=str)
     parser.add_argument("--sequence_length", type=int, default=32)
     parser.add_argument("--height", type=int, default=64)
     parser.add_argument("--width", type=int, default=64)
@@ -741,7 +740,14 @@ def main() -> None:
         action="store_true",
         help="Save a paired online-augmented preview beside each clean clip",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    args.dataset_dir = str(
+        resolve_dataset(
+            "aad",
+            args.dataset_dir,
+            Path(__file__).resolve().parent.parent,
+        )
+    )
     seed_everything(args.seed)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

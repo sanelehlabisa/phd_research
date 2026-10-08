@@ -59,15 +59,16 @@ Runner configs are grouped under `configs/model/`, `configs/train/`,
 `configs/evaluate/`, and `configs/experiments/`.
 
 AAD configs include a dataset name and optional local path. To reuse the local
-copy or download it from Kaggle when missing, run:
+copy or download the public Kaggle copy when missing, run:
 
 ```bash
 .venv/bin/python -m src.dataset_source --config configs/train/aad_screening_reference.json
 ```
 
-If a download is needed, configure Kaggle authentication in the runtime; never
-put credentials in a config or the repository. Dataset files stay local and
-are ignored by Git. Notebook diagnostics still default to Kinetics-600; set
+Public AAD downloads use KaggleHub without a token. If a download fails, check
+the runtime's internet connection and dataset availability; Kaggle may require
+accepting terms in a browser. Dataset files stay local and are ignored by Git.
+Notebook diagnostics still default to Kinetics-600; set
 `SELECTED_DIAGNOSTIC_DATASET = "aad"` in `notebooks/utils/config.py` to use the
 same resolver there.
 
