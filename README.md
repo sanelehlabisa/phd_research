@@ -26,7 +26,8 @@ prediction examples. Ticket 052 implements a single-JSON AAD comparison with
 seven models and validation-selected one-factor trials; full runs remain pending. Gradio deployment
 is planned after final model selection and results.
 
-Next: ticket 053 runs/analyses the current AAD study, then 026 trains/freezes the
+Next: ticket 053 runs/analyses the full AAD study after the 056 local smoke
+check; 026 trains/freezes the
 selection and 027 evaluates it. Ticket 054 updates Paper 001 from verified results;
 no test evaluation or manuscript result claims precede those prerequisites.
 

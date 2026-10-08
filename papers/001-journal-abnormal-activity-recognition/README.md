@@ -30,6 +30,7 @@ reference architecture for ablation.
 
 ## Next tasks
 
+- [x] [056 local AAD experiment smoke](../../agents/work/056-local-aad-experiment-smoke/prompt.md) — added two flat profiles: a 2-run tiny local check and a 32-run, 16-epoch A100 screen; see the implementation README.
 - [x] [055 Colab final-training/test preparation](../../agents/work/055-colab-final-training-evaluation/prompt.md) adds notebook 05 plus a Python export; 202 CPU tests passed. Actual 026/027 runs follow 053.
 
 - [ ] [053 run and analyse AAD experiments](../../agents/work/053-run-and-analyse-aad-experiments/prompt.md) — current study; validation-only evidence required before 026, then 027.

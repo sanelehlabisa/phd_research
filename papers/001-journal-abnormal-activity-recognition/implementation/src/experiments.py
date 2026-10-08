@@ -103,7 +103,7 @@ parser.add_argument("--plan-config", type=Path)
 parser.add_argument(
     "--study-config",
     type=Path,
-    help="Single-JSON staged AAD study; --list-plan performs no training",
+    help="Legacy alias for a study JSON (prefer --config); --list-plan does no training",
 )
 parser.add_argument("--list-plan", action="store_true", default=False)
 parser.add_argument(
@@ -667,7 +667,9 @@ def execute_plan_stage(
     runs_dir: str | None,
 ) -> None:
     """Execute one explicitly requested controlled stage as checked leaf runs."""
-    implementation_dir = Path(plan_path).expanduser().resolve().parent.parent
+    implementation_dir = (
+        Path(plan_path).expanduser().resolve().parent.parent.parent
+    )
     commands = build_plan_commands(
         plan_path,
         stage,
@@ -1025,24 +1027,39 @@ def build_experiment_criterion() -> nn.CrossEntropyLoss:
 
 def main(argv: list[str] | None = None) -> Path | None:
     """Resolve configuration and run validation-only model comparisons."""
-    args, experiment_config, candidate_manifest, print_only = _resolved_arguments(
-        vars(parser.parse_args(argv))
-    )
-    if print_only:
-        if getattr(args, "study_config", None) is not None:
-            raise ValueError("use --list-plan with --study-config, not --print-config")
-        print(experiment_config.to_json())
-        return
-    plan_path = getattr(args, "plan_config", None)
-    list_plan = getattr(args, "list_plan", False)
-    plan_stage = getattr(args, "run_plan_stage", None)
-    study_path = getattr(args, "study_config", None)
-    if study_path is not None:
-        from .study_config import load_study, print_study, execute_study
+    raw = vars(parser.parse_args(argv))
+    study_path = raw.get("study_config")
+    if study_path is not None and raw.get("config") is not None:
+        raise ValueError("use one study JSON path, not both --config and --study-config")
+    if study_path is None and raw.get("config") is not None:
+        try:
+            configured = json.loads(raw["config"].read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            configured = None
+        if isinstance(configured, dict) and (
+            configured.get("mode") == "grid"
+            or {
+                "schema_version",
+                "dataset",
+                "models",
+                "custom_candidates",
+                "reference_input",
+                "factors",
+                "training",
+                "seeds",
+                "runs_dir",
+                "max_runs",
+                "published_topology",
+            }
+            <= set(configured)
+        ):
+            study_path = raw["config"]
 
-        # A study has one source of truth; no silently ignored leaf overrides.
-        raw = vars(parser.parse_args(argv))
-        allowed = {"study_config", "list_plan", "list_models"}
+    list_plan = raw.get("list_plan", False)
+    if study_path is not None:
+        from .study_config import execute_study, load_study, print_study
+
+        allowed = {"config", "study_config", "list_plan", "list_models"}
         extras = {
             key
             for key, value in raw.items()
@@ -1050,13 +1067,23 @@ def main(argv: list[str] | None = None) -> Path | None:
         }
         if extras or raw.get("list_models", False):
             raise ValueError(
-                "study-config cannot be combined with leaf/legacy overrides"
+                "study-config cannot be combined with leaf/legacy CLI overrides"
             )
-        study, config, manifest = load_study(study_path)
+        study, study_experiment_config, manifest = load_study(study_path)
         if list_plan:
-            print_study(study_path, study, config)
+            print_study(study_path, study, study_experiment_config)
             return None
-        return execute_study(study_path, study, config, manifest, main)
+        return execute_study(
+            study_path, study, study_experiment_config, manifest, main
+        )
+
+    args, experiment_config, candidate_manifest, print_only = _resolved_arguments(raw)
+    if print_only:
+        print(experiment_config.to_json())
+        return
+    plan_path = getattr(args, "plan_config", None)
+    list_plan = getattr(args, "list_plan", False)
+    plan_stage = getattr(args, "run_plan_stage", None)
     if plan_path is not None:
         if list_plan:
             print_controlled_plan(plan_path)

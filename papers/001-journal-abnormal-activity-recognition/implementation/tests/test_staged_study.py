@@ -16,6 +16,179 @@ CONFIG = (
     Path(__file__).resolve().parents[1]
     / "configs/experiments/aad_staged_experiments.json"
 )
+SMOKE_CONFIG = (
+    Path(__file__).resolve().parents[1]
+    / "configs/experiments/aad_local_smoke.json"
+)
+COLAB_CONFIG = (
+    Path(__file__).resolve().parents[1]
+    / "configs/experiments/aad_colab_a100.json"
+)
+
+
+def test_local_smoke_is_a_two_run_tiny_custom_grid():
+    study, config, _ = study_config.load_study(SMOKE_CONFIG)
+    rows = study_config.study_rows(study, config)
+    assert len(rows) == study["max_runs"] == 2
+    assert len(study["models"]) == 2
+    assert study["profile"] == "local_smoke"
+    assert set(study["models"]) == {"local_tiny_8_4", "local_tiny_4_8"}
+    assert study["frame_sizes"] == [32]
+    assert study["num_frames"] == [8]
+    assert study["data_sizes"] == [[8, 32]]
+    assert study["epoch_values"] == [8]
+    assert study["factors"]["weight_decays"] == [0.0]
+    assert all(row["config"]["epochs"] == 8 for row in rows)
+    assert all(row["config"]["early_stopping_patience"] == 4 for row in rows)
+    assert all(row["config"]["batch_size"] == 8 for row in rows)
+    assert len({row["trial_id"] for row in rows}) == 2
+    assert all(row["partition"] == "validation" for row in rows)
+    assert all(row["test_access"] == "locked" for row in rows)
+
+
+def test_colab_profile_has_four_data_sizes_and_16_epoch_budget():
+    study, config, _ = study_config.load_study(COLAB_CONFIG)
+    rows = study_config.study_rows(study, config)
+    assert study["profile"] == "colab_a100"
+    assert len(rows) == study["max_runs"] == 32
+    assert set(study["models"]) == {
+        "custom_two_layer_32_16",
+        "custom_two_layer_16_32",
+        "custom_depth_32_16_8",
+        "r3d_18",
+    }
+    assert study["frame_sizes"] == [32, 48]
+    assert study["num_frames"] == [8, 16]
+    assert {tuple(size) for size in study["data_sizes"]} == {
+        (8, 32),
+        (16, 32),
+        (8, 48),
+        (16, 48),
+    }
+    assert study["epoch_values"] == [16]
+    assert study["factors"]["weight_decays"] == [0.0, 0.0001]
+    assert {row["config"]["epochs"] for row in rows} == {16}
+    assert all(row["config"]["early_stopping_patience"] == 4 for row in rows)
+    assert all(row["partition"] == "validation" for row in rows)
+    assert all(row["test_access"] == "locked" for row in rows)
+    assert study["seeds"] == [42]
+    assert {row["config"]["height"] for row in rows} == {32, 48}
+    assert {row["config"]["width"] for row in rows} == {32, 48}
+    assert {row["config"]["sequence_length"] for row in rows} == {8, 16}
+    assert {row["config"]["weight_decay"] for row in rows} == {0.0, 0.0001}
+
+
+def test_smoke_selection_is_validation_only_and_requires_one_fixed_split():
+    study, config, manifest = study_config.load_study(SMOKE_CONFIG)
+    rows = study_config.study_rows(study, config)
+    records = []
+    for index, row in enumerate(rows):
+        candidate = next(
+            (item for item in manifest.candidates if item.name == row["model"]),
+            None,
+        )
+        values = dict(row["config"])
+        if candidate is not None:
+            values["convlstm_layers"] = candidate.to_dict()["convlstm_layers"]
+            values["hidden_classifier_width"] = candidate.hidden_classifier_width
+        values = ExperimentConfig.from_mapping(values).to_dict()
+        row["config"] = values
+        records.append(
+            {
+                "name": row["model"],
+                "seed": row["seed"],
+                "partition": "validation",
+                "test_access": "locked",
+                "split": {"manifest_hash": "fixed-split"},
+                "num_params": index + 1,
+                "validation_metrics": {
+                    "accuracy": 0.5 + index / 100,
+                    "loss": 1.0,
+                    "precision": 0.5,
+                    "recall": 0.5,
+                    "f1": 0.5,
+                },
+                "experiment_config": values,
+            }
+        )
+    ranking = study_config.rank_smoke_grid(records, rows)
+    assert ranking[0]["name"] == rows[-1]["trial_id"]
+    records[0]["partition"] = "test"
+    with pytest.raises(ValueError, match="validation-only"):
+        study_config.rank_smoke_grid(records, rows)
+
+
+def test_config_command_lists_smoke_without_training(monkeypatch, capsys):
+    monkeypatch.setattr(
+        experiments,
+        "build_registered_model",
+        lambda *a, **k: pytest.fail("model allocated while listing"),
+    )
+    experiments.main(["--config", str(SMOKE_CONFIG), "--list-plan"])
+    listing = capsys.readouterr().out
+    assert "2 Cartesian configurations" in listing
+    assert "not paper evidence" in listing
+    assert "--config" in listing
+    assert "local_tiny_8_4" in listing
+
+
+def test_smoke_writes_selected_train_config_and_keeps_test_locked(
+    tmp_path, monkeypatch
+):
+    from src import dataset_source
+
+    study_values = json.loads(SMOKE_CONFIG.read_text())
+    study_values["runs_dir"] = str(tmp_path / "runs")
+    config_path = write_json(tmp_path / "smoke.json", study_values)
+    study, config, manifest = study_config.load_study(config_path)
+    monkeypatch.setattr(dataset_source, "resolve_dataset", lambda *a, **k: tmp_path)
+
+    def fake_run(args):
+        config_path = Path(args[args.index("--config") + 1])
+        model_name = args[args.index("--model") + 1]
+        run_dir = tmp_path / f"fake-{len(list(tmp_path.glob('fake-*'))):02d}"
+        run_dir.mkdir()
+        leaf_config = ExperimentConfig.from_json(config_path).to_dict()
+        write_json(
+            run_dir / "summary.json",
+            {
+                "all": [
+                    {
+                        "name": model_name,
+                        "seed": leaf_config["seed"],
+                        "partition": "validation",
+                        "test_access": "locked",
+                        "split": {"manifest_hash": "fixed-split"},
+                        "dataset_dir": str(tmp_path),
+                        "num_params": 100,
+                        "validation_metrics": {
+                            "accuracy": 0.75,
+                            "loss": 0.5,
+                            "precision": 0.75,
+                            "recall": 0.75,
+                            "f1": 0.75,
+                        },
+                        "experiment_config": leaf_config,
+                    }
+                ]
+            },
+        )
+        return run_dir
+
+    result_dir = study_config.execute_study(
+        config_path, study, config, manifest, fake_run
+    )
+    selection = json.loads((result_dir / "selection.json").read_text())
+    selected_config = result_dir / "selected_config.json"
+    assert selection["pipeline_smoke_only"] is True
+    assert selection["selection_partition"] == "validation"
+    assert selection["test_access"] == "locked"
+    assert selection["selected_config"] == str(selected_config)
+    restored = ExperimentConfig.from_json(selected_config)
+    assert restored.sequence_length == 8 and restored.epochs == 8
+    summary = json.loads((result_dir / "summary.json").read_text())
+    assert len(summary["jobs"]) == 2
+    assert all(job["result"]["partition"] == "validation" for job in summary["jobs"])
 
 
 def test_additive_stages_and_fixed_protocol():

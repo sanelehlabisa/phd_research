@@ -76,14 +76,84 @@ The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
 not architecture-equivalent reproductions.
 
-The current AAD study uses one editable JSON:
+The full AAD study remains in one editable JSON:
 [`aad_staged_experiments.json`](configs/experiments/aad_staged_experiments.json).
+The local quick check and Colab A100 screen have separate flat JSON profiles:
+[`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) uses two tiny
+custom models at 32×32 with 8 frames for 8 epochs (2 runs);
+[`aad_colab_a100.json`](configs/experiments/aad_colab_a100.json) uses three
+custom models plus `r3d_18`, `frame_sizes: [32, 48]` crossed with
+`num_frames: [8, 16]`, 16 epochs, early stopping after 4 epochs without
+validation-loss improvement, and two weight-decay values (32 runs). Both use the full AAD dataset
+and fixed split. The local profile is pipeline-only; the A100 screen is
+single-seed preliminary evidence and needs confirmation before paper claims.
+Models and sweep choices are listed at the top level (`models`, `frame_sizes`,
+`num_frames`, `epochs`, `weight_decays`) to make editing straightforward. The
+local profile uses the same four-epoch early-stopping patience.
+
+List and run the local smoke grid with one JSON path:
+
+```bash
+.venv/bin/python -m src.experiments \
+  --config configs/experiments/aad_local_smoke.json \
+  --list-plan
+
+.venv/bin/python -m src.experiments \
+  --config configs/experiments/aad_local_smoke.json
+```
+
+When that succeeds, list and run the longer A100 screen from Colab:
+
+```bash
+.venv/bin/python -m src.experiments \
+  --config configs/experiments/aad_colab_a100.json \
+  --list-plan
+
+.venv/bin/python -m src.experiments \
+  --config configs/experiments/aad_colab_a100.json
+```
+
+Each run saves its configuration, history, checkpoint, validation metrics,
+confusion matrix and prediction examples under `runs/studies/` and
+`runs/experiments/`. `selected_config.json` is the validation-selected training
+configuration. After the A100 screen selects a configuration, retrain a selected custom
+ConvLSTM for longer (replace `<study-run>` with the listed run directory):
+
+```bash
+.venv/bin/python -m src.train \
+  --config runs/studies/<study-run>/selected_config.json \
+  --epochs 128
+```
+
+If `selection.json` names `r3d_18`, use the comparison runner for the longer
+training instead:
+
+```bash
+.venv/bin/python -m src.experiments \
+  --config runs/studies/<study-run>/selected_config.json \
+  --model r3d_18 \
+  --epochs 128
+```
+
+After that training run finishes, set `training_run_dir` in
+`configs/evaluate/aad_evaluation_reference.json` to its printed run directory,
+then evaluate the frozen checkpoint:
+
+```bash
+.venv/bin/python -m src.evaluate \
+  --config configs/evaluate/aad_evaluation_reference.json
+```
+
+Run final test evaluation only after the model/configuration has been selected
+and longer training is complete.
+
+The full study can be listed and run separately:
 List every stage, model, input, weight decay, run count and generated command
 without loading data or allocating models:
 
 ```bash
 .venv/bin/python -m src.experiments \
-  --study-config configs/experiments/aad_staged_experiments.json \
+  --config configs/experiments/aad_staged_experiments.json \
   --list-plan
 ```
 
@@ -92,7 +162,7 @@ Run the complete staged comparison after reviewing the listing:
 ```bash
 # Expensive: 22 model runs, up to 160 epochs each; no wall-clock guarantee.
 .venv/bin/python -m src.experiments \
-  --study-config configs/experiments/aad_staged_experiments.json
+  --config configs/experiments/aad_staged_experiments.json
 ```
 
 The default screen compares three custom stacks, three 3D CNNs and

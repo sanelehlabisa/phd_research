@@ -11,6 +11,7 @@ from src.experiments import (
     build_experiment_criterion,
     build_plan_commands,
     controlled_plan_rows,
+    execute_plan_stage,
     inspect_experiment_run_directories,
     load_controlled_plan,
     main,
@@ -123,6 +124,23 @@ def test_plan_has_one_factor_trials_and_fixed_learning_rate() -> None:
     )
     assert reference.learning_rate == 0.001
     assert reference.epochs == 64
+
+
+def test_plan_stage_runs_from_implementation_root(tmp_path, monkeypatch) -> None:
+    """Child module commands need the implementation root on their import path."""
+    plan_path = _copy_plan_files(tmp_path)
+    implementation_root = plan_path.parents[2]
+    calls = []
+    monkeypatch.setattr(
+        "src.experiments.subprocess.run",
+        lambda command, cwd, check: calls.append((command, cwd, check)),
+    )
+
+    execute_plan_stage(plan_path, "architecture-screen", None, None, None)
+
+    assert calls
+    assert all(cwd == implementation_root for _, cwd, _ in calls)
+    assert all(check for _, _, check in calls)
 
 
 def test_architecture_screen_matches_historical_high_validation_profile() -> None:

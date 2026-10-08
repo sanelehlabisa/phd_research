@@ -33,26 +33,163 @@ def _path(value):
     return str((ROOT / path).resolve() if not path.is_absolute() else path.resolve())
 
 
+def _normalise_grid(study):
+    """Convert a flat JSON grid into the shared internal study representation."""
+    expected = {
+        "schema_version",
+        "mode",
+        "profile",
+        "dataset_name",
+        "dataset_dir",
+        "split_manifest",
+        "runs_dir",
+        "models",
+        "custom_candidates",
+        "frame_sizes",
+        "num_frames",
+        "epochs",
+        "weight_decays",
+        "seed",
+        "batch_size",
+        "early_stopping_patience",
+        "learning_rate",
+        "scheduler",
+        "augment",
+        "num_workers",
+        "pin_memory",
+        "prediction_samples_per_category",
+    }
+    _fields(study, expected, "flat experiment grid")
+    if study["schema_version"] != 1 or study["mode"] != "grid":
+        raise ValueError("flat experiment grid requires schema_version=1 and mode=grid")
+    if study["dataset_name"] != "aad":
+        raise ValueError("flat experiment grids currently support AAD only")
+    if study["profile"] not in {"local_smoke", "colab_a100"}:
+        raise ValueError("profile must be local_smoke or colab_a100")
+    frame_sizes = study["frame_sizes"]
+    num_frames = study["num_frames"]
+    if (
+        not isinstance(frame_sizes, list)
+        or not frame_sizes
+        or any(
+            type(size) is not int or size < 4 or size % 2 for size in frame_sizes
+        )
+        or len(set(frame_sizes)) != len(frame_sizes)
+    ):
+        raise ValueError("frame_sizes must be unique, even integers of at least 4")
+    if (
+        not isinstance(num_frames, list)
+        or not num_frames
+        or any(type(frames) is not int or frames <= 0 for frames in num_frames)
+        or len(set(num_frames)) != len(num_frames)
+    ):
+        raise ValueError("num_frames must be a non-empty list of unique positive integers")
+    data_sizes = [
+        [frames, size] for size in frame_sizes for frames in num_frames
+    ]
+    epochs = study["epochs"]
+    if (
+        not isinstance(epochs, list)
+        or not epochs
+        or any(type(value) is not int or value < 8 for value in epochs)
+        or len(set(epochs)) != len(epochs)
+    ):
+        raise ValueError("epochs must be a non-empty list of unique integers >= 8")
+    if study["profile"] == "colab_a100" and min(epochs) < 16:
+        raise ValueError("colab_a100 epochs must be at least 16")
+    weight_decays = study["weight_decays"]
+    if (
+        not isinstance(weight_decays, list)
+        or not weight_decays
+        or any(
+            type(value) not in (int, float) or not math.isfinite(value) or value < 0
+            for value in weight_decays
+        )
+        or len(set(weight_decays)) != len(weight_decays)
+    ):
+        raise ValueError("weight_decays must be a non-empty list of unique non-negative numbers")
+    seed = study["seed"]
+    if type(seed) is not int or not 0 <= seed < 2**32:
+        raise ValueError("seed must be a non-negative integer")
+    if not isinstance(study["models"], list) or not study["models"]:
+        raise ValueError("models must be a non-empty list")
+
+    first_frames, first_size = data_sizes[0]
+    training = {
+        "epochs": epochs[0],
+        "early_stopping_patience": study["early_stopping_patience"],
+        "batch_size": study["batch_size"],
+        "learning_rate": study["learning_rate"],
+        "scheduler": study["scheduler"],
+        "augment": study["augment"],
+        "num_workers": study["num_workers"],
+        "pin_memory": study["pin_memory"],
+        "prediction_samples_per_category": study[
+            "prediction_samples_per_category"
+        ],
+    }
+    normalised = {
+        "schema_version": 1,
+        "mode": "grid",
+        "profile": study["profile"],
+        "dataset": {
+            "name": "aad",
+            "path": study["dataset_dir"],
+            "split_manifest": study["split_manifest"],
+        },
+        "models": study["models"],
+        "custom_candidates": study["custom_candidates"],
+        "reference_input": {
+            "frame_size": first_size,
+            "sequence_length": first_frames,
+            "weight_decay": weight_decays[0],
+        },
+        "factors": {
+            "frame_sizes": list(dict.fromkeys(size[1] for size in data_sizes)),
+            "sequence_lengths": list(dict.fromkeys(size[0] for size in data_sizes)),
+            "weight_decays": weight_decays,
+        },
+        "training": training,
+        "seeds": [seed],
+        "runs_dir": study["runs_dir"],
+        "max_runs": len(study["models"])
+        * len(data_sizes)
+        * len(epochs)
+        * len(weight_decays),
+        "published_topology": {"enabled": False, "batch_size": 1},
+        "frame_sizes": frame_sizes,
+        "num_frames": num_frames,
+        "data_sizes": data_sizes,
+        "epoch_values": epochs,
+    }
+    return normalised
+
+
 def load_study(path):
     """Validate every dimension and the additive run budget before dataset access."""
     study = json.loads(Path(path).read_text(encoding="utf-8"))
-    _fields(
-        study,
-        {
-            "schema_version",
-            "dataset",
-            "models",
-            "custom_candidates",
-            "reference_input",
-            "factors",
-            "training",
-            "seeds",
-            "runs_dir",
-            "max_runs",
-            "published_topology",
-        },
-        "study",
-    )
+    if isinstance(study, dict) and study.get("mode") == "grid":
+        study = _normalise_grid(study)
+    expected_fields = {
+        "schema_version",
+        "dataset",
+        "models",
+        "custom_candidates",
+        "reference_input",
+        "factors",
+        "training",
+        "seeds",
+        "runs_dir",
+        "max_runs",
+        "published_topology",
+    }
+    if isinstance(study, dict) and "mode" in study:
+        expected_fields.add("mode")
+    if isinstance(study, dict) and study.get("mode") == "grid":
+        expected_fields.update(
+            {"profile", "frame_sizes", "num_frames", "data_sizes", "epoch_values"}
+        )
+    _fields(study, expected_fields, "study")
     if type(study["schema_version"]) is not int or study["schema_version"] != 1:
         raise ValueError("unsupported study schema_version")
     data = study["dataset"]
@@ -88,14 +225,21 @@ def load_study(path):
         )
     if not set(names) <= set(models):
         raise ValueError("every declared custom candidate must be included in models")
+    mode = study.get("mode", "staged")
+    if not isinstance(mode, str) or mode not in {"staged", "grid"}:
+        raise ValueError("unsupported experiment study mode")
     seeds = study["seeds"]
     if (
         not isinstance(seeds, list)
-        or not 2 <= len(seeds) <= 3
+        or not (
+            len(seeds) == 1 if mode == "grid" else 2 <= len(seeds) <= 3
+        )
         or any(type(seed) is not int or not 0 <= seed < 2**32 for seed in seeds)
         or len(set(seeds)) != len(seeds)
     ):
-        raise ValueError("seeds must contain two or three unique non-negative integers")
+        raise ValueError(
+            "grid studies require one seed; staged studies require two or three"
+        )
     training = study["training"]
     _fields(
         training,
@@ -180,15 +324,20 @@ def load_study(path):
 
 
 def study_rows(study, config, winner="VALIDATION_WINNER"):
-    """Expand sums of factors, never their Cartesian product."""
+    """Expand either the explicit smoke grid or the legacy staged plan."""
     rows = []
 
     def row(stage, model, seed, factor, overrides):
         values = {**config.to_dict(), **overrides, "seed": seed}
         resolved = ExperimentConfig.from_mapping(values)
+        trial_id = (
+            f"{model}_f{resolved.height}_t{resolved.sequence_length}_"
+            f"e{resolved.epochs}_wd{resolved.weight_decay:g}"
+        )
         return {
             "stage": stage,
             "model": model,
+            "trial_id": trial_id,
             "seed": seed,
             "changed_factor": factor,
             "config": resolved.to_dict(),
@@ -196,6 +345,28 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
             "test_access": "locked",
         }
 
+    if study.get("mode", "staged") == "grid":
+        for name in study["models"]:
+            for frames, frame_size in study["data_sizes"]:
+                for epochs in study["epoch_values"]:
+                    for weight_decay in study["factors"]["weight_decays"]:
+                        for seed in study["seeds"]:
+                            rows.append(
+                                row(
+                                    "grid",
+                                    name,
+                                    seed,
+                                    "cartesian_grid",
+                                    {
+                                        "height": frame_size,
+                                        "width": frame_size,
+                                        "sequence_length": frames,
+                                        "epochs": epochs,
+                                        "weight_decay": weight_decay,
+                                    },
+                                )
+                            )
+        return rows
     for name in study["models"]:
         for seed in study["seeds"]:
             rows.append(row("screen", name, seed, "architecture", {}))
@@ -235,16 +406,34 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
 def print_study(path, study, config):
     """List all fixed and conditional jobs without allocating a model/dataset."""
     rows = study_rows(study, config)
-    print(f"AAD staged study: {len(rows)} model runs; no Cartesian expansion.")
+    if study.get("mode", "staged") == "grid":
+        label = "local pipeline smoke" if study["profile"] == "local_smoke" else "A100 screening"
+        print(
+            f"AAD {label}: {len(rows)} Cartesian configurations; "
+            + (
+                "not paper evidence."
+                if study["profile"] == "local_smoke"
+                else "single-seed validation screen; confirm before paper claims."
+            )
+        )
+    else:
+        print(f"AAD staged study: {len(rows)} model runs; no Cartesian expansion.")
     print(f"Dataset={config.dataset_dir}; split={config.split_manifest}; split_seed=42")
     print(
         f"Fixed: epochs<={config.epochs}, patience={config.early_stopping_patience}, "
         f"batch={config.batch_size}, lr={config.learning_rate}, scheduler={config.scheduler}"
     )
-    print("Selection: mean validation accuracy, loss, parameters; test remains locked.")
-    print(
-        "Ablations reuse the winner's screen runs as the unchanged reference; no combined factors."
-    )
+    print("Selection: validation accuracy, loss, parameters; test remains locked.")
+    if study.get("mode", "staged") == "grid":
+        if study["profile"] == "local_smoke":
+            print("This short local grid checks the pipeline only.")
+        else:
+            print("The A100 grid ranks candidates using validation only.")
+    else:
+        print(
+            "Ablations reuse the VALIDATION_WINNER screen runs as the unchanged reference; "
+            "no combined factors."
+        )
     print(
         "Command:",
         shlex.join(
@@ -252,7 +441,7 @@ def print_study(path, study, config):
                 sys.executable,
                 "-m",
                 "src.experiments",
-                "--study-config",
+                "--config",
                 str(Path(path).resolve()),
             ]
         ),
@@ -271,14 +460,15 @@ def print_study(path, study, config):
             f"--config <study-run>/jobs/{number:02d}/config.json "
             f"--model {row['model']}{candidate_flag}"
         )
-    print(
-        "Leaf JSON/commands are generated and recorded from this one file at execution; "
-        "VALIDATION_WINNER is resolved only after every screen seed finishes."
-    )
+    print("Leaf JSON/commands are generated and recorded from this one file at execution.")
     print(
         "Native PaperConvLSTM: T=50, 50x50, batch=1, separate/unranked; "
-        f"enabled={study['published_topology']['enabled']} "
-        f"({len(study['seeds'])} additional runs if disabled and later enabled)."
+        f"enabled={study['published_topology']['enabled']}"
+        + (
+            f" ({len(study['seeds'])} additional runs)."
+            if study["published_topology"]["enabled"]
+            else "."
+        )
     )
 
 
@@ -336,6 +526,34 @@ def aggregate_screen(records, models, seeds):
     return rank_validation_results(aggregated)
 
 
+def rank_smoke_grid(records, rows):
+    """Rank each completed smoke configuration using validation data only."""
+    if len(records) != len(rows):
+        raise ValueError("smoke grid must complete every declared configuration")
+    if len({item["split"]["manifest_hash"] for item in records}) != 1:
+        raise ValueError("smoke configurations must use the same fixed split")
+    ranked = []
+    for record, row in zip(records, rows):
+        if record["partition"] != "validation" or record["test_access"] != "locked":
+            raise ValueError("smoke selection requires validation-only evidence")
+        if record["name"] != row["model"] or record["seed"] != row["seed"]:
+            raise ValueError("smoke result does not match its declared configuration")
+        if record["experiment_config"] != row["config"]:
+            raise ValueError("smoke result configuration differs from the grid")
+        ranked.append(
+            {
+                "name": row["trial_id"],
+                "model": row["model"],
+                "partition": "validation",
+                "num_params": record["num_params"],
+                "validation_metrics": record["validation_metrics"],
+                "seed": row["seed"],
+                "experiment_config": row["config"],
+            }
+        )
+    return rank_validation_results(ranked)
+
+
 def execute_study(path, study, config, manifest, run_trial):
     """Execute existing comparison leaves sequentially; never invoke test evaluation."""
     from .dataset_source import resolve_dataset
@@ -349,11 +567,17 @@ def execute_study(path, study, config, manifest, run_trial):
         config.runs_dir,
         purpose="studies",
         dataset_path=root,
-        label="aad-staged",
+        label=(
+            "aad-" + study["profile"]
+            if study.get("mode") == "grid"
+            else "aad-staged"
+        ),
         arguments={"study_file": str(Path(path).resolve()), "study": study},
         metadata={
             "study_sha256": hashlib.sha256(canonical).hexdigest(),
             "test_access": "locked",
+            "pipeline_smoke_only": study.get("mode") == "grid"
+            and study["profile"] == "local_smoke",
         },
     )
     write_json(group.run_dir / "study.json", study)
@@ -431,7 +655,77 @@ def execute_study(path, study, config, manifest, run_trial):
         return entry
 
     rows = study_rows(study, config)
+    is_grid = study.get("mode", "staged") == "grid"
+    if is_grid:
+        for row in rows:
+            row["config"]["dataset_dir"] = str(root)
+            row["config"]["runs_dir"] = config.runs_dir
+            candidate = next(
+                (item for item in manifest.candidates if item.name == row["model"]),
+                None,
+            )
+            if candidate is not None:
+                row["config"] = ExperimentConfig.from_mapping(
+                    {
+                        **row["config"],
+                        "convlstm_layers": candidate.to_dict()["convlstm_layers"],
+                        "hidden_classifier_width": candidate.hidden_classifier_width,
+                    }
+                ).to_dict()
     try:
+        if is_grid:
+            results = [run(row) for row in rows]
+            ranking = rank_smoke_grid(results, rows)
+            winner = ranking[0]
+            selected_row = next(
+                row for row in rows if row["trial_id"] == winner["name"]
+            )
+            selected_values = json.loads(
+                (
+                    group.run_dir
+                    / "jobs"
+                    / f"{rows.index(selected_row) + 1:02d}"
+                    / "config.json"
+                )
+                .read_text(encoding="utf-8")
+            )
+            selected_config_path = write_json(
+                group.run_dir / "selected_config.json", selected_values
+            )
+            smoke_only = study["profile"] == "local_smoke"
+            selection = {
+                "selected_trial": winner["name"],
+                "selected_model": winner["model"],
+                "selection_partition": "validation",
+                "selected_config": str(selected_config_path),
+                "selected_experiment_config": winner["experiment_config"],
+                "ranking": ranking,
+                "test_access": "locked",
+                "pipeline_smoke_only": smoke_only,
+                "note": (
+                    "Local pipeline smoke only; not paper evidence."
+                    if smoke_only
+                    else "Single-seed validation screen; confirm before paper claims."
+                ),
+            }
+            write_json(group.run_dir / "selection.json", selection)
+            summary = {**selection, "jobs": completed}
+            summary_path = write_json(group.run_dir / "summary.json", summary)
+            group.complete(
+                artifacts={
+                    "summary": str(summary_path),
+                    "selection": str(group.run_dir / "selection.json"),
+                    "selected_config": str(selected_config_path),
+                },
+                results={
+                    "selected_model": winner["model"],
+                    "completed_jobs": len(completed),
+                    "test_access": "locked",
+                    "pipeline_smoke_only": smoke_only,
+                },
+            )
+            return group.run_dir
+
         screen = [run(row) for row in rows if row["stage"] == "screen"]
         ranking = aggregate_screen(screen, study["models"], study["seeds"])
         winner = ranking[0]["name"]
