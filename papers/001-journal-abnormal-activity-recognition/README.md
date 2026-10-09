@@ -36,6 +36,7 @@ reference architecture for ablation.
 - [x] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
 - [x] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md) — one-cell notebook/export runs the two active JSON profiles and downloads run artifacts.
 - [ ] [062 update manuscript after verified AAD results](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — do not execute before the new study is complete.
+- [x] [063 prepare PRIS 2026 flash presentation](../../agents/work/063-pris-2026-flash-presentation/prompt.md) — current three-slide deck and speaker notes are ready. Revisit after AAD results to add a verified results visual and useful model/example images.
 
 After final results, prepare a small Gradio demo for presentation.
 
