@@ -1,0 +1,55 @@
+# Task Prompt
+
+- Ticket: `069-staged-capacity-search`
+- Status: Done
+- Aim: Establish a reproducible ConvLSTM capacity/efficiency curve and focused ablations, with representative CNN/transformer references, before final comparison.
+- Scope: Paper 001 AAD study configs, existing runners/models/sampling/cache/reporting helpers, active Colab notebook/export, tests and guides.
+- Decisions:
+  - Planning is complete; implementation requires the execution prompt below. Finish and download the current 068 run first; never alter its running checkout or saved evidence.
+  - New search inputs are capped at 16 frames: reference 8 frames at 16 FPS; temporal ablations use 8/16 frames and 4/8/16 FPS. Full-video stateful processing is a separate follow-up, not part of this ticket.
+  - AAD remains primary. Preserve downloaded `configs/experiments/temp/`, historical profiles/runs, notebook outputs/metadata, manuscript and unrelated work.
+  - All new stages are validation-only. Keep the existing split manifest and test lock. Audit source IDs/duplicate metadata; flag unresolved independence and stop on known cross-split duplication rather than silently changing splits.
+  - Describe the best tested accuracy/efficiency trade-off, not global optimality, guaranteed generalisation, or exhaustive coverage of model families.
+- Changes:
+  - Add one versioned staged-search profile using `src.experiments --config <json>`; extend existing helpers, not separate scripts per experiment. Keep 068 profiles and final-comparison defaults intact.
+  - Common recipe: train from scratch; Adam; no augmentation; weight decay 0 unless ablated; up to 200 epochs, minimum 64 before early stopping, patience 24; checkpoint by minimum validation loss; existing gentle plateau scheduler (factor 0.9, patience 5). Record actual epochs and LR histories; never call early optimization failure a capacity turning point.
+  - Preflight the largest declared tensors and both reference families; choose one memory-safe batch size shared across the new study. Save resource estimates and resolved settings before training. Stagewise resumability replaces any assumption that every job takes two minutes.
+  - LR calibration: at 48x48, 8 frames/16 FPS, seed 42, test `0.001`, `0.003`, `0.01` for `[24,24,24]`, `[64,64,64]`, `r3d_18`, and `swin3d_t` (12 jobs, common training budget). Freeze one custom LR by mean validation accuracy across its two representatives; select each reference model's LR separately. Break ties by lower validation loss, then lower LR. Record the unequal total family-search effort explicitly; this is not best-possible baseline tuning.
+  - Flat search: widths `4, 8, 16, 24, 32, 48, 64`, each with depths `1, 2, 3`, at `32x32`, `48x48`, `64x64`: 21 custom architectures / 63 jobs. Thus `[4]`, `[4,4]`, `[8,8,8]`, `[32,32,32]`, and `[64,64,64]` are explicit candidates. Keep 3x3 kernels and the existing adaptive classifier head.
+  - Reference search: add existing `r3d_18` and `swin3d_t`, `weights=None`, at the same three resolutions (6 jobs). Preserve their topology; report them separately, never as members of the custom top three. Label low-resolution/from-scratch findings accordingly.
+  - Focused refinement: let `w` be the best three-layer flat width across resolutions and `h=max(4,w/2)`. Add `[w,w,w,w]`, `[h,w,w]`, `[w,h,w]`, `[w,w,h]`, plus fixed controls `[32,16]` and `[16,32,16]`; deduplicate identical architectures. Run each at all three resolutions (at most 18 new jobs). Keep all earlier candidates eligible; do not discard strong shallow models.
+  - Ranking: use equal-weight mean validation accuracy over all three resolutions, then mean loss, parameters and stable name. Require complete evidence and expose every resolution's score/rank and worst-case score. Flag a best width at the search boundary; do not expand the grid automatically or manufacture a peak.
+  - Confirmation: provisionally shortlist the best three distinct custom architectures; repeat them and both reference models with model seed 2026 at all three resolutions. Also repeat `[w,w,w]` and its immediate narrower/wider flat neighbours, when present; deduplicate overlaps (at most 24 new jobs). Keep split seed 42 fixed. Reorder only the declared custom shortlist using both model seeds and all resolutions equally; peak/neighbour runs are sensitivity evidence. Report both seeds and mean/sample SD, not resolution variation as seed uncertainty.
+  - Weight decay: on the three confirmed custom architectures, test `0`, `1e-4`, `1e-3` at every resolution, seed 42 and reference temporal input (18 additional jobs after reusing matching zero-decay results). No frame/FPS changes in this ablation.
+  - Temporal ablation: on those three custom architectures plus both references, use fixed 48x48, seed 42, weight decay 0. Against 8 frames/16 FPS, test 8 frames/8 FPS, 8 frames/4 FPS and 16 frames/16 FPS (15 additional jobs). Do not combine individually winning factors without a separately verified run. Limit temporal conclusions to these tested settings.
+  - Implement opt-in, versioned timestamp-based resampling for the new profile, with fixed target FPS within a run. Use deterministic clip start, repeat-last padding for short inputs, record source/target FPS, selected timestamps, unique frames, temporal coverage and padding fraction. Define low-source-FPS/variable-rate handling; never label duplicates as additional temporal information. Keep legacy sampling unchanged and include sampling version/FPS/frame count/resolution/split in cache and receipt identities.
+  - Save a deterministic resolved manifest and stage dependencies: an upper budget of 156 jobs (12 calibration + 63 flat + 6 reference + 18 refinement + 24 confirmation + 18 new WD + 15 new temporal), reduced by deduplication/exact-config reuse. Reuse only complete, checksum-verified, identical-protocol evidence; never pool 068's 128-epoch/legacy-sampler scores into the new ranking. Missing/failed/non-finite jobs remain visible and block dependent selection, without automatic rescue tuning or silent omissions.
+  - Fix result reporting in the shared experiment runner: remove console `Top 5`/five-row truncation. A single-job leaf prints its result; stage/study summaries print all completed configurations and separate failed/pending entries. Save full ranked JSON/CSV and a readable Markdown summary, with filters/depth, resolution, frames/FPS, WD/LR, seed, metrics, parameters and status. Keep top-three selection separate from full reporting; preserve legacy artifact readability.
+  - Export validation loss/accuracy, explicitly micro and macro precision/recall/F1, balanced accuracy, per-class metrics, confusion matrices and complete prediction records. Add width/depth-by-resolution curves, accuracy-versus-parameter/runtime plots, histories, actual/selected epochs and both-seed summaries; do not silently relabel existing micro metrics.
+  - Record trainable/total parameters, weight-only bytes versus checkpoint bytes, training duration, and measured inference latency/throughput/peak GPU memory under documented common batch/input/hardware conditions. Use warm-up and device synchronization; separate model-only timing from decoding. Report unavailable measurements honestly on CPU.
+  - Preserve incremental config/history/checkpoint receipts and bounded train/validation cache reuse; never decode/cache test clips. Keep one selected checkpoint per run, not every epoch. Package all completed/partial evidence and selections into verified ZIPs at stage boundaries; retain independent retry-download without training/testing and exclude datasets/caches.
+  - Export the confirmed custom top three with exact layers/heads, split/config/code hashes, both-seed evidence and separate ablation recommendations. Keep the existing eight-model final comparison, its 50-frame/256-epoch protocol and frozen-test gate unchanged. Any compatibility adapter must preserve these safeguards and must not trigger comparison automatically; final comparison execution/protocol review is later work.
+  - Keep active notebook/export parity and saved outputs intact. Document stages, exact/max job counts, runtime/disk caveats, ranking/uncertainty limits and that the 16-frame cap applies to this new search, not the untouched legacy final comparison.
+- Acceptance criteria:
+  - The dry-run plan includes all 21 flat architectures and two separate reference models at all three resolutions; dependent refinement/confirmation/ablation counts and exclusions are deterministic and bounded.
+  - One-/two-layer models can win selection. All eligible custom architectures use the same declared recipe; no incomplete candidate or old-protocol score enters the ranking.
+  - FPS and frame-count ablations change only their named factor, stay at or below 16 frames, and preserve deterministic sampling/cache isolation and test locks.
+  - Every result is visible beyond five rows, including poor performers and incomplete status. Tables, metrics and selected checkpoints reconcile to saved receipts; no unsupported optimality claim appears.
+  - Existing 068 workflow, final-comparison/test guards, archived runs, downloaded configs and saved notebook outputs remain intact. Local verification establishes pipeline correctness, not real AAD/A100 performance.
+- Out of scope: Real Colab training/testing, stateful/full-video training or inference, automatic grid expansion, new datasets/resplits, pretrained-baseline experiments, final-comparison recipe changes, manuscript claims, Drive integration, commit/push.
+- Open questions: None; the user delegated bounded defaults and confirmed the maximum-16-frame search and separate stateful follow-up.
+- Verification:
+  - Unit tests for exact stage counts, shallow/deep shapes, refinement deduplication, deterministic LR/ranking/seed decisions, invalid/missing evidence and compatible top-three handoff.
+  - Synthetic fixed/variable-FPS, short/long and low-FPS clips: sample timestamps, padding, temporal coverage, legacy behaviour, cache invalidation and no test decoding.
+  - Regression with more than five candidates: full console/JSON/CSV/Markdown coverage, separate failures/pending entries and unchanged top-three selection rules.
+  - Recompute macro/micro/per-class metrics and seed summaries; verify timing definitions, provenance and every ZIP inventory, including handled interruption and download-only retry.
+  - Tiny synthetic end-to-end staged run, CPU model/reference shape checks, legacy 068/final-test guard tests, full relevant CPU suite, notebook/export and saved-output checks, `git diff --check`.
+
+## Execution Prompt
+
+Complete ticket `069-staged-capacity-search`. Follow this approved prompt,
+`AGENTS.md`, `agents/rules.md` and `agents/config.md`. Implement and verify the
+staged validation-only search, including shallow models and full-result reporting.
+Preserve existing runs, downloaded configs, saved notebook outputs and the final
+comparison/test safeguards. Update status and create `completion.md` from
+`agents/templates/completion.md`. Do not run real Colab experiments or commit/push.

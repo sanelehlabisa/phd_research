@@ -10,12 +10,27 @@ hyperparameter grid.
 implements 12 architectures at three resolutions (36 jobs, 128-epoch cap),
 then the top three plus five baselines (eight jobs, 256-epoch cap).
 Both stages use seed 42 only; test follows a validation-based freeze.
-Real Colab execution and results review are still pending; old outputs are preserved.
+The [October 9 review](reports/2026-10-09-multiresolution-search-review.md) verifies
+all 36 search jobs; comparison/test execution is still pending. `[16,24]` leads
+at 91.46% mean validation accuracy, subject to a source-independence audit.
+Historical outputs are preserved.
 
-AAD is the primary dataset for the active paper study. The AAD notebook first
-runs a cached, validation-only custom ConvLSTM search. A later explicit workflow
-stage uses its saved selection for the fixed model comparison and frozen test
-evaluation. The local profile is only a pipeline check.
+[073 focused shape search and Run All](../../../agents/work/073-focused-shape-search-run-all/prompt.md)
+consolidates 070–072. The owner checked the similarly named videos and confirmed
+independent recordings; `aad_source_review.json` records that attestation against
+the exact split content and dataset inventory. It is not independent evidence of
+subject/scene separation. Exact duplicates or conflicting source IDs still block.
+Imported 068 evidence is intact under ignored `runs/imports/20261009-aad-search-2905fca/`.
+
+The active notebook defaults to automatic search, comparison, frozen test,
+examples and ZIP export. Legacy 068 and 069 profiles remain unchanged.
+Local verification is not a measurement of new AAD accuracy or A100 runtime.
+
+AAD is the primary dataset. Run All completes the cached validation-only search,
+passes its verified top-three selection internally to comparison, freezes every
+checkpoint and the custom example model using validation, then evaluates test.
+No manual stage toggle or directory entry is needed. The local profile is only
+a pipeline check; incomplete or conflicting evidence still stops execution.
 
 VDD remains optional through the same JSON dataset fields as AAD, with a local
 class-folder path and classes discovered from its folders. Preserve historical
@@ -111,15 +126,72 @@ The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
 not architecture-equivalent reproductions.
 
-Use one runner and one JSON path for each active AAD profile:
+### Focused automatic study (073)
+
+Open `aad_experiment_workflow.ipynb` on Colab and choose Run All, or use its
+matching Python export. `WORKFLOW_STAGE = "all"` needs no other control edits.
+After dependency setup, the same workflow can be invoked from the implementation
+directory with:
+
+```bash
+python -c "from notebooks.utils.aad_study import run_full_aad_study; run_full_aad_study('.')"
+```
+
+The **34** predeclared custom architectures contain:
+
+- Flat widths 4/8/16/24/32 at depths 1/2/3, plus the [64,64,64] wide control.
+- Both orientations of two-layer pairs (8,16), (16,24), (16,32).
+- Six non-flat three-layer arrangements using 16/32, plus all six permutations
+  of 8/16/32. This covers all 1/3/13 relative-width patterns for depths 1/2/3.
+
+[32,32,32] and [64,64,64] remain wide controls; no four-layer or 48-wide grid.
+This is an evidence-guided follow-up, not an unbiased or exhaustive search.
+Poor convergence is not proof of a capacity limit.
+
+| Stage | Upper jobs before exact reuse |
+|---|---:|
+| LR calibration | 12 |
+| Flat models at 32/48/64 pixels | 48 |
+| R3D-18 and Swin3D-T references | 6 |
+| Shaped models at all three resolutions | 54 |
+| Two-seed shortlist and flat-neighbour confirmation | 24 |
+| Separate weight-decay ablation | 18 |
+| Separate FPS/frame-count ablation | 15 |
+
+Search: **177 maximum**, cap 128 epochs, minimum 64, patience 24; otherwise
+the 069 common recipe and at-most-16-frame timestamp sampling remain in place.
+Exact correct/total counts break accuracy ties fairly before loss/parameters/name;
+resolutions and model seeds receive equal weight. Old scores are not pooled in.
+
+Final comparison: **eight fresh trainings**, cap 512 epochs, minimum 128,
+patience 32, fixed 50 frames at 50x50, batch 1, seed 42. Caps are not promises
+to finish that many epochs or within eight hours. Test starts only after all
+eight validation-selected checkpoints and the custom example model are frozen.
+All models receive full metrics, including explicitly macro/micro metrics;
+the validation-selected custom model supplies correct/incorrect video examples.
+
+Rerunning Run All verifies and reuses complete matching work. A failed/partial
+test attempt never automatically runs again. Stage ZIPs and the final combined
+ZIP retain configs, receipts, histories, checkpoints and reports, not datasets
+or caches. Download-only retry never trains or tests. Save the ZIP before the VM
+is deleted; a browser download request does not prove delivery.
+
+The existing tracked split resolves automatically; changed datasets/assignments
+require a new source review, never a silent resplit. The attestation compares
+canonical JSON content so Windows line endings cannot change its meaning.
+
+Use one runner and one JSON path for each profile:
 
 | Profile | Fixed protocol |
 |---|---|
 | [Local smoke](configs/experiments/aad_local_smoke.json) | One tiny 1-epoch pass; not paper evidence |
+| [Focused search (073)](configs/experiments/aad_shape_search_colab.json) | 34 custom stacks; up to 177 search jobs, 128-epoch cap; automatic notebook default |
+| [Final comparison (073)](configs/experiments/aad_final_comparison_colab.json) | Verified top three plus five baselines; 512-epoch cap, minimum 128, patience 32 |
+| [Capacity search (069)](configs/experiments/aad_capacity_search_colab.json) | Adaptive validation-only stages; at most 156 jobs before dedup/reuse, 200-epoch cap; see below |
 | [Custom search](configs/experiments/aad_custom_search_colab.json) | 12 architectures x 32/48/64 pixels; 8 frames; 36 jobs, up to 128 epochs, patience 16 |
 | [Comparison template](configs/experiments/aad_model_comparison_colab.json) | Top 3 custom + published ConvLSTM + R3D-18/MC3-18 + Swin3D-T/S; eight fresh trainings, 50 frames at 50x50, batch 1; up to 256 epochs, minimum 32, patience 12 |
 
-Both stages use model/split seed 42. Caps are budgets, not guaranteed completed
+The legacy 068 search and comparison use model/split seed 42. Caps are budgets, not guaranteed completed
 epochs. Checkpoints minimise validation loss. Search holds the optimiser,
 LR, weight decay, augmentation and stopping rule fixed; there is no temporal
 sweep, winner-only input check or second-seed confirmation.
@@ -146,16 +218,20 @@ stratification does not establish source-group independence.
 The [active notebook](notebooks/aad_experiment_workflow.ipynb) and matching
 [Python export](notebooks/aad_experiment_workflow.py) support:
 
-- `WORKFLOW_STAGE = "search"` (default): benchmark one common memory-safe batch,
+- `WORKFLOW_STAGE = "all"` (default): focused 073 search, verified handoff, comparison,
+  validation freeze, one-time test/examples and ZIP. No manually supplied paths.
+- `"capacity_search"`: run the staged legacy 069 protocol
+  below, export validation-only top three and ZIP evidence; never run comparison.
+- `"search"`: run the legacy 068 profile; benchmark one common memory-safe batch,
   run the matrix, print the saved `selected_config.json`, then package/download.
 - `"comparison"`: set `SELECTED_CONFIG_PATH` to that saved selection. Train
   eight models once, freeze, test and export the combined results.
 - `"smoke"`: validate/list profiles only; no dataset download or training.
-- `"resume"`: set `RESOLVED_PROFILE_PATH` to a saved resolved search/comparison
+- `"resume"`: set `RESOLVED_PROFILE_PATH` to a saved resolved search/comparison/capacity
   JSON under `runs/notebook_studies/`. Verify saved work and execute pending jobs.
 - `"download"`: set `ARTIFACT_ZIP_PATH`; verify/request download only.
 - `"repackage"`: set `SAVED_STUDY_DIRECTORY`; rebuild the ZIP from saved evidence
-  only, then use `"download"`.
+  only, then use `"download"`. Capacity groups under `runs/studies/` are supported.
 
 Rerunning search/comparison with the same request reuses its saved resolved
 profile. Completed jobs are checksum-verified, not silently retrained/retested.
@@ -173,6 +249,92 @@ Before expensive runs, list the plan or execute the local smoke:
 The comparison template deliberately cannot execute without verified top-three
 evidence. Its resolved JSON supports the same `--list-plan` and execution command.
 Legacy grids and notebook 05 remain for historical workflows, not the active study.
+
+### Staged capacity search (069)
+
+Run from this implementation directory. Set `dataset.path` and, if necessary,
+`dataset.split_manifest` in the new profile to the existing AAD data/split.
+The default split lookup must find the existing seed-42 manifest; execution
+stops instead of silently creating a new split.
+
+```bash
+python -m src.experiments --config configs/experiments/aad_capacity_search_colab.json --list-plan
+python -m src.experiments --config configs/experiments/aad_capacity_search_colab.json
+```
+
+| Stage | Planned jobs before exact-config reuse |
+|---|---:|
+| LR calibration: two custom representatives + R3D-18/Swin3D-T, three LRs | 12 |
+| Flat widths 4/8/16/24/32/48/64, depths 1/2/3, three resolutions | 63 |
+| Two reference models at 32/48/64 pixels | 6 |
+| Best three-layer width: four-layer/half-width variants and two controls | Up to 18 |
+| Shortlist + references + peak/neighbours, seed 2026, three resolutions | Up to 24 |
+| Confirmed custom top three: WD 1e-4/1e-3, three resolutions; WD 0 reused | 18 |
+| Custom top three + references: (8 frames, 8 FPS), (8, 4), (16, 16) | 15 |
+
+Upper budget: **156**, reduced by deduplication and verified exact-config reuse.
+Reference input is 8 frames/16 FPS. Temporal ablations fix 48x48 and WD 0;
+WD ablations fix reference timing. All runs use Adam, no augmentation, up to
+200 epochs, minimum 64 before early stopping, patience 24 and the gentle shared
+plateau schedule (factor 0.9, patience 5). The lowest-validation-loss checkpoint
+is retained. Calibration freezes one custom LR and a separate LR per reference;
+the families receive unequal search effort, not exhaustive baseline tuning.
+
+Before training, the largest four-layer custom stack and both references are
+tested at 16 frames/64x64 to choose one common safe batch. Resolved settings and
+conservative throughput estimates are saved; CPU verification cannot certify
+GPU safety. Runtime varies by architecture/epochs/input; 156 jobs at up to 200
+epochs may take substantially longer than earlier runs. Checkpoint storage and
+temporary ZIP replacement need disk headroom; one selected checkpoint per job
+is kept, not every epoch.
+
+Custom ranking uses equally weighted validation accuracy across all three
+resolutions, then mean loss, parameters and name. Shallow models remain eligible.
+Only the declared top-three shortlist is reordered using both seeds; peak and
+neighbour confirmation is sensitivity evidence. Reports include each seed's
+resolution mean and sample SD across the two seed means (not across resolutions).
+A boundary winner is flagged, never claimed to establish a turning point or
+global optimum. A non-converged run also cannot establish a capacity limit.
+
+`timestamps_v1` starts at the first source timestamp and uses the latest frame
+at or before each target timestamp. Short clips repeat their last frame; low-FPS
+sources repeat without speeding up motion. VFR uses actual timestamps, not a
+fabricated constant source FPS. Per-video audits record coverage, selected
+timestamps, unique frames, padding and duplicate fractions. Repeats are not new
+temporal information. Missing/broken timestamps stop the run. Legacy sampling
+is unchanged; sampler version, FPS, frame count, size and split isolate caches.
+Only train/validation frames are probed/decoded/cached. File hashes and available
+source IDs are audited across the manifest without decoding test videos; known
+cross-split duplicates block training, and missing source grouping stays an
+explicit limitation. Full-video/stateful processing remains out of scope.
+
+Each stage prints **all** completed configurations and failures/pending jobs;
+dependent unresolved stages remain visible. The capacity group saves
+`results.json`, `results.csv`, `results.md`, width/depth and efficiency plots,
+`decisions.json`, two-seed rankings and `ablation_recommendations.json`.
+Leaves retain complete validation predictions, confusion/per-class metrics,
+explicit micro/macro metrics, balanced accuracy, LR histories and checkpoints.
+Model-only inference uses batch 1, three warmups and ten synchronized measured
+forwards at each declared input; hardware/dtype, latency, throughput and CUDA
+peak memory are recorded separately from decode-inclusive training time.
+CPU GPU-memory measurements are unavailable, not zero.
+
+Receipts validate configs, split/code/data identity, metrics and file checksums.
+Complete matching jobs resume without retraining; failed/interrupted jobs or
+changed evidence stop for inspection. Do not delete guards to force a restart.
+Partial/complete stage ZIPs live under `runs/capacity_archives/`; the notebook
+also packages its logs and resolved profile. Retry packaging/download is
+independent of training and testing. Download and verify before deleting a VM.
+
+`selected_config.json` exports exact layers/heads and six source receipts per
+custom model (two seeds x three resolutions), separately from single-factor
+ablation options/recommendations. Recommendations use validation accuracy then
+loss; ties prefer lower WD or the reference temporal input. Both remain
+single-seed evidence, never an inferred combined recipe.
+The selection is accepted by the existing comparison handoff, but does
+not launch comparison or combine ablation winners. **The 16-frame cap applies
+only to 069**: the eight-model, 50-frame/50x50, batch-1, 256-epoch final comparison
+and its frozen-test gate are unchanged; execution/protocol review is later work.
 
 ### Evidence and download
 
@@ -290,13 +452,13 @@ its separate model manifest at
 
 | Notebook | End-to-end workflow |
 |---|---|
-| [AAD experiments](notebooks/aad_experiment_workflow.ipynb) | One Colab cell runs the custom search by default; model comparison is a separate explicit stage using the saved validation selection |
+| [AAD experiments](notebooks/aad_experiment_workflow.ipynb) | Default Run All: focused search, comparison, frozen test, examples and ZIP without manual stage/path handoff |
 | [01 Dataset](notebooks/01_dataset_setup.ipynb) | Split summary; the same training video at native FPS, sampled FPS, then augmented |
 | [02 Model](notebooks/02_model_inspection.ipynb) | Architecture, parameter count, one random-weight prediction, playable labelled video and probabilities |
 | [03 Training](notebooks/03_train_model.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
 | [04 Kinetics diagnostics](notebooks/04_run_experiments.ipynb) | Exploratory temporal audit, small learnability check, diagnostic comparisons and test examples; not current AAD paper evidence |
 
-The active AAD notebook uses the local smoke profile for a no-training
+The legacy manual AAD search uses the local smoke profile for a no-training
 configuration check and runs the custom-search or comparison JSON through
 `src.experiments`. Search first caches sampled clips, checks batch-16 versus
 batch-32 throughput, then applies the measured batch consistently. Set
@@ -755,8 +917,8 @@ Use the three active profiles documented above. Standalone single-model training
 `configs/train/aad_screening_reference.json` and is separate from those study
 profiles.
 
-The standalone profile now reproduces the strongest local exploratory run so
-far: custom `[32, 16, 8]`, 16 frames at `64x64`, batch 32, learning rate `0.002`,
+The standalone profile retains an earlier exploratory run, not the latest search
+winner: custom `[32, 16, 8]`, 16 frames at `64x64`, batch 32, learning rate `0.002`,
 weight decay `0.0001`, and 128 epochs. That run's highest validation accuracy
 was 46.9% at epoch 125; validation loss selected its checkpoint at epoch 122
 (45.0% accuracy). This is a single exploratory result, not a controlled winner

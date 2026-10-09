@@ -1,0 +1,21 @@
+# Completion
+
+- Status: Done
+- Summary: Implemented the focused 1–3-layer search and automatic Colab search/comparison/test/export sequence; consolidated 070–072. No commit/push or real research run.
+- Changes:
+  - Added `aad_shape_search_colab.json`: 34 distinct architectures, all relative width-order patterns, [16,24] retained, two wide controls and no four-layer grid. Three resolutions, 128-epoch cap and 177-job upper bound before reuse.
+  - Added `aad_final_comparison_colab.json`: top three custom models plus five baselines, 512-epoch cap, minimum 128, patience 32; existing comparison inputs and legacy profiles preserved.
+  - Extended existing capacity/ranking/resource helpers with versioned exact-count ranking, equal seed/resolution weights, three-layer memory bounds and compatible legacy selection reconstruction.
+  - Added dataset/split-bound user source attestation; filenames are not inferred source IDs. Exact duplicates and conflicting source metadata still block. Source/subject independence is not claimed as independently verified.
+  - Default notebook/export now run all stages with verified internal paths, checkpoint freeze before test, complete macro/micro comparison metrics, saved best-custom examples and verified ZIP delivery. Resume cannot repeat completed work or partial test attempts.
+  - Moved the imported bundle intact to `implementation/runs/imports/20261009-aad-search-2905fca/`, updated report links and narrowly ignored downloaded temp configs. No evidence deleted or embedded Colab paths rewritten.
+  - Preserved all six notebooks' outputs/metadata and the 068/069 profiles; updated guides and marked 070–072 superseded.
+- Verification:
+  - **96 distinct tests passed across batches:** 87 regression tests passed initially; one obsolete notebook-default assertion was corrected. Final focused run passed 9 tests, including that corrected assertion and 8 ticket-specific cases.
+  - Regression modules: `test_capacity_search`, `test_multisize_study`, `test_colab_aad_workflow`, `test_notebook_workflows`, `test_overall_metrics`, `test_prediction_examples`.
+  - `pytest tests/test_focused_workflow.py tests/test_capacity_search.py::test_notebook_source_matches_export_and_new_entry_is_explicit -q -p no:cacheprovider`: **9 passed** on the final code, including exact ties/seed weighting, source identity/duplicate guards and a full synthetic Run All.
+  - Synthetic workflow completed 170 search jobs after reuse plus 8 comparison trainings and 8 frozen test evaluations, verified the combined ZIP, reused completed work and refused a partially attempted test without repeating training/testing.
+  - `python -m src.experiments --config configs/experiments/aad_shape_search_colab.json --list-plan`: passed; 102 custom architecture/resolution entries and the 177-job upper budget; no downloads/training.
+  - All 738 imported inventory entries retained their SHA256/size; inventory hash unchanged. Six notebook output/metadata snapshots, notebook/export parity and protected legacy/downloaded profile hashes match.
+  - Black checks on 10 touched Python files, documentation links, Git ignore checks and `git diff --check` passed. Tests used CPU, Agg plotting, single-threaded math libraries and isolated temporary directories.
+- Remaining issues: Real AAD/A100 accuracy, runtime and memory are unmeasured for this protocol. The 512-epoch comparison can be expensive and is not an eight-hour guarantee. Source independence is user-attested, not independently established. Changes must be committed/pushed and the notebook freshly opened/exported before Colab can fetch them; HEAD remains `2905fca`.

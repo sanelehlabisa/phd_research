@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-09",
+  "reviewer": "repository owner",
+  "dataset_name": "abnormal-activities-dataset",
+  "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+  "split_manifest_sha256": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+  "split_content_sha256": "0fdd7b3c2ff05a51b53700a536a4a787b2fa63392695284f22bb8dd967184c78",
+  "disposition": "independent_recordings_user_confirmed",
+  "statement": "The user checked the similarly named videos and confirmed they are different recordings, not segments of one recording.",
+  "limitations": "User attestation, not an independent video-content or subject/scene-independence audit. Exact duplicate or conflicting source-ID evidence overrides this attestation."
+}

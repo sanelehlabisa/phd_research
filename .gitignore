@@ -36,3 +36,6 @@ papers/*/implementation/checkpoints/
 papers/*/implementation/outputs/
 papers/*/implementation/runs/
 papers/*/implementation/models/
+
+# Downloaded configuration snapshots; active profiles remain tracked.
+papers/001-journal-abnormal-activity-recognition/implementation/configs/experiments/temp/

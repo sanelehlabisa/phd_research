@@ -164,6 +164,8 @@ class AHARDataset(Dataset):
         transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
         target_fps: int = TARGET_FPS,
         accepted_classes: list[str] | tuple[str, ...] | None = None,
+        sampling_version: str = "legacy",
+        sampling_plans: dict | None = None,
     ) -> None:
         """
         Initializes the dataset and automatically detects the data format.
@@ -184,6 +186,10 @@ class AHARDataset(Dataset):
         self.frame_size = frame_size
         self.transform = transform
         self.target_fps = target_fps
+        if sampling_version not in {"legacy", "timestamps_v1"}:
+            raise ValueError("unsupported sampling_version")
+        self.sampling_version = sampling_version
+        self.sampling_plans = sampling_plans if sampling_plans is not None else {}
 
         available_classes = sorted(
             d.name for d in self.dataset_dir.iterdir() if d.is_dir()
@@ -205,6 +211,8 @@ class AHARDataset(Dataset):
         self.num_classes = len(self.class_names)
 
         self._mode = self._detect_mode()
+        if sampling_version != "legacy" and self._mode != "video":
+            raise ValueError("timestamps_v1 requires original timestamped videos")
 
         self.samples: list[tuple[Path, int]] = []
         for cls in self.class_names:
@@ -293,6 +301,15 @@ class AHARDataset(Dataset):
         Returns:
             video_tensor (torch.Tensor): Processed video tensor of shape (T, C, H, W).
         """
+        if self.sampling_version == "timestamps_v1":
+            from .temporal_sampling import video_plan, load_timestamp_clip
+
+            key = str(path.resolve())
+            if key not in self.sampling_plans:
+                self.sampling_plans[key] = video_plan(
+                    path, self.target_fps, self.sequence_length
+                )
+            return load_timestamp_clip(path, self.sampling_plans[key], self.frame_size)
         video, fps = read_video_torchvision(path)  # (T, H, W, C) uint8
         video = self._sample_frames_tensor(video, fps)  # (T, H, W, C)
         video = video.permute(0, 3, 1, 2).float()  # (T, C, H, W)
@@ -351,6 +368,9 @@ class AHARDataset(Dataset):
             else:
                 video = self._load_video(path)
         except Exception:
+            if self.sampling_version != "legacy":
+                # Never substitute the next clip: it could belong to the test split.
+                raise
             return self.__getitem__((index + 1) % len(self))
 
         if self.transform:
@@ -378,7 +398,11 @@ class CachedAHARDataset(AHARDataset):
         """
         super().__init__(*args, **kwargs)
         self._cache: dict[int, tuple[torch.Tensor, int]] = {}
-        indices = list(range(len(self.samples))) if cache_indices is None else sorted(set(cache_indices))
+        indices = (
+            list(range(len(self.samples)))
+            if cache_indices is None
+            else sorted(set(cache_indices))
+        )
         if any(index < 0 or index >= len(self.samples) for index in indices):
             raise IndexError("cache_indices contains an index outside the dataset")
         print(f"📥 Caching {len(indices)} of {len(self.samples)} clips into RAM...")
@@ -394,7 +418,9 @@ class CachedAHARDataset(AHARDataset):
 
         self.transform = saved_transform  # restore
 
-        mem_gb = sum(v.numel() * v.element_size() for v, _ in self._cache.values()) / 1e9
+        mem_gb = (
+            sum(v.numel() * v.element_size() for v, _ in self._cache.values()) / 1e9
+        )
         print(f"✅ Cached {len(self._cache)} clips - ~{mem_gb:.2f} GB RAM")
 
     def __getitem__(self, index: int):

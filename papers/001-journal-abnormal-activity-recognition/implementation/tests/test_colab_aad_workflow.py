@@ -45,7 +45,8 @@ def test_notebook_and_python_export_have_the_same_runner_cell():
     assert export_source == "# In[ ]:\n" + notebook_source
     compile(notebook_source, str(NOTEBOOK), "exec")
     compile(export_source, str(EXPORT), "exec")
-    assert 'WORKFLOW_STAGE = "search"' in notebook_source
+    assert 'WORKFLOW_STAGE = "all"' in notebook_source
+    assert 'elif WORKFLOW_STAGE == "search"' in notebook_source
     assert 'WORKFLOW_STAGE == "comparison"' in notebook_source
     assert "if bootstrap.returncode == 75" in notebook_source
     assert "raise SystemExit" not in notebook_source
@@ -71,6 +72,22 @@ def test_smoke_path_lists_all_profiles_without_dataset_download_or_training(
     assert len(calls) == 2
     assert all(call[0][-1] == "--list-plan" for call in calls)
     assert "no dataset download or training" in capsys.readouterr().out
+
+
+def test_capacity_smoke_only_lists_plan(monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(
+        aad_study, "_run_command", lambda command, root: calls.append(command)
+    )
+    monkeypatch.setattr(
+        aad_study,
+        "resume_saved_study",
+        lambda *args: pytest.fail("smoke must not train"),
+    )
+    assert aad_study.run_capacity_study(ROOT, run_full_study=False) is None
+    assert len(calls) == 1 and calls[0][-1] == "--list-plan"
+    assert calls[0][-2].endswith("aad_capacity_search_colab.json")
+    assert "no dataset download, decoding or training" in capsys.readouterr().out
 
 
 def test_archive_contains_only_selected_runs_profiles_and_progress(tmp_path):

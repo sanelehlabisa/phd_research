@@ -343,6 +343,9 @@ def main(argv=None) -> Path:
     records_path = write_json(run_dir / "metrics" / "test_predictions.json", records)
     all_true = [record["target"] for record in records]
     all_pred = [record["predicted"] for record in records]
+    from .study_reporting import extended_metrics
+
+    results.update(extended_metrics(all_pred, all_true, num_classes))
     precision, recall, f1, support = precision_recall_fscore_support(
         all_true, all_pred, labels=list(range(num_classes)), zero_division=0
     )

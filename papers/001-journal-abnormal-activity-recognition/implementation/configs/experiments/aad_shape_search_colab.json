@@ -1,0 +1,47 @@
+{
+  "schema_version": 3,
+  "mode": "capacity_search",
+  "dataset": {
+    "name": "aad",
+    "path": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "split_manifest": null
+  },
+  "widths": [
+    4,
+    8,
+    16,
+    24,
+    32
+  ],
+  "depths": [
+    1,
+    2,
+    3
+  ],
+  "frame_sizes": [
+    32,
+    48,
+    64
+  ],
+  "learning_rates": [
+    0.001,
+    0.003,
+    0.01
+  ],
+  "seeds": [
+    42,
+    2026
+  ],
+  "training": {
+    "epochs": 128,
+    "minimum_epochs": 64,
+    "early_stopping_patience": 24,
+    "batch_size": 32,
+    "num_workers": 2,
+    "pin_memory": true,
+    "cache_dataset": true,
+    "prediction_samples_per_category": 0
+  },
+  "runs_dir": "runs",
+  "max_runs": 177
+}

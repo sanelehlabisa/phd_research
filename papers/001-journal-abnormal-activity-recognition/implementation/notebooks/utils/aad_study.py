@@ -16,6 +16,7 @@ PROFILES = (
     ("local smoke", "configs/experiments/aad_local_smoke.json"),
     ("custom search", "configs/experiments/aad_custom_search_colab.json"),
     ("model comparison", "configs/experiments/aad_model_comparison_colab.json"),
+    ("capacity search", "configs/experiments/aad_capacity_search_colab.json"),
 )
 
 
@@ -487,16 +488,72 @@ def run_aad_study(root: str | Path, run_full_study: bool = True) -> Path | None:
 
 
 def _saved_request(root, request):
+    matches = []
     for path in sorted(
         (root / "runs/notebook_studies").glob("*/request.json"), reverse=True
     ):
         values = json.loads(path.read_text(encoding="utf-8"))
         if values["request"] == request:
-            return Path(values["profile"])
-    return None
+            matches.append(Path(values["profile"]))
+    if len(matches) > 1:
+        raise ValueError(
+            "Multiple saved studies match this request; inspect provenance instead of choosing the newest"
+        )
+    return matches[0] if matches else None
 
 
-def resume_saved_study(root, profile_path):
+def run_capacity_study(
+    root,
+    run_full_study=True,
+    *,
+    profile_name="aad_capacity_search_colab.json",
+    download=True,
+    return_group=False,
+):
+    """Ticket 069; new validation-only study, never an automatic comparison."""
+    from src.study_matrix import atomic_json, file_hash
+
+    root = Path(root).expanduser().resolve()
+    profile = root / "configs/experiments" / profile_name
+    _run_command(
+        [
+            sys.executable,
+            "-m",
+            "src.experiments",
+            "--config",
+            str(profile),
+            "--list-plan",
+        ],
+        root,
+    )
+    if not run_full_study:
+        print("Capacity plan checked; no dataset download, decoding or training.")
+        return None
+    request = {"stage": "capacity_search", "profile_sha256": file_hash(profile)}
+    saved = _saved_request(root, request)
+    if saved:
+        return resume_saved_study(
+            root, saved, download=download, return_group=return_group
+        )
+    directory = (
+        root
+        / "runs/notebook_studies"
+        / ("capacity_" + datetime.now().strftime("%Y%m%d_%H%M%S_%f"))
+    )
+    resolved = directory / "resolved_capacity_search.json"
+    # Dataset resolution, split checks and the common-batch preflight are owned
+    # by the runner, equally for CLI and notebook use.
+    atomic_json(resolved, json.loads(profile.read_text(encoding="utf-8")))
+    atomic_json(
+        directory / "request.json", {"request": request, "profile": str(resolved)}
+    )
+    _write_progress(directory / "progress.json", [])
+    return resume_saved_study(
+        root, resolved, download=download, return_group=return_group
+    )
+
+
+def resume_saved_study(root, profile_path, *, download=True, return_group=False):
     """Verify completed jobs and run pending jobs; never redo attempted tests."""
     root = Path(root).expanduser().resolve()
     profile = Path(profile_path).expanduser().resolve()
@@ -555,11 +612,29 @@ def resume_saved_study(root, profile_path):
             created.add(Path(values["selected_config"]).parent)
         _write_progress(progress, records)
         archive = _make_archive(root, directory / "artifacts.zip", progress, created)
-        _download_archive(archive)
+        if download:
+            _download_archive(archive)
+    if return_group:
+        matches = [
+            p
+            for p in created
+            if (p / "run.json").is_file()
+            and json.loads((p / "run.json").read_text(encoding="utf-8"))
+            .get("arguments", {})
+            .get("study_file")
+            == str(profile)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                "Expected exactly one saved study for this resolved profile"
+            )
+        return matches[0]
     return archive
 
 
-def run_saved_comparison(root: str | Path, selected_config_path: str | Path) -> Path:
+def run_saved_comparison(
+    root: str | Path, selected_config_path: str | Path, *, template_path=None
+) -> Path:
     """Compare model families using an already frozen validation selection."""
     implementation_root = Path(root).expanduser().resolve()
     selected_path = Path(selected_config_path).expanduser().resolve()
@@ -568,7 +643,11 @@ def run_saved_comparison(root: str | Path, selected_config_path: str | Path) -> 
     selected = load_selection(selected_path)
     dataset_path = resolve_dataset("aad", selected["dataset_dir"], implementation_root)
     dataset_path = Path(dataset_path).resolve()
-    comparison_template = implementation_root / PROFILES[2][1]
+    comparison_template = (
+        Path(template_path)
+        if template_path is not None
+        else implementation_root / PROFILES[2][1]
+    )
     from src.study_matrix import file_hash, atomic_json
 
     request = {
@@ -668,3 +747,42 @@ def run_saved_comparison(root: str | Path, selected_config_path: str | Path) -> 
         print(f"Comparison archive: {archive}", flush=True)
         _download_archive(archive)
     return archive_path
+
+
+def run_full_aad_study(root):
+    """One call; verified internal handoff, no manually entered stage directories."""
+    from src.study_matrix import load_selection, read_json
+
+    root = Path(root).expanduser().resolve()
+    print(
+        "1/2 Focused search, confirmation and ablations (validation only)", flush=True
+    )
+    group = run_capacity_study(
+        root,
+        profile_name="aad_shape_search_colab.json",
+        download=False,
+        return_group=True,
+    )
+    selection = group / "selected_config.json"
+    selected = load_selection(selection)
+    if selected.get("protocol") != "capacity_top3_v2":
+        raise ValueError(
+            "Automatic final comparison requires the reviewed focused-shape protocol"
+        )
+    audit = read_json(group / "split_audit.json")
+    if (
+        audit["cross_split_file_hashes"]
+        or audit["cross_split_source_ids"]
+        or audit.get("source_review", {}).get("disposition")
+        != "independent_recordings_user_confirmed"
+    ):
+        raise ValueError("Resolve the source audit before automatic final testing")
+    print(
+        "2/2 Eight fresh comparison trainings; validation freeze, test, examples and ZIP",
+        flush=True,
+    )
+    return run_saved_comparison(
+        root,
+        selection,
+        template_path=root / "configs/experiments/aad_final_comparison_colab.json",
+    )

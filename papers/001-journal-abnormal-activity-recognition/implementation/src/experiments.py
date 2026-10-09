@@ -1053,7 +1053,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         except (OSError, json.JSONDecodeError):
             configured = None
         if isinstance(configured, dict) and (
-            configured.get("mode") == "grid"
+            configured.get("mode") in {"grid", "capacity_search"}
             or {
                 "schema_version",
                 "dataset",
@@ -1232,7 +1232,11 @@ def main(argv: list[str] | None = None) -> Path | None:
 
     # ---- Dataset ----
     dataset = AHARDataset(
-        args.dataset_dir, args.sequence_length, (args.width, args.height)
+        args.dataset_dir,
+        args.sequence_length,
+        (args.width, args.height),
+        target_fps=experiment_config.target_fps,
+        sampling_version=experiment_config.sampling_version,
     )
     num_classes = dataset.num_classes
     print(
@@ -1246,6 +1250,18 @@ def main(argv: list[str] | None = None) -> Path | None:
         val_ratio=args.val_ratio,
         seed=args.split_seed,
     )
+    sampling_report_path = None
+    if experiment_config.sampling_version == "timestamps_v1":
+        from .temporal_sampling import prepare_sampling_audit
+
+        partitions = {
+            **{i: "train" for i in train_set.indices},
+            **{i: "validation" for i in val_set.indices},
+        }
+        sampling_report_path = write_json(
+            run_dir / "sampling.json",
+            prepare_sampling_audit(dataset, list(partitions), partitions),
+        )
     cache_report = {"mode": "lazy", "bytes": 0, "test_clips": 0}
     if experiment_config.cache_dataset:
         from .study_cache import cached_training_dataset
@@ -1507,6 +1523,19 @@ def main(argv: list[str] | None = None) -> Path | None:
         )
         all_true = [r["target"] for r in records]
         all_pred = [r["predicted"] for r in records]
+        efficiency = {}
+        if experiment_config.sampling_version == "timestamps_v1":
+            from .study_reporting import extended_metrics
+            from .study_resources import inference_measurement
+
+            selected_validation_metrics.update(
+                extended_metrics(all_pred, all_true, num_classes)
+            )
+            # Exclude optimizer and checkpoint-copy tensors from inference memory.
+            del checkpoint, opt, scheduler
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
+            efficiency = inference_measurement(model, experiment_config, device)
         curves = plot_training_curves(
             [h["training_metrics"]["loss"] for h in history],
             [h["validation_metrics"]["loss"] for h in history],
@@ -1558,6 +1587,19 @@ def main(argv: list[str] | None = None) -> Path | None:
             "model_class": entry["model_class"],
             "role": role,
             "num_params": num_params,
+            "total_parameters": sum(p.numel() for p in model.parameters()),
+            "efficiency": efficiency,
+            "sampling_report": (
+                str(sampling_report_path) if sampling_report_path else None
+            ),
+            "extended_metric_protocol": (
+                {
+                    "macro": "all declared classes, zero division = 0",
+                    "balanced_accuracy": "mean recall over classes with nonzero support",
+                }
+                if experiment_config.sampling_version == "timestamps_v1"
+                else None
+            ),
             "experiment_config": experiment_config.to_dict(),
             "candidate_manifest": candidate_provenance,
             "study_trial": trial_metadata,
@@ -1613,16 +1655,11 @@ def main(argv: list[str] | None = None) -> Path | None:
     }
     write_json(config_path, shared_configuration)
 
-    print("\nTop 5 (validation accuracy, lowest loss, fewest parameters):")
-    print("-" * 70)
-    for r in ranked[:5]:
-        validation_metrics = r["validation_metrics"]
-        print(
-            f"  {r['name']:<30} val_f1={validation_metrics['f1']:.4f}  "
-            f"val_loss={validation_metrics['loss']:.4f}  "
-            f"val_acc={validation_metrics['accuracy']:.4f}  "
-            f"params={r['num_params']:,}"
-        )
+    from .study_reporting import result_row, write_full_table
+
+    write_full_table(
+        run_dir, [result_row(r) for r in ranked], print_rows=len(ranked) > 1
+    )
 
     summary = {
         "experiment_config": experiment_config.to_dict(),

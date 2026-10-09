@@ -425,13 +425,12 @@ def test_notebook_contracts_and_controlled_reference_snapshot():
         assert "requirements.txt" in source
     aad_notebook = root / "notebooks" / "aad_experiment_workflow.ipynb"
     aad_source = json.loads(aad_notebook.read_text(encoding="utf-8"))
-    aad_code = [
-        cell for cell in aad_source["cells"] if cell["cell_type"] == "code"
-    ]
+    aad_code = [cell for cell in aad_source["cells"] if cell["cell_type"] == "code"]
     assert len(aad_code) == 1
     source = "".join(aad_code[0]["source"])
     assert "aad_custom_search_colab.json" in source
     assert "aad_model_comparison_colab.json" in source
     assert "run_aad_study" in source
-    assert 'WORKFLOW_STAGE = "search"' in source
+    assert 'WORKFLOW_STAGE = "all"' in source
+    assert 'elif WORKFLOW_STAGE == "search"' in source
     assert 'WORKFLOW_STAGE == "comparison"' in source

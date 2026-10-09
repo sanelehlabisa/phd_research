@@ -174,6 +174,10 @@ def load_study(path):
     study = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(study, dict) and study.get("mode") == "grid":
         study = _normalise_grid(study)
+    if isinstance(study, dict) and study.get("mode") == "capacity_search":
+        from .capacity_config import load_capacity
+
+        return load_capacity(study)
     expected_fields = {
         "schema_version",
         "dataset",
@@ -538,6 +542,10 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
 
 def print_study(path, study, config):
     """List all fixed and conditional jobs without allocating a model/dataset."""
+    if study.get("mode") == "capacity_search":
+        from .capacity_config import print_capacity_plan
+
+        return print_capacity_plan(study, config)
     rows = study_rows(study, config)
     candidate_names = {candidate["name"] for candidate in study["custom_candidates"]}
     if study.get("mode", "staged") == "grid":
@@ -732,6 +740,10 @@ def rank_smoke_grid(records, rows):
 
 def execute_study(path, study, config, manifest, run_trial, run_evaluation=None):
     """Run validation-only jobs, freeze comparison, then optionally evaluate test."""
+    if study.get("mode") == "capacity_search":
+        from .capacity_search import execute_capacity
+
+        return execute_capacity(path, study, config, manifest, run_trial)
     if study.get("mode") in {"multiresolution", "top3_comparison"}:
         from .study_matrix import execute_matrix
 

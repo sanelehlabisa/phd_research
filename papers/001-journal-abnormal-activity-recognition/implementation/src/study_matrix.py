@@ -6,6 +6,7 @@ No CLI or model implementation lives here. Legacy studies remain readable.
 from __future__ import annotations
 
 import csv
+from fractions import Fraction
 import hashlib
 import json
 import math
@@ -121,7 +122,38 @@ def validate_protocol(study, config):
             raise ValueError("comparison cannot vary input resolution")
 
 
-def rank_resolutions(records, models, sizes, seed=42):
+def validation_accuracy(result, exact=False):
+    """New protocols rank actual counts; legacy selections retain their old rule."""
+    if not exact:
+        return result["validation_metrics"]["accuracy"]
+    matrix = result.get("validation_confusion_matrix", {}).get("matrix")
+    if matrix is not None:
+        if not matrix or any(len(row) != len(matrix) for row in matrix):
+            raise ValueError("invalid validation confusion matrix")
+        if any(type(n) is not int or n < 0 for row in matrix for n in row):
+            raise ValueError("validation counts must be nonnegative integers")
+        total = sum(map(sum, matrix))
+        correct = sum(row[i] for i, row in enumerate(matrix))
+    else:
+        path = result.get("validation_predictions")
+        if not path or not Path(path).is_file():
+            raise ValueError("exact ranking requires validation counts or predictions")
+        records = read_json(path)
+        if any(r.get("partition") != "validation" for r in records):
+            raise ValueError("exact ranking requires validation-only predictions")
+        total = len(records)
+        correct = sum(r["target"] == r["predicted"] for r in records)
+    if total <= 0:
+        raise ValueError("empty validation evidence")
+    accuracy = Fraction(correct, total)
+    if not math.isclose(
+        float(accuracy), result["validation_metrics"]["accuracy"], abs_tol=2e-6
+    ):
+        raise ValueError("validation accuracy differs from exact counts")
+    return accuracy
+
+
+def rank_resolutions(records, models, sizes, seed=42, exact=False):
     expected = {(name, size, seed) for name in models for size in sizes}
     actual = {(r["name"], r["experiment_config"]["height"], r["seed"]) for r in records}
     if actual != expected or len(records) != len(expected):
@@ -166,7 +198,7 @@ def rank_resolutions(records, models, sizes, seed=42):
         entries = sorted(
             [r for r in records if r["experiment_config"]["height"] == size],
             key=lambda r: (
-                -r["validation_metrics"]["accuracy"],
+                -validation_accuracy(r, exact),
                 r["validation_metrics"]["loss"],
                 r["num_params"],
                 r["name"],
@@ -202,8 +234,19 @@ def rank_resolutions(records, models, sizes, seed=42):
         ranking.append(
             {
                 "name": name,
-                "mean_validation_accuracy": statistics.mean(
-                    r["validation_metrics"]["accuracy"] for r in entries
+                "mean_validation_accuracy": float(
+                    statistics.mean(validation_accuracy(r, exact) for r in entries)
+                ),
+                **(
+                    {
+                        "accuracy_fraction": list(
+                            statistics.mean(
+                                validation_accuracy(r, True) for r in entries
+                            ).as_integer_ratio()
+                        )
+                    }
+                    if exact
+                    else {}
                 ),
                 "mean_validation_loss": statistics.mean(
                     r["validation_metrics"]["loss"] for r in entries
@@ -225,7 +268,11 @@ def rank_resolutions(records, models, sizes, seed=42):
     return sorted(
         ranking,
         key=lambda r: (
-            -r["mean_validation_accuracy"],
+            -(
+                Fraction(*r["accuracy_fraction"])
+                if exact
+                else r["mean_validation_accuracy"]
+            ),
             r["mean_validation_loss"],
             r["num_params"],
             r["name"],
@@ -279,6 +326,10 @@ def selection_bundle(study, jobs, group):
 def load_selection(path):
     """Do not accept handwritten winners, incomplete matrices or stale artifacts."""
     selected = read_json(path)
+    if selected.get("protocol") in {"capacity_top3_v1", "capacity_top3_v2"}:
+        from .capacity_search import load_capacity_selection
+
+        return load_capacity_selection(path)
     if selected.get("protocol") != "multiresolution_top3_v1":
         raise ValueError(
             "selected_config requires a complete multi-resolution top-three search"
@@ -336,7 +387,7 @@ def comparison_candidates(study):
 def _validate_leaf(result, row, values, split_hash):
     if (result["name"], result["seed"], result["partition"], result["test_access"]) != (
         row["model"],
-        42,
+        values["seed"],
         "validation",
         "locked",
     ):
@@ -360,7 +411,7 @@ def _validate_leaf(result, row, values, split_hash):
     if sidecar["selected_epoch"] != result["checkpoint_selection"]["selected_epoch"]:
         raise ValueError("checkpoint epoch mismatch")
     if (
-        sidecar.get("seed") != 42
+        sidecar.get("seed") != values["seed"]
         or sidecar.get("model_registry_entry", {}).get("name") != row["model"]
     ):
         raise ValueError("checkpoint model/seed mismatch")
@@ -368,7 +419,7 @@ def _validate_leaf(result, row, values, split_hash):
         raise ValueError("selected checkpoint missing")
 
 
-def _table_row(job, report):
+def _table_row(job, report, extended=False):
     result = job["result"]
     row = {
         "model": result["name"],
@@ -397,6 +448,21 @@ def _table_row(job, report):
         for key in ("loss", "accuracy", "precision", "recall", "f1"):
             label = f"micro_{key}" if key in {"precision", "recall", "f1"} else key
             row[f"{partition}_{label}"] = metrics[key]
+    if extended:
+        from .study_reporting import extended_metrics
+
+        class_count = len(read_json(result["split"]["manifest_path"])["class_names"])
+        for partition, path in (
+            ("validation", result["validation_predictions"]),
+            ("test", report["predictions"]),
+        ):
+            records = read_json(path)
+            metrics = extended_metrics(
+                [r["predicted"] for r in records],
+                [r["target"] for r in records],
+                class_count,
+            )
+            row.update({f"{partition}_{k}": v for k, v in metrics.items()})
     return row
 
 
@@ -604,6 +670,19 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     )
                     raise
             _validate_leaf(result, row, values, split["manifest_hash"])
+            if (
+                study["mode"] == "top3_comparison"
+                and selected.get("protocol") == "capacity_top3_v2"
+            ):
+                actual = result["early_stopping"]["actual_epochs"]
+                if not row["minimum_epochs"] <= actual <= values["epochs"]:
+                    raise ValueError(
+                        "comparison checkpoint does not satisfy the longer-training budget"
+                    )
+                if not 1 <= result["checkpoint_selection"]["selected_epoch"] <= actual:
+                    raise ValueError(
+                        "comparison selected epoch exceeds completed training"
+                    )
             jobs.append(
                 {
                     "run_dir": str(leaf_run),
@@ -621,10 +700,12 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             print(f"Top-three selection: {group / 'selected_config.json'}", flush=True)
         else:
 
+            exact = selected.get("protocol") == "capacity_top3_v2"
+
             def order(j):
                 r = j["result"]
                 return (
-                    -r["validation_metrics"]["accuracy"],
+                    -validation_accuracy(r, exact),
                     r["validation_metrics"]["loss"],
                     r["num_params"],
                     r["name"],
@@ -639,6 +720,15 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "seed": 42,
                 "split_sha256": split["manifest_hash"],
                 "note": NOTE,
+                **(
+                    {
+                        "ranking_version": "exact_counts_v1",
+                        "search_selection_sha256": file_hash(study["selected_config"]),
+                        "source_audit_sha256": selected["source_audit_sha256"],
+                    }
+                    if exact
+                    else {}
+                ),
                 "models": [
                     {
                         "model": j["result"]["name"],
@@ -742,7 +832,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 reports.append(
                     {"model": name, "run_dir": str(evaluation_run), "report": report}
                 )
-                table.append(_table_row(job, report))
+                table.append(_table_row(job, report, extended=exact))
                 state["tests"] = reports
                 atomic_json(group / "progress.json", state)
             summary = {
@@ -761,6 +851,23 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "single_seed_evidence": True,
             }
             atomic_json(group / "comparison.json", summary)
+            if exact:
+                print(
+                    "Final frozen comparison (all models; no test-based selection):",
+                    flush=True,
+                )
+                for record in table:
+                    print(
+                        f"{record['model']}: test accuracy={record['test_accuracy']:.4f}, "
+                        f"macro precision={record['test_macro_precision']:.4f}, "
+                        f"recall={record['test_macro_recall']:.4f}, "
+                        f"F1={record['test_macro_f1']:.4f}, parameters={record['num_params']:,}",
+                        flush=True,
+                    )
+                print(
+                    f"Validation-selected custom examples: {best_custom}; see comparison.json and predictions in the ZIP",
+                    flush=True,
+                )
             with (group / "comparison.csv").open(
                 "w", encoding="utf-8", newline=""
             ) as stream:

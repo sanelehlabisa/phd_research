@@ -200,6 +200,23 @@ def retry_package(root, study_directory):
 
     root = Path(root).expanduser().resolve()
     directory = Path(study_directory).expanduser().resolve()
+    if directory.is_relative_to(root / "runs/studies"):
+        study = directory / "study.json"
+        if (
+            not study.is_file()
+            or json.loads(study.read_text(encoding="utf-8")).get("mode")
+            != "capacity_search"
+        ):
+            raise ValueError(
+                "Direct study repackaging requires a capacity-search group"
+            )
+        return make_archive(
+            root,
+            root / "runs/capacity_archives" / directory.name / "artifacts.zip",
+            directory / "progress.json",
+            {directory},
+            PROFILES,
+        )
     if not directory.is_relative_to(root / "runs" / "notebook_studies"):
         raise ValueError("Specify the saved runs/notebook_studies directory")
     progress = directory / "progress.json"

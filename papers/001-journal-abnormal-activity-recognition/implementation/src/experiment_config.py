@@ -213,6 +213,8 @@ class ExperimentConfig:
     optimizer: str = "adam"
     loss: str = "cross_entropy"
     scheduler: str = "reduce_on_plateau"
+    target_fps: int = 16
+    sampling_version: str = "legacy"
 
     def __post_init__(self) -> None:
         """Validate every field immediately after construction."""
@@ -258,6 +260,10 @@ class ExperimentConfig:
         """Return the complete configuration as JSON-compatible values."""
         values = asdict(self)
         values["convlstm_layers"] = _layers_to_json(self.convlstm_layers)
+        # Keep historical serialized configs/checkpoint provenance unchanged.
+        if self.sampling_version == "legacy" and self.target_fps == 16:
+            values.pop("target_fps")
+            values.pop("sampling_version")
         return values
 
     def to_json(self) -> str:
@@ -275,10 +281,9 @@ class ExperimentConfig:
         """Reject invalid or unsupported experiment settings."""
         for field_name in ("dataset_name", "dataset_dir", "runs_dir"):
             _require_non_empty_string(field_name, getattr(self, field_name))
-        if (
-            self.dataset_name.strip().lower() != "aad"
-            and Path(self.dataset_dir) == Path(DEFAULT_AAD_DATASET_DIR)
-        ):
+        if self.dataset_name.strip().lower() != "aad" and Path(
+            self.dataset_dir
+        ) == Path(DEFAULT_AAD_DATASET_DIR):
             raise ValueError(
                 "dataset_dir must point to the selected local dataset when "
                 "dataset_name is not 'aad'"
@@ -315,6 +320,7 @@ class ExperimentConfig:
             )
 
         positive_integers = (
+            "target_fps",
             "sequence_length",
             "height",
             "width",
@@ -378,6 +384,8 @@ class ExperimentConfig:
                 raise ValueError(f"{field_name} must be {expected}")
         if self.scheduler not in {"none", "reduce_on_plateau"}:
             raise ValueError("scheduler must be none or reduce_on_plateau")
+        if self.sampling_version not in {"legacy", "timestamps_v1"}:
+            raise ValueError("unsupported sampling_version")
 
 
 def _require_non_empty_string(field_name: str, value: object) -> None:

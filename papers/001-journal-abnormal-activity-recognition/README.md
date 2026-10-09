@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: AAD workflow prepared; real search/comparison and results review pending
+- Status: 068 search reviewed; 073 automatic workflow locally verified; real final comparison pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -19,19 +19,26 @@ reference architecture for ablation.
 
 ## Evidence plan
 
-1. Search 12 custom architectures at 32, 48 and 64 pixels (8 frames; 128-epoch cap).
-   Rank using equally weighted validation scores across all three resolutions.
+1. Run 073's validation-only search: 34 flat/shaped custom stacks at depths
+   1/2/3 and 32/48/64 pixels, then confirmation and separate ablations.
+   The new search uses at most 16 frames and a 128-epoch cap; its top three use
+   equal-weight evidence across resolutions and model seeds 42/2026.
 2. Compare the top three against the faithful paper model, two 3D CNNs and two
-   transformers: fixed 50 frames at 50x50, batch 1, up to 256 epochs.
-3. Use seed 42 and one fixed split. Freeze all validation-selected checkpoints
-   and the best custom model before eight full test evaluations.
+   transformers: fixed 50 frames at 50x50, batch 1, up to 512 epochs.
+3. Keep one existing split (seed 42); the final comparison uses one
+   training seed, 42. Freeze all validation-selected checkpoints and the best
+   custom model before eight full test evaluations. Run All passes verified
+   paths automatically. The owner confirmed different recordings behind similar
+   filenames; this does not establish subject/scene independence.
 4. Review the verified ZIP evidence before updating manuscript claims.
-   Single-seed resolution testing does not establish a global optimum,
-   unseen-data generalisation or seed uncertainty.
+   Two search seeds give limited uncertainty evidence, not global optimality or
+   unseen-data generalisation. The legacy 068 search remains available unchanged.
 
 ## Next tasks
 
-- [x] [068 multi-resolution search and top-three comparison](../../agents/work/068-multisize-search-top3-comparison/prompt.md) - implementation and local verification; actual Colab runs remain pending.
+- [x] [073 focused shape search and Run All](../../agents/work/073-focused-shape-search-run-all/prompt.md) - consolidates 070–072; [locally verified](../../agents/work/073-focused-shape-search-run-all/completion.md), with 128-epoch search, 512-epoch comparison, exact ranking and automatic guarded export. Real Colab execution remains pending.
+- [x] [069 staged capacity search](../../agents/work/069-staged-capacity-search/prompt.md) - implemented and locally verified; see [completion](../../agents/work/069-staged-capacity-search/completion.md). Current 068 runs and final-comparison protocol stay intact; actual AAD/A100 runs are separate work.
+- [x] [068 multi-resolution search and top-three comparison](../../agents/work/068-multisize-search-top3-comparison/prompt.md) - implementation verified; [36-run Colab search reviewed](implementation/reports/2026-10-09-multiresolution-search-review.md), comparison/test still pending. Results are clip-level validation evidence, not established source-independent generalization.
 - [x] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
 - [x] [058 separate custom search and model-family comparison](../../agents/work/058-separate-search-and-comparison/prompt.md) — two AAD profiles and one local smoke profile on the same runner.
 - [x] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — VDD remains optional through generic dataset configuration; old runs are preserved.

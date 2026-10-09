@@ -32,10 +32,14 @@ def cached_training_dataset(source, train_indices, validation_indices, split_has
         "frames": source.sequence_length,
         "size": source.frame_size,
         "fps": source.target_fps,
+        "sampling_version": getattr(source, "sampling_version", "legacy"),
         "mode": source._mode,
         "classes": source.class_names,
         "preprocessing_sha256": hashlib.sha256(
             Path(__file__).with_name("dataset.py").read_bytes()
+        ).hexdigest(),
+        "timestamp_sampling_sha256": hashlib.sha256(
+            Path(__file__).with_name("temporal_sampling.py").read_bytes()
         ).hexdigest(),
     }
     key = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
@@ -66,6 +70,8 @@ def cached_training_dataset(source, train_indices, validation_indices, split_has
             source.sequence_length,
             source.frame_size,
             target_fps=source.target_fps,
+            sampling_version=getattr(source, "sampling_version", "legacy"),
+            sampling_plans=getattr(source, "sampling_plans", {}),
             cache_indices=indices,
         )
     dataset = _CACHE[key]

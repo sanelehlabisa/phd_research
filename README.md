@@ -30,9 +30,20 @@ comparison profiles, aligned the guides, and made the Colab notebook a thin
 runner with artifact download. Next, run and review the AAD profiles; manuscript
 changes wait for verified results (062).
 
-Current workflow: [068 multi-resolution search and top-three comparison](agents/work/068-multisize-search-top3-comparison/prompt.md).
-One seed, 36 search jobs, then an eight-model final comparison with guarded
-test evaluation and verified ZIP export. Real Colab execution/results review remain pending.
+Current workflow: [073 focused shape search and Run All](agents/work/073-focused-shape-search-run-all/prompt.md),
+[implemented and locally verified](agents/work/073-focused-shape-search-run-all/completion.md).
+It consolidates 070–072: 34 custom stacks with 1–3 layers, a 128-epoch search cap,
+automatic eight-model comparison with a 512-epoch cap, frozen test and ZIP export.
+The owner reviewed the filename concern; automated duplicate checks stay active.
+Local verification is not evidence of new AAD accuracy or A100 runtime.
+
+[068](agents/work/068-multisize-search-top3-comparison/prompt.md) remains available
+unchanged as a legacy profile, alongside 069's separate 200-epoch search.
+Their explicit comparison entry points are preserved; 073 adds automatic handoff.
+
+The [October 9 search review](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-09-multiresolution-search-review.md)
+verifies 36 completed search jobs, but no comparison/test run. Imported evidence
+stays local under ignored `implementation/runs/imports/`; nothing is silently resplit.
 
 ## Structure
 

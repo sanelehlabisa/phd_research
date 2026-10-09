@@ -5,8 +5,8 @@ import os
 import subprocess
 import sys
 
-WORKFLOW_STAGE = "search"  # search, comparison, smoke, resume, download, repackage
-SELECTED_CONFIG_PATH = None  # Search's selected_config.json, required for comparison.
+WORKFLOW_STAGE = "all"  # Default runs search -> comparison -> frozen test -> examples -> ZIP.
+SELECTED_CONFIG_PATH = None  # Optional manual comparison only; Run All passes this internally.
 RESOLVED_PROFILE_PATH = None  # Saved resolved_*.json; only for explicit resume.
 ARTIFACT_ZIP_PATH = None  # Saved artifacts.zip; only for download retry.
 SAVED_STUDY_DIRECTORY = None  # Saved runs/notebook_studies/<id>; repackage only.
@@ -46,6 +46,15 @@ def run_workflow():
         UTILS / "study_archive.py",
         IMPLEMENTATION_ROOT / "src/study_matrix.py",
         IMPLEMENTATION_ROOT / "src/study_cache.py",
+        IMPLEMENTATION_ROOT / "src/capacity_search.py",
+        IMPLEMENTATION_ROOT / "src/capacity_config.py",
+        IMPLEMENTATION_ROOT / "src/temporal_sampling.py",
+        IMPLEMENTATION_ROOT / "src/study_resources.py",
+        IMPLEMENTATION_ROOT / "src/study_reporting.py",
+        IMPLEMENTATION_ROOT / "configs/experiments/aad_capacity_search_colab.json",
+        IMPLEMENTATION_ROOT / "configs/experiments/aad_shape_search_colab.json",
+        IMPLEMENTATION_ROOT / "configs/experiments/aad_final_comparison_colab.json",
+        IMPLEMENTATION_ROOT / "configs/experiments/aad_source_review.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_local_smoke.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_custom_search_colab.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_model_comparison_colab.json",
@@ -70,7 +79,12 @@ def run_workflow():
         from notebooks.utils.helpers import validate_runtime
         print(validate_runtime(require_cuda=True), flush=True)
         from notebooks.utils.aad_study import run_aad_study, run_saved_comparison, resume_saved_study
-        if WORKFLOW_STAGE == "search":
+        from notebooks.utils.aad_study import run_capacity_study, run_full_aad_study
+        if WORKFLOW_STAGE == "all":
+            artifact_zip = run_full_aad_study(IMPLEMENTATION_ROOT)
+        elif WORKFLOW_STAGE == "capacity_search":
+            artifact_zip = run_capacity_study(IMPLEMENTATION_ROOT)
+        elif WORKFLOW_STAGE == "search":
             artifact_zip = run_aad_study(IMPLEMENTATION_ROOT)
         elif WORKFLOW_STAGE == "comparison":
             if not SELECTED_CONFIG_PATH:
@@ -80,8 +94,9 @@ def run_workflow():
             artifact_zip = resume_saved_study(IMPLEMENTATION_ROOT, RESOLVED_PROFILE_PATH)
         elif WORKFLOW_STAGE == "smoke":
             artifact_zip = run_aad_study(IMPLEMENTATION_ROOT, run_full_study=False)
+            run_capacity_study(IMPLEMENTATION_ROOT, run_full_study=False, profile_name="aad_shape_search_colab.json")
         else:
-            raise ValueError('Choose search, comparison, smoke, resume, download, or repackage.')
+            raise ValueError('Choose all, capacity_search, search, comparison, smoke, resume, download, or repackage.')
         return artifact_zip
 
 
