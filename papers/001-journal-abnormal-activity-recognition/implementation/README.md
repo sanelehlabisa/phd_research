@@ -6,11 +6,10 @@ hyperparameter grid.
 
 ## Current roadmap
 
-AAD is the primary dataset for the active paper study. Run the custom
-ConvLSTM architecture search first, then compare its validation-selected model
-against the published topology and other model families under fixed settings.
-Both stages use `src.experiments --config <json>`; the local profile is only a
-short pipeline check. See the three active profiles and copyable commands below.
+AAD is the primary dataset for the active paper study. The AAD notebook runs a
+custom ConvLSTM search, passes its validation-selected architecture into a fixed
+model comparison, freezes that validation ranking, and only then evaluates the
+comparison checkpoints once on test. The local profile is only a pipeline check.
 
 VDD remains optional through the same JSON dataset fields as AAD, with a local
 class-folder path and classes discovered from its folders. Preserve historical
@@ -110,9 +109,9 @@ Use one runner and one JSON path for each active AAD profile:
 
 | Profile | Purpose | Planned work |
 |---|---|---|
-| [`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) | Tiny local pipeline check | 8 short custom-model jobs; not paper evidence |
-| [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Find a useful custom ConvLSTM and test one factor at a time | 6 custom stacks, two seeds, then input-size/frame-count/weight-decay checks (20 jobs) |
-| [`aad_model_comparison_colab.json`](configs/experiments/aad_model_comparison_colab.json) | Compare selected custom stack with the published model and other families | 6 models, two seeds, same AAD split, 50 frames at 50×50 (12 jobs) |
+| [`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) | Tiny local pipeline check | One 1-epoch, 16×16 custom-model pass; not paper evidence |
+| [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Select a custom architecture and check three factors independently | 8 architectures plus 6 one-factor checks; seed 42; 128-epoch cap, patience 20 (14 jobs) |
+| [`aad_model_comparison_colab.json`](configs/experiments/aad_model_comparison_colab.json) | Compare the selected custom stack with the paper model, 3D CNNs, and transformers | 6 models; seed 42; 50 frames at 50×50; 64-epoch cap, minimum 32 (6 train + 6 test evaluations) |
 
 `aad_colab_a100.json` is a retained legacy grid for historical reproduction;
 the active notebook does not run it.
@@ -122,23 +121,20 @@ List a plan before running it; the same command executes it after review:
 ```bash
 .venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json --list-plan
 .venv/bin/python -m src.experiments --config configs/experiments/aad_custom_search_colab.json --list-plan
-.venv/bin/python -m src.experiments --config configs/experiments/aad_model_comparison_colab.json --list-plan
 ```
 
 ```bash
 .venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json
-.venv/bin/python -m src.experiments --config configs/experiments/aad_custom_search_colab.json
-.venv/bin/python -m src.experiments --config configs/experiments/aad_model_comparison_colab.json
 ```
 
-For the comparison, copy the selected layer list from the custom-search run's
-`selected_config.json` into the `custom_selected` entry in the comparison JSON.
-All other comparison settings stay fixed. The faithful PaperConvLSTM requires
-50 frames at 50×50, so the comparison uses that input for every model and batch
-size 1. It includes `r3d_18`, `mc3_18`, Swin3D-T, and Swin3D-S, all initialized
-without pretrained weights. Results record model family, parameter count,
-runtime, validation loss/accuracy/precision/recall/F1, confusion matrices, and
-per-run provenance. Selection is validation-only; test remains locked.
+The Colab notebook/export is the supported full-study entry point. It writes a
+resolved comparison JSON from the search's `selected_config.json`; do not copy
+or substitute an architecture manually. The comparison uses one fixed AAD split
+and protocol, and includes `r3d_18`, `mc3_18`, Swin3D-T, and Swin3D-S from
+scratch. After all validation scores are frozen, each checkpoint is evaluated
+once on test and gets its own standard metrics and confusion matrix. The best
+validation model's playable examples are saved with its test evaluation. Test
+scores never choose or tune a model.
 
 Each study saves its selection and aggregate table under `runs/studies/`, plus
 the leaf run configs, histories, checkpoints, metrics, confusion matrices, and
@@ -166,10 +162,11 @@ manuscript update is [ticket 054](../../../agents/work/054-update-paper-from-ver
   transform per training sample; it never combines transforms or changes
   dataset length. Validation and test remain clean.
 - Validation-only model and checkpoint selection; test data remains locked.
-- Seeds `42` and `2026` for reported confirmation runs; both reuse the same
-  split created with split seed `42`.
-- Validation-loss early stopping (16-epoch active profile budget, patience `4`)
-  and restoration of the selected checkpoint.
+- Seed `42` is fixed for the active search and comparison and reuses the split
+  created with split seed `42`. This is single-seed evidence; report it as such.
+- Search: up to 128 epochs, validation-loss patience 20. Comparison: up to 64
+  epochs, at least 32 before validation-loss patience 12 can stop a model.
+  Both restore the validation-selected checkpoint.
 - Sample-weighted loss plus full-partition accuracy and micro
   precision/recall/F1, confusion matrix, trainable parameters, runtime, and
   uncertainty across confirmation seeds.

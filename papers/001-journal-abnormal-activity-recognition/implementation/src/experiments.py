@@ -121,6 +121,7 @@ parser.add_argument("--reference-candidate")
 parser.add_argument("--run-label")
 parser.add_argument("--trial-name")
 parser.add_argument("--changed-factor")
+parser.add_argument("--minimum-epochs", type=int, default=argparse.SUPPRESS)
 
 
 def _require_exact_fields(
@@ -1087,14 +1088,27 @@ def main(argv: list[str] | None = None) -> Path | None:
         if list_plan:
             print_study(study_path, study, study_experiment_config)
             return None
+        def evaluate_frozen(config_path):
+            from .evaluate import main as evaluate_main
+
+            return evaluate_main(["--config", str(config_path)])
+
         return execute_study(
-            study_path, study, study_experiment_config, manifest, main
+            study_path,
+            study,
+            study_experiment_config,
+            manifest,
+            main,
+            evaluate_frozen,
         )
 
     args, experiment_config, candidate_manifest, print_only = _resolved_arguments(raw)
     if print_only:
         print(experiment_config.to_json())
         return
+    minimum_epochs = getattr(args, "minimum_epochs", 1)
+    if not 1 <= minimum_epochs <= args.epochs:
+        raise ValueError("--minimum-epochs must be between 1 and --epochs")
     plan_path = getattr(args, "plan_config", None)
     list_plan = getattr(args, "list_plan", False)
     plan_stage = getattr(args, "run_plan_stage", None)
@@ -1288,6 +1302,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             "metric_protocol": metric_protocol(),
             "checkpoint_selection": "lowest_validation_loss",
             "early_stopping_patience": args.early_stopping_patience,
+            "minimum_epochs": minimum_epochs,
             "ranking": ["validation_accuracy", "validation_loss", "parameters"],
             "test_access": "locked",
         },
@@ -1352,7 +1367,8 @@ def main(argv: list[str] | None = None) -> Path | None:
         selected_checkpoint_path = model_dir / "checkpoints" / "best_model.pth"
         t0 = timer()
 
-        for epoch in tqdm(range(args.epochs), leave=False, desc=name):
+        epoch_progress = tqdm(range(args.epochs), leave=False, desc=name)
+        for epoch in epoch_progress:
             epoch_learning_rate = opt.param_groups[0]["lr"]
             training_metrics = train_classifier_epoch(
                 model,
@@ -1381,6 +1397,14 @@ def main(argv: list[str] | None = None) -> Path | None:
                     "selected_checkpoint": selected,
                 }
             )
+            epoch_progress.set_postfix(
+                lr=f"{epoch_learning_rate:.2e}",
+                train_loss=f"{training_metrics['loss']:.3f}",
+                train_acc=f"{training_metrics['accuracy']:.3f}",
+                val_loss=f"{validation_metrics['loss']:.3f}",
+                val_acc=f"{validation_metrics['accuracy']:.3f}",
+                selected=selector.best_epoch,
+            )
             if selected:
                 _save_selected_checkpoint(
                     model,
@@ -1396,7 +1420,7 @@ def main(argv: list[str] | None = None) -> Path | None:
                     experiment_config.to_dict(),
                     candidate_provenance,
                 )
-            if selector.should_stop:
+            if selector.should_stop and epoch + 1 >= minimum_epochs:
                 break
 
         elapsed = timer() - t0

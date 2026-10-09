@@ -6,77 +6,44 @@
     "split_manifest": null
   },
   "models": [
+    "custom_flat_16_16",
     "custom_flat_16_16_16",
-    "custom_depth_16_16",
-    "custom_depth_16_16_16_16",
+    "custom_flat_24_24_24",
+    "custom_flat_32_32_32",
+    "custom_reference_32_16",
     "custom_width_early_32_16_16",
     "custom_width_middle_16_32_16",
     "custom_width_late_16_16_32"
   ],
   "custom_candidates": [
-    {
-      "name": "custom_flat_16_16_16",
-      "research_question": "Reference: how does a flat three-layer 16-filter stack perform?",
-      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [16, [3, 3]]],
-      "hidden_classifier_width": null
-    },
-    {
-      "name": "custom_depth_16_16",
-      "research_question": "Does removing the final layer improve the flat reference?",
-      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]]],
-      "hidden_classifier_width": null
-    },
-    {
-      "name": "custom_depth_16_16_16_16",
-      "research_question": "Does adding one 16-filter layer improve the flat reference?",
-      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [16, [3, 3]], [16, [3, 3]]],
-      "hidden_classifier_width": null
-    },
-    {
-      "name": "custom_width_early_32_16_16",
-      "research_question": "Does widening only the first recurrent layer help?",
-      "convlstm_layers": [[32, [3, 3]], [16, [3, 3]], [16, [3, 3]]],
-      "hidden_classifier_width": null
-    },
-    {
-      "name": "custom_width_middle_16_32_16",
-      "research_question": "Does widening only the middle recurrent layer help?",
-      "convlstm_layers": [[16, [3, 3]], [32, [3, 3]], [16, [3, 3]]],
-      "hidden_classifier_width": null
-    },
-    {
-      "name": "custom_width_late_16_16_32",
-      "research_question": "Does widening only the final recurrent layer help?",
-      "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]],
-      "hidden_classifier_width": null
-    }
+    {"name": "custom_flat_16_16", "research_question": "Does a two-layer 16-filter stack provide a compact baseline?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_flat_16_16_16", "research_question": "Does adding a third 16-filter layer help?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_flat_24_24_24", "research_question": "Does a wider flat three-layer stack help?", "convlstm_layers": [[24, [3, 3]], [24, [3, 3]], [24, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_flat_32_32_32", "research_question": "Does a still wider flat three-layer stack help?", "convlstm_layers": [[32, [3, 3]], [32, [3, 3]], [32, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_reference_32_16", "research_question": "Does the historically promising 32-to-16 stack remain competitive?", "convlstm_layers": [[32, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_width_early_32_16_16", "research_question": "Does widening only the first layer help?", "convlstm_layers": [[32, [3, 3]], [16, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_width_middle_16_32_16", "research_question": "Does widening only the middle layer help?", "convlstm_layers": [[16, [3, 3]], [32, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_width_late_16_16_32", "research_question": "Does widening only the final layer help?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]], "hidden_classifier_width": null}
   ],
-  "reference_input": {
-    "frame_size": 32,
-    "sequence_length": 8,
-    "weight_decay": 0.0001
-  },
+  "reference_input": {"frame_size": 64, "sequence_length": 8, "weight_decay": 0.0},
   "factors": {
-    "frame_sizes": [32, 48],
-    "sequence_lengths": [8, 16],
+    "frame_sizes": [32, 64, 96],
+    "sequence_lengths": [8, 16, 32],
     "weight_decays": [0.0, 0.0001, 0.001]
   },
   "training": {
-    "epochs": 16,
-    "early_stopping_patience": 4,
+    "epochs": 128,
+    "early_stopping_patience": 20,
     "batch_size": 16,
-    "learning_rate": 0.001,
+    "learning_rate": 0.01,
     "scheduler": "reduce_on_plateau",
     "augment": false,
     "num_workers": 2,
     "pin_memory": true,
     "prediction_samples_per_category": 1
   },
-  "seeds": [42, 2026],
+  "seeds": [42],
   "runs_dir": "runs",
-  "max_runs": 20,
-  "published_topology": {
-    "enabled": false,
-    "batch_size": 1
-  }
+  "max_runs": 14,
+  "published_topology": {"enabled": false, "batch_size": 1}
 }

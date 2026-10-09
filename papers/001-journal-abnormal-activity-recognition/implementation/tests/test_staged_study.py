@@ -34,30 +34,66 @@ MODEL_COMPARISON_CONFIG = (
 )
 
 
+def resolved_comparison_config(tmp_path):
+    """Build a comparison config from explicit validation-search evidence."""
+    selected = {
+        "candidate": {
+            "name": "custom_width_late_16_16_32",
+            "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]],
+            "hidden_classifier_width": None,
+        },
+        "input": {"sequence_length": 8, "height": 64, "width": 64},
+        "seed": 42,
+        "validation_metrics": {"accuracy": 0.8, "loss": 0.5},
+        "num_params": 1000,
+        "source_run": "runs/experiments/example",
+        "split": {"manifest_hash": "fixed-split"},
+        "selection_partition": "validation",
+        "test_access": "locked",
+    }
+    selected_path = write_json(tmp_path / "selected_config.json", selected)
+    values = json.loads(MODEL_COMPARISON_CONFIG.read_text(encoding="utf-8"))
+    values["selected_config"] = str(selected_path)
+    values["custom_candidates"] = [{
+        "name": "custom_selected",
+        "research_question": "Read from validation-selected config",
+        "convlstm_layers": selected["candidate"]["convlstm_layers"],
+        "hidden_classifier_width": None,
+    }]
+    return write_json(tmp_path / "comparison.json", values)
+
+
 def test_custom_search_config_has_reference_and_one_factor_variants():
     study, config, manifest = study_config.load_study(CUSTOM_SEARCH_CONFIG)
     rows = study_config.study_rows(study, config)
     names = [candidate.name for candidate in manifest.candidates]
 
-    assert len(rows) == study["max_runs"] == 20
+    assert len(rows) == study["max_runs"] == 14
     assert names == [
+        "custom_flat_16_16",
         "custom_flat_16_16_16",
-        "custom_depth_16_16",
-        "custom_depth_16_16_16_16",
+        "custom_flat_24_24_24",
+        "custom_flat_32_32_32",
+        "custom_reference_32_16",
         "custom_width_early_32_16_16",
         "custom_width_middle_16_32_16",
         "custom_width_late_16_16_32",
     ]
     assert study["models"] == names
     assert [candidate.convlstm_layers for candidate in manifest.candidates] == [
-        ((16, (3, 3)), (16, (3, 3)), (16, (3, 3))),
         ((16, (3, 3)), (16, (3, 3))),
-        ((16, (3, 3)), (16, (3, 3)), (16, (3, 3)), (16, (3, 3))),
+        ((16, (3, 3)), (16, (3, 3)), (16, (3, 3))),
+        ((24, (3, 3)), (24, (3, 3)), (24, (3, 3))),
+        ((32, (3, 3)), (32, (3, 3)), (32, (3, 3))),
+        ((32, (3, 3)), (16, (3, 3))),
         ((32, (3, 3)), (16, (3, 3)), (16, (3, 3))),
         ((16, (3, 3)), (32, (3, 3)), (16, (3, 3))),
         ((16, (3, 3)), (16, (3, 3)), (32, (3, 3))),
     ]
-    assert study["seeds"] == [42, 2026]
+    assert study["seeds"] == [42]
+    assert (config.sequence_length, config.height, config.width) == (8, 64, 64)
+    assert (config.epochs, config.batch_size, config.learning_rate, config.weight_decay) == (128, 16, 0.01, 0.0)
+    assert study["factors"] == {"frame_sizes": [32, 64, 96], "sequence_lengths": [8, 16, 32], "weight_decays": [0.0, 0.0001, 0.001]}
     assert {row["stage"] for row in rows} == {"screen", "ablation"}
     assert all(
         row["model"] in names or row["model"] == "VALIDATION_WINNER"
@@ -67,14 +103,15 @@ def test_custom_search_config_has_reference_and_one_factor_variants():
     assert all(row["test_access"] == "locked" for row in rows)
 
 
-def test_model_comparison_config_fixes_protocol_and_includes_model_families():
-    study, config, manifest = study_config.load_study(MODEL_COMPARISON_CONFIG)
+def test_model_comparison_config_fixes_protocol_and_includes_model_families(tmp_path):
+    comparison_path = resolved_comparison_config(tmp_path)
+    study, config, manifest = study_config.load_study(comparison_path)
     rows = study_config.study_rows(study, config)
     registry = experiments.model_registry(
         config, manifest, selected_models=study["models"]
     )
 
-    assert len(rows) == study["max_runs"] == 12
+    assert len(rows) == study["max_runs"] == 6
     assert study["models"] == [
         "custom_selected",
         "paper_convlstm_published",
@@ -84,7 +121,9 @@ def test_model_comparison_config_fixes_protocol_and_includes_model_families():
         "swin3d_s",
     ]
     assert [entry["name"] for entry in registry] == study["models"]
-    assert {row["seed"] for row in rows} == {42, 2026}
+    assert {row["seed"] for row in rows} == {42}
+    assert all(row["minimum_epochs"] == 32 for row in rows)
+    assert config.epochs == 64 and config.early_stopping_patience == 12
     assert all(row["stage"] == "screen" for row in rows)
     assert all(
         (
@@ -136,7 +175,61 @@ def test_model_comparison_config_fixes_protocol_and_includes_model_families():
     }
 
 
-def test_new_colab_profiles_list_without_training(monkeypatch, capsys):
+def test_comparison_template_requires_search_selection():
+    with pytest.raises(ValueError, match="requires selected_config"):
+        study_config.load_study(MODEL_COMPARISON_CONFIG)
+
+
+def test_search_writes_exact_validation_selected_architecture(tmp_path, monkeypatch):
+    from src import dataset_source
+
+    values = json.loads(CUSTOM_SEARCH_CONFIG.read_text(encoding="utf-8"))
+    values["dataset"]["path"] = str(tmp_path / "aad")
+    values["runs_dir"] = str(tmp_path / "runs")
+    config_path = write_json(tmp_path / "search.json", values)
+    study, config, manifest = study_config.load_study(config_path)
+    dataset_path = tmp_path / "aad"
+    dataset_path.mkdir()
+    monkeypatch.setattr(dataset_source, "resolve_dataset", lambda *a, **k: dataset_path)
+    target = "custom_width_late_16_16_32"
+    fake_runs = []
+
+    def fake_run(args):
+        leaf_config_path = Path(args[args.index("--config") + 1])
+        model_name = args[args.index("--model") + 1]
+        run_dir = tmp_path / f"screen-{len(fake_runs):02d}"
+        run_dir.mkdir()
+        leaf_config = ExperimentConfig.from_json(leaf_config_path).to_dict()
+        accuracy = 0.95 if model_name == target and leaf_config["height"] == 64 and leaf_config["sequence_length"] == 8 and leaf_config["weight_decay"] == 0.0 else 0.4
+        write_json(run_dir / "summary.json", {"all": [{
+            "name": model_name,
+            "seed": 42,
+            "partition": "validation",
+            "test_access": "locked",
+            "split": {"manifest_hash": "fixed-split"},
+            "dataset_dir": str(dataset_path),
+            "num_params": 5000,
+            "validation_metrics": {"accuracy": accuracy, "loss": 1 - accuracy, "precision": accuracy, "recall": accuracy, "f1": accuracy},
+            "experiment_config": leaf_config,
+        }]})
+        fake_runs.append(run_dir)
+        return run_dir
+
+    result_dir = study_config.execute_study(config_path, study, config, manifest, fake_run)
+    selected = json.loads((result_dir / "selected_config.json").read_text())
+    assert selected["candidate"]["name"] == target
+    assert selected["candidate"]["convlstm_layers"] == [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]]
+    assert selected["input"] == {"sequence_length": 8, "height": 64, "width": 64}
+    assert selected["seed"] == 42
+    assert selected["validation_metrics"]["accuracy"] == 0.95
+    assert selected["num_params"] == 5000
+    assert Path(selected["source_run"]).is_dir()
+    assert selected["selection_partition"] == "validation"
+    assert selected["test_access"] == "locked"
+    assert selected["split"]["manifest_hash"] == "fixed-split"
+
+
+def test_new_colab_profiles_list_without_training(monkeypatch, capsys, tmp_path):
     monkeypatch.setattr(
         experiments,
         "build_registered_model",
@@ -144,18 +237,20 @@ def test_new_colab_profiles_list_without_training(monkeypatch, capsys):
     )
     experiments.main(["--config", str(CUSTOM_SEARCH_CONFIG), "--list-plan"])
     search_output = capsys.readouterr().out
-    assert "custom architecture search: 20 declared runs" in search_output
-    assert "custom_flat_16_16_16" in search_output
+    assert "custom architecture search: 14 declared runs" in search_output
+    assert "custom_flat_24_24_24" in search_output
 
-    experiments.main(["--config", str(MODEL_COMPARISON_CONFIG), "--list-plan"])
+    comparison_config = resolved_comparison_config(tmp_path)
+    experiments.main(["--config", str(comparison_config), "--list-plan"])
     comparison_output = capsys.readouterr().out
-    assert "model-family comparison: 12 declared runs" in comparison_output
+    assert "model-family comparison: 6 declared runs" in comparison_output
     assert "paper_convlstm_published" in comparison_output
     assert "swin3d_s" in comparison_output
 
 
-def test_comparison_models_are_feasible_on_native_paper_input():
-    study, config, manifest = study_config.load_study(MODEL_COMPARISON_CONFIG)
+def test_comparison_models_are_feasible_on_native_paper_input(tmp_path):
+    comparison_config = resolved_comparison_config(tmp_path)
+    study, config, manifest = study_config.load_study(comparison_config)
     with torch.device("meta"), torch.inference_mode():
         for name in study["models"]:
             model = experiments.build_registered_model(
@@ -171,22 +266,22 @@ def test_comparison_models_are_feasible_on_native_paper_input():
             assert count_trainable_parameters(model) > 0
 
 
-def test_local_smoke_is_an_eight_run_tiny_custom_grid():
+def test_local_smoke_is_one_tiny_training_pass():
     study, config, _ = study_config.load_study(SMOKE_CONFIG)
     rows = study_config.study_rows(study, config)
-    assert len(rows) == study["max_runs"] == 8
-    assert len(study["models"]) == 2
+    assert len(rows) == study["max_runs"] == 1
+    assert len(study["models"]) == 1
     assert study["profile"] == "local_smoke"
-    assert set(study["models"]) == {"local_tiny_8_4", "local_tiny_4_8"}
-    assert study["frame_sizes"] == [32]
-    assert study["num_frames"] == [4, 8]
-    assert study["data_sizes"] == [[4, 32], [8, 32]]
-    assert study["epoch_values"] == [8]
-    assert study["factors"]["weight_decays"] == [0.0, 0.001]
-    assert all(row["config"]["epochs"] == 8 for row in rows)
-    assert all(row["config"]["early_stopping_patience"] == 4 for row in rows)
-    assert all(row["config"]["batch_size"] == 8 for row in rows)
-    assert len({row["trial_id"] for row in rows}) == 8
+    assert set(study["models"]) == {"local_tiny_4_4"}
+    assert study["frame_sizes"] == [16]
+    assert study["num_frames"] == [2]
+    assert study["data_sizes"] == [[2, 16]]
+    assert study["epoch_values"] == [1]
+    assert study["factors"]["weight_decays"] == [0.0]
+    assert all(row["config"]["epochs"] == 1 for row in rows)
+    assert all(row["config"]["early_stopping_patience"] == 1 for row in rows)
+    assert all(row["config"]["batch_size"] == 16 for row in rows)
+    assert len({row["trial_id"] for row in rows}) == 1
     assert all(row["partition"] == "validation" for row in rows)
     assert all(row["test_access"] == "locked" for row in rows)
 
@@ -288,10 +383,10 @@ def test_config_command_lists_smoke_without_training(monkeypatch, capsys):
     )
     experiments.main(["--config", str(SMOKE_CONFIG), "--list-plan"])
     listing = capsys.readouterr().out
-    assert "8 Cartesian configurations" in listing
+    assert "1 Cartesian configurations" in listing
     assert "not paper evidence" in listing
     assert "--config" in listing
-    assert "local_tiny_8_4" in listing
+    assert "local_tiny_4_4" in listing
 
 
 def test_smoke_writes_selected_train_config_and_keeps_test_locked(
@@ -347,10 +442,80 @@ def test_smoke_writes_selected_train_config_and_keeps_test_locked(
     assert selection["test_access"] == "locked"
     assert selection["selected_config"] == str(selected_config)
     restored = ExperimentConfig.from_json(selected_config)
-    assert restored.sequence_length in {4, 8} and restored.epochs == 8
+    assert restored.sequence_length == 2 and restored.epochs == 1
     summary = json.loads((result_dir / "summary.json").read_text())
-    assert len(summary["jobs"]) == 8
+    assert len(summary["jobs"]) == 1
     assert all(job["result"]["partition"] == "validation" for job in summary["jobs"])
+
+
+def test_selected_architecture_handoff_and_test_evaluation_after_freeze(tmp_path, monkeypatch):
+    from src import dataset_source
+
+    comparison_config = resolved_comparison_config(tmp_path)
+    values = json.loads(comparison_config.read_text(encoding="utf-8"))
+    values["dataset"]["path"] = str(tmp_path / "aad")
+    values["runs_dir"] = str(tmp_path / "runs")
+    comparison_config = write_json(comparison_config, values)
+    study, config, manifest = study_config.load_study(comparison_config)
+    dataset_path = tmp_path / "aad"
+    dataset_path.mkdir()
+    monkeypatch.setattr(dataset_source, "resolve_dataset", lambda *a, **k: dataset_path)
+    leaf_runs = []
+    evaluation_calls = []
+
+    def fake_run(args):
+        config_path = Path(args[args.index("--config") + 1])
+        model_name = args[args.index("--model") + 1]
+        assert args[args.index("--minimum-epochs") + 1] == "32"
+        run_dir = tmp_path / f"leaf-{len(leaf_runs):02d}"
+        run_dir.mkdir()
+        checkpoint = run_dir / "best_model.pth"
+        checkpoint.write_bytes(b"checkpoint")
+        leaf_config = ExperimentConfig.from_json(config_path).to_dict()
+        score = 0.9 if model_name == "custom_selected" else 0.7
+        write_json(run_dir / "summary.json", {"all": [{
+            "name": model_name,
+            "seed": 42,
+            "partition": "validation",
+            "test_access": "locked",
+            "split": {"manifest_hash": "fixed-split"},
+            "dataset_dir": str(dataset_path),
+            "num_params": 100,
+            "validation_metrics": {"accuracy": score, "loss": 1 - score, "precision": score, "recall": score, "f1": score},
+            "experiment_config": leaf_config,
+            "selected_checkpoint": str(checkpoint),
+        }]})
+        leaf_runs.append(run_dir)
+        return run_dir
+
+    def fake_evaluate(config_path):
+        assert list((tmp_path / "runs/studies").glob("*/validation_frozen.json"))
+        eval_config = json.loads(Path(config_path).read_text(encoding="utf-8"))
+        evaluation_calls.append(eval_config)
+        run_dir = tmp_path / f"eval-{len(evaluation_calls):02d}"
+        (run_dir / "metrics").mkdir(parents=True)
+        write_json(run_dir / "metrics/final.json", {
+            "partition": "test",
+            "split": {"manifest_hash": "fixed-split"},
+            "metrics": {"loss": 0.5, "accuracy": 0.8, "precision": 0.8, "recall": 0.8, "f1": 0.8},
+            "artifacts": {"confusion_matrix": {"json": "test.json"}},
+            "prediction_examples": {"records": ["example.mp4"]},
+        })
+        return run_dir
+
+    result_dir = study_config.execute_study(
+        comparison_config, study, config, manifest, fake_run, fake_evaluate
+    )
+    summary = json.loads((result_dir / "summary.json").read_text())
+    assert len(leaf_runs) == len(evaluation_calls) == 6
+    assert summary["selected_model"] == "custom_selected"
+    assert summary["test_evaluation"]["frozen_before_test"] is True
+    assert len(summary["test_evaluation"]["models"]) == 6
+    assert all(item["partition"] == "test" for item in summary["test_evaluation"]["models"])
+    selected = json.loads(MODEL_COMPARISON_CONFIG.read_text())
+    assert selected["custom_candidates"] == []
+    custom_run = next(item for item in summary["jobs"] if item["result"]["name"] == "custom_selected")
+    assert custom_run["result"]["experiment_config"]["convlstm_layers"] == [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]]
 
 
 def test_additive_stages_and_fixed_protocol():

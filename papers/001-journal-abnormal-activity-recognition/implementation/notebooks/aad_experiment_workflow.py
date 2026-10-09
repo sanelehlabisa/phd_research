@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-RUN_FULL_STUDY = False  # Set True only after the smoke check passes.
+RUN_FULL_STUDY = True  # Set False to validate profiles without downloading data or training.
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 REPO_ROOT = Path("/content/phd_research")
 REPO_ROOT.parent.mkdir(parents=True, exist_ok=True)
@@ -35,18 +35,20 @@ revision = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO_ROOT
 print(f"Code checkout: {REPO_ROOT} @ {revision}", flush=True)
 print(f"Notebook Python: {sys.executable}", flush=True)
 bootstrap = subprocess.run([sys.executable, str(UTILS / "colab_bootstrap.py"), str(IMPLEMENTATION_ROOT / "requirements.txt")])
+
 if bootstrap.returncode == 75:
-    raise SystemExit("Pinned packages were repaired. Restart this Colab runtime, reconnect the GPU, and rerun this cell.")
-if bootstrap.returncode:
+    print("Pinned packages were repaired. Restart the Colab runtime, reconnect the GPU, then rerun this cell.")
+elif bootstrap.returncode:
     raise RuntimeError("Colab runtime setup failed; see the bootstrap output above.")
-sys.path.insert(0, str(IMPLEMENTATION_ROOT))
-for module_name in [name for name in sys.modules if name == "src" or name.startswith("src.") or name == "notebooks" or name.startswith("notebooks.")]:
-    del sys.modules[module_name]
-importlib.invalidate_caches()
-from notebooks.utils.helpers import validate_runtime
-print(validate_runtime(require_cuda=True), flush=True)
-from notebooks.utils.aad_study import run_aad_study
-print("Colab can terminate this runtime externally; a forced stop may precede the final download.", flush=True)
-artifact_zip = run_aad_study(IMPLEMENTATION_ROOT, run_full_study=RUN_FULL_STUDY)
-if artifact_zip is None:
-    print("Smoke check passed. Set RUN_FULL_STUDY = True to run the two AAD stages.")
+else:
+    sys.path.insert(0, str(IMPLEMENTATION_ROOT))
+    for module_name in [name for name in sys.modules if name == "src" or name.startswith("src.") or name == "notebooks" or name.startswith("notebooks.")]:
+        del sys.modules[module_name]
+    importlib.invalidate_caches()
+    from notebooks.utils.helpers import validate_runtime
+    print(validate_runtime(require_cuda=True), flush=True)
+    from notebooks.utils.aad_study import run_aad_study
+    print("Search → selected architecture → fixed model comparison → frozen test evaluation.", flush=True)
+    artifact_zip = run_aad_study(IMPLEMENTATION_ROOT, run_full_study=RUN_FULL_STUDY)
+    if artifact_zip is None:
+        print("Smoke check passed. Set RUN_FULL_STUDY = True to run the AAD study.")
