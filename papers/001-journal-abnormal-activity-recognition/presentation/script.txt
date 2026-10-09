@@ -1,0 +1,13 @@
+# PRIS 2026 flash presentation — speaker notes
+
+## Slide 1 — Problem and question
+
+Surveillance video can be difficult to review manually at scale. Deep-learning models can learn spatial and temporal patterns, but larger models may be harder to deploy. My research asks whether a compact ConvLSTM can recognize abnormal activity while keeping the model smaller.
+
+## Slide 2 — Approach and current status
+
+I am using the Abnormal Activities Dataset. The study first searches custom ConvLSTM depth and width, then compares the selected model with the published ConvLSTM, 3D CNNs, and video transformers. I track overall classification metrics, confusion matrices, and parameter count. The AAD experiments are still in progress, so I am not presenting comparative results yet.
+
+## Slide 3 — What comes next
+
+The aim is to identify a useful balance between recognition quality and model size. The current task assigns one activity label to each clip; recognizing simultaneous activities is future work. After the controlled runs, I will freeze the model choice, evaluate it, and report only verified results. Thank you; I welcome your questions.
