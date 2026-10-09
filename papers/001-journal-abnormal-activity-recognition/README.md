@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: Planning a config-driven AAD study; existing run outputs remain local
+- Status: AAD workflow prepared; real search/comparison and results review pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -19,17 +19,19 @@ reference architecture for ablation.
 
 ## Evidence plan
 
-1. Search custom ConvLSTM architectures from a flat `[16, 16, 16]` reference,
-   changing one depth/width factor at a time.
-2. Compare the selected custom model against the faithful paper model, practical
-   3D CNNs, and two video transformers under the same input and training settings.
-3. Use dataset and input settings from JSON; derive all class labels from data.
-   Select on validation, confirm shortlisted models across seeds, and keep test
-   data locked until the comparison is frozen.
-4. Update manuscript claims only from verified run artifacts.
+1. Search 12 custom architectures at 32, 48 and 64 pixels (8 frames; 128-epoch cap).
+   Rank using equally weighted validation scores across all three resolutions.
+2. Compare the top three against the faithful paper model, two 3D CNNs and two
+   transformers: fixed 50 frames at 50x50, batch 1, up to 256 epochs.
+3. Use seed 42 and one fixed split. Freeze all validation-selected checkpoints
+   and the best custom model before eight full test evaluations.
+4. Review the verified ZIP evidence before updating manuscript claims.
+   Single-seed resolution testing does not establish a global optimum,
+   unseen-data generalisation or seed uncertainty.
 
 ## Next tasks
 
+- [x] [068 multi-resolution search and top-three comparison](../../agents/work/068-multisize-search-top3-comparison/prompt.md) - implementation and local verification; actual Colab runs remain pending.
 - [x] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
 - [x] [058 separate custom search and model-family comparison](../../agents/work/058-separate-search-and-comparison/prompt.md) — two AAD profiles and one local smoke profile on the same runner.
 - [x] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — VDD remains optional through generic dataset configuration; old runs are preserved.

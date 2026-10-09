@@ -63,7 +63,7 @@ def test_evaluator_reconstructs_every_practical_baseline(name):
 def test_unknown_or_incompatible_checkpoint_rejected():
     with pytest.raises(ValueError, match="unsupported"):
         evaluate.model_from_checkpoint(
-            {"model_config": {"registry_name": "paper_convlstm_published"}}
+            {"model_config": {"registry_name": "not_a_registered_model"}}
         )
     with pytest.raises(ValueError, match="legacy"):
         evaluate.model_from_checkpoint({})

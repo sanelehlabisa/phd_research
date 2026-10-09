@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "mode": "multiresolution",
   "dataset": {
     "name": "aad",
     "path": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
@@ -36,7 +37,7 @@
   "reference_input": {"frame_size": 32, "sequence_length": 8, "weight_decay": 0.0},
   "factors": {
     "frame_sizes": [32, 48, 64],
-    "sequence_lengths": [8, 16],
+    "sequence_lengths": [8],
     "weight_decays": [0.0]
   },
   "training": {
@@ -52,8 +53,7 @@
     "prediction_samples_per_category": 1
   },
   "seeds": [42],
-  "confirmation_seed": 2026,
   "runs_dir": "runs",
-  "max_runs": 16,
+  "max_runs": 36,
   "published_topology": {"enabled": false, "batch_size": 1}
 }

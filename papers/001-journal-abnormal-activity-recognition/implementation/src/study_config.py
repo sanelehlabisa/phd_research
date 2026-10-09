@@ -62,13 +62,9 @@ def _normalise_grid(study):
     _fields(study, expected, "flat experiment grid")
     if study["schema_version"] != 1 or study["mode"] != "grid":
         raise ValueError("flat experiment grid requires schema_version=1 and mode=grid")
-    if not isinstance(study["dataset_name"], str) or not study[
-        "dataset_name"
-    ].strip():
+    if not isinstance(study["dataset_name"], str) or not study["dataset_name"].strip():
         raise ValueError("dataset_name must be a non-empty string")
-    if not isinstance(study["dataset_dir"], str) or not study[
-        "dataset_dir"
-    ].strip():
+    if not isinstance(study["dataset_dir"], str) or not study["dataset_dir"].strip():
         raise ValueError("dataset_dir must be a non-empty path")
     if study["profile"] not in {"local_smoke", "colab_a100"}:
         raise ValueError("profile must be local_smoke or colab_a100")
@@ -77,9 +73,7 @@ def _normalise_grid(study):
     if (
         not isinstance(frame_sizes, list)
         or not frame_sizes
-        or any(
-            type(size) is not int or size < 4 or size % 2 for size in frame_sizes
-        )
+        or any(type(size) is not int or size < 4 or size % 2 for size in frame_sizes)
         or len(set(frame_sizes)) != len(frame_sizes)
     ):
         raise ValueError("frame_sizes must be unique, even integers of at least 4")
@@ -89,15 +83,19 @@ def _normalise_grid(study):
         or any(type(frames) is not int or frames <= 0 for frames in num_frames)
         or len(set(num_frames)) != len(num_frames)
     ):
-        raise ValueError("num_frames must be a non-empty list of unique positive integers")
-    data_sizes = [
-        [frames, size] for size in frame_sizes for frames in num_frames
-    ]
+        raise ValueError(
+            "num_frames must be a non-empty list of unique positive integers"
+        )
+    data_sizes = [[frames, size] for size in frame_sizes for frames in num_frames]
     epochs = study["epochs"]
     if (
         not isinstance(epochs, list)
         or not epochs
-        or any(type(value) is not int or value < (1 if study["profile"] == "local_smoke" else 8) for value in epochs)
+        or any(
+            type(value) is not int
+            or value < (1 if study["profile"] == "local_smoke" else 8)
+            for value in epochs
+        )
         or len(set(epochs)) != len(epochs)
     ):
         raise ValueError("epochs must be a non-empty list of unique integers >= 8")
@@ -113,7 +111,9 @@ def _normalise_grid(study):
         )
         or len(set(weight_decays)) != len(weight_decays)
     ):
-        raise ValueError("weight_decays must be a non-empty list of unique non-negative numbers")
+        raise ValueError(
+            "weight_decays must be a non-empty list of unique non-negative numbers"
+        )
     seed = study["seed"]
     if type(seed) is not int or not 0 <= seed < 2**32:
         raise ValueError("seed must be a non-negative integer")
@@ -130,9 +130,7 @@ def _normalise_grid(study):
         "augment": study["augment"],
         "num_workers": study["num_workers"],
         "pin_memory": study["pin_memory"],
-        "prediction_samples_per_category": study[
-            "prediction_samples_per_category"
-        ],
+        "prediction_samples_per_category": study["prediction_samples_per_category"],
     }
     normalised = {
         "schema_version": 1,
@@ -216,38 +214,62 @@ def load_study(path):
     ):
         raise ValueError("dataset.split_manifest must be null or a non-empty path")
     selected_config_path = study.get("selected_config")
-    if "custom_selected" in study["models"]:
-        if not isinstance(selected_config_path, str) or not selected_config_path.strip():
+    if study.get("mode") == "top3_comparison":
+        from .study_matrix import comparison_candidates
+
+        study["custom_candidates"] = comparison_candidates(study)
+    elif "custom_selected" in study["models"]:
+        if (
+            not isinstance(selected_config_path, str)
+            or not selected_config_path.strip()
+        ):
             raise ValueError(
                 "model comparison requires selected_config from a completed custom search"
             )
         selected_config_path = _path(selected_config_path)
         try:
-            selected = json.loads(Path(selected_config_path).read_text(encoding="utf-8"))
+            selected = json.loads(
+                Path(selected_config_path).read_text(encoding="utf-8")
+            )
             selected_candidate = selected["candidate"]
             selected_layers = selected_candidate["convlstm_layers"]
         except (OSError, json.JSONDecodeError, KeyError, TypeError) as error:
             raise ValueError(
                 f"selected_config is missing or invalid: {selected_config_path}"
             ) from error
-        if selected.get("selection_partition") != "validation" or selected.get("test_access") != "locked":
-            raise ValueError("selected_config must be based on validation while test stays locked")
-        if not isinstance(selected.get("split"), dict) or not selected["split"].get("manifest_hash"):
+        if (
+            selected.get("selection_partition") != "validation"
+            or selected.get("test_access") != "locked"
+        ):
+            raise ValueError(
+                "selected_config must be based on validation while test stays locked"
+            )
+        if not isinstance(selected.get("split"), dict) or not selected["split"].get(
+            "manifest_hash"
+        ):
             raise ValueError("selected_config must record its split manifest hash")
         if selected.get("seed") not in study["seeds"]:
             raise ValueError("selected_config seed must match the comparison seed")
-        if "dataset_dir" in selected and _path(data["path"]) != _path(selected["dataset_dir"]):
-            raise ValueError("comparison dataset path differs from the selected search run")
+        if "dataset_dir" in selected and _path(data["path"]) != _path(
+            selected["dataset_dir"]
+        ):
+            raise ValueError(
+                "comparison dataset path differs from the selected search run"
+            )
         if study["custom_candidates"]:
             if study["custom_candidates"][0]["convlstm_layers"] != selected_layers:
                 raise ValueError("comparison candidate does not match selected_config")
         else:
-            study["custom_candidates"] = [{
-                "name": "custom_selected",
-                "research_question": "Architecture selected using validation data in the custom search.",
-                "convlstm_layers": selected_layers,
-                "hidden_classifier_width": selected_candidate.get("hidden_classifier_width"),
-            }]
+            study["custom_candidates"] = [
+                {
+                    "name": "custom_selected",
+                    "research_question": "Architecture selected using validation data in the custom search.",
+                    "convlstm_layers": selected_layers,
+                    "hidden_classifier_width": selected_candidate.get(
+                        "hidden_classifier_width"
+                    ),
+                }
+            ]
         study["selected_config"] = selected_config_path
     elif selected_config_path is not None:
         raise ValueError("selected_config is only valid for a model comparison")
@@ -274,13 +296,16 @@ def load_study(path):
     ):
         raise ValueError("models must be a non-empty unique list")
     if set(models) - set([*names, *BASELINES, "paper_convlstm_published"]):
-        raise ValueError(
-            "unknown model; use a registered candidate or model family"
-        )
+        raise ValueError("unknown model; use a registered candidate or model family")
     if not set(names) <= set(models):
         raise ValueError("every declared custom candidate must be included in models")
     mode = study.get("mode", "staged")
-    if not isinstance(mode, str) or mode not in {"staged", "grid"}:
+    if not isinstance(mode, str) or mode not in {
+        "staged",
+        "grid",
+        "multiresolution",
+        "top3_comparison",
+    }:
         raise ValueError("unsupported experiment study mode")
     seeds = study["seeds"]
     if (
@@ -289,13 +314,13 @@ def load_study(path):
         or any(type(seed) is not int or not 0 <= seed < 2**32 for seed in seeds)
         or len(set(seeds)) != len(seeds)
     ):
-        raise ValueError(
-            "studies require one to three unique seeds"
-        )
+        raise ValueError("studies require one to three unique seeds")
     confirmation_seed = study.get("confirmation_seed")
     if confirmation_seed is not None:
         if mode != "staged" or not set(study["models"]) <= set(names):
-            raise ValueError("seed confirmation is only supported for custom staged search")
+            raise ValueError(
+                "seed confirmation is only supported for custom staged search"
+            )
         if (
             type(confirmation_seed) is not int
             or not 0 <= confirmation_seed < 2**32
@@ -390,6 +415,10 @@ def load_study(path):
         or native["batch_size"] != 1
     ):
         raise ValueError("published_topology requires enabled boolean and batch_size=1")
+    if mode in {"multiresolution", "top3_comparison"}:
+        from .study_matrix import validate_protocol
+
+        validate_protocol(study, config)
     count = len(study_rows(study, config))
     if (
         type(study["max_runs"]) is not int
@@ -447,6 +476,20 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
                                 )
                             )
         return rows
+    if study.get("mode") == "multiresolution":
+        # Group by resolution to reuse one bounded cache across architectures.
+        for size in study["factors"]["frame_sizes"]:
+            for name in study["models"]:
+                rows.append(
+                    row(
+                        "resolution_search",
+                        name,
+                        config.seed,
+                        "architecture_by_resolution",
+                        {"height": size, "width": size},
+                    )
+                )
+        return rows
     for name in study["models"]:
         for seed in study["seeds"]:
             rows.append(row("screen", name, seed, "architecture", {}))
@@ -496,11 +539,13 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
 def print_study(path, study, config):
     """List all fixed and conditional jobs without allocating a model/dataset."""
     rows = study_rows(study, config)
-    candidate_names = {
-        candidate["name"] for candidate in study["custom_candidates"]
-    }
+    candidate_names = {candidate["name"] for candidate in study["custom_candidates"]}
     if study.get("mode", "staged") == "grid":
-        label = "local pipeline smoke" if study["profile"] == "local_smoke" else "A100 screening"
+        label = (
+            "local pipeline smoke"
+            if study["profile"] == "local_smoke"
+            else "A100 screening"
+        )
         print(
             f"AAD {label}: {len(rows)} Cartesian configurations; "
             + (
@@ -511,7 +556,9 @@ def print_study(path, study, config):
         )
     else:
         is_comparison = bool(set(study["models"]) - candidate_names)
-        label = "model-family comparison" if is_comparison else "custom architecture search"
+        label = (
+            "model-family comparison" if is_comparison else "custom architecture search"
+        )
         print(f"AAD {label}: {len(rows)} declared runs; no Cartesian expansion.")
     print(f"Dataset={config.dataset_dir}; split={config.split_manifest}; split_seed=42")
     print(
@@ -527,6 +574,18 @@ def print_study(path, study, config):
             print("This short local grid checks the pipeline only.")
         else:
             print("The A100 grid ranks candidates using validation only.")
+    elif study.get("mode") in {"multiresolution", "top3_comparison"}:
+        print(
+            "Single seed: no seed uncertainty or global-optimum/generalisation claim."
+        )
+        if study["mode"] == "multiresolution":
+            print(
+                "Top three: equal-weight mean validation accuracy across ALL resolutions, then loss, parameters, name."
+            )
+        else:
+            print(
+                "Eight fresh trainings; eight full test evaluations ONLY after all checkpoints and best custom are frozen."
+            )
     elif "custom_selected" in study["models"]:
         print(
             "Custom architecture comes only from selected_config.json produced by the validation search; "
@@ -569,7 +628,9 @@ def print_study(path, study, config):
             f"--config <study-run>/jobs/{number:02d}/config.json "
             f"--model {row['model']}{candidate_flag}"
         )
-    print("Leaf JSON/commands are generated and recorded from this one file at execution.")
+    print(
+        "Leaf JSON/commands are generated and recorded from this one file at execution."
+    )
     if "paper_convlstm_published" in study["models"]:
         print(
             "PaperConvLSTM is included at its native shared comparison input: "
@@ -579,7 +640,9 @@ def print_study(path, study, config):
     elif study["published_topology"]["enabled"]:
         print("Separate native PaperConvLSTM runs are enabled (not ranked).")
     else:
-        print("Native PaperConvLSTM: T=50, 50x50, batch=1, separate/unranked; enabled=False.")
+        print(
+            "Native PaperConvLSTM: T=50, 50x50, batch=1, separate/unranked; enabled=False."
+        )
 
 
 def aggregate_screen(records, models, seeds):
@@ -669,6 +732,10 @@ def rank_smoke_grid(records, rows):
 
 def execute_study(path, study, config, manifest, run_trial, run_evaluation=None):
     """Run validation-only jobs, freeze comparison, then optionally evaluate test."""
+    if study.get("mode") in {"multiresolution", "top3_comparison"}:
+        from .study_matrix import execute_matrix
+
+        return execute_matrix(path, study, config, manifest, run_trial, run_evaluation)
     from .dataset_source import resolve_dataset
 
     root = resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
@@ -743,7 +810,10 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
         write_json(
             job_dir / "command.json", [sys.executable, "-m", "src.experiments", *args]
         )
-        print(f"\nStudy job {number}: {row['stage']} / {row['model']} / seed {row['seed']}", flush=True)
+        print(
+            f"\nStudy job {number}: {row['stage']} / {row['model']} / seed {row['seed']}",
+            flush=True,
+        )
         leaf_run = run_trial(args)
         payload = json.loads(
             (Path(leaf_run) / "summary.json").read_text(encoding="utf-8")
@@ -806,8 +876,7 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                     / "jobs"
                     / f"{rows.index(selected_row) + 1:02d}"
                     / "config.json"
-                )
-                .read_text(encoding="utf-8")
+                ).read_text(encoding="utf-8")
             )
             selected_config_path = write_json(
                 group.run_dir / "selected_config.json", selected_values
@@ -859,12 +928,12 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
             "selection_partition": "validation",
             "ranking": ranking,
             "test_access": "locked",
-        "ranking_rule": [
+            "ranking_rule": [
                 "mean_validation_accuracy",
                 "mean_validation_loss",
-            "parameters",
-        ],
-        "single_seed_evidence": True,
+                "parameters",
+            ],
+            "single_seed_evidence": True,
             "reference_runs": [item for item in screen if item["name"] == winner],
         }
         if study.get("selected_config"):
@@ -872,13 +941,19 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                 Path(study["selected_config"]).read_text(encoding="utf-8")
             )
             selected_split_hash = selected_source["split"]["manifest_hash"]
-            if any(item["split"]["manifest_hash"] != selected_split_hash for item in screen):
-                raise ValueError("comparison does not use the selected search split manifest")
+            if any(
+                item["split"]["manifest_hash"] != selected_split_hash for item in screen
+            ):
+                raise ValueError(
+                    "comparison does not use the selected search split manifest"
+                )
             selection["search_split_manifest_hash"] = selected_split_hash
         if study_kind == "custom_architecture_search":
             winning_row = next(row for row in screen_rows if row["model"] == winner)
             winning_result = next(item for item in screen if item["name"] == winner)
-            candidate = next(item for item in manifest.candidates if item.name == winner)
+            candidate = next(
+                item for item in manifest.candidates if item.name == winner
+            )
             selected_config = {
                 "candidate": {
                     "name": winner,
@@ -898,7 +973,11 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                 "dataset_dir": winning_result["dataset_dir"],
                 "split": winning_result["split"],
                 "selection_partition": "validation",
-                "selection_rule": ["validation_accuracy", "validation_loss", "parameters"],
+                "selection_rule": [
+                    "validation_accuracy",
+                    "validation_loss",
+                    "parameters",
+                ],
                 "single_seed_evidence": True,
                 "test_access": "locked",
             }
@@ -937,7 +1016,10 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
             for key, entries in ablation_groups.items()
         ]
         confirmation_result = None
-        if study_kind == "custom_architecture_search" and study.get("confirmation_seed") is not None:
+        if (
+            study_kind == "custom_architecture_search"
+            and study.get("confirmation_seed") is not None
+        ):
             input_runs = [
                 item
                 for item in completed
@@ -955,15 +1037,21 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                 ]
             )
             selected_input_run = next(
-                item for item in input_runs if item["run_dir"] == ranked_inputs[0]["name"]
+                item
+                for item in input_runs
+                if item["run_dir"] == ranked_inputs[0]["name"]
             )
             selected_result = selected_input_run["result"]
             selected_config["input"] = {
-                "sequence_length": selected_result["experiment_config"]["sequence_length"],
+                "sequence_length": selected_result["experiment_config"][
+                    "sequence_length"
+                ],
                 "height": selected_result["experiment_config"]["height"],
                 "width": selected_result["experiment_config"]["width"],
             }
-            selected_config["validation_metrics"] = selected_result["validation_metrics"]
+            selected_config["validation_metrics"] = selected_result[
+                "validation_metrics"
+            ]
             selected_config["num_params"] = selected_result["num_params"]
             selected_config["source_run"] = selected_input_run["run_dir"]
             selected_config["input_selection"] = {
@@ -971,7 +1059,9 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                 "candidates": [
                     {
                         "input": {
-                            "sequence_length": item["result"]["experiment_config"]["sequence_length"],
+                            "sequence_length": item["result"]["experiment_config"][
+                                "sequence_length"
+                            ],
                             "height": item["result"]["experiment_config"]["height"],
                             "width": item["result"]["experiment_config"]["width"],
                         },
@@ -993,8 +1083,13 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                 }
             ).to_dict()
             confirmation_result = run(confirmation_row)
-            if confirmation_result["split"]["manifest_hash"] != selected_result["split"]["manifest_hash"]:
-                raise ValueError("seed confirmation must use the unchanged seed-42 split manifest")
+            if (
+                confirmation_result["split"]["manifest_hash"]
+                != selected_result["split"]["manifest_hash"]
+            ):
+                raise ValueError(
+                    "seed confirmation must use the unchanged seed-42 split manifest"
+                )
             if confirmation_result["experiment_config"]["split_seed"] != 42:
                 raise ValueError("seed confirmation changed the fixed data-split seed")
             selected_config["seed_confirmation"] = {
@@ -1010,13 +1105,17 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                 ),
             }
             if not selected_config["seed_confirmation"]["same_selected_input"]:
-                raise ValueError("seed confirmation input differs from the validation-selected input")
+                raise ValueError(
+                    "seed confirmation input differs from the validation-selected input"
+                )
             selection["selected_input"] = selected_config["input"]
             selection["input_selection"] = selected_config["input_selection"]
             selection["seed_confirmation"] = selected_config["seed_confirmation"]
             selection["validation_metrics_by_seed"] = {
                 str(selected_config["seed"]): selected_config["validation_metrics"],
-                str(study["confirmation_seed"]): confirmation_result["validation_metrics"],
+                str(study["confirmation_seed"]): confirmation_result[
+                    "validation_metrics"
+                ],
             }
             selection["single_seed_evidence"] = False
             selected_config["single_seed_evidence"] = False
@@ -1047,25 +1146,37 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
                     "checkpoint_path": result["selected_checkpoint"],
                 }
                 config_path = write_json(
-                    group.run_dir / "test_configs" / f"{safe_filename(item['result']['name'])}.json",
+                    group.run_dir
+                    / "test_configs"
+                    / f"{safe_filename(item['result']['name'])}.json",
                     evaluation_config,
                 )
                 evaluation_run = run_evaluation(config_path)
                 report_path = Path(evaluation_run) / "metrics" / "final.json"
                 report = json.loads(report_path.read_text(encoding="utf-8"))
                 if report.get("partition") != "test":
-                    raise ValueError("test evaluator did not return test-partition results")
+                    raise ValueError(
+                        "test evaluator did not return test-partition results"
+                    )
                 if report["split"]["manifest_hash"] != result["split"]["manifest_hash"]:
-                    raise ValueError("test evaluation changed the frozen split manifest")
-                test_results.append({
-                    "model": result["name"],
-                    "validation_selected_best": result["name"] == winner,
-                    "run_dir": str(evaluation_run),
-                    "metrics": report["metrics"],
-                    "confusion_matrix": report["artifacts"]["confusion_matrix"],
-                    "prediction_examples": report["prediction_examples"] if result["name"] == winner else None,
-                    "partition": "test",
-                })
+                    raise ValueError(
+                        "test evaluation changed the frozen split manifest"
+                    )
+                test_results.append(
+                    {
+                        "model": result["name"],
+                        "validation_selected_best": result["name"] == winner,
+                        "run_dir": str(evaluation_run),
+                        "metrics": report["metrics"],
+                        "confusion_matrix": report["artifacts"]["confusion_matrix"],
+                        "prediction_examples": (
+                            report["prediction_examples"]
+                            if result["name"] == winner
+                            else None
+                        ),
+                        "partition": "test",
+                    }
+                )
             summary["test_evaluation"] = {
                 "frozen_before_test": True,
                 "selection_source": "validation",
@@ -1093,9 +1204,9 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
             results={
                 "selected_model": winner,
                 "completed_jobs": len(completed),
-                "test_access": "evaluated_after_validation_freeze"
-                if test_results
-                else "locked",
+                "test_access": (
+                    "evaluated_after_validation_freeze" if test_results else "locked"
+                ),
             },
         )
     except Exception as error:

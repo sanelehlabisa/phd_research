@@ -669,9 +669,7 @@ def execute_plan_stage(
     runs_dir: str | None,
 ) -> None:
     """Execute one explicitly requested controlled stage as checked leaf runs."""
-    implementation_dir = (
-        Path(plan_path).expanduser().resolve().parent.parent.parent
-    )
+    implementation_dir = Path(plan_path).expanduser().resolve().parent.parent.parent
     commands = build_plan_commands(
         plan_path,
         stage,
@@ -1046,7 +1044,9 @@ def main(argv: list[str] | None = None) -> Path | None:
     raw = vars(parser.parse_args(argv))
     study_path = raw.get("study_config")
     if study_path is not None and raw.get("config") is not None:
-        raise ValueError("use one study JSON path, not both --config and --study-config")
+        raise ValueError(
+            "use one study JSON path, not both --config and --study-config"
+        )
     if study_path is None and raw.get("config") is not None:
         try:
             configured = json.loads(raw["config"].read_text(encoding="utf-8"))
@@ -1089,6 +1089,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         if list_plan:
             print_study(study_path, study, study_experiment_config)
             return None
+
         def evaluate_frozen(config_path):
             from .evaluate import main as evaluate_main
 
@@ -1245,17 +1246,21 @@ def main(argv: list[str] | None = None) -> Path | None:
         val_ratio=args.val_ratio,
         seed=args.split_seed,
     )
+    cache_report = {"mode": "lazy", "bytes": 0, "test_clips": 0}
     if experiment_config.cache_dataset:
+        from .study_cache import cached_training_dataset
+
         train_indices = list(train_set.indices)
         validation_indices = list(val_set.indices)
-        dataset = CachedAHARDataset(
-            args.dataset_dir,
-            args.sequence_length,
-            (args.width, args.height),
-            cache_indices=sorted(set(train_indices + validation_indices)),
+        dataset, cache_report = cached_training_dataset(
+            dataset,
+            train_indices,
+            validation_indices,
+            split_metadata["manifest_hash"],
         )
         train_set = Subset(dataset, train_indices)
         val_set = Subset(dataset, validation_indices)
+    write_json(run_dir / "cache.json", cache_report)
     n_total = len(dataset)
     n_train, n_val = len(train_set), len(val_set)
     n_test = n_total - n_train - n_val
@@ -1432,6 +1437,26 @@ def main(argv: list[str] | None = None) -> Path | None:
                     experiment_config.to_dict(),
                     candidate_provenance,
                 )
+            from .study_matrix import atomic_json
+
+            atomic_json(
+                model_dir / "metrics" / "history.json",
+                {
+                    "metric_protocol": metric_protocol(),
+                    "selection": selector.state(len(history)),
+                    "epochs": history,
+                    "status": "training",
+                },
+            )
+            run.update(
+                {
+                    "training_progress": {
+                        "model": name,
+                        "completed_epochs": epoch + 1,
+                        "selected_epoch": selector.best_epoch,
+                    }
+                }
+            )
             if selector.should_stop and epoch + 1 >= minimum_epochs:
                 break
 
@@ -1458,6 +1483,9 @@ def main(argv: list[str] | None = None) -> Path | None:
             str(split_metadata["manifest_hash"]),
         )
         model.load_state_dict(checkpoint["model_state_dict"])
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        validation_started = timer()
         selected_validation_metrics = evaluate_classifier(
             model,
             val_loader,
@@ -1465,7 +1493,27 @@ def main(argv: list[str] | None = None) -> Path | None:
             device,
             num_classes,
         )
-        all_true, all_pred = collect_predictions(model, val_loader, device)
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        validation_seconds = timer() - validation_started
+        from .evaluate import prediction_records, per_class_metrics
+        from .utils import plot_training_curves
+
+        records = prediction_records(
+            model, val_loader, device, dataset.class_names, partition="validation"
+        )
+        records_path = write_json(
+            model_dir / "metrics" / "validation_predictions.json", records
+        )
+        all_true = [r["target"] for r in records]
+        all_pred = [r["predicted"] for r in records]
+        curves = plot_training_curves(
+            [h["training_metrics"]["loss"] for h in history],
+            [h["validation_metrics"]["loss"] for h in history],
+            [h["training_metrics"]["accuracy"] for h in history],
+            [h["validation_metrics"]["accuracy"] for h in history],
+            model_dir / "metrics" / "training_curves.png",
+        )
 
         confusion_artifacts = plot_confusion_matrix(
             all_true,
@@ -1519,6 +1567,16 @@ def main(argv: list[str] | None = None) -> Path | None:
             "checkpoint_selection": checkpoint_selection,
             "early_stopping": selection_state,
             "train_time_s": round(elapsed, 1),
+            "training_time_note": "Epoch training, validation, scheduling and checkpoint/history writes; excludes cache preparation and final metric passes.",
+            "validation_metric_pass_seconds": validation_seconds,
+            "weight_tensor_bytes": sum(
+                t.numel() * t.element_size() for t in model.state_dict().values()
+            ),
+            "checkpoint_bytes": selected_checkpoint_path.stat().st_size,
+            "validation_predictions": str(records_path),
+            "validation_per_class": per_class_metrics(records, dataset.class_names),
+            "training_curves": str(curves),
+            "cache": cache_report,
             "validation_confusion_matrix": confusion_artifacts,
             "selected_checkpoint": str(selected_checkpoint_path),
             "selected_checkpoint_metadata": str(

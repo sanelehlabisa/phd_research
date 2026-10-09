@@ -30,6 +30,10 @@ comparison profiles, aligned the guides, and made the Colab notebook a thin
 runner with artifact download. Next, run and review the AAD profiles; manuscript
 changes wait for verified results (062).
 
+Current workflow: [068 multi-resolution search and top-three comparison](agents/work/068-multisize-search-top3-comparison/prompt.md).
+One seed, 36 search jobs, then an eight-model final comparison with guarded
+test evaluation and verified ZIP export. Real Colab execution/results review remain pending.
+
 ## Structure
 
 ```text

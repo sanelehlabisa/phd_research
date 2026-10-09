@@ -6,6 +6,12 @@ hyperparameter grid.
 
 ## Current roadmap
 
+[Ticket 068](../../../agents/work/068-multisize-search-top3-comparison/prompt.md)
+implements 12 architectures at three resolutions (36 jobs, 128-epoch cap),
+then the top three plus five baselines (eight jobs, 256-epoch cap).
+Both stages use seed 42 only; test follows a validation-based freeze.
+Real Colab execution and results review are still pending; old outputs are preserved.
+
 AAD is the primary dataset for the active paper study. The AAD notebook first
 runs a cached, validation-only custom ConvLSTM search. A later explicit workflow
 stage uses its saved selection for the fixed model comparison and frozen test
@@ -107,87 +113,99 @@ not architecture-equivalent reproductions.
 
 Use one runner and one JSON path for each active AAD profile:
 
-| Profile | Purpose | Planned work |
-|---|---|---|
-| [`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) | Tiny local pipeline check | One 1-epoch, 16×16 custom-model pass; not paper evidence |
-| [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Select a custom architecture and input, then confirm the selected run | 12 architectures at 8×32×32; 128-epoch cap, patience 16; winner-only checks at 8×48×48, 8×64×64, and 16×32×32; seed-2026 confirmation; 16-job maximum |
-| [`aad_model_comparison_colab.json`](configs/experiments/aad_model_comparison_colab.json) | Compare the selected custom stack with the paper model, 3D CNNs, and transformers | 6 models; seed 42; 50 frames at 50×50; 64-epoch cap, minimum 32 (6 train + 6 test evaluations) |
+| Profile | Fixed protocol |
+|---|---|
+| [Local smoke](configs/experiments/aad_local_smoke.json) | One tiny 1-epoch pass; not paper evidence |
+| [Custom search](configs/experiments/aad_custom_search_colab.json) | 12 architectures x 32/48/64 pixels; 8 frames; 36 jobs, up to 128 epochs, patience 16 |
+| [Comparison template](configs/experiments/aad_model_comparison_colab.json) | Top 3 custom + published ConvLSTM + R3D-18/MC3-18 + Swin3D-T/S; eight fresh trainings, 50 frames at 50x50, batch 1; up to 256 epochs, minimum 32, patience 12 |
 
-The custom search is a finite, validation-guided exploration—not proof of a
-global optimum. It ranks 12 declared architectures, checks three one-factor
-input alternatives only for the validation winner, then confirms that selected
-architecture/input with model seed 2026 on the unchanged seed-42 split. Test
-data remains locked; model-family comparison is a separate explicit stage.
+Both stages use model/split seed 42. Caps are budgets, not guaranteed completed
+epochs. Checkpoints minimise validation loss. Search holds the optimiser,
+LR, weight decay, augmentation and stopping rule fixed; there is no temporal
+sweep, winner-only input check or second-seed confirmation.
 
-`aad_colab_a100.json` is a retained legacy grid for historical reproduction;
-the active notebook does not run it.
+The top-three ranking requires the complete 36-job matrix: equal-weight mean
+validation accuracy over the three resolutions, then mean loss, parameters and
+name. It retains each resolution's score/rank and worst-case accuracy. Exact
+layers/heads, source runs and config/split hashes accompany the handoff.
+Incomplete or altered evidence is rejected; there is no placeholder model.
 
-List a plan before running it; the same command executes it after review:
+Comparison keeps Adam, LR 0.001, weight decay 0.0001, no augmentation and the
+gentle shared plateau scheduler. It never warm-starts search checkpoints.
+All eight checkpoints/configs and the best *custom* identity are frozen from
+validation before any test decoding. Each gets one full test evaluation.
+Only the validation-selected best custom saves up to three correct and three
+incorrect playable test examples; missing categories are reported honestly.
 
-```bash
-.venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json --list-plan
-.venv/bin/python -m src.experiments --config configs/experiments/aad_custom_search_colab.json --list-plan
-```
+Single-seed findings do not estimate seed uncertainty. Resolution coverage
+does not prove a global optimum or unseen-data generalisation; clip-level
+stratification does not establish source-group independence.
 
-```bash
-.venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json
-```
+### Run and resume
 
-The Colab notebook/export is the supported search and comparison entry point.
-Set `WORKFLOW_STAGE` to `search`, `comparison`, or `smoke`; the default is
-search-only. For comparison, provide the search's saved `selected_config.json`
-through `SELECTED_CONFIG_PATH`; do not substitute an architecture manually. The
-comparison uses one fixed AAD split
-and protocol, and includes `r3d_18`, `mc3_18`, Swin3D-T, and Swin3D-S from
-scratch. After all validation scores are frozen, each checkpoint is evaluated
-once on test and gets its own standard metrics and confusion matrix. The best
-validation model's playable examples are saved with its test evaluation. Test
-scores never choose or tune a model.
+The [active notebook](notebooks/aad_experiment_workflow.ipynb) and matching
+[Python export](notebooks/aad_experiment_workflow.py) support:
 
-Each study saves its selection and aggregate table under `runs/studies/`, plus
-the leaf run configs, histories, checkpoints, metrics, confusion matrices, and
-prediction videos under `runs/experiments/`. Search and model-family comparison
-produce separate tables. The smoke profile is pipeline-only; Colab results are
-not paper evidence until reviewed and confirmed. Legacy plan JSONs remain for
-older CLI/helper workflows; the active AAD notebook uses only the three profiles
-above.
+- `WORKFLOW_STAGE = "search"` (default): benchmark one common memory-safe batch,
+  run the matrix, print the saved `selected_config.json`, then package/download.
+- `"comparison"`: set `SELECTED_CONFIG_PATH` to that saved selection. Train
+  eight models once, freeze, test and export the combined results.
+- `"smoke"`: validate/list profiles only; no dataset download or training.
+- `"resume"`: set `RESOLVED_PROFILE_PATH` to a saved resolved search/comparison
+  JSON under `runs/notebook_studies/`. Verify saved work and execute pending jobs.
+- `"download"`: set `ARTIFACT_ZIP_PATH`; verify/request download only.
+- `"repackage"`: set `SAVED_STUDY_DIRECTORY`; rebuild the ZIP from saved evidence
+  only, then use `"download"`.
 
-Execution and validation analysis are tracked in
-[ticket 053](../../../agents/work/053-run-and-analyse-aad-experiments/prompt.md).
-Its complete evidence is required before final training (026), then final test
-evaluation (027); those stages must not run concurrently. The evidence-backed
-manuscript update is [ticket 054](../../../agents/work/054-update-paper-from-verified-results/prompt.md).
+Rerunning search/comparison with the same request reuses its saved resolved
+profile. Completed jobs are checksum-verified, not silently retrained/retested.
+Interrupted training/test attempts, changed code/data, or incompatible evidence
+stop for inspection; do not delete guards to tune against test. A forced VM
+shutdown may leave a lock: first confirm no worker is running and inspect its
+receipts. A new comparison is not an automatic recovery action.
 
-## Experiment protocol
+Before expensive runs, list the plan or execute the local smoke:
 
-- Fixed 70:15:15 stratified clip split using the committed
-  [AAD manifest](splits/abnormal-activities-dataset_seed42.json): 748 training,
-  160 validation, and 161 test clips.
-- AAD for both custom architecture search and model-family comparison. VDD is
-  optional for a separately configured future generalisation study, not an
-  active stage in the current experiment plan.
-- `--augment` applies no transform or one randomly selected, clip-consistent
-  transform per training sample; it never combines transforms or changes
-  dataset length. Validation and test remain clean.
-- Validation-only model and checkpoint selection; test data remains locked.
-- Seed `42` is fixed for the active search and comparison and reuses the split
-  created with split seed `42`. This is single-seed evidence; report it as such.
-- Search: up to 128 epochs, validation-loss patience 20. Comparison: up to 64
-  epochs, at least 32 before validation-loss patience 12 can stop a model.
-  Both restore the validation-selected checkpoint.
-- Sample-weighted loss plus full-partition accuracy and micro
-  precision/recall/F1, confusion matrix, trainable parameters, runtime, and
-  uncertainty across confirmation seeds.
-- One factor changed at a time with the split and training budget fixed.
+`python -m src.experiments --config configs/experiments/aad_custom_search_colab.json --list-plan`
 
-New classification outputs use `loss`, `accuracy`, `precision`, `recall`, and
-`f1`. Precision/recall/F1 use micro aggregation over the full partition; all
-three equal accuracy for single-label multiclass classification. Per-class
-confusion matrices remain unchanged. Candidates rank by validation accuracy
-(descending), then loss, parameter count and name; checkpoints still use minimum
-validation loss. Historical run files are not rewritten. Legacy checkpoints
-retain their original macro protocol in checkpoint provenance; newly evaluated
-metrics use the current micro protocol.
+`python -m src.experiments --config configs/experiments/aad_local_smoke.json`
+
+The comparison template deliberately cannot execute without verified top-three
+evidence. Its resolved JSON supports the same `--list-plan` and execution command.
+Legacy grids and notebook 05 remain for historical workflows, not the active study.
+
+### Evidence and download
+
+Train/validation RAM caching is keyed by dataset file metadata, preprocessing,
+split, frame count, resolution and FPS. One configuration is retained at a time,
+bounded to 2 GiB per runner process; larger inputs fall back to lazy decoding.
+Resolution-grouped jobs reuse the cache. Test clips are never cached during
+selection. Every leaf records cache footprint/reuse, configuration, provenance,
+per-epoch history/progress and its single validation-selected checkpoint.
+
+Search selections and comparison tables live in `runs/studies/`; leaf runs in
+`runs/experiments/`; full test reports in `runs/evaluate/`. `comparison.json` and
+`comparison.csv` include validation/test loss, accuracy and explicitly micro
+precision/recall/F1, parameter counts, state-dict tensor bytes versus full
+checkpoint bytes, actual/selected epochs and timing. Linked reports retain
+per-class metrics, confusion matrices, all predictions and training curves.
+Training time includes train/validation epochs and checkpoint/history writes;
+metric-pass time includes decoding/loading, not pure inference latency.
+Micro precision/recall/F1 equal accuracy for this single-label multiclass task.
+
+The ZIP includes completed/partial leaves, study selections/freezes/receipts,
+the exact split, configs, logs, checkpoints, tables and example videos. Raw data
+and caches are excluded. Packaging checks free disk space and verifies the
+complete SHA-256 inventory and ZIP reads before replacing an older archive.
+Failures remain visible; retry packaging/download never trains or tests.
+A browser download request is not proof of a completed download. Check your
+local file before deleting the Colab runtime: ZIP-only storage cannot survive
+VM deletion.
+
+Execution/analysis remain tracked by [053](../../../agents/work/053-run-and-analyse-aad-experiments/prompt.md);
+manuscript updates wait for reviewed, versioned evidence
+([062](../../../agents/work/062-update-manuscript-after-aad-results/prompt.md)).
+The unarchived reported >90% validation score is context, not paper evidence.
 
 ## Modular Colab notebooks
 

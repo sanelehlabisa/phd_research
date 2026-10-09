@@ -9,7 +9,6 @@ from pathlib import Path
 import subprocess
 import sys
 from time import perf_counter
-import zipfile
 
 from src.dataset_source import resolve_dataset
 
@@ -42,6 +41,15 @@ def _run_command(command: list[str], root: Path, log_path: Path | None = None) -
                     log_file.write(text)
                     log_file.flush()
             result = process.wait()
+        except BaseException:
+            # Do not package files while an interrupted child is still writing.
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=10)
+            raise
         finally:
             if log_file:
                 log_file.close()
@@ -55,7 +63,9 @@ def _run_directories(root: Path) -> set[Path]:
     for purpose in ("experiments", "studies", "evaluate"):
         directory = root / "runs" / purpose
         if directory.is_dir():
-            found.update(path.resolve() for path in directory.iterdir() if path.is_dir())
+            found.update(
+                path.resolve() for path in directory.iterdir() if path.is_dir()
+            )
     return found
 
 
@@ -63,43 +73,26 @@ def _write_progress(path: Path, stages: list[dict[str, object]]) -> None:
     """Atomically save stage status so an interrupted notebook is diagnosable."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = path.with_suffix(".tmp")
-    temporary_path.write_text(json.dumps({"stages": stages}, indent=2) + "\n", encoding="utf-8")
+    temporary_path.write_text(
+        json.dumps({"stages": stages}, indent=2) + "\n", encoding="utf-8"
+    )
     temporary_path.replace(path)
 
 
-def _make_archive(root: Path, archive_path: Path, progress_path: Path, run_directories: set[Path]) -> Path:
+def _make_archive(
+    root: Path, archive_path: Path, progress_path: Path, run_directories: set[Path]
+) -> Path:
     """Package this study's profiles, logs, checkpoints, metrics and examples."""
-    archive_path.parent.mkdir(parents=True, exist_ok=True)
-    files = [root / config for _, config in PROFILES]
-    files.extend(
-        file_path
-        for run_directory in sorted(run_directories)
-        for file_path in run_directory.rglob("*")
-        if file_path.is_file() and file_path != archive_path
-    )
-    files.extend(
-        path for path in progress_path.parent.rglob("*")
-        if path.is_file() and path != archive_path
-    )
-    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for file_path in dict.fromkeys(files):
-            if file_path.is_file():
-                archive.write(file_path, file_path.relative_to(root))
-    return archive_path
+    from .study_archive import make_archive
+
+    return make_archive(root, archive_path, progress_path, run_directories, PROFILES)
 
 
 def _download_archive(path: Path) -> None:
     """Download on Colab or show the local archive path."""
-    try:
-        from google.colab import files
-    except ImportError:
-        print(f"Artifacts saved locally: {path}")
-        return
-    try:
-        files.download(str(path))
-    except Exception as error:
-        print(f"Automatic download failed; retrieve this archive manually: {path}")
-        print(f"Download detail: {error}")
+    from .study_archive import download_archive
+
+    return download_archive(path)
 
 
 def _resolved_profile(path: Path, dataset_path: Path) -> dict[str, object]:
@@ -121,7 +114,10 @@ def _choose_batch_size(results: list[dict[str, object]]) -> tuple[int, str]:
     if 32 in available and float(available[32]["samples_per_second"]) >= 1.1 * float(
         available[16]["samples_per_second"]
     ):
-        return 32, "batch 32 was at least 10% faster and retained the required free-memory margin"
+        return (
+            32,
+            "batch 32 was at least 10% faster and retained the required free-memory margin",
+        )
     return 16, "batch 32 was unavailable, unsafe, or less than 10% faster"
 
 
@@ -136,16 +132,24 @@ def _benchmark_batch_sizes(
     from torch import nn, optim
     from torch.utils.data import DataLoader, Subset
 
-    from src.dataset import AHARDataset, CachedAHARDataset, load_split_subsets
+    from src.dataset import AHARDataset, load_split_subsets
+    from src.study_cache import cached_training_dataset
     from src.metrics import train_classifier_steps
     from src.model import CustomConvLSTM
-    from src.utils import data_loader_generator, seed_everything, seed_data_loader_worker
+    from src.utils import (
+        data_loader_generator,
+        seed_everything,
+        seed_data_loader_worker,
+    )
 
     if not torch.cuda.is_available():
         raise RuntimeError("batch-size benchmark requires the Colab CUDA device")
 
     training = search_values["training"]
-    reference = search_values["reference_input"]
+    reference = {
+        **search_values["reference_input"],
+        "frame_size": max(search_values["factors"]["frame_sizes"]),
+    }
     seed = search_values["seeds"][0]
     source_dataset = AHARDataset(
         dataset_path,
@@ -165,14 +169,13 @@ def _benchmark_batch_sizes(
         manifest_path,
         seed=seed,
     )
-    cached_indices = sorted(set(train_set.indices + validation_set.indices))
-    dataset = CachedAHARDataset(
-        dataset_path,
-        reference["sequence_length"],
-        (reference["frame_size"], reference["frame_size"]),
-        cache_indices=cached_indices,
+    dataset, cache_report = cached_training_dataset(
+        source_dataset,
+        train_set.indices,
+        validation_set.indices,
+        split_metadata["manifest_hash"],
     )
-    cache_bytes = sum(video.numel() * video.element_size() for video, _ in dataset._cache.values())
+    cache_bytes = cache_report["bytes"]
     train_set, _, _, _ = load_split_subsets(
         dataset,
         manifest_path,
@@ -201,7 +204,9 @@ def _benchmark_batch_sizes(
         try:
             seed_everything(seed)
             model = CustomConvLSTM(len(dataset.class_names), layers=layers).to(device)
-            optimizer = optim.Adam(model.parameters(), lr=training["learning_rate"], weight_decay=0.0)
+            optimizer = optim.Adam(
+                model.parameters(), lr=training["learning_rate"], weight_decay=0.0
+            )
             criterion = nn.CrossEntropyLoss()
             warmup_loader = DataLoader(
                 Subset(train_set, list(range(batch_size))),
@@ -209,10 +214,16 @@ def _benchmark_batch_sizes(
                 shuffle=False,
                 num_workers=0,
             )
-            train_classifier_steps(model, warmup_loader, criterion, optimizer, device, 1)
+            train_classifier_steps(
+                model, warmup_loader, criterion, optimizer, device, 1
+            )
+            del optimizer, model
+            torch.cuda.empty_cache()
             seed_everything(seed)
             model = CustomConvLSTM(len(dataset.class_names), layers=layers).to(device)
-            optimizer = optim.Adam(model.parameters(), lr=training["learning_rate"], weight_decay=0.0)
+            optimizer = optim.Adam(
+                model.parameters(), lr=training["learning_rate"], weight_decay=0.0
+            )
             torch.cuda.reset_peak_memory_stats(device)
             torch.cuda.synchronize(device)
             started = perf_counter()
@@ -221,21 +232,33 @@ def _benchmark_batch_sizes(
             elapsed = perf_counter() - started
             samples = min(len(train_set), batch_size * steps)
             free_bytes, total_bytes = torch.cuda.mem_get_info(device)
-            memory_safe = free_bytes >= max(1024**3, int(total_bytes * 0.10))
-            results.append({
-                "batch_size": batch_size,
-                "available": True,
-                "memory_safe": memory_safe,
-                "steps": steps,
-                "samples": samples,
-                "elapsed_seconds": round(elapsed, 3),
-                "samples_per_second": round(samples / elapsed, 3),
-                "peak_cuda_memory_bytes": torch.cuda.max_memory_allocated(device),
-                "free_cuda_memory_after_trial_bytes": free_bytes,
-                "total_cuda_memory_bytes": total_bytes,
-            })
+            peak = torch.cuda.max_memory_allocated(device)
+            memory_safe = free_bytes >= max(
+                1024**3, int(total_bytes * 0.10)
+            ) and peak <= int(total_bytes * 0.80)
+            results.append(
+                {
+                    "batch_size": batch_size,
+                    "available": True,
+                    "memory_safe": memory_safe,
+                    "steps": steps,
+                    "samples": samples,
+                    "elapsed_seconds": round(elapsed, 3),
+                    "samples_per_second": round(samples / elapsed, 3),
+                    "peak_cuda_memory_bytes": torch.cuda.max_memory_allocated(device),
+                    "free_cuda_memory_after_trial_bytes": free_bytes,
+                    "total_cuda_memory_bytes": total_bytes,
+                }
+            )
         except torch.cuda.OutOfMemoryError:
-            results.append({"batch_size": batch_size, "available": False, "memory_safe": False, "reason": "CUDA out of memory"})
+            results.append(
+                {
+                    "batch_size": batch_size,
+                    "available": False,
+                    "memory_safe": False,
+                    "reason": "CUDA out of memory",
+                }
+            )
             torch.cuda.empty_cache()
         finally:
             if "model" in locals():
@@ -252,10 +275,21 @@ def _benchmark_batch_sizes(
         "split_manifest_hash": split_metadata["manifest_hash"],
         "seed": seed,
         "model": candidate["name"],
-        "input": {"sequence_length": reference["sequence_length"], "height": reference["frame_size"], "width": reference["frame_size"]},
+        "safety_scope": "Widest/highest-parameter search stack at the largest declared spatial input; 20% peak-memory headroom.",
+        "fixed_for_all_search_jobs": True,
+        "input": {
+            "sequence_length": reference["sequence_length"],
+            "height": reference["frame_size"],
+            "width": reference["frame_size"],
+        },
         "cache_memory_bytes": cache_bytes,
+        "cache": cache_report,
         "cache_memory_gib": round(cache_bytes / (1024**3), 3),
-        "cached_partition_indices": {"train": len(train_set), "validation": len(validation_set), "test": 0},
+        "cached_partition_indices": {
+            "train": len(train_set),
+            "validation": len(validation_set),
+            "test": 0,
+        },
         "results": results,
         "selected_batch_size": selected_batch_size,
         "selection_reason": reason,
@@ -280,17 +314,45 @@ def run_aad_study(root: str | Path, run_full_study: bool = True) -> Path | None:
     comparison_template = implementation_root / PROFILES[2][1]
 
     print("Checking local smoke profile", flush=True)
-    _run_command([python, "-m", "src.experiments", "--config", str(local_config), "--list-plan"], implementation_root)
+    _run_command(
+        [python, "-m", "src.experiments", "--config", str(local_config), "--list-plan"],
+        implementation_root,
+    )
     print("Checking custom search profile", flush=True)
-    _run_command([python, "-m", "src.experiments", "--config", str(search_config), "--list-plan"], implementation_root)
+    _run_command(
+        [
+            python,
+            "-m",
+            "src.experiments",
+            "--config",
+            str(search_config),
+            "--list-plan",
+        ],
+        implementation_root,
+    )
     if not run_full_study:
         template = json.loads(comparison_template.read_text(encoding="utf-8"))
-        assert template["models"] == ["custom_selected", "paper_convlstm_published", "r3d_18", "mc3_18", "swin3d_t", "swin3d_s"]
+        from src.study_matrix import COMPARISON_MODELS
+
+        assert template["models"] == COMPARISON_MODELS
+        print(
+            "Comparison: 8 fresh trainings and 8 gated test evaluations; top-three search evidence required."
+        )
         print("Smoke check complete; no dataset download or training was started.")
         return None
 
+    from src.study_matrix import file_hash, atomic_json
+
+    request = {"stage": "search", "profile_sha256": file_hash(search_config)}
+    saved = _saved_request(implementation_root, request)
+    if saved:
+        return resume_saved_study(implementation_root, saved)
     search_values = json.loads(search_config.read_text(encoding="utf-8"))
-    dataset = resolve_dataset(search_values["dataset"]["name"], search_values["dataset"]["path"], implementation_root)
+    dataset = resolve_dataset(
+        search_values["dataset"]["name"],
+        search_values["dataset"]["path"],
+        implementation_root,
+    )
     dataset = Path(dataset).resolve()
     study_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     study_root = implementation_root / "runs" / "notebook_studies" / study_id
@@ -316,23 +378,41 @@ def run_aad_study(root: str | Path, run_full_study: bool = True) -> Path | None:
         archived_manifest.write_bytes(split_manifest.read_bytes())
         resolved_search["dataset"]["split_manifest"] = str(archived_manifest)
         resolved_search["training"]["batch_size"] = benchmark["selected_batch_size"]
-        benchmark_record.update({
-            "status": "complete",
-            "selected_batch_size": benchmark["selected_batch_size"],
-            "split_manifest": str(archived_manifest),
-        })
+        benchmark_record.update(
+            {
+                "status": "complete",
+                "selected_batch_size": benchmark["selected_batch_size"],
+                "split_manifest": str(archived_manifest),
+            }
+        )
         _write_progress(progress_path, stage_records)
 
         before = _run_directories(implementation_root)
-        search_record = {"stage": "custom_search", "status": "running", "run_directories": []}
+        search_record = {
+            "stage": "custom_search",
+            "status": "running",
+            "run_directories": [],
+        }
         stage_records.append(search_record)
         _write_progress(progress_path, stage_records)
         resolved_search_path = study_root / "resolved_custom_search.json"
         resolved_search_path.parent.mkdir(parents=True, exist_ok=True)
-        resolved_search_path.write_text(json.dumps(resolved_search, indent=2) + "\n", encoding="utf-8")
+        resolved_search_path.write_text(
+            json.dumps(resolved_search, indent=2) + "\n", encoding="utf-8"
+        )
+        atomic_json(
+            study_root / "request.json",
+            {"request": request, "profile": str(resolved_search_path)},
+        )
         try:
             _run_command(
-                [python, "-m", "src.experiments", "--config", str(resolved_search_path)],
+                [
+                    python,
+                    "-m",
+                    "src.experiments",
+                    "--config",
+                    str(resolved_search_path),
+                ],
                 implementation_root,
                 study_root / "logs" / "custom_search.log",
             )
@@ -347,76 +427,208 @@ def run_aad_study(root: str | Path, run_full_study: bool = True) -> Path | None:
         finally:
             found = _run_directories(implementation_root) - before
             created_runs.update(found)
-            search_record["run_directories"] = [str(path.relative_to(implementation_root)) for path in sorted(found)]
+            search_record["run_directories"] = [
+                str(path.relative_to(implementation_root)) for path in sorted(found)
+            ]
             _write_progress(progress_path, stage_records)
 
-        search_runs = [path for path in created_runs if path.parent.name == "studies" and (path / "selected_config.json").is_file()]
+        search_runs = [
+            path
+            for path in created_runs
+            if path.parent.name == "studies"
+            and (path / "selected_config.json").is_file()
+        ]
         if not search_runs:
-            raise FileNotFoundError("custom search finished without selected_config.json")
-        selected_path = max(search_runs, key=lambda path: path.stat().st_mtime) / "selected_config.json"
+            raise FileNotFoundError(
+                "custom search finished without selected_config.json"
+            )
+        selected_path = (
+            max(search_runs, key=lambda path: path.stat().st_mtime)
+            / "selected_config.json"
+        )
         search_record["selected_config"] = str(selected_path)
-        print(f"Validation-selected config for later comparison: {selected_path}", flush=True)
-        print("Custom search complete; model-family comparison is a separate run.", flush=True)
+        print(
+            f"Validation-selected config for later comparison: {selected_path}",
+            flush=True,
+        )
+        print(
+            "Custom search complete; model-family comparison is a separate run.",
+            flush=True,
+        )
     except KeyboardInterrupt:
         print("Run interrupted. Packaging artifacts saved so far.", flush=True)
+        if stage_records:
+            stage_records[-1]["status"] = "interrupted"
     except Exception as error:
         print(f"Study stopped: {error}. Packaging artifacts saved so far.", flush=True)
-        search_record = next((item for item in stage_records if item["stage"] == "custom_search"), None)
+        search_record = next(
+            (item for item in stage_records if item["stage"] == "custom_search"), None
+        )
         if search_record is None:
             stage_records[-1]["error"] = str(error)
+            stage_records[-1]["status"] = "failed"
+        else:
+            search_record.update(status="failed", error=str(error))
     finally:
         created_runs.add(study_root)
         _write_progress(progress_path, stage_records)
-        archive = _make_archive(implementation_root, archive_path, progress_path, created_runs)
+        archive = _make_archive(
+            implementation_root, archive_path, progress_path, created_runs
+        )
         print(f"Study archive: {archive}", flush=True)
         _download_archive(archive)
 
     incomplete = [record for record in stage_records if record["status"] != "complete"]
     if incomplete:
-        raise RuntimeError("Search did not complete. Review the downloaded progress and logs before resuming.")
+        raise RuntimeError(
+            "Search did not complete. Review the downloaded progress and logs before resuming."
+        )
     return archive_path
+
+
+def _saved_request(root, request):
+    for path in sorted(
+        (root / "runs/notebook_studies").glob("*/request.json"), reverse=True
+    ):
+        values = json.loads(path.read_text(encoding="utf-8"))
+        if values["request"] == request:
+            return Path(values["profile"])
+    return None
+
+
+def resume_saved_study(root, profile_path):
+    """Verify completed jobs and run pending jobs; never redo attempted tests."""
+    root = Path(root).expanduser().resolve()
+    profile = Path(profile_path).expanduser().resolve()
+    if (
+        not profile.is_relative_to(root / "runs/notebook_studies")
+        or not profile.is_file()
+    ):
+        raise ValueError(
+            "Resume requires the saved resolved profile under runs/notebook_studies"
+        )
+    directory = profile.parent
+    progress = directory / "progress.json"
+    previous = (
+        json.loads(progress.read_text(encoding="utf-8"))["stages"]
+        if progress.exists()
+        else []
+    )
+    records = [
+        *previous,
+        {"stage": "resume_saved_study", "status": "running", "run_directories": []},
+    ]
+    created = {
+        root / p for record in previous for p in record.get("run_directories", [])
+    }
+    before = _run_directories(root)
+    try:
+        _write_progress(progress, records)
+        log = (
+            directory
+            / "logs"
+            / f"resume_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.log"
+        )
+        _run_command(
+            [sys.executable, "-m", "src.experiments", "--config", str(profile)],
+            root,
+            log,
+        )
+        records[-1]["status"] = "complete"
+    except BaseException as error:
+        records[-1].update(status="incomplete", error=str(error))
+        raise
+    finally:
+        created.update(_run_directories(root) - before)
+        for group in (root / "runs/studies").glob("*"):
+            lifecycle = group / "run.json"
+            if lifecycle.is_file():
+                details = json.loads(lifecycle.read_text(encoding="utf-8"))
+                if details.get("arguments", {}).get("study_file") == str(profile):
+                    created.add(group.resolve())
+        records[-1]["run_directories"] = [
+            str(p.relative_to(root)) for p in sorted(created)
+        ]
+        values = json.loads(profile.read_text(encoding="utf-8"))
+        if values.get("selected_config"):
+            records[-1]["selected_config"] = values["selected_config"]
+            created.add(Path(values["selected_config"]).parent)
+        _write_progress(progress, records)
+        archive = _make_archive(root, directory / "artifacts.zip", progress, created)
+        _download_archive(archive)
+    return archive
 
 
 def run_saved_comparison(root: str | Path, selected_config_path: str | Path) -> Path:
     """Compare model families using an already frozen validation selection."""
     implementation_root = Path(root).expanduser().resolve()
     selected_path = Path(selected_config_path).expanduser().resolve()
-    selected = json.loads(selected_path.read_text(encoding="utf-8"))
-    if selected.get("selection_partition") != "validation" or selected.get("test_access") != "locked":
-        raise ValueError("selected config must come from a validation-only custom search")
-    candidate = selected["candidate"]
+    from src.study_matrix import load_selection
+
+    selected = load_selection(selected_path)
     dataset_path = resolve_dataset("aad", selected["dataset_dir"], implementation_root)
     dataset_path = Path(dataset_path).resolve()
     comparison_template = implementation_root / PROFILES[2][1]
+    from src.study_matrix import file_hash, atomic_json
+
+    request = {
+        "stage": "comparison",
+        "profile_sha256": file_hash(comparison_template),
+        "selection_sha256": file_hash(selected_path),
+    }
+    saved = _saved_request(implementation_root, request)
+    if saved:
+        return resume_saved_study(implementation_root, saved)
     resolved_comparison = _resolved_profile(comparison_template, dataset_path)
     resolved_comparison["selected_config"] = str(selected_path)
-    resolved_comparison["dataset"]["split_manifest"] = selected["split"]["manifest_path"]
-    resolved_comparison["custom_candidates"] = [{
-        "name": "custom_selected",
-        "research_question": "Architecture selected using validation evidence by the custom search.",
-        "convlstm_layers": candidate["convlstm_layers"],
-        "hidden_classifier_width": candidate.get("hidden_classifier_width"),
-    }]
+    resolved_comparison["dataset"]["split_manifest"] = selected["split"][
+        "manifest_path"
+    ]
+    resolved_comparison["custom_candidates"] = [
+        {**item["candidate"], "name": item["comparison_name"]}
+        for item in selected["top3"]
+    ]
 
     study_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    study_root = implementation_root / "runs" / "notebook_studies" / f"comparison_{study_id}"
+    study_root = (
+        implementation_root / "runs" / "notebook_studies" / f"comparison_{study_id}"
+    )
     progress_path = study_root / "progress.json"
     archive_path = study_root / "artifacts.zip"
     created_runs = {selected_path.parent}
     stage_records: list[dict[str, object]] = []
     comparison_path = study_root / "resolved_model_comparison.json"
     comparison_path.parent.mkdir(parents=True, exist_ok=True)
-    comparison_path.write_text(json.dumps(resolved_comparison, indent=2) + "\n", encoding="utf-8")
+    comparison_path.write_text(
+        json.dumps(resolved_comparison, indent=2) + "\n", encoding="utf-8"
+    )
+    atomic_json(
+        study_root / "request.json",
+        {"request": request, "profile": str(comparison_path)},
+    )
     _write_progress(progress_path, stage_records)
 
+    before = _run_directories(implementation_root)
     try:
         _run_command(
-            [sys.executable, "-m", "src.experiments", "--config", str(comparison_path), "--list-plan"],
+            [
+                sys.executable,
+                "-m",
+                "src.experiments",
+                "--config",
+                str(comparison_path),
+                "--list-plan",
+            ],
             implementation_root,
             study_root / "logs" / "comparison_plan.log",
         )
         before = _run_directories(implementation_root)
-        record = {"stage": "model_comparison_and_frozen_test", "status": "running", "run_directories": [], "selected_config": str(selected_path)}
+        record = {
+            "stage": "model_comparison_and_frozen_test",
+            "status": "running",
+            "run_directories": [],
+            "selected_config": str(selected_path),
+        }
         stage_records.append(record)
         _write_progress(progress_path, stage_records)
         _run_command(
@@ -425,17 +637,34 @@ def run_saved_comparison(root: str | Path, selected_config_path: str | Path) -> 
             study_root / "logs" / "model_comparison_and_test.log",
         )
         record["status"] = "complete"
-        record["run_directories"] = [str(path.relative_to(implementation_root)) for path in sorted(_run_directories(implementation_root) - before)]
-    except Exception as error:
+        record["run_directories"] = [
+            str(path.relative_to(implementation_root))
+            for path in sorted(_run_directories(implementation_root) - before)
+        ]
+    except BaseException as error:
         if stage_records:
             stage_records[-1].update({"status": "failed", "error": str(error)})
         else:
-            stage_records.append({"stage": "model_comparison_and_frozen_test", "status": "failed", "error": str(error)})
+            stage_records.append(
+                {
+                    "stage": "model_comparison_and_frozen_test",
+                    "status": "failed",
+                    "error": str(error),
+                }
+            )
         raise
     finally:
+        found = _run_directories(implementation_root) - before
+        created_runs.update(found)
+        if stage_records:
+            stage_records[-1]["run_directories"] = [
+                str(p.relative_to(implementation_root)) for p in sorted(found)
+            ]
         created_runs.add(study_root)
         _write_progress(progress_path, stage_records)
-        archive = _make_archive(implementation_root, archive_path, progress_path, created_runs)
+        archive = _make_archive(
+            implementation_root, archive_path, progress_path, created_runs
+        )
         print(f"Comparison archive: {archive}", flush=True)
         _download_archive(archive)
     return archive_path

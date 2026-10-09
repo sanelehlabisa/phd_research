@@ -58,6 +58,7 @@ def model_from_checkpoint(checkpoint):
         "r2plus1d_18",
         "swin3d_t",
         "swin3d_s",
+        "paper_convlstm_published",
     }:
         raise ValueError(f"unsupported final model registry: {registry}")
     from .experiments import build_registered_model
@@ -75,7 +76,7 @@ def model_from_checkpoint(checkpoint):
 
 
 @torch.inference_mode()
-def prediction_records(model, loader, device, class_names):
+def prediction_records(model, loader, device, class_names, partition="test"):
     """Keep full test predictions and sample losses for independent recalculation."""
     records = []
     subset = loader.dataset
@@ -94,7 +95,7 @@ def prediction_records(model, loader, device, class_names):
             records.append(
                 {
                     "source": str(source),
-                    "partition": "test",
+                    "partition": partition,
                     "target": target,
                     "predicted": prediction,
                     "true_class": class_names[target],
@@ -105,6 +106,25 @@ def prediction_records(model, loader, device, class_names):
                 }
             )
     return records
+
+
+def per_class_metrics(records, class_names):
+    precision, recall, f1, support = precision_recall_fscore_support(
+        [r["target"] for r in records],
+        [r["predicted"] for r in records],
+        labels=list(range(len(class_names))),
+        zero_division=0,
+    )
+    return [
+        {
+            "class": name,
+            "precision": float(precision[i]),
+            "recall": float(recall[i]),
+            "f1": float(f1[i]),
+            "support": int(support[i]),
+        }
+        for i, name in enumerate(class_names)
+    ]
 
 
 def main(argv=None) -> Path:

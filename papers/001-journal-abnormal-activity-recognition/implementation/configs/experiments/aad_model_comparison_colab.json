@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "mode": "top3_comparison",
   "selected_config": null,
   "dataset": {
     "name": "aad",
@@ -7,7 +8,9 @@
     "split_manifest": null
   },
   "models": [
-    "custom_selected",
+    "custom_top1",
+    "custom_top2",
+    "custom_top3",
     "paper_convlstm_published",
     "r3d_18",
     "mc3_18",
@@ -22,7 +25,7 @@
     "weight_decays": [0.0001]
   },
   "training": {
-    "epochs": 64,
+    "epochs": 256,
     "early_stopping_patience": 12,
     "batch_size": 1,
     "learning_rate": 0.001,
@@ -35,6 +38,6 @@
   "minimum_epochs": 32,
   "seeds": [42],
   "runs_dir": "runs",
-  "max_runs": 6,
+  "max_runs": 8,
   "published_topology": {"enabled": false, "batch_size": 1}
 }

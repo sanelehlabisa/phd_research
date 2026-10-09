@@ -18,12 +18,10 @@ CONFIG = (
     / "configs/experiments/aad_staged_experiments.json"
 )
 SMOKE_CONFIG = (
-    Path(__file__).resolve().parents[1]
-    / "configs/experiments/aad_local_smoke.json"
+    Path(__file__).resolve().parents[1] / "configs/experiments/aad_local_smoke.json"
 )
 COLAB_CONFIG = (
-    Path(__file__).resolve().parents[1]
-    / "configs/experiments/aad_colab_a100.json"
+    Path(__file__).resolve().parents[1] / "configs/experiments/aad_colab_a100.json"
 )
 CUSTOM_SEARCH_CONFIG = (
     Path(__file__).resolve().parents[1]
@@ -54,22 +52,30 @@ def resolved_comparison_config(tmp_path):
     }
     selected_path = write_json(tmp_path / "selected_config.json", selected)
     values = json.loads(MODEL_COMPARISON_CONFIG.read_text(encoding="utf-8"))
+    # Legacy one-winner studies remain readable; the active top-three mode has
+    # separate provenance/guard tests in test_multisize_study.py.
+    values.pop("mode")
+    values["models"] = ["custom_selected", *values["models"][3:]]
+    values["training"]["epochs"] = 64
+    values["max_runs"] = 6
     values["selected_config"] = str(selected_path)
-    values["custom_candidates"] = [{
-        "name": "custom_selected",
-        "research_question": "Read from validation-selected config",
-        "convlstm_layers": selected["candidate"]["convlstm_layers"],
-        "hidden_classifier_width": None,
-    }]
+    values["custom_candidates"] = [
+        {
+            "name": "custom_selected",
+            "research_question": "Read from validation-selected config",
+            "convlstm_layers": selected["candidate"]["convlstm_layers"],
+            "hidden_classifier_width": None,
+        }
+    ]
     return write_json(tmp_path / "comparison.json", values)
 
 
-def test_custom_search_config_has_reference_and_one_factor_variants():
+def test_custom_search_config_has_complete_resolution_matrix():
     study, config, manifest = study_config.load_study(CUSTOM_SEARCH_CONFIG)
     rows = study_config.study_rows(study, config)
     names = [candidate.name for candidate in manifest.candidates]
 
-    assert len(rows) == study["max_runs"] == 16
+    assert len(rows) == study["max_runs"] == 36
     assert names == [
         "custom_flat_16_16",
         "custom_flat_16_16_16",
@@ -101,21 +107,32 @@ def test_custom_search_config_has_reference_and_one_factor_variants():
     ]
     assert study["seeds"] == [42]
     assert (config.sequence_length, config.height, config.width) == (8, 32, 32)
-    assert (config.epochs, config.early_stopping_patience, config.batch_size, config.learning_rate, config.weight_decay) == (128, 16, 16, 0.01, 0.0)
-    assert study["factors"] == {"frame_sizes": [32, 48, 64], "sequence_lengths": [8, 16], "weight_decays": [0.0]}
+    assert (
+        config.epochs,
+        config.early_stopping_patience,
+        config.batch_size,
+        config.learning_rate,
+        config.weight_decay,
+    ) == (128, 16, 16, 0.01, 0.0)
+    assert study["factors"] == {
+        "frame_sizes": [32, 48, 64],
+        "sequence_lengths": [8],
+        "weight_decays": [0.0],
+    }
     assert config.cache_dataset is True
-    assert {row["stage"] for row in rows} == {"screen", "ablation", "seed_confirmation"}
-    screens = [row for row in rows if row["stage"] == "screen"]
-    ablations = [row for row in rows if row["stage"] == "ablation"]
-    confirmations = [row for row in rows if row["stage"] == "seed_confirmation"]
-    assert len(screens) == 12 and {row["seed"] for row in screens} == {42}
-    assert all((row["config"]["sequence_length"], row["config"]["height"]) == (8, 32) for row in screens)
-    assert all(row["config"]["augment"] is False and row["config"]["weight_decay"] == 0.0 for row in screens)
-    assert {(row["config"]["sequence_length"], row["config"]["height"]) for row in ablations} == {(8, 48), (8, 64), (16, 32)}
-    assert len(confirmations) == 1 and confirmations[0]["seed"] == 2026
+    assert {row["stage"] for row in rows} == {"resolution_search"}
+    assert {row["seed"] for row in rows} == {42}
+    assert all(row["config"]["sequence_length"] == 8 for row in rows)
     assert all(
-        row["model"] in names or row["model"] == "VALIDATION_WINNER"
+        row["config"]["augment"] is False and row["config"]["weight_decay"] == 0.0
         for row in rows
+    )
+    assert {(row["model"], row["config"]["height"]) for row in rows} == {
+        (name, size) for name in names for size in [32, 48, 64]
+    }
+    assert "confirmation_seed" not in study
+    assert all(
+        row["model"] in names or row["model"] == "VALIDATION_WINNER" for row in rows
     )
     assert all(row["partition"] == "validation" for row in rows)
     assert all(row["test_access"] == "locked" for row in rows)
@@ -135,7 +152,7 @@ def test_custom_search_rejects_candidate_and_confirmation_seed_overflow(tmp_path
     values = json.loads(CUSTOM_SEARCH_CONFIG.read_text(encoding="utf-8"))
     values["confirmation_seed"] = 42
     path = write_json(tmp_path / "duplicate_confirmation_seed.json", values)
-    with pytest.raises(ValueError, match="distinct model seed"):
+    with pytest.raises(ValueError, match="confirmation"):
         study_config.load_study(path)
 
 
@@ -201,9 +218,7 @@ def test_model_comparison_config_fixes_protocol_and_includes_model_families(tmp_
         }
         for row in rows
     ]
-    table_rows = study_config.aggregate_screen(
-        records, study["models"], study["seeds"]
-    )
+    table_rows = study_config.aggregate_screen(records, study["models"], study["seeds"])
     assert {row["family"] for row in table_rows} == {
         "ConvLSTM",
         "3D-CNN",
@@ -220,6 +235,11 @@ def test_search_writes_exact_validation_selected_architecture(tmp_path, monkeypa
     from src import dataset_source
 
     values = json.loads(CUSTOM_SEARCH_CONFIG.read_text(encoding="utf-8"))
+    # Retain coverage of historical winner-only/second-seed evidence.
+    values["mode"] = "staged"
+    values["confirmation_seed"] = 2026
+    values["factors"]["sequence_lengths"] = [8, 16]
+    values["max_runs"] = 16
     values["dataset"]["path"] = str(tmp_path / "aad")
     values["runs_dir"] = str(tmp_path / "runs")
     config_path = write_json(tmp_path / "search.json", values)
@@ -237,35 +257,62 @@ def test_search_writes_exact_validation_selected_architecture(tmp_path, monkeypa
         run_dir.mkdir()
         leaf_config = ExperimentConfig.from_json(leaf_config_path).to_dict()
         seed = leaf_config["seed"]
-        if model_name == target and leaf_config["height"] == 48 and leaf_config["sequence_length"] == 8:
+        if (
+            model_name == target
+            and leaf_config["height"] == 48
+            and leaf_config["sequence_length"] == 8
+        ):
             accuracy = 0.96 if seed == 42 else 0.91
-        elif model_name == target and leaf_config["height"] == 32 and leaf_config["sequence_length"] == 8:
+        elif (
+            model_name == target
+            and leaf_config["height"] == 32
+            and leaf_config["sequence_length"] == 8
+        ):
             accuracy = 0.95 if seed == 42 else 0.90
         else:
             accuracy = 0.4
-        write_json(run_dir / "summary.json", {"all": [{
-            "name": model_name,
-            "seed": seed,
-            "partition": "validation",
-            "test_access": "locked",
-            "split": {"manifest_hash": "fixed-split"},
-            "dataset_dir": str(dataset_path),
-            "num_params": 5000,
-            "input_dimensions": {
-                "sequence_length": leaf_config["sequence_length"],
-                "height": leaf_config["height"],
-                "width": leaf_config["width"],
+        write_json(
+            run_dir / "summary.json",
+            {
+                "all": [
+                    {
+                        "name": model_name,
+                        "seed": seed,
+                        "partition": "validation",
+                        "test_access": "locked",
+                        "split": {"manifest_hash": "fixed-split"},
+                        "dataset_dir": str(dataset_path),
+                        "num_params": 5000,
+                        "input_dimensions": {
+                            "sequence_length": leaf_config["sequence_length"],
+                            "height": leaf_config["height"],
+                            "width": leaf_config["width"],
+                        },
+                        "validation_metrics": {
+                            "accuracy": accuracy,
+                            "loss": 1 - accuracy,
+                            "precision": accuracy,
+                            "recall": accuracy,
+                            "f1": accuracy,
+                        },
+                        "experiment_config": leaf_config,
+                    }
+                ]
             },
-            "validation_metrics": {"accuracy": accuracy, "loss": 1 - accuracy, "precision": accuracy, "recall": accuracy, "f1": accuracy},
-            "experiment_config": leaf_config,
-        }]})
+        )
         fake_runs.append(run_dir)
         return run_dir
 
-    result_dir = study_config.execute_study(config_path, study, config, manifest, fake_run)
+    result_dir = study_config.execute_study(
+        config_path, study, config, manifest, fake_run
+    )
     selected = json.loads((result_dir / "selected_config.json").read_text())
     assert selected["candidate"]["name"] == target
-    assert selected["candidate"]["convlstm_layers"] == [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]]
+    assert selected["candidate"]["convlstm_layers"] == [
+        [16, [3, 3]],
+        [16, [3, 3]],
+        [32, [3, 3]],
+    ]
     assert selected["input"] == {"sequence_length": 8, "height": 48, "width": 48}
     assert selected["seed"] == 42
     assert selected["validation_metrics"]["accuracy"] == 0.96
@@ -280,7 +327,9 @@ def test_search_writes_exact_validation_selected_architecture(tmp_path, monkeypa
     assert selected["test_access"] == "locked"
     assert selected["split"]["manifest_hash"] == "fixed-split"
     summary = json.loads((result_dir / "summary.json").read_text())
-    confirmation = next(job for job in summary["jobs"] if job["stage"] == "seed_confirmation")
+    confirmation = next(
+        job for job in summary["jobs"] if job["stage"] == "seed_confirmation"
+    )
     assert confirmation["result"]["seed"] == 2026
     assert confirmation["result"]["experiment_config"]["split_seed"] == 42
     assert confirmation["result"]["experiment_config"]["height"] == 48
@@ -299,7 +348,7 @@ def test_new_colab_profiles_list_without_training(monkeypatch, capsys, tmp_path)
     )
     experiments.main(["--config", str(CUSTOM_SEARCH_CONFIG), "--list-plan"])
     search_output = capsys.readouterr().out
-    assert "custom architecture search: 16 declared runs" in search_output
+    assert "custom architecture search: 36 declared runs" in search_output
     assert "custom_flat_24_24_24" in search_output
 
     comparison_config = resolved_comparison_config(tmp_path)
@@ -375,9 +424,12 @@ def test_grid_config_selects_local_dataset_and_uses_its_default_split(tmp_path):
     assert config.dataset_name == "vdd"
     assert config.dataset_dir == str((tmp_path / "vdd").resolve())
     assert config.split_manifest is None
-    assert resolve_split_manifest_path(
-        config.dataset_dir, config.split_manifest, config.split_seed
-    ).name == "vdd_seed42.json"
+    assert (
+        resolve_split_manifest_path(
+            config.dataset_dir, config.split_manifest, config.split_seed
+        ).name
+        == "vdd_seed42.json"
+    )
 
 
 def test_staged_config_selects_dataset_without_aad_specific_validation(tmp_path):
@@ -510,7 +562,9 @@ def test_smoke_writes_selected_train_config_and_keeps_test_locked(
     assert all(job["result"]["partition"] == "validation" for job in summary["jobs"])
 
 
-def test_selected_architecture_handoff_and_test_evaluation_after_freeze(tmp_path, monkeypatch):
+def test_selected_architecture_handoff_and_test_evaluation_after_freeze(
+    tmp_path, monkeypatch
+):
     from src import dataset_source
 
     comparison_config = resolved_comparison_config(tmp_path)
@@ -535,18 +589,31 @@ def test_selected_architecture_handoff_and_test_evaluation_after_freeze(tmp_path
         checkpoint.write_bytes(b"checkpoint")
         leaf_config = ExperimentConfig.from_json(config_path).to_dict()
         score = 0.9 if model_name == "custom_selected" else 0.7
-        write_json(run_dir / "summary.json", {"all": [{
-            "name": model_name,
-            "seed": 42,
-            "partition": "validation",
-            "test_access": "locked",
-            "split": {"manifest_hash": "fixed-split"},
-            "dataset_dir": str(dataset_path),
-            "num_params": 100,
-            "validation_metrics": {"accuracy": score, "loss": 1 - score, "precision": score, "recall": score, "f1": score},
-            "experiment_config": leaf_config,
-            "selected_checkpoint": str(checkpoint),
-        }]})
+        write_json(
+            run_dir / "summary.json",
+            {
+                "all": [
+                    {
+                        "name": model_name,
+                        "seed": 42,
+                        "partition": "validation",
+                        "test_access": "locked",
+                        "split": {"manifest_hash": "fixed-split"},
+                        "dataset_dir": str(dataset_path),
+                        "num_params": 100,
+                        "validation_metrics": {
+                            "accuracy": score,
+                            "loss": 1 - score,
+                            "precision": score,
+                            "recall": score,
+                            "f1": score,
+                        },
+                        "experiment_config": leaf_config,
+                        "selected_checkpoint": str(checkpoint),
+                    }
+                ]
+            },
+        )
         leaf_runs.append(run_dir)
         return run_dir
 
@@ -556,13 +623,22 @@ def test_selected_architecture_handoff_and_test_evaluation_after_freeze(tmp_path
         evaluation_calls.append(eval_config)
         run_dir = tmp_path / f"eval-{len(evaluation_calls):02d}"
         (run_dir / "metrics").mkdir(parents=True)
-        write_json(run_dir / "metrics/final.json", {
-            "partition": "test",
-            "split": {"manifest_hash": "fixed-split"},
-            "metrics": {"loss": 0.5, "accuracy": 0.8, "precision": 0.8, "recall": 0.8, "f1": 0.8},
-            "artifacts": {"confusion_matrix": {"json": "test.json"}},
-            "prediction_examples": {"records": ["example.mp4"]},
-        })
+        write_json(
+            run_dir / "metrics/final.json",
+            {
+                "partition": "test",
+                "split": {"manifest_hash": "fixed-split"},
+                "metrics": {
+                    "loss": 0.5,
+                    "accuracy": 0.8,
+                    "precision": 0.8,
+                    "recall": 0.8,
+                    "f1": 0.8,
+                },
+                "artifacts": {"confusion_matrix": {"json": "test.json"}},
+                "prediction_examples": {"records": ["example.mp4"]},
+            },
+        )
         return run_dir
 
     result_dir = study_config.execute_study(
@@ -573,11 +649,19 @@ def test_selected_architecture_handoff_and_test_evaluation_after_freeze(tmp_path
     assert summary["selected_model"] == "custom_selected"
     assert summary["test_evaluation"]["frozen_before_test"] is True
     assert len(summary["test_evaluation"]["models"]) == 6
-    assert all(item["partition"] == "test" for item in summary["test_evaluation"]["models"])
+    assert all(
+        item["partition"] == "test" for item in summary["test_evaluation"]["models"]
+    )
     selected = json.loads(MODEL_COMPARISON_CONFIG.read_text())
     assert selected["custom_candidates"] == []
-    custom_run = next(item for item in summary["jobs"] if item["result"]["name"] == "custom_selected")
-    assert custom_run["result"]["experiment_config"]["convlstm_layers"] == [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]]
+    custom_run = next(
+        item for item in summary["jobs"] if item["result"]["name"] == "custom_selected"
+    )
+    assert custom_run["result"]["experiment_config"]["convlstm_layers"] == [
+        [16, [3, 3]],
+        [16, [3, 3]],
+        [32, [3, 3]],
+    ]
 
 
 def test_additive_stages_and_fixed_protocol():
@@ -819,4 +903,5 @@ def test_end_to_end_study_reuses_runner_and_keeps_test_locked(tmp_path, monkeypa
         assert result["input_dimensions"]["height"] == 8
         assert result["partition"] == "validation"
     assert json.loads((result_dir / "run.json").read_text())["status"] == "complete"
-    assert set(Counter(decoded_paths).values()) == {4}
+    # One bounded cache is reused across both seeds for each of two inputs.
+    assert set(Counter(decoded_paths).values()) == {2}
