@@ -301,8 +301,30 @@ def test_full_default_workflow_search_freeze_test_zip_and_reuse(protocol, monkey
     assert len(rows) == 8 and all(
         "test_macro_f1" in r and "validation_macro_precision" in r for r in rows
     )
+    recipe = matrix.read_json(comparison / "recipe_selection.json")
+    assert 1 <= len(recipe["jobs"]) <= 3
+    assert all(
+        {k: r[k] for k in ("learning_rate", "weight_decay")} == recipe["selected"]
+        for r in rows
+    )
+    assert len({r["experiment_number"] for r in rows}) == 8
+    assert rows[0]["experiment_number"] == recipe["jobs"][-1]["experiment_number"] + 1
+    assert rows[-1]["experiment_number"] == count
+    search_state = matrix.read_json(Path(recipe["source_group"]) / "progress.json")
+    numbers = [j["experiment_number"] for j in search_state["jobs"]]
+    assert sorted(numbers) == list(range(1, len(numbers) + 1))
+    search_rows = matrix.read_json(Path(recipe["source_group"]) / "results.json")["all"]
+    identities = {}
+    for row in search_rows:
+        assert (
+            identities.setdefault(row["job_id"], row["experiment_number"])
+            == row["experiment_number"]
+        )
+    assert any(k.endswith("recipe_selection.json") for k in entries)
+    assert not any("/cache/" in k for k in entries)
     assert aad_study.run_full_aad_study(p.root) == archive
     assert len(p.trained) == count and len(p.tested) == 8
+    assert matrix.read_json(comparison / "comparison.json")["table"] == rows
     # A partial test marker must never trigger a repeat.
     receipt = comparison / "test_receipts/custom_top1.json"
     write_json(receipt, {"status": "started"})

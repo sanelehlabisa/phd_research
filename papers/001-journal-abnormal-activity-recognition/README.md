@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: 068 search reviewed; 073 automatic workflow locally verified; real final comparison pending
+- Status: 068 search reviewed; 073/074 automatic workflow locally verified; real final comparison pending
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -25,6 +25,9 @@ reference architecture for ablation.
    equal-weight evidence across resolutions and model seeds 42/2026.
 2. Compare the top three against the faithful paper model, two 3D CNNs and two
    transformers: fixed 50 frames at 50x50, batch 1, up to 512 epochs.
+   First validate search LR/weight-decay proposals on the top-one custom model
+   at these inputs (up to three 128-epoch jobs). Freeze one shared training
+   recipe for all eight; this is not per-family optimal hyperparameter tuning.
 3. Keep one existing split (seed 42); the final comparison uses one
    training seed, 42. Freeze all validation-selected checkpoints and the best
    custom model before eight full test evaluations. Run All passes verified
@@ -36,6 +39,7 @@ reference architecture for ablation.
 
 ## Next tasks
 
+- [x] [074 validated comparison handoff](../../agents/work/074-validated-comparison-handoff/prompt.md) - recipe validation, cache reuse and stable experiment numbering; [70 local tests passed](../../agents/work/074-validated-comparison-handoff/completion.md). Real Colab execution pending.
 - [x] [073 focused shape search and Run All](../../agents/work/073-focused-shape-search-run-all/prompt.md) - consolidates 070–072; [locally verified](../../agents/work/073-focused-shape-search-run-all/completion.md), with 128-epoch search, 512-epoch comparison, exact ranking and automatic guarded export. Real Colab execution remains pending.
 - [x] [069 staged capacity search](../../agents/work/069-staged-capacity-search/prompt.md) - implemented and locally verified; see [completion](../../agents/work/069-staged-capacity-search/completion.md). Current 068 runs and final-comparison protocol stay intact; actual AAD/A100 runs are separate work.
 - [x] [068 multi-resolution search and top-three comparison](../../agents/work/068-multisize-search-top3-comparison/prompt.md) - implementation verified; [36-run Colab search reviewed](implementation/reports/2026-10-09-multiresolution-search-review.md), comparison/test still pending. Results are clip-level validation evidence, not established source-independent generalization.

@@ -422,7 +422,13 @@ def _validate_leaf(result, row, values, split_hash):
 def _table_row(job, report, extended=False):
     result = job["result"]
     row = {
+        "experiment_number": job.get("experiment_number"),
         "model": result["name"],
+        "learning_rate": result["experiment_config"]["learning_rate"],
+        "weight_decay": result["experiment_config"]["weight_decay"],
+        "frames": result["experiment_config"]["sequence_length"],
+        "height": result["experiment_config"]["height"],
+        "width": result["experiment_config"]["width"],
         "family": result["family"],
         "seed": result["seed"],
         "num_params": result["num_params"],
@@ -568,16 +574,39 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "split_manifest": str((group / "split_manifest.json").resolve()),
             }
         )
-        rows = study_rows(study, config)
+        experiment_offset = 0
+        recipe = None
         if study["mode"] == "top3_comparison":
             selected = load_selection(study["selected_config"])
             if split["manifest_hash"] != selected["split"]["manifest_hash"]:
                 raise ValueError("comparison split differs from selected search")
             if run_evaluation is None:
                 raise ValueError("comparison requires a post-freeze test evaluator")
+            if selected.get("protocol") == "capacity_top3_v2":
+                experiment_offset = len(
+                    read_json(Path(selected["source_group"]) / "progress.json")["jobs"]
+                )
+            if study.get("recipe_transfer"):
+                from .comparison_recipe import select_recipe
+
+                if (group / "validation_frozen.json").exists() and not (
+                    group / "recipe_selection.json"
+                ).is_file():
+                    raise ValueError("Frozen comparison is missing its recipe evidence")
+                config, recipe = select_recipe(
+                    study, config, selected, group, split, run_trial, experiment_offset
+                )
+                experiment_offset += len(recipe["jobs"])
+                state["recipe_selection"] = str(
+                    (group / "recipe_selection.json").resolve()
+                )
+                state["effective_config"] = config.to_dict()
+                atomic_json(group / "progress.json", state)
+        rows = study_rows(study, config)
         candidates = {c.name: c for c in manifest.candidates}
         jobs = []
         for number, row in enumerate(rows, 1):
+            experiment_number = experiment_offset + number
             jobdir = group / "jobs" / f"{number:02d}"
             receipt_path = jobdir / "receipt.json"
             values = dict(row["config"])
@@ -596,7 +625,23 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 verify_inventory(receipt["files"])
                 result = receipt["result"]
                 leaf_run = receipt["run_dir"]
+                if (
+                    receipt.get("experiment_number", experiment_number)
+                    != experiment_number
+                ):
+                    raise ValueError("Saved comparison experiment number changed")
+                print(
+                    f"Experiment {experiment_number}: verified {row['model']} (reused)",
+                    flush=True,
+                )
             else:
+                if (
+                    study.get("recipe_transfer")
+                    and (group / "validation_frozen.json").exists()
+                ):
+                    raise ValueError(
+                        "Frozen comparison receipt missing; no retraining after test selection"
+                    )
                 leaf = atomic_json(jobdir / "config.json", values)
                 args = [
                     "--config",
@@ -606,7 +651,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     "--run-label",
                     study["mode"],
                     "--trial-name",
-                    f"{number:02d}",
+                    f"{experiment_number:03d}",
                     "--changed-factor",
                     row["changed_factor"],
                 ]
@@ -620,10 +665,14 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 )
                 atomic_json(
                     receipt_path,
-                    {"status": "running", "config_sha256": value_hash(values)},
+                    {
+                        "status": "running",
+                        "config_sha256": value_hash(values),
+                        "experiment_number": experiment_number,
+                    },
                 )
                 print(
-                    f"Study {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
+                    f"Experiment {experiment_number}/{experiment_offset + len(rows)} | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
                     flush=True,
                 )
                 before = set((Path(config.runs_dir) / "experiments").glob("*"))
@@ -640,6 +689,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                         receipt_path,
                         {
                             "status": "complete",
+                            "experiment_number": experiment_number,
                             "run_dir": str(leaf_run),
                             "result": result,
                             "files": inventory(leaf_run),
@@ -685,6 +735,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     )
             jobs.append(
                 {
+                    "experiment_number": experiment_number,
                     "run_dir": str(leaf_run),
                     "receipt": str(receipt_path.resolve()),
                     "result": result,
@@ -722,6 +773,15 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "note": NOTE,
                 **(
                     {
+                        "recipe_selection_sha256": file_hash(
+                            group / "recipe_selection.json"
+                        )
+                    }
+                    if recipe
+                    else {}
+                ),
+                **(
+                    {
                         "ranking_version": "exact_counts_v1",
                         "search_selection_sha256": file_hash(study["selected_config"]),
                         "source_audit_sha256": selected["source_audit_sha256"],
@@ -753,6 +813,10 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             table, reports = [], []
             for job, model in zip(jobs, frozen["models"]):
                 name = model["model"]
+                print(
+                    f"Test {len(reports) + 1}/{len(jobs)} | experiment {job['experiment_number']}: {name}",
+                    flush=True,
+                )
                 receipt_path = group / "test_receipts" / f"{name}.json"
                 evaluation_config = {
                     **job["result"]["experiment_config"],
@@ -837,6 +901,22 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 atomic_json(group / "progress.json", state)
             summary = {
                 "validation_frozen": frozen,
+                **(
+                    {
+                        "recipe_selection": str(
+                            (group / "recipe_selection.json").resolve()
+                        ),
+                        "shared_recipe": recipe["selected"],
+                        "training_counts": {
+                            "search": experiment_offset - len(recipe["jobs"]),
+                            "recipe_validation": len(recipe["jobs"]),
+                            "comparison": len(jobs),
+                            "total": experiment_offset + len(jobs),
+                        },
+                    }
+                    if recipe
+                    else {}
+                ),
                 "jobs": jobs,
                 "tests": reports,
                 "table": table,

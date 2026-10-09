@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "mode": "top3_comparison",
+  "recipe_transfer": true,
   "selected_config": null,
   "dataset": {
     "name": "aad",
@@ -41,6 +42,7 @@
     "learning_rate": 0.001,
     "scheduler": "reduce_on_plateau",
     "augment": false,
+    "cache_dataset": true,
     "num_workers": 2,
     "pin_memory": true,
     "prediction_samples_per_category": 1

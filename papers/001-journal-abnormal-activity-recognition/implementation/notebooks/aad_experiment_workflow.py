@@ -47,6 +47,7 @@ def run_workflow():
         IMPLEMENTATION_ROOT / "src/study_matrix.py",
         IMPLEMENTATION_ROOT / "src/study_cache.py",
         IMPLEMENTATION_ROOT / "src/capacity_search.py",
+        IMPLEMENTATION_ROOT / "src/comparison_recipe.py",
         IMPLEMENTATION_ROOT / "src/capacity_config.py",
         IMPLEMENTATION_ROOT / "src/temporal_sampling.py",
         IMPLEMENTATION_ROOT / "src/study_resources.py",

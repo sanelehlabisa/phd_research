@@ -37,6 +37,13 @@ automatic eight-model comparison with a 512-epoch cap, frozen test and ZIP expor
 The owner reviewed the filename concern; automated duplicate checks stay active.
 Local verification is not evidence of new AAD accuracy or A100 runtime.
 
+[074 validated comparison handoff](agents/work/074-validated-comparison-handoff/prompt.md)
+adds native-input validation of search LR/weight-decay proposals, one shared
+comparison recipe, reusable processed-data caches and stable experiment numbers.
+The full sequence remains automatic; final inputs stay 50 frames at 50x50.
+See its [completion record](agents/work/074-validated-comparison-handoff/completion.md)
+for local verification; real Colab execution is still pending.
+
 [068](agents/work/068-multisize-search-top3-comparison/prompt.md) remains available
 unchanged as a legacy profile, alongside 069's separate 200-epoch search.
 Their explicit comparison entry points are preserved; 073 adds automatic handoff.

@@ -778,7 +778,7 @@ def run_full_aad_study(root):
     ):
         raise ValueError("Resolve the source audit before automatic final testing")
     print(
-        "2/2 Eight fresh comparison trainings; validation freeze, test, examples and ZIP",
+        "2/2 Validate transferred LR/WD (up to 3 jobs), then eight fresh comparison trainings; validation freeze, test, examples and ZIP",
         flush=True,
     )
     return run_saved_comparison(

@@ -170,6 +170,29 @@ eight validation-selected checkpoints and the custom example model are frozen.
 All models receive full metrics, including explicitly macro/micro metrics;
 the validation-selected custom model supplies correct/incorrect video examples.
 
+**074 handoff:** before those eight trainings, automatically validate search
+training settings on the search's top-one custom architecture at the fixed
+comparison input. Start with LR 0.001 / WD 0.0001, test the calibrated custom LR,
+then test its proposed WD at the retained LR. The WD proposal uses equal-weight
+validation evidence across 32/48/64 pixels, with exact-count accuracy, loss and
+lower-WD tie breaks. Each native-input check has cap 128, minimum 64, patience 24;
+ties retain the incumbent and identical settings reuse evidence. At most three
+extra trainings are needed: **188 total maximum** including search/comparison,
+before reuse. Temporal settings are not transferred or silently combined.
+
+`recipe_selection.json` records the source selection, every checked configuration,
+decision and receipt. All eight final models train from scratch using the same
+validated LR/WD. This recipe is tuned on a custom model, not independently optimal
+for each baseline. Final checkpoints still minimise validation loss; all are
+frozen before test. Interrupted or altered recipe evidence blocks continuation.
+
+Experiment numbers count unique trainings continuously through search, recipe
+validation and comparison. Reused configurations retain their number; a displayed
+rank is not an experiment number. Test evaluations have their own 1/8 counter.
+Saved tables, receipts and progress retain identities across reruns.
+See [074 completion](../../../agents/work/074-validated-comparison-handoff/completion.md)
+for the 70-test local verification; no new real AAD result is claimed.
+
 Rerunning Run All verifies and reuses complete matching work. A failed/partial
 test attempt never automatically runs again. Stage ZIPs and the final combined
 ZIP retain configs, receipts, histories, checkpoints and reports, not datasets
@@ -202,8 +225,10 @@ name. It retains each resolution's score/rank and worst-case accuracy. Exact
 layers/heads, source runs and config/split hashes accompany the handoff.
 Incomplete or altered evidence is rejected; there is no placeholder model.
 
-Comparison keeps Adam, LR 0.001, weight decay 0.0001, no augmentation and the
-gentle shared plateau scheduler. It never warm-starts search checkpoints.
+Legacy comparison keeps Adam, LR 0.001, weight decay 0.0001, no augmentation and the
+gentle shared plateau scheduler. The active final profile validates/transfers
+LR/WD as described above; other settings remain fixed. Neither workflow
+warm-starts search checkpoints.
 All eight checkpoints/configs and the best *custom* identity are frozen from
 validation before any test decoding. Each gets one full test evaluation.
 Only the validation-selected best custom saves up to three correct and three
@@ -341,8 +366,15 @@ and its frozen-test gate are unchanged; execution/protocol review is later work.
 Train/validation RAM caching is keyed by dataset file metadata, preprocessing,
 split, frame count, resolution and FPS. One configuration is retained at a time,
 bounded to 2 GiB per runner process; larger inputs fall back to lazy decoding.
-Resolution-grouped jobs reuse the cache. Test clips are never cached during
-selection. Every leaf records cache footprint/reuse, configuration, provenance,
+Resolved local data are reused without downloading again. Sampled train/validation
+clips also persist under ignored `runs/cache/training/`: revisited inputs and new
+runner processes restore a verified cache rather than decoding again. The disk
+budget is 16 GiB with a 2-GiB free-space reserve; insufficient space skips disk
+caching without deleting evidence. Different sizes/FPS require distinct sampled
+caches. The active comparison enables caching and shares it across recipe checks
+and all eight models. Test clips are never cached during selection; caches are
+excluded from ZIPs. Corrupt cached/source clips fail rather than substituting a
+different sample. Every leaf records cache footprint/reuse, configuration, provenance,
 per-epoch history/progress and its single validation-selected checkpoint.
 
 Search selections and comparison tables live in `runs/studies/`; leaf runs in

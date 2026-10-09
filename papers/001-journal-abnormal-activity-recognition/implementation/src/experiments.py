@@ -1273,6 +1273,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             train_indices,
             validation_indices,
             split_metadata["manifest_hash"],
+            cache_dir=Path(args.runs_dir) / "cache" / "training",
         )
         train_set = Subset(dataset, train_indices)
         val_set = Subset(dataset, validation_indices)
@@ -1372,7 +1373,9 @@ def main(argv: list[str] | None = None) -> Path | None:
         model = model.to(device)
         num_params = count_trainable_parameters(model)
         model_dir = run_dir / "models" / safe_filename(name)
-        print(f"[{i+1}/{len(registry)}] {name} | params={num_params:,}")
+        print(
+            f"Model {i+1}/{len(registry)} within trial {trial_metadata['trial_name'] or run_label}: {name} | params={num_params:,}"
+        )
 
         opt = optim.Adam(
             model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay

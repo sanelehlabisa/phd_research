@@ -281,7 +281,7 @@ def archive_stage(group, runs_dir):
 def _report(group, state, print_rows=False, plots=False):
     jobs = {j["job_id"]: j for j in state["jobs"]}
     rows = []
-    seen = set()
+    seen = {}
     for stage in state["stages"]:
         for spec in stage.get("rows", []):
             current = jobs.get(job_key(spec), {})
@@ -289,8 +289,9 @@ def _report(group, state, print_rows=False, plots=False):
                 "stage": stage["name"],
                 "job_id": job_key(spec),
                 "reused_evidence": job_key(spec) in seen,
+                "experiment_number": seen.get(job_key(spec), len(seen) + 1),
             }
-            seen.add(job_key(spec))
+            seen.setdefault(job_key(spec), len(seen) + 1)
             if current.get("status") == "complete":
                 rows.append(result_row(current["result"], **context))
             else:
@@ -528,6 +529,7 @@ def load_capacity_selection(path):
     ):
         raise ValueError("duplicate/incomplete capacity jobs")
     visited, expected_stages = set(), []
+    experiment_numbers = {}
     decisions = None
     for stage, rows in schedule(study, config, jobs):
         if stage == "decisions":
@@ -536,8 +538,14 @@ def load_capacity_selection(path):
         expected_stages.append({"name": stage, "status": "complete", "rows": rows})
         for row in rows:
             key = job_key(row)
+            number = experiment_numbers.setdefault(key, len(experiment_numbers) + 1)
             saved = jobs[key]
             receipt = read_json(saved["receipt"])
+            if (
+                saved.get("experiment_number", number) != number
+                or receipt.get("experiment_number", number) != number
+            ):
+                raise ValueError("Saved search experiment number changed")
             if (
                 receipt.get("status") != "complete"
                 or receipt.get("result") != saved["result"]
@@ -721,6 +729,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
         }
         completed = {j["job_id"]: j for j in state["jobs"] if j["status"] == "complete"}
         stages_seen = []
+        experiment_numbers = {}
         decisions = None
         for stage, rows in schedule(study, config, completed):
             if stage == "decisions":
@@ -744,6 +753,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
             _report(group, state)
             for row in rows:
                 key = job_key(row)
+                number = experiment_numbers.setdefault(key, len(experiment_numbers) + 1)
                 jobdir = group / "jobs" / key
                 receipt_path = jobdir / "receipt.json"
                 if receipt_path.exists():
@@ -754,6 +764,10 @@ def execute_capacity(path, study, config, manifest, run_trial):
                         )
                     verify_inventory(receipt["files"])
                     result, leaf_run = receipt["result"], receipt["run_dir"]
+                    print(
+                        f"Experiment {number}: {stage} {row['model']} (verified reuse)",
+                        flush=True,
+                    )
                 else:
                     if len(state["jobs"]) >= study["max_runs"]:
                         raise ValueError("maximum unique job budget reached")
@@ -766,7 +780,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                         "--run-label",
                         "capacity",
                         "--trial-name",
-                        key,
+                        f"{number:03d}_{key}",
                         "--changed-factor",
                         row["changed_factor"],
                         "--minimum-epochs",
@@ -788,13 +802,14 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     atomic_json(receipt_path, {"status": "running", "job_id": key})
                     current = {
                         "job_id": key,
+                        "experiment_number": number,
                         "status": "running",
                         "receipt": str(receipt_path),
                     }
                     state["jobs"].append(current)
                     atomic_json(group / "progress.json", state)
                     print(
-                        f"Capacity {stage} [{len(state['jobs'])}/{study['max_runs']} max]: "
+                        f"Experiment {number}/{study['max_runs']} search maximum | {stage}: "
                         f"{row['model']} {row['config']['height']}px, "
                         f"{row['config']['sequence_length']}f/{row['config']['target_fps']}fps, seed {row['seed']}",
                         flush=True,
@@ -826,6 +841,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                             receipt_path,
                             {
                                 "status": "complete",
+                                "experiment_number": number,
                                 "run_dir": leaf_run,
                                 "result": result,
                                 "files": files,
@@ -849,6 +865,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 )
                 saved_job = {
                     "job_id": key,
+                    "experiment_number": number,
                     "status": "complete",
                     "receipt": str(receipt_path),
                     "run_dir": str(leaf_run),

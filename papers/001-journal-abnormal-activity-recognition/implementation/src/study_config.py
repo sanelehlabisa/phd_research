@@ -197,6 +197,15 @@ def load_study(path):
         expected_fields.add("selected_config")
     if isinstance(study, dict) and "minimum_epochs" in study:
         expected_fields.add("minimum_epochs")
+    if isinstance(study, dict) and "recipe_transfer" in study:
+        expected_fields.add("recipe_transfer")
+        if (
+            study.get("mode") != "top3_comparison"
+            or study["recipe_transfer"] is not True
+        ):
+            raise ValueError(
+                "recipe_transfer is only supported for the final comparison"
+            )
     if isinstance(study, dict) and "mode" in study:
         expected_fields.add("mode")
     if isinstance(study, dict) and study.get("mode") == "grid":
@@ -423,6 +432,15 @@ def load_study(path):
         from .study_matrix import validate_protocol
 
         validate_protocol(study, config)
+    if study.get("recipe_transfer"):
+        from .study_matrix import read_json
+
+        if read_json(study["selected_config"]).get("protocol") != "capacity_top3_v2":
+            raise ValueError("Recipe transfer requires the focused search")
+        if not config.cache_dataset or config.epochs != 512 or minimum_epochs != 128:
+            raise ValueError(
+                "Recipe transfer requires cached 512-cap/128-minimum comparison"
+            )
     count = len(study_rows(study, config))
     if (
         type(study["max_runs"]) is not int
@@ -497,6 +515,9 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
     for name in study["models"]:
         for seed in study["seeds"]:
             rows.append(row("screen", name, seed, "architecture", {}))
+    if study.get("mode") == "top3_comparison":
+        # Resolved native-input recipe is fixed, not a fresh weight-decay sweep.
+        return rows
     for field, values, base in (
         ("frame_size", study["factors"]["frame_sizes"], config.height),
         (
@@ -574,6 +595,10 @@ def print_study(path, study, config):
         f"batch={config.batch_size}, lr={config.learning_rate}, scheduler={config.scheduler}"
     )
     print(f"Cache processed clips in RAM: {config.cache_dataset}")
+    if study.get("recipe_transfer"):
+        print(
+            "Before comparison: at most 3 validation-only native-input recipe jobs (128-cap/64-minimum), baseline then LR then WD. Printed LR/WD are the incumbent, not the final recipe. All eight models share the frozen result; search maximum 177 + recipe maximum 3 + comparison 8 = 188 trainings."
+        )
     if study.get("minimum_epochs", 1) > 1:
         print(f"Minimum completed epochs before stopping: {study['minimum_epochs']}")
     print("Selection: validation accuracy, loss, parameters; test remains locked.")
