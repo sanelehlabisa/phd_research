@@ -6,10 +6,10 @@ hyperparameter grid.
 
 ## Current roadmap
 
-AAD is the primary dataset for the active paper study. The AAD notebook runs a
-custom ConvLSTM search, passes its validation-selected architecture into a fixed
-model comparison, freezes that validation ranking, and only then evaluates the
-comparison checkpoints once on test. The local profile is only a pipeline check.
+AAD is the primary dataset for the active paper study. The AAD notebook first
+runs a cached, validation-only custom ConvLSTM search. A later explicit workflow
+stage uses its saved selection for the fixed model comparison and frozen test
+evaluation. The local profile is only a pipeline check.
 
 VDD remains optional through the same JSON dataset fields as AAD, with a local
 class-folder path and classes discovered from its folders. Preserve historical
@@ -110,8 +110,14 @@ Use one runner and one JSON path for each active AAD profile:
 | Profile | Purpose | Planned work |
 |---|---|---|
 | [`aad_local_smoke.json`](configs/experiments/aad_local_smoke.json) | Tiny local pipeline check | One 1-epoch, 16×16 custom-model pass; not paper evidence |
-| [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Select a custom architecture and check three factors independently | 8 architectures plus 6 one-factor checks; seed 42; 128-epoch cap, patience 20 (14 jobs) |
+| [`aad_custom_search_colab.json`](configs/experiments/aad_custom_search_colab.json) | Select a custom architecture and input, then confirm the selected run | 12 architectures at 8×32×32; 128-epoch cap, patience 16; winner-only checks at 8×48×48, 8×64×64, and 16×32×32; seed-2026 confirmation; 16-job maximum |
 | [`aad_model_comparison_colab.json`](configs/experiments/aad_model_comparison_colab.json) | Compare the selected custom stack with the paper model, 3D CNNs, and transformers | 6 models; seed 42; 50 frames at 50×50; 64-epoch cap, minimum 32 (6 train + 6 test evaluations) |
+
+The custom search is a finite, validation-guided exploration—not proof of a
+global optimum. It ranks 12 declared architectures, checks three one-factor
+input alternatives only for the validation winner, then confirms that selected
+architecture/input with model seed 2026 on the unchanged seed-42 split. Test
+data remains locked; model-family comparison is a separate explicit stage.
 
 `aad_colab_a100.json` is a retained legacy grid for historical reproduction;
 the active notebook does not run it.
@@ -127,9 +133,11 @@ List a plan before running it; the same command executes it after review:
 .venv/bin/python -m src.experiments --config configs/experiments/aad_local_smoke.json
 ```
 
-The Colab notebook/export is the supported full-study entry point. It writes a
-resolved comparison JSON from the search's `selected_config.json`; do not copy
-or substitute an architecture manually. The comparison uses one fixed AAD split
+The Colab notebook/export is the supported search and comparison entry point.
+Set `WORKFLOW_STAGE` to `search`, `comparison`, or `smoke`; the default is
+search-only. For comparison, provide the search's saved `selected_config.json`
+through `SELECTED_CONFIG_PATH`; do not substitute an architecture manually. The
+comparison uses one fixed AAD split
 and protocol, and includes `r3d_18`, `mc3_18`, Swin3D-T, and Swin3D-S from
 scratch. After all validation scores are frozen, each checkpoint is evaluated
 once on test and gets its own standard metrics and confusion matrix. The best
@@ -264,22 +272,27 @@ its separate model manifest at
 
 | Notebook | End-to-end workflow |
 |---|---|
-| [AAD experiments](notebooks/aad_experiment_workflow.ipynb) | One Colab cell validates profiles, resolves public AAD, runs custom search then model comparison, and downloads the current study ZIP |
+| [AAD experiments](notebooks/aad_experiment_workflow.ipynb) | One Colab cell runs the custom search by default; model comparison is a separate explicit stage using the saved validation selection |
 | [01 Dataset](notebooks/01_dataset_setup.ipynb) | Split summary; the same training video at native FPS, sampled FPS, then augmented |
 | [02 Model](notebooks/02_model_inspection.ipynb) | Architecture, parameter count, one random-weight prediction, playable labelled video and probabilities |
 | [03 Training](notebooks/03_train_model.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
 | [04 Kinetics diagnostics](notebooks/04_run_experiments.ipynb) | Exploratory temporal audit, small learnability check, diagnostic comparisons and test examples; not current AAD paper evidence |
 
 The active AAD notebook uses the local smoke profile for a no-training
-configuration check, then runs the custom-search and model-comparison JSON
-profiles through `src.experiments`. Set `RUN_FULL_STUDY = False` for the smoke
-path. Successful runs write directly to `runs/`; the notebook records each
-stage and downloads one ZIP with the current profiles, progress record, and new
+configuration check and runs the custom-search or comparison JSON through
+`src.experiments`. Search first caches sampled clips, checks batch-16 versus
+batch-32 throughput, then applies the measured batch consistently. Set
+`WORKFLOW_STAGE = "smoke"` for profile checks; use `"comparison"` later and
+point `SELECTED_CONFIG_PATH` at the saved validation selection. Successful runs
+write directly to `runs/`; each stage downloads one ZIP with profiles, progress,
+and new
 run folders (including histories, metrics, checkpoints, confusion matrices, and
 prediction videos). It imposes no wall-clock cutoff. Colab may still terminate
 the runtime externally before the final ZIP can be created or downloaded; the
-notebook does not promise recovery after forced termination. Dataset files and
-unrelated older runs are excluded from the ZIP.
+notebook does not promise recovery after forced termination. At the current
+AAD reference input, only 748 train and 160 validation clips are cached (about
+0.09 GB); test clips are not decoded or cached. Dataset files and unrelated older
+runs are excluded from the ZIP.
 
 The notebook is the source of truth; the committed `.py` file is its matching
 one-cell export. Both clone/update the repository, prepare pinned dependencies,

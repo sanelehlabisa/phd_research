@@ -433,5 +433,5 @@ def test_notebook_contracts_and_controlled_reference_snapshot():
     assert "aad_custom_search_colab.json" in source
     assert "aad_model_comparison_colab.json" in source
     assert "run_aad_study" in source
-    assert "RUN_FULL_STUDY = True" in source
-    assert "forced stop may precede the final download" in source
+    assert 'WORKFLOW_STAGE = "search"' in source
+    assert 'WORKFLOW_STAGE == "comparison"' in source

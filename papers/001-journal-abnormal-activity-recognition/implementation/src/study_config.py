@@ -189,6 +189,8 @@ def load_study(path):
         "max_runs",
         "published_topology",
     }
+    if isinstance(study, dict) and "confirmation_seed" in study:
+        expected_fields.add("confirmation_seed")
     if isinstance(study, dict) and "selected_config" in study:
         expected_fields.add("selected_config")
     if isinstance(study, dict) and "minimum_epochs" in study:
@@ -257,11 +259,11 @@ def load_study(path):
         }
     )
     names = [candidate.name for candidate in manifest.candidates]
-    if len(names) > 8 or set(names).intersection(
+    if len(names) > 12 or set(names).intersection(
         (*BASELINES, "paper_convlstm_published")
     ):
         raise ValueError(
-            "declare at most eight custom candidates with distinct registry names"
+            "declare at most twelve custom candidates with distinct registry names"
         )
     models = study["models"]
     if (
@@ -290,7 +292,22 @@ def load_study(path):
         raise ValueError(
             "studies require one to three unique seeds"
         )
+    confirmation_seed = study.get("confirmation_seed")
+    if confirmation_seed is not None:
+        if mode != "staged" or not set(study["models"]) <= set(names):
+            raise ValueError("seed confirmation is only supported for custom staged search")
+        if (
+            type(confirmation_seed) is not int
+            or not 0 <= confirmation_seed < 2**32
+            or confirmation_seed in seeds
+            or seeds != [42]
+        ):
+            raise ValueError(
+                "confirmation_seed must be a distinct model seed after the seed-42 screen"
+            )
     training = study["training"]
+    if isinstance(training, dict):
+        training.setdefault("cache_dataset", False)
     _fields(
         training,
         {
@@ -300,6 +317,7 @@ def load_study(path):
             "learning_rate",
             "scheduler",
             "augment",
+            "cache_dataset",
             "num_workers",
             "pin_memory",
             "prediction_samples_per_category",
@@ -451,6 +469,16 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
             )
             for seed in study["seeds"]:
                 rows.append(row("ablation", winner, seed, field, overrides))
+    if study.get("confirmation_seed") is not None:
+        rows.append(
+            row(
+                "seed_confirmation",
+                winner,
+                study["confirmation_seed"],
+                "model_seed",
+                {},
+            )
+        )
     if study["published_topology"]["enabled"]:
         for seed in study["seeds"]:
             rows.append(
@@ -490,6 +518,7 @@ def print_study(path, study, config):
         f"Fixed: epochs<={config.epochs}, patience={config.early_stopping_patience}, "
         f"batch={config.batch_size}, lr={config.learning_rate}, scheduler={config.scheduler}"
     )
+    print(f"Cache processed clips in RAM: {config.cache_dataset}")
     if study.get("minimum_epochs", 1) > 1:
         print(f"Minimum completed epochs before stopping: {study['minimum_epochs']}")
     print("Selection: validation accuracy, loss, parameters; test remains locked.")
@@ -502,6 +531,12 @@ def print_study(path, study, config):
         print(
             "Custom architecture comes only from selected_config.json produced by the validation search; "
             "the committed profile has no fallback architecture."
+        )
+    elif study.get("confirmation_seed") is not None:
+        print(
+            "Validation ranks architectures, then the winner's one-factor input checks; "
+            f"the selected architecture/input is confirmed with model seed {study['confirmation_seed']} "
+            "on the same seed-42 split. No combined factors."
         )
     else:
         print(
@@ -873,7 +908,8 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
             selection["selected_input"] = selected_config["input"]
         write_json(group.run_dir / "selection.json", selection)
         print(f"Frozen validation-selected reference: {winner}", flush=True)
-        followup_rows = [row for row in study_rows(study, config, winner) if row["stage"] != "screen"]
+        planned_followups = study_rows(study, config, winner)
+        followup_rows = [row for row in planned_followups if row["stage"] == "ablation"]
         for row in tqdm(followup_rows, desc="One-factor checks"):
             run(row)
         ablation_groups = {}
@@ -900,6 +936,92 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
             }
             for key, entries in ablation_groups.items()
         ]
+        confirmation_result = None
+        if study_kind == "custom_architecture_search" and study.get("confirmation_seed") is not None:
+            input_runs = [
+                item
+                for item in completed
+                if item["stage"] == "screen" and item["result"]["name"] == winner
+            ] + [item for item in completed if item["stage"] == "ablation"]
+            ranked_inputs = rank_validation_results(
+                [
+                    {
+                        "name": item["run_dir"],
+                        "partition": "validation",
+                        "num_params": item["result"]["num_params"],
+                        "validation_metrics": item["result"]["validation_metrics"],
+                    }
+                    for item in input_runs
+                ]
+            )
+            selected_input_run = next(
+                item for item in input_runs if item["run_dir"] == ranked_inputs[0]["name"]
+            )
+            selected_result = selected_input_run["result"]
+            selected_config["input"] = {
+                "sequence_length": selected_result["experiment_config"]["sequence_length"],
+                "height": selected_result["experiment_config"]["height"],
+                "width": selected_result["experiment_config"]["width"],
+            }
+            selected_config["validation_metrics"] = selected_result["validation_metrics"]
+            selected_config["num_params"] = selected_result["num_params"]
+            selected_config["source_run"] = selected_input_run["run_dir"]
+            selected_config["input_selection"] = {
+                "partition": "validation",
+                "candidates": [
+                    {
+                        "input": {
+                            "sequence_length": item["result"]["experiment_config"]["sequence_length"],
+                            "height": item["result"]["experiment_config"]["height"],
+                            "width": item["result"]["experiment_config"]["width"],
+                        },
+                        "validation_metrics": item["result"]["validation_metrics"],
+                        "num_params": item["result"]["num_params"],
+                        "source_run": item["run_dir"],
+                    }
+                    for item in input_runs
+                ],
+            }
+            confirmation_row = next(
+                row for row in planned_followups if row["stage"] == "seed_confirmation"
+            )
+            confirmation_row["model"] = winner
+            confirmation_row["config"] = ExperimentConfig.from_mapping(
+                {
+                    **selected_result["experiment_config"],
+                    "seed": study["confirmation_seed"],
+                }
+            ).to_dict()
+            confirmation_result = run(confirmation_row)
+            if confirmation_result["split"]["manifest_hash"] != selected_result["split"]["manifest_hash"]:
+                raise ValueError("seed confirmation must use the unchanged seed-42 split manifest")
+            if confirmation_result["experiment_config"]["split_seed"] != 42:
+                raise ValueError("seed confirmation changed the fixed data-split seed")
+            selected_config["seed_confirmation"] = {
+                "seed": study["confirmation_seed"],
+                "validation_metrics": confirmation_result["validation_metrics"],
+                "num_params": confirmation_result["num_params"],
+                "source_run": completed[-1]["run_dir"],
+                "split": confirmation_result["split"],
+                "same_selected_input": all(
+                    confirmation_result["experiment_config"][field]
+                    == selected_result["experiment_config"][field]
+                    for field in ("sequence_length", "height", "width")
+                ),
+            }
+            if not selected_config["seed_confirmation"]["same_selected_input"]:
+                raise ValueError("seed confirmation input differs from the validation-selected input")
+            selection["selected_input"] = selected_config["input"]
+            selection["input_selection"] = selected_config["input_selection"]
+            selection["seed_confirmation"] = selected_config["seed_confirmation"]
+            selection["validation_metrics_by_seed"] = {
+                str(selected_config["seed"]): selected_config["validation_metrics"],
+                str(study["confirmation_seed"]): confirmation_result["validation_metrics"],
+            }
+            selection["single_seed_evidence"] = False
+            selected_config["single_seed_evidence"] = False
+            write_json(group.run_dir / "selected_config.json", selected_config)
+            write_json(group.run_dir / "selection.json", selection)
         summary = {
             "study_kind": study_kind,
             **selection,
@@ -907,7 +1029,10 @@ def execute_study(path, study, config, manifest, run_trial, run_evaluation=None)
             "ablation_comparisons": ablation_comparisons,
             "native_comparable": False,
             "ablation_factors_combined": False,
-            "note": "No test evaluation; ablations do not silently replace the frozen reference.",
+            "note": (
+                "Finite validation-guided custom search, not proof of a global optimum. "
+                "No test evaluation or model-family comparison was run."
+            ),
         }
         test_results = []
         if study_kind == "model_family_comparison" and study.get("selected_config"):

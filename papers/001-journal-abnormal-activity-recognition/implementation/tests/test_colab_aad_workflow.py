@@ -2,12 +2,27 @@ import json
 from pathlib import Path
 import zipfile
 
+import pytest
+
 from notebooks.utils import aad_study
 
 
 ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK = ROOT / "notebooks/aad_experiment_workflow.ipynb"
 EXPORT = ROOT / "notebooks/aad_experiment_workflow.py"
+
+
+def test_batch_size_selection_requires_safety_and_material_speedup():
+    results = [
+        {"batch_size": 16, "available": True, "memory_safe": True, "samples_per_second": 10.0},
+        {"batch_size": 32, "available": True, "memory_safe": True, "samples_per_second": 10.9},
+    ]
+    assert aad_study._choose_batch_size(results)[0] == 16
+    results[1]["samples_per_second"] = 12.0
+    assert aad_study._choose_batch_size(results)[0] == 32
+    results[0]["memory_safe"] = False
+    with pytest.raises(RuntimeError, match="safe memory margin"):
+        aad_study._choose_batch_size(results)
 
 
 def test_notebook_and_python_export_have_the_same_runner_cell():
@@ -20,7 +35,8 @@ def test_notebook_and_python_export_have_the_same_runner_cell():
     assert export_source == "# In[ ]:\n" + notebook_source
     compile(notebook_source, str(NOTEBOOK), "exec")
     compile(export_source, str(EXPORT), "exec")
-    assert "RUN_FULL_STUDY = True" in notebook_source
+    assert 'WORKFLOW_STAGE = "search"' in notebook_source
+    assert 'WORKFLOW_STAGE == "comparison"' in notebook_source
     assert "if bootstrap.returncode == 75" in notebook_source
     assert "raise SystemExit" not in notebook_source
     assert "Restart the Colab runtime, reconnect the GPU, then rerun this cell." in notebook_source
@@ -89,17 +105,13 @@ def test_archive_contains_only_selected_runs_profiles_and_progress(tmp_path):
     assert "runs/studies/run-a/selected_config.json" in names
 
 
-def test_study_records_each_stage_and_downloads_one_archive(tmp_path, monkeypatch):
+def test_search_only_archives_search_outputs_and_downloads_once(tmp_path, monkeypatch):
     root = tmp_path / "implementation"
     for index, (_, config) in enumerate(aad_study.PROFILES):
         config_path = root / config
         config_path.parent.mkdir(parents=True, exist_ok=True)
-        values = {"dataset": {"name": "aad", "path": "datasets/aad"}}
-        if index == 1:
-            values["schema_version"] = 1
-        if index == 2:
-            values["models"] = ["custom_selected", "paper_convlstm_published", "r3d_18", "mc3_18", "swin3d_t", "swin3d_s"]
-        config_path.write_text(json.dumps(values), encoding="utf-8")
+        source_path = ROOT / config
+        config_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
 
     commands = []
     downloads = []
@@ -115,10 +127,26 @@ def test_study_records_each_stage_and_downloads_one_archive(tmp_path, monkeypatc
             (run_directory / "selected_config.json").write_text(json.dumps({
                 "candidate": {"name": "tiny", "convlstm_layers": [[8, [3, 3]], [4, [3, 3]]], "hidden_classifier_width": None}
             }), encoding="utf-8")
-        else:
-            run_directory = implementation_root / "runs/experiments/comparison"
-            run_directory.mkdir(parents=True)
-            (run_directory / "summary.json").write_text("{}\n", encoding="utf-8")
+
+    def fake_benchmark(*args, **kwargs):
+        split_path = args[0] / "splits" / "fake_split.json"
+        split_path.parent.mkdir(parents=True, exist_ok=True)
+        split_path.write_text('{"manifest_hash":"fixed-split"}\n', encoding="utf-8")
+        report = {
+            "results": [{"batch_size": 16, "samples_per_second": 10.0, "available": True, "memory_safe": True}, {"batch_size": 32, "samples_per_second": 12.0, "available": True, "memory_safe": True}],
+            "selected_batch_size": 32,
+            "selection_reason": "at least 10% faster and memory safe",
+            "cache_memory_bytes": 1024,
+            "cache_memory_gib": 0.000001,
+            "split_manifest_hash": "fixed-split",
+            "split_manifest": str(split_path),
+        }
+        output_path = args[3]
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(report), encoding="utf-8")
+        return report
+
+    monkeypatch.setattr(aad_study, "_benchmark_batch_sizes", fake_benchmark)
 
     monkeypatch.setattr(aad_study, "_run_command", fake_run)
     monkeypatch.setattr(aad_study, "resolve_dataset", lambda *args: tmp_path / "aad")
@@ -127,16 +155,63 @@ def test_study_records_each_stage_and_downloads_one_archive(tmp_path, monkeypatc
     archive = aad_study.run_aad_study(root)
 
     assert archive is not None and archive.is_file()
-    assert len(commands) == 5
+    assert len(commands) == 3
     assert downloads == [archive]
     with zipfile.ZipFile(archive) as packaged:
         progress = json.loads(
             packaged.read("runs/notebook_studies/" + archive.parent.name + "/progress.json")
         )
         names = set(packaged.namelist())
-    assert [stage["status"] for stage in progress["stages"]] == [
-        "complete",
-        "complete",
-    ]
+    assert [stage["status"] for stage in progress["stages"]] == ["complete", "complete"]
     assert "runs/studies/search/selected_config.json" in names
-    assert "runs/experiments/comparison/summary.json" in names
+    assert "runs/notebook_studies/" + archive.parent.name + "/batch_benchmark.json" in names
+    assert "runs/notebook_studies/" + archive.parent.name + "/split_manifest.json" in names
+    assert all("comparison" not in str(command) for command in commands)
+    with zipfile.ZipFile(archive) as packaged:
+        resolved = json.loads(
+            packaged.read("runs/notebook_studies/" + archive.parent.name + "/resolved_custom_search.json")
+        )
+    assert resolved["training"]["batch_size"] == 32
+    assert resolved["dataset"]["split_manifest"].endswith("/split_manifest.json")
+
+
+def test_comparison_is_an_explicit_later_action(tmp_path, monkeypatch):
+    root = tmp_path / "implementation"
+    for _, config in aad_study.PROFILES:
+        target = root / config
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text((ROOT / config).read_text(encoding="utf-8"), encoding="utf-8")
+    selected_path = root / "runs/studies/search/selected_config.json"
+    selected_path.parent.mkdir(parents=True)
+    selected_path.write_text(json.dumps({
+        "candidate": {"name": "winner", "convlstm_layers": [[16, [3, 3]]], "hidden_classifier_width": None},
+        "dataset_dir": str(tmp_path / "aad"),
+        "split": {"manifest_hash": "split-hash", "manifest_path": str(tmp_path / "split.json")},
+        "selection_partition": "validation",
+        "test_access": "locked",
+    }), encoding="utf-8")
+    commands = []
+    downloads = []
+
+    def fake_run(command, implementation_root, log_path=None):
+        commands.append(command)
+        if command[-1] != "--list-plan":
+            output = implementation_root / "runs/experiments/explicit-comparison"
+            output.mkdir(parents=True)
+            (output / "summary.json").write_text("{}\n", encoding="utf-8")
+
+    monkeypatch.setattr(aad_study, "_run_command", fake_run)
+    monkeypatch.setattr(aad_study, "resolve_dataset", lambda name, path, root: Path(path))
+    monkeypatch.setattr(aad_study, "_download_archive", downloads.append)
+
+    archive = aad_study.run_saved_comparison(root, selected_path)
+
+    assert archive.is_file() and downloads == [archive]
+    assert len(commands) == 2
+    assert commands[0][-1] == "--list-plan"
+    assert "comparison" in str(commands[1][commands[1].index("--config") + 1])
+    resolved_path = Path(commands[1][commands[1].index("--config") + 1])
+    resolved = json.loads(resolved_path.read_text(encoding="utf-8"))
+    assert resolved["selected_config"] == str(selected_path.resolve())
+    assert resolved["dataset"]["split_manifest"] == str(tmp_path / "split.json")
+    assert resolved["custom_candidates"][0]["convlstm_layers"] == [[16, [3, 3]]]

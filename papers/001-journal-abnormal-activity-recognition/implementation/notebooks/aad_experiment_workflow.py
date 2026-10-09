@@ -5,7 +5,8 @@ import os
 import subprocess
 import sys
 
-RUN_FULL_STUDY = True  # Set False to validate profiles without downloading data or training.
+WORKFLOW_STAGE = "search"  # Choose: "search", "comparison", or "smoke".
+SELECTED_CONFIG_PATH = None  # Required only when WORKFLOW_STAGE is "comparison".
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 REPO_ROOT = Path("/content/phd_research")
 REPO_ROOT.parent.mkdir(parents=True, exist_ok=True)
@@ -47,8 +48,14 @@ else:
     importlib.invalidate_caches()
     from notebooks.utils.helpers import validate_runtime
     print(validate_runtime(require_cuda=True), flush=True)
-    from notebooks.utils.aad_study import run_aad_study
-    print("Search → selected architecture → fixed model comparison → frozen test evaluation.", flush=True)
-    artifact_zip = run_aad_study(IMPLEMENTATION_ROOT, run_full_study=RUN_FULL_STUDY)
-    if artifact_zip is None:
-        print("Smoke check passed. Set RUN_FULL_STUDY = True to run the AAD study.")
+    from notebooks.utils.aad_study import run_aad_study, run_saved_comparison
+    if WORKFLOW_STAGE == "search":
+        artifact_zip = run_aad_study(IMPLEMENTATION_ROOT)
+    elif WORKFLOW_STAGE == "comparison":
+        if not SELECTED_CONFIG_PATH:
+            raise ValueError("Set SELECTED_CONFIG_PATH to the saved validation-selected config before comparison.")
+        artifact_zip = run_saved_comparison(IMPLEMENTATION_ROOT, SELECTED_CONFIG_PATH)
+    elif WORKFLOW_STAGE == "smoke":
+        artifact_zip = run_aad_study(IMPLEMENTATION_ROOT, run_full_study=False)
+    else:
+        raise ValueError('WORKFLOW_STAGE must be "search", "comparison", or "smoke".')

@@ -25,13 +25,14 @@ from timeit import default_timer as timer
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 import torchvision.models.video as video_models
 
 from .dataset import (
     AHARDataset,
     AugmentSubset,
+    CachedAHARDataset,
     VideoAugmentation,
     load_split_subsets,
     resolve_split_manifest_path,
@@ -1244,6 +1245,17 @@ def main(argv: list[str] | None = None) -> Path | None:
         val_ratio=args.val_ratio,
         seed=args.split_seed,
     )
+    if experiment_config.cache_dataset:
+        train_indices = list(train_set.indices)
+        validation_indices = list(val_set.indices)
+        dataset = CachedAHARDataset(
+            args.dataset_dir,
+            args.sequence_length,
+            (args.width, args.height),
+            cache_indices=sorted(set(train_indices + validation_indices)),
+        )
+        train_set = Subset(dataset, train_indices)
+        val_set = Subset(dataset, validation_indices)
     n_total = len(dataset)
     n_train, n_val = len(train_set), len(val_set)
     n_test = n_total - n_train - n_val

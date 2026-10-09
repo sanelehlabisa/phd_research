@@ -207,6 +207,7 @@ class ExperimentConfig:
     learning_rate: float = 1e-3
     weight_decay: float = 1e-4
     augment: bool = False
+    cache_dataset: bool = False
     num_workers: int = 0
     pin_memory: bool = False
     optimizer: str = "adam"
@@ -349,7 +350,7 @@ class ExperimentConfig:
             )
 
         _validate_layers(self.convlstm_layers)
-        for field_name in ("augment", "pin_memory"):
+        for field_name in ("augment", "cache_dataset", "pin_memory"):
             if not isinstance(getattr(self, field_name), bool):
                 raise ValueError(f"{field_name} must be a boolean")
 
@@ -499,6 +500,12 @@ def add_config_arguments(parser: argparse.ArgumentParser) -> None:
         help="Repeat to replace the complete configured CustomConvLSTM stack",
     )
     _add_boolean_pair(parser, "augment", "--augment", "--no-augment")
+    _add_boolean_pair(
+        parser,
+        "cache_dataset",
+        "--cache-dataset",
+        "--no-cache-dataset",
+    )
     _add_boolean_pair(
         parser,
         "pin_memory",

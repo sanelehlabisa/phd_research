@@ -361,36 +361,40 @@ class AHARDataset(Dataset):
 
 class CachedAHARDataset(AHARDataset):
     """
-    Dataset subclass that caches all processed clips in RAM to eliminate disk bottlenecks.
+    Dataset subclass that caches selected processed clips in RAM for repeatable access.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, cache_indices: list[int] | None = None, **kwargs) -> None:
         """
-        Initializes the dataset and pre-loads all samples into memory.
+        Initializes the dataset and pre-loads selected samples into memory.
 
         Parameters:
             *args (Any): Positional arguments passed to the parent AHARDataset class.
+            cache_indices: Optional dataset indices to cache; defaults to all clips.
             **kwargs (Any): Keyword arguments passed to the parent AHARDataset class.
 
         Returns:
             None
         """
         super().__init__(*args, **kwargs)
-        print(f"📥 Caching {len(self.samples)} clips into RAM...")
-        self._cache: list[tuple[torch.Tensor, int]] = []
+        self._cache: dict[int, tuple[torch.Tensor, int]] = {}
+        indices = list(range(len(self.samples))) if cache_indices is None else sorted(set(cache_indices))
+        if any(index < 0 or index >= len(self.samples) for index in indices):
+            raise IndexError("cache_indices contains an index outside the dataset")
+        print(f"📥 Caching {len(indices)} of {len(self.samples)} clips into RAM...")
 
         saved_transform = self.transform
         self.transform = None  # disable during caching
 
-        for i in range(len(self.samples)):
+        for i in indices:
             video, label = super().__getitem__(i)
-            self._cache.append((video, label))
-            if (i + 1) % 50 == 0 or (i + 1) == len(self.samples):
-                print(f"   {i+1}/{len(self.samples)}")
+            self._cache[i] = (video, label)
+            if (len(self._cache)) % 50 == 0 or len(self._cache) == len(indices):
+                print(f"   {len(self._cache)}/{len(indices)}")
 
         self.transform = saved_transform  # restore
 
-        mem_gb = sum(v.nbytes for v, _ in self._cache) / 1e9
+        mem_gb = sum(v.numel() * v.element_size() for v, _ in self._cache.values()) / 1e9
         print(f"✅ Cached {len(self._cache)} clips - ~{mem_gb:.2f} GB RAM")
 
     def __getitem__(self, index: int):

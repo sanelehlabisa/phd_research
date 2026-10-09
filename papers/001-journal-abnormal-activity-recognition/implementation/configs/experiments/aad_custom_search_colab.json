@@ -13,7 +13,11 @@
     "custom_reference_32_16",
     "custom_width_early_32_16_16",
     "custom_width_middle_16_32_16",
-    "custom_width_late_16_16_32"
+    "custom_width_late_16_16_32",
+    "custom_narrow_early_8_16",
+    "custom_wide_early_24_16",
+    "custom_wide_late_16_24",
+    "custom_flat_16_16_16_16"
   ],
   "custom_candidates": [
     {"name": "custom_flat_16_16", "research_question": "Does a two-layer 16-filter stack provide a compact baseline?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
@@ -23,27 +27,33 @@
     {"name": "custom_reference_32_16", "research_question": "Does the historically promising 32-to-16 stack remain competitive?", "convlstm_layers": [[32, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
     {"name": "custom_width_early_32_16_16", "research_question": "Does widening only the first layer help?", "convlstm_layers": [[32, [3, 3]], [16, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
     {"name": "custom_width_middle_16_32_16", "research_question": "Does widening only the middle layer help?", "convlstm_layers": [[16, [3, 3]], [32, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
-    {"name": "custom_width_late_16_16_32", "research_question": "Does widening only the final layer help?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]], "hidden_classifier_width": null}
+    {"name": "custom_width_late_16_16_32", "research_question": "Does widening only the final layer help?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [32, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_narrow_early_8_16", "research_question": "Does a narrower first layer reduce parameters without losing validation performance?", "convlstm_layers": [[8, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_wide_early_24_16", "research_question": "Does widening the first layer of the compact two-layer stack help?", "convlstm_layers": [[24, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_wide_late_16_24", "research_question": "Does widening the final layer of the compact two-layer stack help?", "convlstm_layers": [[16, [3, 3]], [24, [3, 3]]], "hidden_classifier_width": null},
+    {"name": "custom_flat_16_16_16_16", "research_question": "Does adding a fourth 16-filter layer improve validation performance?", "convlstm_layers": [[16, [3, 3]], [16, [3, 3]], [16, [3, 3]], [16, [3, 3]]], "hidden_classifier_width": null}
   ],
-  "reference_input": {"frame_size": 64, "sequence_length": 8, "weight_decay": 0.0},
+  "reference_input": {"frame_size": 32, "sequence_length": 8, "weight_decay": 0.0},
   "factors": {
-    "frame_sizes": [32, 64, 96],
-    "sequence_lengths": [8, 16, 32],
-    "weight_decays": [0.0, 0.0001, 0.001]
+    "frame_sizes": [32, 48, 64],
+    "sequence_lengths": [8, 16],
+    "weight_decays": [0.0]
   },
   "training": {
     "epochs": 128,
-    "early_stopping_patience": 20,
+    "early_stopping_patience": 16,
     "batch_size": 16,
     "learning_rate": 0.01,
     "scheduler": "reduce_on_plateau",
     "augment": false,
+    "cache_dataset": true,
     "num_workers": 2,
     "pin_memory": true,
     "prediction_samples_per_category": 1
   },
   "seeds": [42],
+  "confirmation_seed": 2026,
   "runs_dir": "runs",
-  "max_runs": 14,
+  "max_runs": 16,
   "published_topology": {"enabled": false, "batch_size": 1}
 }
