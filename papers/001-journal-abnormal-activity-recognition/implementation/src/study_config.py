@@ -197,6 +197,13 @@ def load_study(path):
         expected_fields.add("selected_config")
     if isinstance(study, dict) and "minimum_epochs" in study:
         expected_fields.add("minimum_epochs")
+    if isinstance(study, dict) and "comparison_protocol" in study:
+        expected_fields.add("comparison_protocol")
+        if (
+            study.get("mode") != "top3_comparison"
+            or study["comparison_protocol"] != "wide_final_v1"
+        ):
+            raise ValueError("unknown comparison_protocol")
     if isinstance(study, dict) and "recipe_transfer" in study:
         expected_fields.add("recipe_transfer")
         if (
@@ -295,7 +302,7 @@ def load_study(path):
     )
     names = [candidate.name for candidate in manifest.candidates]
     if len(names) > 12 or set(names).intersection(
-        (*BASELINES, "paper_convlstm_published")
+        (*BASELINES, "paper_convlstm_published", "paper_convlstm_adapted")
     ):
         raise ValueError(
             "declare at most twelve custom candidates with distinct registry names"
@@ -308,7 +315,9 @@ def load_study(path):
         or len(set(models)) != len(models)
     ):
         raise ValueError("models must be a non-empty unique list")
-    if set(models) - set([*names, *BASELINES, "paper_convlstm_published"]):
+    if set(models) - set(
+        [*names, *BASELINES, "paper_convlstm_published", "paper_convlstm_adapted"]
+    ):
         raise ValueError("unknown model; use a registered candidate or model family")
     if not set(names) <= set(models):
         raise ValueError("every declared custom candidate must be included in models")
@@ -384,6 +393,36 @@ def load_study(path):
             "weight_decay": reference["weight_decay"],
         }
     )
+    if study.get("comparison_protocol") == "wide_final_v1":
+        from .study_matrix import load_selection
+
+        selected = load_selection(study["selected_config"])
+        if selected.get("protocol") != "capacity_top3_v3":
+            raise ValueError("Adapted comparison requires the 075 selection")
+        if (
+            study.get("recipe_transfer") is not True
+            or config.epochs != 512
+            or study.get("minimum_epochs") != 128
+            or config.early_stopping_patience != 32
+            or config.learning_rate != 0.001
+            or config.weight_decay != 0.0001
+            or config.augment
+            or config.scheduler != "reduce_on_plateau"
+            or not config.cache_dataset
+        ):
+            raise ValueError(
+                "075 requires the fixed 512/128/32 comparison and validated recipe transfer"
+            )
+        final_input = selected["final_input"]
+        if training["batch_size"] != final_input["batch_size"]:
+            raise ValueError("Comparison batch differs from the preflight")
+        config = ExperimentConfig.from_mapping(
+            {
+                **config.to_dict(),
+                "sampling_version": "timestamps_v1",
+                "target_fps": final_input["target_fps"],
+            }
+        )
     minimum_epochs = study.get("minimum_epochs", 1)
     if (
         type(minimum_epochs) is not int
@@ -435,7 +474,10 @@ def load_study(path):
     if study.get("recipe_transfer"):
         from .study_matrix import read_json
 
-        if read_json(study["selected_config"]).get("protocol") != "capacity_top3_v2":
+        if read_json(study["selected_config"]).get("protocol") not in {
+            "capacity_top3_v2",
+            "capacity_top3_v3",
+        }:
             raise ValueError("Recipe transfer requires the focused search")
         if not config.cache_dataset or config.epochs != 512 or minimum_epochs != 128:
             raise ValueError(
@@ -651,7 +693,8 @@ def print_study(path, study, config):
         c = row["config"]
         candidate_flag = (
             " --candidates-config <study-run>/candidates.json"
-            if row["model"] not in (*BASELINES, "paper_convlstm_published")
+            if row["model"]
+            not in (*BASELINES, "paper_convlstm_published", "paper_convlstm_adapted")
             else ""
         )
         print(

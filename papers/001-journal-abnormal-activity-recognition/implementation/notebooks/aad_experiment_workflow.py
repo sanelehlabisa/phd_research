@@ -52,8 +52,10 @@ def run_workflow():
         IMPLEMENTATION_ROOT / "src/temporal_sampling.py",
         IMPLEMENTATION_ROOT / "src/study_resources.py",
         IMPLEMENTATION_ROOT / "src/study_reporting.py",
+        IMPLEMENTATION_ROOT / "src/wide_protocol.py",
+        IMPLEMENTATION_ROOT / "configs/experiments/aad_wide_comparison_colab.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_capacity_search_colab.json",
-        IMPLEMENTATION_ROOT / "configs/experiments/aad_shape_search_colab.json",
+        IMPLEMENTATION_ROOT / "configs/experiments/aad_wide_depth_search_colab.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_final_comparison_colab.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_source_review.json",
         IMPLEMENTATION_ROOT / "configs/experiments/aad_local_smoke.json",
@@ -95,7 +97,7 @@ def run_workflow():
             artifact_zip = resume_saved_study(IMPLEMENTATION_ROOT, RESOLVED_PROFILE_PATH)
         elif WORKFLOW_STAGE == "smoke":
             artifact_zip = run_aad_study(IMPLEMENTATION_ROOT, run_full_study=False)
-            run_capacity_study(IMPLEMENTATION_ROOT, run_full_study=False, profile_name="aad_shape_search_colab.json")
+            run_capacity_study(IMPLEMENTATION_ROOT, run_full_study=False, profile_name="aad_wide_depth_search_colab.json")
         else:
             raise ValueError('Choose all, capacity_search, search, comparison, smoke, resume, download, or repackage.')
         return artifact_zip

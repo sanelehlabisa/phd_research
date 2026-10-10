@@ -169,22 +169,34 @@ def test_exact_confirmation_preserves_equal_seed_weights_and_tie_breaks():
     )
 
 
-def test_full_default_workflow_search_freeze_test_zip_and_reuse(protocol, monkeypatch):
+@pytest.mark.parametrize(
+    "profile_name", ["aad_shape_search_colab.json", "aad_wide_depth_search_colab.json"]
+)
+def test_full_default_workflow_search_freeze_test_zip_and_reuse(
+    protocol, monkeypatch, profile_name
+):
     p = protocol
     p.tested = []
-    values = matrix.read_json(PROFILE)
+    values = matrix.read_json(ROOT / "configs/experiments" / profile_name)
     values["dataset"].update(
         path=str(p.data), split_manifest=p.values["dataset"]["split_manifest"]
     )
     values["runs_dir"] = str(p.root / "runs")
     for _, rel in aad_study.PROFILES:
         write_json(p.root / rel, matrix.read_json(ROOT / rel))
-    write_json(p.root / "configs/experiments/aad_shape_search_colab.json", values)
-    final = matrix.read_json(
-        ROOT / "configs/experiments/aad_final_comparison_colab.json"
+    write_json(p.root / "configs/experiments" / profile_name, values)
+    wide = profile_name == "aad_wide_depth_search_colab.json"
+    final_name = (
+        "aad_wide_comparison_colab.json" if wide else "aad_final_comparison_colab.json"
     )
+    final = matrix.read_json(ROOT / "configs/experiments" / final_name)
+    if wide:
+        final["training"].update(
+            num_workers=values["training"]["num_workers"],
+            pin_memory=values["training"]["pin_memory"],
+        )
     final["runs_dir"] = str(p.root / "runs")
-    write_json(p.root / "configs/experiments/aad_final_comparison_colab.json", final)
+    write_json(p.root / "configs/experiments" / final_name, final)
     review = write_json(
         p.root / "review.json", review_for(values["dataset"]["split_manifest"])
     )
@@ -234,6 +246,16 @@ def test_full_default_workflow_search_freeze_test_zip_and_reuse(protocol, monkey
             result["checkpoint_selection"]["selected_epoch"] = 128
             side = Path(result["selected_checkpoint"]).with_suffix(".json")
             write_json(side, {**matrix.read_json(side), "selected_epoch": 128})
+            if "training_evaluation" in result:
+                result["training_evaluation"].update(
+                    selected_epoch=128,
+                    train_minus_validation_accuracy=result["training_evaluation"][
+                        "metrics"
+                    ]["accuracy"]
+                    - result["validation_metrics"]["accuracy"],
+                    validation_minus_train_loss=result["validation_metrics"]["loss"]
+                    - result["training_evaluation"]["metrics"]["loss"],
+                )
         curve = folder / "curve.png"
         curve.write_bytes(b"synthetic plot")
         result.update(
@@ -289,18 +311,24 @@ def test_full_default_workflow_search_freeze_test_zip_and_reuse(protocol, monkey
             study_config.execute_study(path, *loaded, train, test)
 
     monkeypatch.setattr(aad_study, "_run_command", command)
-    archive = aad_study.run_full_aad_study(p.root)
+    archive = aad_study.run_full_aad_study(p.root, profile_name=profile_name)
     assert archive.is_file() and len(downloads) == 1
     count = len(p.trained)
-    assert 102 < count - 8 <= 177 and len(p.tested) == 8
+    assert 64 < count <= (142 if wide else 188) and len(p.tested) == 8
     entries = study_archive.verify_archive(archive)
     assert any(k.endswith("comparison.csv") for k in entries)
     assert any(k.endswith("split_audit.json") for k in entries)
     comparison = next((p.root / "runs/studies").glob("*top3_comparison"))
     rows = matrix.read_json(comparison / "comparison.json")["table"]
-    assert len(rows) == 8 and all(
-        "test_macro_f1" in r and "validation_macro_precision" in r for r in rows
-    )
+    assert len(rows) == 8
+    if wide:
+        assert all("test_per_class" in r and "test_macro_f1" not in r for r in rows)
+        assert all((r["frames"], r["height"], r["width"]) == (16, 64, 64) for r in rows)
+        assert len({r["target_fps"] for r in rows}) == 1
+    else:
+        assert all(
+            "test_macro_f1" in r and "validation_macro_precision" in r for r in rows
+        )
     recipe = matrix.read_json(comparison / "recipe_selection.json")
     assert 1 <= len(recipe["jobs"]) <= 3
     assert all(
@@ -322,14 +350,14 @@ def test_full_default_workflow_search_freeze_test_zip_and_reuse(protocol, monkey
         )
     assert any(k.endswith("recipe_selection.json") for k in entries)
     assert not any("/cache/" in k for k in entries)
-    assert aad_study.run_full_aad_study(p.root) == archive
+    assert aad_study.run_full_aad_study(p.root, profile_name=profile_name) == archive
     assert len(p.trained) == count and len(p.tested) == 8
     assert matrix.read_json(comparison / "comparison.json")["table"] == rows
     # A partial test marker must never trigger a repeat.
     receipt = comparison / "test_receipts/custom_top1.json"
     write_json(receipt, {"status": "started"})
     with pytest.raises(RuntimeError):
-        aad_study.run_full_aad_study(p.root)
+        aad_study.run_full_aad_study(p.root, profile_name=profile_name)
     assert len(p.trained) == count and len(p.tested) == 8
 
 

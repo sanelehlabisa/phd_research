@@ -20,14 +20,29 @@ STAGE_LIMITS = {
     "temporal": 15,
 }
 SHAPE_LIMITS = {**STAGE_LIMITS, "flat": 48, "refinement": 54}
+WIDE_LIMITS = {
+    "calibration": 12,
+    "flat": 40,
+    "references": 4,
+    "refinement": 24,
+    "confirmation": 24,
+    "weight_decay": 12,
+    "temporal": 15,
+}
+
+
+def wide(study):
+    return study["schema_version"] == 4
 
 
 def focused(study):
-    return study["schema_version"] == 3
+    return study["schema_version"] in (3, 4)
 
 
 def stage_limits(study):
-    return SHAPE_LIMITS if focused(study) else STAGE_LIMITS
+    return (
+        WIDE_LIMITS if wide(study) else SHAPE_LIMITS if focused(study) else STAGE_LIMITS
+    )
 
 
 NOTE = (
@@ -41,13 +56,18 @@ NOTE = (
 def protocol_note(study):
     if not focused(study):
         return NOTE
-    return (
-        "Evidence-guided finite 1-3-layer search, not unbiased/exhaustive or a global optimum. "
+    note = (
+        f"Evidence-guided finite 1-{'5' if wide(study) else '3'}-layer search, not unbiased/exhaustive or a global optimum. "
         "Two seeds give limited uncertainty evidence; temporal ablations use 48x48. "
         "From-scratch low-resolution references are not exhaustively tuned baselines. "
         "Search never decodes test; the automatic workflow hands verified selection to "
         "fresh comparison training and validation-frozen testing. Filename independence "
         "is user-attested, not proof of subject/scene independence."
+    )
+    return (
+        note.replace("temporal ablations use 48x48", "FPS is validated at 16f/64px")
+        if wide(study)
+        else note
     )
 
 
@@ -64,11 +84,35 @@ def candidate(filters):
 
 def flats(study):
     specs = [candidate([w] * d) for d in study["depths"] for w in study["widths"]]
+    if wide(study):
+        return (
+            [c for c in specs if c["name"] != "custom_96"]
+            + [candidate([w] * 3) for w in (8, 16, 48, 80)]
+            + [candidate([64] * 5)]
+        )
     return specs + ([candidate([64, 64, 64])] if focused(study) else [])
 
 
-def shape_candidates():
+def shape_candidates(study=None):
     """Every relative ordering, representative scales, and historical controls."""
+    if study is not None and wide(study):
+        return [
+            candidate(v)
+            for v in (
+                [128, 64, 64],
+                [64, 128, 64],
+                [64, 64, 128],
+                [32, 64, 64],
+                [64, 32, 64],
+                [64, 64, 32],
+                [96, 64, 64],
+                [64, 96, 64],
+                [64, 64, 96],
+                [32, 64],
+                [64, 32],
+                [16, 32, 32],
+            )
+        ]
     variants = []
     for a, b in ((8, 16), (16, 24), (16, 32)):
         variants.extend(([a, b], [b, a]))
@@ -82,6 +126,12 @@ def load_capacity(study):
     from .study_config import _fields, _path
 
     study = deepcopy(study)
+    if type(study.get("schema_version")) is not int or study["schema_version"] not in (
+        2,
+        3,
+        4,
+    ):
+        raise ValueError("unsupported capacity schema_version")
     _fields(
         study,
         {
@@ -100,14 +150,18 @@ def load_capacity(study):
         "capacity search",
     )
     fixed = {
-        "schema_version": 3 if focused(study) else 2,
+        "schema_version": 4 if wide(study) else 3 if focused(study) else 2,
         "mode": "capacity_search",
-        "widths": [4, 8, 16, 24, 32] if focused(study) else [4, 8, 16, 24, 32, 48, 64],
-        "depths": [1, 2, 3],
-        "frame_sizes": [32, 48, 64],
+        "widths": (
+            [32, 64, 96, 128]
+            if wide(study)
+            else [4, 8, 16, 24, 32] if focused(study) else [4, 8, 16, 24, 32, 48, 64]
+        ),
+        "depths": [1, 2, 3, 4] if wide(study) else [1, 2, 3],
+        "frame_sizes": [32, 64] if wide(study) else [32, 48, 64],
         "learning_rates": [0.001, 0.003, 0.01],
         "seeds": [42, 2026],
-        "max_runs": 177 if focused(study) else 156,
+        "max_runs": 131 if wide(study) else 177 if focused(study) else 156,
     }
     for key, expected in fixed.items():
         if value_hash(study[key]) != value_hash(expected):
@@ -132,7 +186,7 @@ def load_capacity(study):
         "capacity training",
     )
     for key, expected in {
-        "epochs": 128 if focused(study) else 200,
+        "epochs": 256 if wide(study) else 128 if focused(study) else 200,
         "minimum_epochs": 64,
         "early_stopping_patience": 24,
     }.items():
@@ -157,8 +211,8 @@ def load_capacity(study):
             "runs_dir": _path(study["runs_dir"]),
             "seed": 42,
             "sequence_length": 8,
-            "height": 48,
-            "width": 48,
+            "height": 64 if wide(study) else 48,
+            "width": 64 if wide(study) else 48,
             "learning_rate": 0.001,
             "weight_decay": 0,
             "augment": False,
@@ -172,7 +226,9 @@ def load_capacity(study):
         CandidateManifest.from_mapping(
             {
                 "screening_id": (
-                    "focused_shapes_v1" if focused(study) else "capacity_search_v1"
+                    "wide_depth_v1"
+                    if wide(study)
+                    else "focused_shapes_v1" if focused(study) else "capacity_search_v1"
                 ),
                 "candidates": flats(study),
             }
@@ -208,22 +264,35 @@ def job(stage, model, config, spec=None, **overrides):
     }
 
 
+def calibration_candidates(study):
+    return [candidate([w] * 3) for w in ((64, 128) if wide(study) else (24, 64))]
+
+
 def calibration_rows(study, config):
-    specs = [candidate([24] * 3), candidate([64] * 3)]
-    return [
+    specs = calibration_candidates(study)
+    rows = [
         job("calibration", name, config, spec, learning_rate=lr)
         for name, spec in [(c["name"], c) for c in specs]
         + [(n, None) for n in REFERENCES]
         for lr in study["learning_rates"]
     ]
+    return marked_rows(study, rows)
+
+
+def marked_rows(study, rows):
+    if wide(study):
+        for row in rows:
+            row["matched_checkpoint_metrics"] = True
+            if row["stage"] == "temporal":
+                row["changed_factor"] = "target_fps_at_final_input"
+    return rows
 
 
 def select_learning_rates(study, jobs):
     expected = {
         (name, lr)
         for name in (
-            candidate([24] * 3)["name"],
-            candidate([64] * 3)["name"],
+            *(c["name"] for c in calibration_candidates(study)),
             *REFERENCES,
         )
         for lr in study["learning_rates"]
@@ -256,7 +325,7 @@ def select_learning_rates(study, jobs):
         return min(scores)[2]
 
     return {
-        "custom": select({candidate([24] * 3)["name"], candidate([64] * 3)["name"]}),
+        "custom": select({c["name"] for c in calibration_candidates(study)}),
         **{name: select({name}) for name in REFERENCES},
     }
 
@@ -280,7 +349,7 @@ def matrix_rows(study, config, specs, lrs, stage, seed=42):
                     learning_rate=lrs["custom" if c else name],
                 )
             )
-    return rows
+    return marked_rows(study, rows)
 
 
 def architecture_ranking(jobs, names, sizes, seeds=(42,), exact=False):
@@ -352,6 +421,13 @@ def refinement_candidates(w, existing):
 
 
 def confirmation_specs(study, shortlist, w):
+    if wide(study):
+        specs = (
+            list(shortlist)
+            + [candidate([v] * 3) for v in (32, 64, 96, 128)]
+            + [candidate([64] * 5)]
+        )
+        return list({c["name"]: c for c in specs}.values()) + list(REFERENCES)
     widths = sorted(
         {
             c["convlstm_layers"][0][0]
@@ -387,7 +463,11 @@ def ablation_rows(study, config, shortlist, lrs, stage):
         for spec in [*shortlist, *REFERENCES]:
             c = spec if isinstance(spec, dict) else None
             name = c["name"] if c else spec
-            for frames, fps in ((8, 8), (8, 4), (16, 16)):
+            for frames, fps in (
+                ((16, 4), (16, 8), (16, 16))
+                if wide(study)
+                else ((8, 8), (8, 4), (16, 16))
+            ):
                 rows.append(
                     job(
                         stage,
@@ -401,25 +481,31 @@ def ablation_rows(study, config, shortlist, lrs, stage):
                 )
     else:
         raise ValueError("unknown ablation")
-    return rows
+    return marked_rows(study, rows)
 
 
 def print_capacity_plan(study, config):
     if focused(study):
         print(
-            "Ticket 073: 34 focused 1-3-layer architectures; test locked during search"
+            "Ticket 075: 32 wide 1-5-layer architectures; 64 base custom runs; test locked"
+            if wide(study)
+            else "Ticket 073: 34 focused 1-3-layer architectures; test locked during search"
         )
         print(
             "Evidence-guided, not exhaustive or unbiased; user-reviewed filename independence, not proven subject independence."
         )
         for stage, count in stage_limits(study).items():
             print(f"{stage}: up to {count} jobs before exact-config reuse")
-        print("Upper budget: 177 search jobs; 128 epochs cap, minimum 64, patience 24.")
+        print(
+            "Upper budget: 131 search jobs + up to 3 recipe checks + 8 final trainings = 142; 256 search epochs cap, minimum 64, patience 24."
+            if wide(study)
+            else "Upper budget: 177 search jobs; 128 epochs cap, minimum 64, patience 24."
+        )
         print(
             "Automatic notebook: then eight comparison trainings, 512 cap/minimum 128/patience 32; frozen-test guard remains."
         )
         for size in study["frame_sizes"]:
-            for c in flats(study) + shape_candidates():
+            for c in flats(study) + shape_candidates(study):
                 print(
                     f"custom: {c['name']} | {size}x{size} | 8 frames/16 FPS | seed=42"
                 )

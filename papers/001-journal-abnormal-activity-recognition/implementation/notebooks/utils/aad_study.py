@@ -646,7 +646,12 @@ def run_saved_comparison(
     comparison_template = (
         Path(template_path)
         if template_path is not None
-        else implementation_root / PROFILES[2][1]
+        else implementation_root
+        / (
+            "configs/experiments/aad_wide_comparison_colab.json"
+            if selected.get("protocol") == "capacity_top3_v3"
+            else PROFILES[2][1]
+        )
     )
     from src.study_matrix import file_hash, atomic_json
 
@@ -659,6 +664,12 @@ def run_saved_comparison(
     if saved:
         return resume_saved_study(implementation_root, saved)
     resolved_comparison = _resolved_profile(comparison_template, dataset_path)
+    if selected.get("protocol") == "capacity_top3_v3":
+        if resolved_comparison.get("comparison_protocol") != "wide_final_v1":
+            raise ValueError("Use the 075 adapted comparison template")
+        resolved_comparison["training"]["batch_size"] = selected["final_input"][
+            "batch_size"
+        ]
     resolved_comparison["selected_config"] = str(selected_path)
     resolved_comparison["dataset"]["split_manifest"] = selected["split"][
         "manifest_path"
@@ -749,7 +760,7 @@ def run_saved_comparison(
     return archive_path
 
 
-def run_full_aad_study(root):
+def run_full_aad_study(root, *, profile_name="aad_wide_depth_search_colab.json"):
     """One call; verified internal handoff, no manually entered stage directories."""
     from src.study_matrix import load_selection, read_json
 
@@ -759,13 +770,13 @@ def run_full_aad_study(root):
     )
     group = run_capacity_study(
         root,
-        profile_name="aad_shape_search_colab.json",
+        profile_name=profile_name,
         download=False,
         return_group=True,
     )
     selection = group / "selected_config.json"
     selected = load_selection(selection)
-    if selected.get("protocol") != "capacity_top3_v2":
+    if selected.get("protocol") not in {"capacity_top3_v2", "capacity_top3_v3"}:
         raise ValueError(
             "Automatic final comparison requires the reviewed focused-shape protocol"
         )
@@ -784,5 +795,11 @@ def run_full_aad_study(root):
     return run_saved_comparison(
         root,
         selection,
-        template_path=root / "configs/experiments/aad_final_comparison_colab.json",
+        template_path=root
+        / "configs/experiments"
+        / (
+            "aad_wide_comparison_colab.json"
+            if selected["protocol"] == "capacity_top3_v3"
+            else "aad_final_comparison_colab.json"
+        ),
     )

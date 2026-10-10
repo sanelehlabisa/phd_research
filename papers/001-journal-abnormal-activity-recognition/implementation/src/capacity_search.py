@@ -25,6 +25,7 @@ from .study_reporting import (
     search_plots,
 )
 from .utils import RunContext
+from .wide_protocol import select_final_input
 
 
 def job_key(row):
@@ -33,11 +34,16 @@ def job_key(row):
             "model": row["model"],
             "config": row["config"],
             "minimum_epochs": row["minimum_epochs"],
+            **(
+                {"matched_checkpoint_metrics": True}
+                if row.get("matched_checkpoint_metrics")
+                else {}
+            ),
         }
     )[:16]
 
 
-def schedule(study, config, completed):
+def schedule(study, config, completed, comparison_batch_size=None):
     """Resolve the next stage only after prior evidence is complete.
 
     Used both to execute and to independently reconstruct a saved selection.
@@ -61,7 +67,7 @@ def schedule(study, config, completed):
     )
     w = int(flat_ranking[0]["name"].split("_")[-1])
     refined_specs = (
-        plan.shape_candidates()
+        plan.shape_candidates(study)
         if plan.focused(study)
         else plan.refinement_candidates(w, flat_specs)
     )
@@ -75,7 +81,9 @@ def schedule(study, config, completed):
         study["frame_sizes"],
         exact=plan.focused(study),
     )
-    shortlist = [custom_specs[r["name"]] for r in ranking[:3]]
+    shortlist = [
+        custom_specs[r["name"]] for r in ranking[: 5 if plan.wide(study) else 3]
+    ]
     confirming = plan.confirmation_specs(study, shortlist, w)
     confirmation = plan.matrix_rows(
         study, config, confirming, lrs, "confirmation", 2026
@@ -88,10 +96,20 @@ def schedule(study, config, completed):
         study["seeds"],
         exact=plan.focused(study),
     )
-    shortlist = [custom_specs[r["name"]] for r in confirmed]
+    shortlist = [custom_specs[r["name"]] for r in confirmed[:3]]
     wd = plan.ablation_rows(study, config, shortlist, lrs, "weight_decay")
     yield "weight_decay", wd
-    temporal = plan.ablation_rows(study, config, shortlist, lrs, "temporal")
+    temporal_config = (
+        ExperimentConfig.from_mapping(
+            {
+                **config.to_dict(),
+                "batch_size": comparison_batch_size or config.batch_size,
+            }
+        )
+        if plan.wide(study)
+        else config
+    )
+    temporal = plan.ablation_rows(study, temporal_config, shortlist, lrs, "temporal")
     yield "temporal", temporal
     reference_confirmation = {
         name: plan.architecture_ranking(
@@ -117,6 +135,15 @@ def schedule(study, config, completed):
                 exact=plan.focused(study),
             )[0]
     yield "decisions", {
+        **(
+            {
+                "final_input": select_final_input(
+                    evidence(temporal), shortlist, temporal_config.batch_size
+                )
+            }
+            if plan.wide(study)
+            else {}
+        ),
         "learning_rates": lrs,
         "three_layer_flat_ranking": flat_ranking,
         "flat_peak_width": w,
@@ -265,6 +292,73 @@ def _validate_result(result, row, split, sources, class_count):
         for k, v in checks.items()
     ):
         raise ValueError("reported metrics do not reconcile with complete predictions")
+    if row.get("matched_checkpoint_metrics"):
+        validate_matched_training(result, row, class_count)
+
+
+def validate_matched_training(result, row, class_count):
+    """Reject stale checkpoints, wrong partitions and fabricated training gaps."""
+    report = result.get("training_evaluation", {})
+    checkpoint = Path(result["selected_checkpoint"])
+    if (
+        report.get("protocol") != "matched_checkpoint_eval_v1"
+        or report.get("partition") != "train"
+        or report.get("model_mode") != "eval"
+        or report.get("augmentation") is not False
+        or report.get("selected_epoch")
+        != result["checkpoint_selection"]["selected_epoch"]
+        or Path(report.get("checkpoint", "")).resolve() != checkpoint.resolve()
+        or report.get("checkpoint_sha256") != file_hash(checkpoint)
+    ):
+        raise ValueError("Missing compatible matched-checkpoint training evaluation")
+    manifest = read_json(row["config"]["split_manifest"])
+    expected = {
+        str((Path(row["config"]["dataset_dir"]) / r["path"]).resolve()): r[
+            "class_index"
+        ]
+        for r in manifest["samples"]
+        if r["split"] == "train"
+    }
+    records = read_json(report["predictions"])
+    paths = [str(Path(r["source"]).resolve()) for r in records]
+    if (
+        set(paths) != set(expected)
+        or len(paths) != len(expected)
+        or report.get("samples") != len(paths)
+        or any(
+            r["partition"] != "train" or r["target"] != expected[p]
+            for r, p in zip(records, paths)
+        )
+    ):
+        raise ValueError("Training predictions must cover exactly the training split")
+    metrics = extended_metrics(
+        [r["predicted"] for r in records], [r["target"] for r in records], class_count
+    )
+    metrics.update(
+        loss=statistics.mean(r["loss"] for r in records), accuracy=metrics["micro_f1"]
+    )
+    if metrics["loss"] < 0 or any(
+        not math.isclose(
+            report.get("metrics", {}).get(k, float("nan")), v, abs_tol=1e-5
+        )
+        for k, v in metrics.items()
+    ):
+        raise ValueError(
+            "Training metrics disagree with matched-checkpoint predictions"
+        )
+    gaps = {
+        "train_minus_validation_accuracy": metrics["accuracy"]
+        - result["validation_metrics"]["accuracy"],
+        "validation_minus_train_loss": result["validation_metrics"]["loss"]
+        - metrics["loss"],
+    }
+    if any(
+        not math.isclose(report.get(k, float("nan")), v, abs_tol=1e-5)
+        for k, v in gaps.items()
+    ):
+        raise ValueError(
+            "Training/validation gaps do not use matched checkpoint metrics"
+        )
 
 
 def archive_stage(group, runs_dir):
@@ -293,7 +387,13 @@ def _report(group, state, print_rows=False, plots=False):
             }
             seen.setdefault(job_key(spec), len(seen) + 1)
             if current.get("status") == "complete":
-                rows.append(result_row(current["result"], **context))
+                rows.append(
+                    result_row(
+                        current["result"],
+                        raw=state.get("study_schema_version") == 4,
+                        **context,
+                    )
+                )
             else:
                 cfg = spec["config"]
                 rows.append(
@@ -321,7 +421,9 @@ def _report(group, state, print_rows=False, plots=False):
                         "learning_rate": cfg["learning_rate"],
                     }
                 )
-    write_full_table(group, rows, print_rows=print_rows)
+    write_full_table(
+        group, rows, print_rows=print_rows, raw=state.get("study_schema_version") == 4
+    )
     if print_rows and state.get("pending_stages"):
         print(
             "Pending dependent stages (not yet resolved): "
@@ -329,7 +431,11 @@ def _report(group, state, print_rows=False, plots=False):
             flush=True,
         )
     if plots:
-        search_plots(group, rows)
+        search_plots(group, rows, raw=state.get("study_schema_version") == 4)
+        if state.get("study_schema_version") == 4:
+            from .study_reporting import matched_capacity_summaries
+
+            matched_capacity_summaries(group, rows)
     return rows
 
 
@@ -451,7 +557,11 @@ def selection_bundle(study, state, group, decisions):
             {"comparison_name": CUSTOM_SLOTS[i], "candidate": spec, "sources": sources}
         )
     return {
-        "protocol": "capacity_top3_v2" if plan.focused(study) else "capacity_top3_v1",
+        "protocol": (
+            "capacity_top3_v3"
+            if plan.wide(study)
+            else "capacity_top3_v2" if plan.focused(study) else "capacity_top3_v1"
+        ),
         "selection_partition": "validation",
         "test_access": "locked",
         "seed": 42,
@@ -465,7 +575,16 @@ def selection_bundle(study, state, group, decisions):
         "dataset_dir": config.dataset_dir,
         "split": state["split"],
         "ranking": decisions["confirmed_custom_ranking"],
-        "ranking_rule": "equal mean over three resolutions and two seeds within predeclared shortlist; loss/parameters/name ties",
+        "ranking_rule": (
+            "equal mean over declared resolutions and two seeds within predeclared shortlist; loss/parameters/name ties"
+            if plan.wide(study)
+            else "equal mean over three resolutions and two seeds within predeclared shortlist; loss/parameters/name ties"
+        ),
+        **(
+            {"final_input": decisions["final_input"], "campaign_maximum": 142}
+            if plan.wide(study)
+            else {}
+        ),
         **(
             {
                 "ranking_version": "exact_counts_v1",
@@ -531,7 +650,9 @@ def load_capacity_selection(path):
     visited, expected_stages = set(), []
     experiment_numbers = {}
     decisions = None
-    for stage, rows in schedule(study, config, jobs):
+    for stage, rows in schedule(
+        study, config, jobs, state.get("comparison_batch_size")
+    ):
         if stage == "decisions":
             decisions = rows
             break
@@ -659,6 +780,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
             (group / "split_manifest.json").write_bytes(split_path.read_bytes())
             atomic_json(group / "split_audit.json", audit)
             state = {
+                **({"study_schema_version": 4} if plan.wide(study) else {}),
                 "status": "preparing",
                 "identity": identity,
                 "code_identity": code,
@@ -676,9 +798,15 @@ def execute_capacity(path, study, config, manifest, run_trial):
             )
         if "effective_config" not in state:
             resource = (
-                capacity_preflight(config, [*study["widths"], 64], max_depth=3)
-                if plan.focused(study)
-                else capacity_preflight(config, study["widths"])
+                capacity_preflight(
+                    config, study["widths"], max_depth=4, native_comparison=True
+                )
+                if plan.wide(study)
+                else (
+                    capacity_preflight(config, [*study["widths"], 64], max_depth=3)
+                    if plan.focused(study)
+                    else capacity_preflight(config, study["widths"])
+                )
             )
             atomic_json(group / "preflight.json", resource)
             if resource["selected_batch_size"] is None:
@@ -715,6 +843,8 @@ def execute_capacity(path, study, config, manifest, run_trial):
             }
             atomic_json(group / "resource_estimates.json", estimates)
             state.update(effective_config=safe_config.to_dict(), status="running")
+            if plan.wide(study):
+                state["comparison_batch_size"] = resource["comparison_batch_size"]
             state["preparation_files"] = inventory(group)
             state["preparation_files"].pop(
                 str((group / "progress.json").resolve()), None
@@ -731,7 +861,9 @@ def execute_capacity(path, study, config, manifest, run_trial):
         stages_seen = []
         experiment_numbers = {}
         decisions = None
-        for stage, rows in schedule(study, config, completed):
+        for stage, rows in schedule(
+            study, config, completed, state.get("comparison_batch_size")
+        ):
             if stage == "decisions":
                 decisions = rows
                 break
@@ -765,7 +897,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     verify_inventory(receipt["files"])
                     result, leaf_run = receipt["result"], receipt["run_dir"]
                     print(
-                        f"Experiment {number}: {stage} {row['model']} (verified reuse)",
+                        f"Experiment {number}/{142 if plan.wide(study) else study['max_runs']} maximum | {stage} {row['model']} (verified reuse)",
                         flush=True,
                     )
                 else:
@@ -786,6 +918,17 @@ def execute_capacity(path, study, config, manifest, run_trial):
                         "--minimum-epochs",
                         str(row["minimum_epochs"]),
                     ]
+                    if row.get("matched_checkpoint_metrics"):
+                        args += [
+                            "--matched-training-evaluation",
+                            "--per-class-reporting",
+                            "--campaign-number",
+                            str(number),
+                            "--campaign-maximum",
+                            "142",
+                            "--campaign-stage",
+                            stage,
+                        ]
                     if row["candidate"]:
                         cp = atomic_json(
                             jobdir / "candidate.json",
@@ -809,7 +952,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     state["jobs"].append(current)
                     atomic_json(group / "progress.json", state)
                     print(
-                        f"Experiment {number}/{study['max_runs']} search maximum | {stage}: "
+                        f"Experiment {number}/{142 if plan.wide(study) else study['max_runs']} campaign maximum | {stage}: "
                         f"{row['model']} {row['config']['height']}px, "
                         f"{row['config']['sequence_length']}f/{row['config']['target_fps']}fps, seed {row['seed']}",
                         flush=True,

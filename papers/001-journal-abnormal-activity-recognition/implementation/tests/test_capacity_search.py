@@ -391,6 +391,40 @@ def fake_train(p):
             "validation_predictions": str(prediction_path),
             "train_time_s": 1,
         }
+        if "--matched-training-evaluation" in args:
+            train_records = [
+                dict(
+                    source=str((p.data / r["path"]).resolve()),
+                    partition="train",
+                    target=r["class_index"],
+                    predicted=r["class_index"],
+                    loss=0.1,
+                )
+                for r in split["samples"]
+                if r["split"] == "train"
+            ]
+            train_metrics = extended_metrics(
+                [r["predicted"] for r in train_records],
+                [r["target"] for r in train_records],
+                2,
+            )
+            train_metrics.update(loss=0.1, accuracy=1.0)
+            result["training_evaluation"] = dict(
+                protocol="matched_checkpoint_eval_v1",
+                partition="train",
+                model_mode="eval",
+                augmentation=False,
+                checkpoint=str(checkpoint),
+                checkpoint_sha256=study_matrix.file_hash(checkpoint),
+                selected_epoch=64,
+                samples=len(train_records),
+                metrics=train_metrics,
+                predictions=str(
+                    write_json(folder / "train_predictions.json", train_records)
+                ),
+                train_minus_validation_accuracy=1.0 - accuracy,
+                validation_minus_train_loss=metrics["loss"] - 0.1,
+            )
         write_json(folder / "summary.json", {"all": [result]})
         write_json(folder / "run.json", {"status": "complete"})
         p.trained.append((name, config))
@@ -598,7 +632,8 @@ def test_real_timestamp_cache_and_test_isolation(real_clips, tmp_path, monkeypat
     assert info["mode"] == "lazy_over_cache_limit"
 
 
-def test_real_timestamp_leaf_training_and_artifacts(real_clips, tmp_path):
+@pytest.mark.parametrize("matched", [False, True])
+def test_real_timestamp_leaf_training_and_artifacts(real_clips, tmp_path, matched):
     config = ExperimentConfig(
         dataset_dir=str(real_clips),
         runs_dir=str(tmp_path / "runs"),
@@ -630,10 +665,33 @@ def test_real_timestamp_leaf_training_and_artifacts(real_clips, tmp_path):
             "custom_4",
             "--candidates-config",
             str(candidates),
+            *(
+                [
+                    "--matched-training-evaluation",
+                    "--per-class-reporting",
+                    "--campaign-number",
+                    "7",
+                    "--campaign-maximum",
+                    "142",
+                    "--campaign-stage",
+                    "flat",
+                ]
+                if matched
+                else []
+            ),
         ]
     )
     result = study_matrix.read_json(leaf / "summary.json")["all"][0]
     assert result["early_stopping"]["actual_epochs"] == 1
+    if matched:
+        row = {"config": config.to_dict()}
+        classes = study_matrix.read_json(config.split_manifest)["class_names"]
+        search.validate_matched_training(result, row, len(classes))
+        assert result["training_evaluation"]["model_mode"] == "eval"
+        assert "macro" not in (leaf / "results.md").read_text(encoding="utf-8")
+        assert "tp" in result["validation_per_class"][0]
+    else:
+        assert "training_evaluation" not in result
     assert result["test_access"] == "locked"
     assert result["sampling_report"] and result["validation_metrics"]["macro_f1"] >= 0
     assert result["efficiency"]["peak_cuda_memory_bytes"] is None

@@ -59,6 +59,7 @@ def model_from_checkpoint(checkpoint):
         "swin3d_t",
         "swin3d_s",
         "paper_convlstm_published",
+        "paper_convlstm_adapted",
     }:
         raise ValueError(f"unsupported final model registry: {registry}")
     from .experiments import build_registered_model

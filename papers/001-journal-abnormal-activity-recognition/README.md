@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: 068 search reviewed; 073/074 automatic workflow locally verified; real final comparison pending
+- Status: 075 implemented and locally verified. Existing evidence preserved; new AAD/A100 performance and final test evidence await execution.
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -19,15 +19,15 @@ reference architecture for ablation.
 
 ## Evidence plan
 
-1. Run 073's validation-only search: 34 flat/shaped custom stacks at depths
-   1/2/3 and 32/48/64 pixels, then confirmation and separate ablations.
-   The new search uses at most 16 frames and a 128-epoch cap; its top three use
-   equal-weight evidence across resolutions and model seeds 42/2026.
-2. Compare the top three against the faithful paper model, two 3D CNNs and two
-   transformers: fixed 50 frames at 50x50, batch 1, up to 512 epochs.
-   First validate search LR/weight-decay proposals on the top-one custom model
-   at these inputs (up to three 128-epoch jobs). Freeze one shared training
-   recipe for all eight; this is not per-family optimal hyperparameter tuning.
+1. Run 075's validation-only search: 32 architectures at depths 1-5,
+   8 frames and 32/64px (64 base runs), with a 256-epoch cap. Confirm the top
+   five plus declared controls at seed 2026; rank only that shortlist across
+   both sizes/seeds and advance three. Keep WD evidence separate.
+2. Validate FPS at 16f/64px, then LR/WD; retain the best verified eligible
+   combination. Train the three customs, input-adapted paper model, two 3D CNNs
+   and two transformers at that common input/recipe, up to 512 epochs each.
+   Full-step memory checks freeze common batches; the whole workflow is bounded
+   at 142 trainings before reuse. Main reports use unaveraged per-class metrics.
 3. Keep one existing split (seed 42); the final comparison uses one
    training seed, 42. Freeze all validation-selected checkpoints and the best
    custom model before eight full test evaluations. Run All passes verified
@@ -37,8 +37,15 @@ reference architecture for ablation.
    Two search seeds give limited uncertainty evidence, not global optimality or
    unseen-data generalisation. The legacy 068 search remains available unchanged.
 
+See the [October 10 interim analysis](implementation/reports/todays.results.md)
+for grouped results, a representative main-paper table and the complete available
+search appendix. These are console-derived validation results, not a final test report.
+The latest appended review includes two-seed confirmation and WD/temporal tables;
+it informs 075's candidate refinement without changing the 64-base-run budget.
+
 ## Next tasks
 
+- [x] [075 wider/deeper capacity search](../../agents/work/075-wide-depth-capacity-search/prompt.md) - [Locally verified](../../agents/work/075-wide-depth-capacity-search/completion.md): 32 architectures, depths 1-5; 64 base runs; 256-epoch search cap; 16f/64px final input, selected FPS/recipe, adapted baseline and per-class metrics. Up to 142 trainings overall; real Colab execution pending.
 - [x] [074 validated comparison handoff](../../agents/work/074-validated-comparison-handoff/prompt.md) - recipe validation, cache reuse and stable experiment numbering; [70 local tests passed](../../agents/work/074-validated-comparison-handoff/completion.md). Real Colab execution pending.
 - [x] [073 focused shape search and Run All](../../agents/work/073-focused-shape-search-run-all/prompt.md) - consolidates 070–072; [locally verified](../../agents/work/073-focused-shape-search-run-all/completion.md), with 128-epoch search, 512-epoch comparison, exact ranking and automatic guarded export. Real Colab execution remains pending.
 - [x] [069 staged capacity search](../../agents/work/069-staged-capacity-search/prompt.md) - implemented and locally verified; see [completion](../../agents/work/069-staged-capacity-search/completion.md). Current 068 runs and final-comparison protocol stay intact; actual AAD/A100 runs are separate work.

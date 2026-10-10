@@ -2,9 +2,49 @@
 
 import csv
 import math
+import statistics
 from pathlib import Path
 
 from .study_matrix import atomic_json
+
+
+def matched_training_evaluation(
+    model, loader, device, class_names, checkpoint, epoch, output, validation
+):
+    """Unaugmented training pass after loading the validation-selected checkpoint."""
+    from time import perf_counter
+    from .evaluate import prediction_records, per_class_metrics
+    from .study_matrix import file_hash
+
+    started = perf_counter()
+    records = prediction_records(model, loader, device, class_names, partition="train")
+    metrics = extended_metrics(
+        [r["predicted"] for r in records],
+        [r["target"] for r in records],
+        len(class_names),
+    )
+    metrics.update(
+        loss=statistics.mean(r["loss"] for r in records), accuracy=metrics["micro_f1"]
+    )
+    path = Path(output) / "selected_training_predictions.json"
+    atomic_json(path, records)
+    return {
+        "protocol": "matched_checkpoint_eval_v1",
+        "partition": "train",
+        "model_mode": "eval",
+        "augmentation": False,
+        "checkpoint": str(checkpoint),
+        "checkpoint_sha256": file_hash(checkpoint),
+        "selected_epoch": epoch,
+        "samples": len(records),
+        "metrics": metrics,
+        "predictions": str(path),
+        "per_class": per_class_metrics(records, class_names),
+        "seconds": perf_counter() - started,
+        "train_minus_validation_accuracy": metrics["accuracy"] - validation["accuracy"],
+        "validation_minus_train_loss": validation["loss"] - metrics["loss"],
+        "diagnosis": "Not inferred automatically; inspect matched metrics and complete learning curves.",
+    }
 
 
 def extended_metrics(predictions, targets, num_classes):
@@ -39,7 +79,7 @@ def extended_metrics(predictions, targets, num_classes):
     }
 
 
-def result_row(result, **context):
+def result_row(result, raw=False, **context):
     config = result.get("experiment_config", {})
     metrics = result.get("validation_metrics", {})
     layers = (
@@ -85,10 +125,26 @@ def result_row(result, **context):
         row["validation_" + label] = metrics.get(key)
     for key in ("latency_ms_per_batch", "samples_per_second", "peak_cuda_memory_bytes"):
         row[key] = result.get("efficiency", {}).get(key)
+    training = result.get("training_evaluation", {})
+    for key in ("loss", "accuracy", "macro_precision", "macro_recall", "macro_f1"):
+        row["selected_training_" + key] = training.get("metrics", {}).get(key)
+    row["matched_accuracy_gap"] = training.get("train_minus_validation_accuracy")
+    row["matched_loss_gap"] = training.get("validation_minus_train_loss")
+    if raw:
+        from .wide_protocol import raw_result_fields, unaveraged_row
+
+        row.update(raw_result_fields(result))
+        if training.get("predictions"):
+            row.update(raw_result_fields(result, "train", training["predictions"]))
+        row = unaveraged_row(row)
     return row
 
 
-def write_full_table(directory, rows, stem="results", print_rows=True):
+def write_full_table(directory, rows, stem="results", print_rows=True, raw=False):
+    if raw:
+        from .wide_protocol import unaveraged_row
+
+        rows = [unaveraged_row(r) for r in rows]
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     complete = [r for r in rows if r.get("status") == "complete"]
@@ -147,6 +203,17 @@ def write_full_table(directory, rows, stem="results", print_rows=True):
         "parameters",
         "train_seconds",
     ]
+    if raw:
+        columns = [
+            k
+            for k in columns
+            if "macro" not in k and "micro" not in k and "balanced_accuracy" not in k
+        ]
+        columns += [
+            "selected_training_accuracy",
+            "matched_accuracy_gap",
+            "matched_loss_gap",
+        ]
     lines = [
         "# Full validation results",
         "",
@@ -166,6 +233,31 @@ def write_full_table(directory, rows, stem="results", print_rows=True):
     lines.extend(
         "| " + " | ".join(cell(r.get(k)) for k in columns) + " |" for r in ordered
     )
+    if raw:
+        lines += [
+            "",
+            "## Unaveraged per-class validation metrics",
+            "",
+            "| Experiment | Model | Class | Precision | Recall | F1 | Support | TP | FP | FN |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        ]
+        per_class = []
+        for row in ordered:
+            for c in row.get("validation_per_class", []):
+                item = {
+                    "experiment": row.get("experiment_number"),
+                    "model": row["model"],
+                    **c,
+                }
+                per_class.append(item)
+                lines.append("| " + " | ".join(cell(v) for v in item.values()) + " |")
+        if per_class:
+            with (directory / f"{stem}_per_class.csv").open(
+                "w", encoding="utf-8", newline=""
+            ) as out:
+                writer = csv.DictWriter(out, fieldnames=list(per_class[0]))
+                writer.writeheader()
+                writer.writerows(per_class)
     (directory / f"{stem}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     if print_rows:
         print(
@@ -178,13 +270,14 @@ def write_full_table(directory, rows, stem="results", print_rows=True):
                 f"{r.get('status')} | {r.get('height')}px {r.get('frames')}f/{r.get('fps')}fps "
                 f"seed={r.get('seed')} wd={r.get('weight_decay')} lr={r.get('learning_rate')} "
                 f"val_acc={cell(r.get('validation_accuracy'))} val_loss={cell(r.get('validation_loss'))} "
-                f"macro_f1={cell(r.get('validation_macro_f1'))} params={r.get('parameters')}",
+                + ("" if raw else f"macro_f1={cell(r.get('validation_macro_f1'))} ")
+                + f"params={r.get('parameters')}",
                 flush=True,
             )
     return ordered
 
 
-def search_plots(directory, rows):
+def search_plots(directory, rows, raw=False):
     import matplotlib
 
     matplotlib.use("Agg")
@@ -196,9 +289,11 @@ def search_plots(directory, rows):
     ]
     if not flat:
         return
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4), squeeze=False)
+    fig, axes = plt.subplots(
+        1, len({r["height"] for r in flat}), figsize=(12, 4), squeeze=False
+    )
     for ax, size in zip(axes[0], sorted({r["height"] for r in flat})):
-        for depth in (1, 2, 3):
+        for depth in sorted({r["depth"] for r in flat}):
             group = sorted(
                 [r for r in flat if r["height"] == size and r["depth"] == depth],
                 key=lambda r: int(r["filters"].split("-")[0]),
@@ -239,3 +334,153 @@ def search_plots(directory, rows):
     fig.tight_layout()
     fig.savefig(directory / "accuracy_efficiency.png")
     plt.close(fig)
+    metrics = (
+        ("validation_accuracy",)
+        if raw
+        else ("validation_accuracy", "validation_macro_f1")
+    )
+    fig, axes = plt.subplots(
+        len(metrics), 3, figsize=(15, 4 * len(metrics)), squeeze=False
+    )
+    for axis_row, metric in zip(axes, metrics):
+        for ax, cost in zip(
+            axis_row, ("parameters", "train_seconds", "latency_ms_per_batch")
+        ):
+            for size in sorted({r["height"] for r in complete}):
+                points = [
+                    r
+                    for r in complete
+                    if r["height"] == size
+                    and r.get(cost) is not None
+                    and r.get(metric) is not None
+                ]
+                if points:
+                    ax.scatter(
+                        [r[cost] for r in points],
+                        [r[metric] for r in points],
+                        label=f"{size}px",
+                        s=16,
+                    )
+            ax.set(xlabel=cost, ylabel=metric)
+            if ax.collections:
+                ax.legend()
+    fig.suptitle(
+        "Reference-recipe validation; configurations are not independent datasets"
+    )
+    fig.tight_layout()
+    fig.savefig(directory / ("accuracy_cost.png" if raw else "accuracy_macro_cost.png"))
+    plt.close(fig)
+
+
+def matched_capacity_summaries(directory, rows):
+    """Transparent matched groups, not automatic under/overfitting diagnoses."""
+    from .capacity_config import candidate
+
+    groups = {}
+    for depth in (1, 2, 3, 4, 5):
+        widths = {1: (32, 64, 128), 3: (8, 16, 32, 48, 64, 80, 96, 128), 5: (64,)}.get(
+            depth, (32, 64, 96, 128)
+        )
+        groups[f"width_at_depth_{depth}"] = [[w] * depth for w in widths]
+    for width in (32, 64, 96, 128):
+        groups[f"depth_at_width_{width}"] = [
+            [width] * depth
+            for depth in (
+                (1, 2, 3, 4, 5)
+                if width == 64
+                else (2, 3, 4) if width == 96 else (1, 2, 3, 4)
+            )
+        ]
+    groups.update(
+        position_widen_96=[[64, 64, 64], [96, 64, 64], [64, 96, 64], [64, 64, 96]],
+        position_narrow_32=[[64, 64, 64], [32, 64, 64], [64, 32, 64], [64, 64, 32]],
+        position_widen_128=[[64, 64, 64], [128, 64, 64], [64, 128, 64], [64, 64, 128]],
+        two_layer_orientation=[[32, 32], [32, 64], [64, 32], [64, 64]],
+    )
+    matched = []
+    index = {
+        (r["model"], r["height"], r["seed"]): r
+        for r in rows
+        if r.get("stage") in {"flat", "refinement", "confirmation"}
+        and r.get("status") == "complete"
+        and r.get("weight_decay") == 0
+        and r.get("frames") == 8
+        and r.get("fps") == 16
+    }
+    for group, specs in groups.items():
+        names = [candidate(s)["name"] for s in specs]
+        for seed in (42, 2026):
+            for size in (32, 64):
+                found = [
+                    index[(n, size, seed)] for n in names if (n, size, seed) in index
+                ]
+                if len({r["learning_rate"] for r in found}) > 1:
+                    raise ValueError("Matched capacity group mixes learning rates")
+                matched.append(
+                    dict(
+                        group=group,
+                        seed=seed,
+                        pixels=size,
+                        complete=len(found) == len(names),
+                        missing=[n for n in names if (n, size, seed) not in index],
+                        rows=found,
+                    )
+                )
+    note = (
+        "Validation only. Compare within each size/seed/common recipe. Groups overlap; do not pool them. "
+        "Width/depth changes also change parameter count. Gaps use the same selected checkpoint in eval mode. "
+        "Missing evidence is explicit; no automatic underfitting/overfitting or optimum claim."
+    )
+    directory = Path(directory)
+    atomic_json(directory / "matched_capacity.json", {"note": note, "groups": matched})
+    columns = (
+        "group",
+        "pixels",
+        "seed",
+        "group_complete",
+        "model",
+        "parameters",
+        "validation_accuracy",
+        "selected_training_accuracy",
+        "matched_accuracy_gap",
+        "matched_loss_gap",
+        "train_seconds",
+        "latency_ms_per_batch",
+        "peak_cuda_memory_bytes",
+    )
+    lines = [
+        "# Matched width, depth and layer-position evidence",
+        "",
+        note,
+        "",
+        "| " + " | ".join(columns) + " |",
+        "| " + " | ".join(["---"] * len(columns)) + " |",
+    ]
+    table = []
+    for group in matched:
+        for row in group["rows"]:
+            item = {
+                **row,
+                "group": group["group"],
+                "pixels": group["pixels"],
+                "group_complete": group["complete"],
+            }
+            table.append({k: item.get(k) for k in columns})
+            lines.append(
+                "| "
+                + " | ".join(
+                    str(item.get(k)) if item.get(k) is not None else "not measured"
+                    for k in columns
+                )
+                + " |"
+            )
+    (directory / "matched_capacity.md").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+    with (directory / "matched_capacity.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as out:
+        writer = csv.DictWriter(out, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(table)
+    return matched

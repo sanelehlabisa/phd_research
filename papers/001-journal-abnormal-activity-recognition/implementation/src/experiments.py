@@ -123,6 +123,11 @@ parser.add_argument("--run-label")
 parser.add_argument("--trial-name")
 parser.add_argument("--changed-factor")
 parser.add_argument("--minimum-epochs", type=int, default=argparse.SUPPRESS)
+parser.add_argument("--matched-training-evaluation", action="store_true")
+parser.add_argument("--per-class-reporting", action="store_true")
+parser.add_argument("--campaign-number", type=int)
+parser.add_argument("--campaign-maximum", type=int)
+parser.add_argument("--campaign-stage")
 
 
 def _require_exact_fields(
@@ -799,6 +804,16 @@ def model_registry(
             "role": "study practical baseline trained from scratch; weights=None",
         },
     ]
+    # Opt-in alias: legacy default registry and native protocol remain unchanged.
+    if selected_models and "paper_convlstm_adapted" in selected_models:
+        standard_entries.append(
+            {
+                "name": "paper_convlstm_adapted",
+                "family": "ConvLSTM",
+                "model_class": "PaperConvLSTM",
+                "role": "input-adapted source-paper topology; not an exact published reproduction",
+            }
+        )
     if candidate_manifest is None:
         registry = standard_entries
     elif confirmation_candidate is None:
@@ -872,7 +887,7 @@ def build_registered_model(
                 layers=list(candidate.convlstm_layers),
                 hidden_classifier_width=candidate.hidden_classifier_width,
             )
-    if model_name == "paper_convlstm_published":
+    if model_name in {"paper_convlstm_published", "paper_convlstm_adapted"}:
         return PaperConvLSTM(
             num_classes,
             input_shape=input_shape,
@@ -1039,6 +1054,20 @@ def build_experiment_criterion() -> nn.CrossEntropyLoss:
     return nn.CrossEntropyLoss()
 
 
+def campaign_label(args):
+    """Honest upper-bound progress, not the leaf's usually-one model count."""
+    number = getattr(args, "campaign_number", None)
+    maximum = getattr(args, "campaign_maximum", None)
+    stage = getattr(args, "campaign_stage", None)
+    if number is None and maximum is None and stage is None:
+        return ""
+    if not number or not maximum or not stage or not 1 <= number <= maximum:
+        raise ValueError(
+            "Campaign progress requires a valid number, upper bound and stage"
+        )
+    return f"Experiment {number}/{maximum} maximum | {stage}"
+
+
 def main(argv: list[str] | None = None) -> Path | None:
     """Resolve configuration and run validation-only model comparisons."""
     raw = vars(parser.parse_args(argv))
@@ -1148,7 +1177,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             selected_models,
         )
         return
-    if any(entry["model_class"] == "PaperConvLSTM" for entry in registry) and (
+    if any(entry["name"] == "paper_convlstm_published" for entry in registry) and (
         args.sequence_length,
         args.height,
         args.width,
@@ -1356,7 +1385,13 @@ def main(argv: list[str] | None = None) -> Path | None:
             "study_trial": trial_metadata,
         }
     )
-    print(f"\nRunning {len(registry)} configurations...\n")
+    campaign = campaign_label(args)
+    raw_presentation = getattr(args, "per_class_reporting", False)
+    print(
+        f"\n{campaign}\n"
+        if campaign
+        else f"\nRunning {len(registry)} configurations...\n"
+    )
     all_results: list[dict[str, object]] = []
 
     for i, entry in enumerate(registry):
@@ -1374,7 +1409,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         num_params = count_trainable_parameters(model)
         model_dir = run_dir / "models" / safe_filename(name)
         print(
-            f"Model {i+1}/{len(registry)} within trial {trial_metadata['trial_name'] or run_label}: {name} | params={num_params:,}"
+            f"{campaign or f'Model {i+1}/{len(registry)}'}: {name} | params={num_params:,}"
         )
 
         opt = optim.Adam(
@@ -1403,7 +1438,11 @@ def main(argv: list[str] | None = None) -> Path | None:
         selected_checkpoint_path = model_dir / "checkpoints" / "best_model.pth"
         t0 = timer()
 
-        epoch_progress = tqdm(range(args.epochs), leave=False, desc=name)
+        epoch_progress = tqdm(
+            range(args.epochs),
+            leave=False,
+            desc=f"{campaign} | {name}" if campaign else name,
+        )
         for epoch in epoch_progress:
             epoch_learning_rate = opt.param_groups[0]["lr"]
             training_metrics = train_classifier_epoch(
@@ -1516,6 +1555,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             torch.cuda.synchronize()
         validation_seconds = timer() - validation_started
         from .evaluate import prediction_records, per_class_metrics
+        from .wide_protocol import class_counts
         from .utils import plot_training_curves
 
         records = prediction_records(
@@ -1527,6 +1567,21 @@ def main(argv: list[str] | None = None) -> Path | None:
         all_true = [r["target"] for r in records]
         all_pred = [r["predicted"] for r in records]
         efficiency = {}
+        training_evaluation = None
+        if getattr(args, "matched_training_evaluation", False):
+            from .study_reporting import matched_training_evaluation
+
+            evaluation_loader = DataLoader(train_set, shuffle=False, **loader_kw)
+            training_evaluation = matched_training_evaluation(
+                model,
+                evaluation_loader,
+                device,
+                dataset.class_names,
+                selected_checkpoint_path,
+                checkpoint_selection["selected_epoch"],
+                model_dir / "metrics",
+                selected_validation_metrics,
+            )
         if experiment_config.sampling_version == "timestamps_v1":
             from .study_reporting import extended_metrics
             from .study_resources import inference_measurement
@@ -1574,6 +1629,11 @@ def main(argv: list[str] | None = None) -> Path | None:
             seed=args.seed,
         )
         result = {
+            **(
+                {"training_evaluation": training_evaluation}
+                if training_evaluation
+                else {}
+            ),
             "prediction_examples": prediction_examples,
             "input_dimensions": {
                 "sequence_length": args.sequence_length,
@@ -1619,7 +1679,11 @@ def main(argv: list[str] | None = None) -> Path | None:
             ),
             "checkpoint_bytes": selected_checkpoint_path.stat().st_size,
             "validation_predictions": str(records_path),
-            "validation_per_class": per_class_metrics(records, dataset.class_names),
+            "validation_per_class": (
+                class_counts(records, dataset.class_names)
+                if raw_presentation
+                else per_class_metrics(records, dataset.class_names)
+            ),
             "training_curves": str(curves),
             "cache": cache_report,
             "validation_confusion_matrix": confusion_artifacts,
@@ -1633,15 +1697,26 @@ def main(argv: list[str] | None = None) -> Path | None:
         metrics_path = write_json(model_dir / "metrics" / "metrics.json", result)
         result["metrics_path"] = str(metrics_path)
         all_results.append(result)
-        print(
-            f"  val_loss={selected_validation_metrics['loss']:.4f}  "
-            f"val_precision={selected_validation_metrics['precision']:.4f}  "
-            f"val_recall={selected_validation_metrics['recall']:.4f}  "
-            f"val_f1={selected_validation_metrics['f1']:.4f}  "
-            f"val_acc={selected_validation_metrics['accuracy']:.4f}  "
-            f"selected_epoch={checkpoint_selection['selected_epoch']}  "
-            f"time={elapsed:.0f}s"
-        )
+        if raw_presentation:
+            print(
+                f"val_acc={selected_validation_metrics['accuracy']:.4f} "
+                f"val_loss={selected_validation_metrics['loss']:.4f} "
+                f"selected_epoch={checkpoint_selection['selected_epoch']} time={elapsed:.0f}s",
+                flush=True,
+            )
+            for row in result["validation_per_class"]:
+                print(row, flush=True)
+        else:
+            print(
+                f"  val_loss={selected_validation_metrics['loss']:.4f}  "
+                f"val_micro_precision={selected_validation_metrics['precision']:.4f}  "
+                f"val_micro_recall={selected_validation_metrics['recall']:.4f}  "
+                f"val_micro_f1={selected_validation_metrics['f1']:.4f}  "
+                f"val_macro_f1={selected_validation_metrics.get('macro_f1', float('nan')):.4f}  "
+                f"val_acc={selected_validation_metrics['accuracy']:.4f}  "
+                f"selected_epoch={checkpoint_selection['selected_epoch']}  "
+                f"time={elapsed:.0f}s"
+            )
 
         del model
         if torch.cuda.is_available():
@@ -1661,7 +1736,10 @@ def main(argv: list[str] | None = None) -> Path | None:
     from .study_reporting import result_row, write_full_table
 
     write_full_table(
-        run_dir, [result_row(r) for r in ranked], print_rows=len(ranked) > 1
+        run_dir,
+        [result_row(r, raw=raw_presentation) for r in ranked],
+        print_rows=len(ranked) > 1,
+        raw=raw_presentation,
     )
 
     summary = {

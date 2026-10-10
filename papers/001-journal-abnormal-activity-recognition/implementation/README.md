@@ -6,6 +6,27 @@ hyperparameter grid.
 
 ## Current roadmap
 
+[075 wider/deeper search](../../../agents/work/075-wide-depth-capacity-search/prompt.md)
+implements 32 custom stacks at depths 1-5, widths up to 128, and 64 base
+custom runs (8 frames, 32/64px). Search uses a **256-epoch cap**, minimum 64,
+patience 24. Final comparison uses 16 frames at 64px, validation-selected FPS,
+an input-adapted paper baseline and per-class metrics. Up to **142 trainings**
+before reuse. Existing live runs and saved evidence are untouched.
+Legacy 068/069/073/074 profiles and evidence remain unchanged.
+See the [completion record](../../../agents/work/075-wide-depth-capacity-search/completion.md)
+for local verification; real Colab execution remains separate.
+
+The [October 10 interim search analysis](reports/todays.results.md) reviews the
+new 073 console snapshot: 34 architectures at three resolutions, a provisional
+top five, macro-metric interpretation and complete available results. The snapshot
+ends during confirmation. Its appended update reports search completion and a
+slow first comparison-recipe check, with a faster follow-up proposed but not
+implemented. A further expanded export now includes 168 complete stage rows
+(164 unique configurations): the appended review reconstructs two-seed ranking
+and WD/temporal results. It refines 075's candidates around width 64 without
+increasing its budget. Raw logs are preserved; final artifacts/test evidence
+remain independently unverified.
+
 [Ticket 068](../../../agents/work/068-multisize-search-top3-comparison/prompt.md)
 implements 12 architectures at three resolutions (36 jobs, 128-epoch cap),
 then the top three plus five baselines (eight jobs, 256-epoch cap).
@@ -126,15 +147,83 @@ The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
 not architecture-equivalent reproductions.
 
-### Focused automatic study (073)
+### Current automatic study (075)
 
-Open `aad_experiment_workflow.ipynb` on Colab and choose Run All, or use its
-matching Python export. `WORKFLOW_STAGE = "all"` needs no other control edits.
-After dependency setup, the same workflow can be invoked from the implementation
-directory with:
+Open `aad_experiment_workflow.ipynb` or its matching Python export on Colab.
+Keep `WORKFLOW_STAGE = "all"`: paths, selected FPS and training settings pass
+internally; no manual stage toggles. After setup, the equivalent command is:
 
 ```bash
 python -c "from notebooks.utils.aad_study import run_full_aad_study; run_full_aad_study('.')"
+```
+
+Inspect the plan without downloading or training:
+
+```bash
+python -m src.experiments --config configs/experiments/aad_wide_depth_search_colab.json --list-plan
+```
+
+The [075 manifest](../../../agents/work/075-wide-depth-capacity-search/prompt.md)
+declares all 32 stacks: width/depth ladders, compact controls, layer-position
+changes around width 64 and one five-layer control. No automatic expansion.
+
+| Phase | Maximum trainings |
+|---|---:|
+| LR calibration | 12 |
+| Base customs: 32 architectures x 32/64px | 64 |
+| R3D-18/Swin3D-T at both sizes | 4 |
+| Second-seed confirmation of top five + declared controls + references | 24 |
+| Separate WD checks: 1e-4 / 1e-3; reuse zero | 12 |
+| Final-input FPS: top three + references x 4/8/16 FPS | 15 |
+| Sequential LR/WD validation on top-one custom | 3 |
+| Final comparison | 8 |
+| **Total upper bound before reuse** | **142** |
+
+Rank customs using equal-resolution exact validation accuracy, then loss,
+parameters and name. Re-rank only the provisional top five over seeds 42/2026;
+advance three. Controls cannot become post-hoc entrants. FPS checks use the
+actual final **16f/64px** input; select one common FPS on the custom top-three
+mean, then loss, then higher FPS. Display every reference result and flag
+constant/majority-baseline predictions as possible optimization failures.
+
+All search/FPS/recipe checks use **256 cap / 64 minimum / 24 patience**.
+Sequential recipe checks retain a better already-verified selected-FPS
+top-one LR/WD pair, with alias, input, batch, split and receipt verification.
+No untested hyperparameter combination is inferred.
+
+Comparison trains all eight models from scratch: three customs,
+`paper_convlstm_adapted`, R3D-18/MC3-18 and Swin3D-T/S. Common input
+16f/64px, selected FPS, seed 42, one frozen recipe; **512 cap / 128 minimum /
+32 patience**. The paper topology is input-adapted, not an exact reproduction;
+its input-dependent classifier/count changes. Legacy native 50f/50px is intact.
+
+Before training, full synthetic Adam steps check 128x4 and 64x5 custom bounds,
+references and all final families. Freeze separate common search and final
+batches, trying 32/16/8/4/2/1 with memory headroom; stop if none fits.
+16x64x64 is 52.4% of the old frame-pixels, **not a runtime guarantee**.
+The adapted paper classifier is still large. No eight-hour promise.
+
+Global labels read `Experiment N/142 maximum | stage`, including epoch bars.
+Reuses retain original numbers; pending adaptive stages are not completed jobs.
+Full tables include every configuration, accuracy/loss, costs and unaveraged
+per-class precision/recall/F1/support/TP/FP/FN; legacy averages remain in
+machine-readable evidence only. Matched unaugmented train/validation passes
+use the same selected checkpoint; width/depth/position summaries and cost
+plots do not automatically claim underfitting, overfitting or an optimum.
+
+Run All freezes all eight checkpoints and the example model using validation
+before eight guarded test evaluations, examples and ZIP export. Caches are
+reused; failed or altered receipts stop safely. Save a **verified ZIP outside
+the Colab VM** before deletion. Local synthetic verification is not AAD/A100
+performance evidence.
+
+### Legacy focused automatic study (073/074)
+
+This preserved profile has different inputs/budgets from the current default.
+To explicitly replay its workflow after setup:
+
+```bash
+python -c "from notebooks.utils.aad_study import run_full_aad_study; run_full_aad_study('.', profile_name='aad_shape_search_colab.json')"
 ```
 
 The **34** predeclared custom architectures contain:
@@ -208,7 +297,9 @@ Use one runner and one JSON path for each profile:
 | Profile | Fixed protocol |
 |---|---|
 | [Local smoke](configs/experiments/aad_local_smoke.json) | One tiny 1-epoch pass; not paper evidence |
-| [Focused search (073)](configs/experiments/aad_shape_search_colab.json) | 34 custom stacks; up to 177 search jobs, 128-epoch cap; automatic notebook default |
+| [Wide/deep search (075)](configs/experiments/aad_wide_depth_search_colab.json) | Current default; 32 stacks, 64 base runs, 256-epoch search cap |
+| [Adapted comparison (075)](configs/experiments/aad_wide_comparison_colab.json) | Automatic selected FPS/recipe, 16f/64px, eight 512-cap trainings |
+| [Focused search (073)](configs/experiments/aad_shape_search_colab.json) | 34 custom stacks; up to 177 search jobs, 128-epoch cap; preserved legacy workflow |
 | [Final comparison (073)](configs/experiments/aad_final_comparison_colab.json) | Verified top three plus five baselines; 512-epoch cap, minimum 128, patience 32 |
 | [Capacity search (069)](configs/experiments/aad_capacity_search_colab.json) | Adaptive validation-only stages; at most 156 jobs before dedup/reuse, 200-epoch cap; see below |
 | [Custom search](configs/experiments/aad_custom_search_colab.json) | 12 architectures x 32/48/64 pixels; 8 frames; 36 jobs, up to 128 epochs, patience 16 |
@@ -243,7 +334,7 @@ stratification does not establish source-group independence.
 The [active notebook](notebooks/aad_experiment_workflow.ipynb) and matching
 [Python export](notebooks/aad_experiment_workflow.py) support:
 
-- `WORKFLOW_STAGE = "all"` (default): focused 073 search, verified handoff, comparison,
+- `WORKFLOW_STAGE = "all"` (default): wide/deep 075 search, verified handoff, comparison,
   validation freeze, one-time test/examples and ZIP. No manually supplied paths.
 - `"capacity_search"`: run the staged legacy 069 protocol
   below, export validation-only top three and ZIP evidence; never run comparison.

@@ -26,6 +26,10 @@ COMPARISON_MODELS = CUSTOM_SLOTS + [
     "swin3d_t",
     "swin3d_s",
 ]
+ADAPTED_COMPARISON_MODELS = [
+    n if n != "paper_convlstm_published" else "paper_convlstm_adapted"
+    for n in COMPARISON_MODELS
+]
 NOTE = (
     "Single seed; resolution variation is not seed uncertainty. "
     "Finite validation search, not proof of a global optimum or unseen-data generalisation. "
@@ -105,20 +109,24 @@ def validate_protocol(study, config):
                 "search architectures must be distinct, not renamed duplicates"
             )
     else:
-        if study["models"] != COMPARISON_MODELS:
+        adapted = study.get("comparison_protocol") == "wide_final_v1"
+        if study["models"] != (
+            ADAPTED_COMPARISON_MODELS if adapted else COMPARISON_MODELS
+        ):
             raise ValueError(
                 "comparison requires the top three and exactly five declared baselines"
             )
-        if (config.sequence_length, config.height, config.width, config.batch_size) != (
-            50,
-            50,
-            50,
-            1,
-        ):
+        expected_input = (16, 64, 64, config.batch_size) if adapted else (50, 50, 50, 1)
+        if (
+            config.sequence_length,
+            config.height,
+            config.width,
+            config.batch_size,
+        ) != expected_input:
             raise ValueError(
                 "all comparison models require native 50-frame 50x50 input and batch 1"
             )
-        if factors["frame_sizes"] != [50]:
+        if factors["frame_sizes"] != ([64] if adapted else [50]):
             raise ValueError("comparison cannot vary input resolution")
 
 
@@ -326,7 +334,11 @@ def selection_bundle(study, jobs, group):
 def load_selection(path):
     """Do not accept handwritten winners, incomplete matrices or stale artifacts."""
     selected = read_json(path)
-    if selected.get("protocol") in {"capacity_top3_v1", "capacity_top3_v2"}:
+    if selected.get("protocol") in {
+        "capacity_top3_v1",
+        "capacity_top3_v2",
+        "capacity_top3_v3",
+    }:
         from .capacity_search import load_capacity_selection
 
         return load_capacity_selection(path)
@@ -374,6 +386,11 @@ def comparison_candidates(study):
         != selected["split"]["manifest_hash"]
     ):
         raise ValueError("comparison must use the selected search split manifest")
+    if (
+        selected.get("protocol") == "capacity_top3_v3"
+        and study.get("comparison_protocol") != "wide_final_v1"
+    ):
+        raise ValueError("075 selections require the adapted final-input protocol")
     candidates = [
         {**item["candidate"], "name": item["comparison_name"]}
         for item in selected["top3"]
@@ -419,7 +436,7 @@ def _validate_leaf(result, row, values, split_hash):
         raise ValueError("selected checkpoint missing")
 
 
-def _table_row(job, report, extended=False):
+def _table_row(job, report, extended=False, raw=False):
     result = job["result"]
     row = {
         "experiment_number": job.get("experiment_number"),
@@ -469,6 +486,18 @@ def _table_row(job, report, extended=False):
                 class_count,
             )
             row.update({f"{partition}_{k}": v for k, v in metrics.items()})
+    if raw:
+        from .wide_protocol import raw_result_fields, unaveraged_row
+
+        row.update(raw_result_fields(result))
+        row.update(raw_result_fields(result, "test", report["predictions"]))
+        row.update(result.get("efficiency", {}))
+        row["target_fps"] = result["experiment_config"]["target_fps"]
+        row["matched_training"] = {
+            k: result.get("training_evaluation", {}).get(k)
+            for k in ("train_minus_validation_accuracy", "validation_minus_train_loss")
+        }
+        row = unaveraged_row(row)
     return row
 
 
@@ -478,6 +507,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
     from .dataset_source import resolve_dataset
     from .study_config import ROOT, study_rows
 
+    raw_presentation = study.get("comparison_protocol") == "wide_final_v1"
     root = resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
     source = AHARDataset(root, config.sequence_length, (config.width, config.height))
     split_path = resolve_split_manifest_path(
@@ -582,10 +612,14 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 raise ValueError("comparison split differs from selected search")
             if run_evaluation is None:
                 raise ValueError("comparison requires a post-freeze test evaluator")
-            if selected.get("protocol") == "capacity_top3_v2":
+            if selected.get("protocol") in {"capacity_top3_v2", "capacity_top3_v3"}:
                 experiment_offset = len(
                     read_json(Path(selected["source_group"]) / "progress.json")["jobs"]
                 )
+            if raw_presentation:
+                from .wide_protocol import print_final_input
+
+                print_final_input(selected["final_input"])
             if study.get("recipe_transfer"):
                 from .comparison_recipe import select_recipe
 
@@ -655,6 +689,17 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     "--changed-factor",
                     row["changed_factor"],
                 ]
+                if raw_presentation:
+                    args += [
+                        "--matched-training-evaluation",
+                        "--per-class-reporting",
+                        "--campaign-number",
+                        str(experiment_number),
+                        "--campaign-maximum",
+                        "142",
+                        "--campaign-stage",
+                        "final_comparison",
+                    ]
                 if row["minimum_epochs"] > 1:
                     args += ["--minimum-epochs", str(row["minimum_epochs"])]
                 if row["model"] in candidates:
@@ -672,7 +717,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     },
                 )
                 print(
-                    f"Experiment {experiment_number}/{experiment_offset + len(rows)} | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
+                    f"Experiment {experiment_number}/{142 if raw_presentation else experiment_offset + len(rows)} maximum | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
                     flush=True,
                 )
                 before = set((Path(config.runs_dir) / "experiments").glob("*"))
@@ -720,10 +765,10 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     )
                     raise
             _validate_leaf(result, row, values, split["manifest_hash"])
-            if (
-                study["mode"] == "top3_comparison"
-                and selected.get("protocol") == "capacity_top3_v2"
-            ):
+            if study["mode"] == "top3_comparison" and selected.get("protocol") in {
+                "capacity_top3_v2",
+                "capacity_top3_v3",
+            }:
                 actual = result["early_stopping"]["actual_epochs"]
                 if not row["minimum_epochs"] <= actual <= values["epochs"]:
                     raise ValueError(
@@ -733,6 +778,12 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     raise ValueError(
                         "comparison selected epoch exceeds completed training"
                     )
+            if raw_presentation:
+                from .capacity_search import validate_matched_training
+
+                validate_matched_training(
+                    result, {"config": values}, source.num_classes
+                )
             jobs.append(
                 {
                     "experiment_number": experiment_number,
@@ -751,7 +802,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             print(f"Top-three selection: {group / 'selected_config.json'}", flush=True)
         else:
 
-            exact = selected.get("protocol") == "capacity_top3_v2"
+            exact = selected.get("protocol") in {"capacity_top3_v2", "capacity_top3_v3"}
 
             def order(j):
                 r = j["result"]
@@ -896,7 +947,9 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 reports.append(
                     {"model": name, "run_dir": str(evaluation_run), "report": report}
                 )
-                table.append(_table_row(job, report, extended=exact))
+                table.append(
+                    _table_row(job, report, extended=exact, raw=raw_presentation)
+                )
                 state["tests"] = reports
                 atomic_json(group / "progress.json", state)
             summary = {
@@ -937,6 +990,15 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     flush=True,
                 )
                 for record in table:
+                    if raw_presentation:
+                        print(
+                            f"{record['model']}: test accuracy={record['test_accuracy']:.4f}, "
+                            f"loss={record['test_loss']:.4f}, parameters={record['num_params']:,}",
+                            flush=True,
+                        )
+                        for item in record["test_per_class"]:
+                            print(item, flush=True)
+                        continue
                     print(
                         f"{record['model']}: test accuracy={record['test_accuracy']:.4f}, "
                         f"macro precision={record['test_macro_precision']:.4f}, "
