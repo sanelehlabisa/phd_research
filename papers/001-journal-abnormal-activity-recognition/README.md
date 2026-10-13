@@ -148,13 +148,26 @@ After final results, prepare a small Gradio demo for presentation.
 
 ## Planned results-section flow
 
-1. Experimental Setup
-2. Comparison and Ablation Protocol
-3. Main Comparative Results (AAD)
-4. Ablation Studies
-5. Error Analysis
-6. Efficiency and Deployment Trade-offs
-7. Discussion and Limitations
+Planning only: [079 structure](../../agents/work/079-aad-results-section-structure/prompt.md)
+→ [080 search figure/appendix](../../agents/work/080-aad-search-figure-and-appendix/prompt.md)
+→ [081 ten-model comparison](../../agents/work/081-aad-ten-model-results-comparison/prompt.md)
+→ [082 error analysis/synthesis](../../agents/work/082-aad-error-analysis-and-synthesis/prompt.md).
+All four are Draft; execution requires approval and verified evidence. Scaffold
+timing and strict-top-five versus reserved-anchor wording remain unresolved.
+
+1. Computing environment
+2. AAD dataset and data split
+3. Training configuration and hyperparameters
+4. Evaluation metrics
+5. Architecture-search setup
+6. Search results: capacity subplots, then trend discussion
+7. Five-model selection and reference to the full appendix search table
+8. Final ten-model comparison and discussion
+9. Best validation-selected custom's test confusion matrix and class analysis
+10. Overall interpretation
+
+The requested manuscript tables use macro precision/recall/F1, clearly separated
+from pooled metrics. This plan does not change the running experiment code.
 
 VDD may be used for a separate, explicitly configured generalisation study;
 its historical runs are preserved but are not new comparable evidence.

@@ -83,6 +83,12 @@ compact results backups. The old notebook/profiles and saved evidence remain unc
 Implementation is [locally verified](agents/work/077-focused-aad-colab-rerun/completion.md);
 real A100 execution and result review remain pending.
 
+Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
+[080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),
+[081 ten-model comparison](agents/work/081-aad-ten-model-results-comparison/prompt.md),
+and [082 error analysis/synthesis](agents/work/082-aad-error-analysis-and-synthesis/prompt.md).
+These drafts require approval and verified evidence; no manuscript or experiment change is authorized yet.
+
 ## Structure
 
 ```text

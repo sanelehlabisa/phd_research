@@ -4,8 +4,9 @@
 - Status: Ready
 - Aim: Refocus Paper 001's methods, results, and discussion on the completed AAD study without unsupported VDD claims.
 - Scope: Paper 001 manuscript and paper README, using only verified outputs from the new experiment runs.
+- Coordination: Draft tickets [079](../079-aad-results-section-structure/prompt.md), [080](../080-aad-search-figure-and-appendix/prompt.md), [081](../081-aad-ten-model-results-comparison/prompt.md) and [082](../082-aad-error-analysis-and-synthesis/prompt.md) detail the requested results revision; do not duplicate their work or execute their unresolved scope. This ticket retains whole-paper alignment after verified results.
 - Changes:
-  - Present custom ConvLSTM architecture search and model-family comparison as distinct result tables.
+  - Use the requested figure-led search narrative with the full search table in the appendix, followed by the distinct ten-model comparison table; follow 079–082 after their approval.
   - Remove VDD-specific methods, results, and claims from the paper; do not replace them with unsupported claims.
   - Update abstract, contributions, limitations, and conclusion only where the verified AAD results require it.
 - Acceptance criteria:

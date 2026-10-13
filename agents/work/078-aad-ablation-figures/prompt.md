@@ -4,6 +4,7 @@
 - Status: Ready
 - Aim: Make the AAD architecture/input tradeoffs clear in a small set of research figures, with tables as supporting detail.
 - Scope: Paper 001 report figures/CSV-derived plotting and concise report guidance; use verified 077/076 outputs when available. Preserve the current figure and source data.
+- Coordination: Draft [080](../080-aad-search-figure-and-appendix/prompt.md) owns the requested manuscript search figure, appendix and shortlist narrative. Reuse these plotting assets there; this ticket still does not edit the manuscript or select a new protocol.
 - Changes:
   - Use parameter count on a logarithmic x-axis and validation accuracy on y; small panels for each frame-size/FPS condition, with identical axes and keys. Label the selected and compact candidates and retain poor/collapsed results.
   - Try intuitive layer-count glyphs: one tally stroke per layer and a crossed tally for five. Preview readability at paper size; keep a clear legend and consistent mapping. Retain the current shapes as a readable fallback if tally markers overlap.
