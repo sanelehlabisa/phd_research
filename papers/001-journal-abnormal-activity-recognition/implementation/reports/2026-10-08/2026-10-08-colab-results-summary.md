@@ -24,7 +24,7 @@
 ## Evidence and audit
 
 The recently downloaded batch is identified by
-[its progress manifest](../runs/notebook_studies/20261008_122455_053379/progress.json):
+[its progress manifest](../../runs/notebook_studies/20261008_122455_053379/progress.json):
 **20 custom-search jobs + 12 comparison jobs = 32 completed runs**.
 
 - Recorded execution: 8 October 2026, **14:25:05 to 21:21:23 SAST**
@@ -38,18 +38,18 @@ The recently downloaded batch is identified by
   accuracy. Each selected epoch is the minimum-validation-loss epoch in its history.
 - All runs share split hash
   `aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8`.
-- The local [split manifest](../splits/abnormal-activities-dataset_seed42.json)
+- The local [split manifest](../../splits/abnormal-activities-dataset_seed42.json)
   matches that hash after normalising Windows CRLF line endings to LF. Its raw
   Windows-file hash differs because of line endings, not different assignments.
   A strict byte-hash loader may still need the original LF artifact.
-- The downloaded [search config](../configs/experiments/temp/aad_custom_search_colab.json)
-  and [comparison config](../configs/experiments/temp/aad_model_comparison_colab.json)
+- The downloaded [search config](../../configs/experiments/temp/aad_custom_search_colab.json)
+  and [comparison config](../../configs/experiments/temp/aad_model_comparison_colab.json)
   match the current profiles as parsed JSON.
 - The downloaded copy contains leaf results and the notebook progress file, but
   **no `runs/studies/` group summaries, selections or selected configuration file**.
   Rankings here were reconstructed from leaf results. The archive helper collects
   `runs/experiments/`, configs and notebook progress, but not `runs/studies/`;
-  see [the archive code](../notebooks/utils/aad_study.py).
+  see [the archive code](../../notebooks/utils/aad_study.py).
 - Historical September runs and separate Kinetics/VDD diagnostics are excluded.
 - Summed recorded training time: **6.76 hours**. Summed leaf-run wall time:
   **6.93 hours**. These are not inference-latency measurements.
@@ -156,11 +156,11 @@ This input/batch protocol differs from the architecture-search protocol.
 Its checkpoint metadata explicitly records three 16-filter layers and 48,187
 parameters; the winning search model has a 32-filter final layer and 85,291
 parameters. Evidence:
-[comparison checkpoint metadata](../runs/experiments/20261008_155316_510990_abnormal-activities-dataset_screen/models/custom_selected/checkpoints/best_model.json).
+[comparison checkpoint metadata](../../runs/experiments/20261008_155316_510990_abnormal-activities-dataset_screen/models/custom_selected/checkpoints/best_model.json).
 
 The notebook runner invokes the comparison profile after the search, but does
 not transfer the selected layer list into that profile. Its static
-`custom_selected` entry remained [16,16,16]. The [runner](../notebooks/utils/aad_study.py)
+`custom_selected` entry remained [16,16,16]. The [runner](../../notebooks/utils/aad_study.py)
 and downloaded comparison JSON agree with the checkpoint evidence.
 
 The best custom search configuration's **26.25%** and the published model's
@@ -311,43 +311,43 @@ the last epoch's training-mode metric.
 
 | Run | Model / variant | Seed | Acc % | Prec % | Rec % | F1 % | Loss | Params | Selected / run epochs | Peak val acc % | Train-last acc % | Train min |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| [20261008_122505_956936](../runs/experiments/20261008_122505_956936_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3884 | 48,187 | 1 / 5 | 12.500 | 12.30 | 3.28 |
-| [20261008_122838_332677](../runs/experiments/20261008_122838_332677_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] | 2026 | 23.125 | 23.125 | 23.125 | 23.125 | 2.1806 | 48,187 | 16 / 16 | 23.125 | 19.79 | 10.65 |
-| [20261008_123931_821983](../runs/experiments/20261008_123931_821983_abnormal-activities-dataset_screen/summary.json) | Custom [16,16] | 42 | 23.125 | 23.125 | 23.125 | 23.125 | 2.1051 | 29,691 | 16 / 16 | 23.125 | 20.86 | 10.63 |
-| [20261008_125024_414063](../runs/experiments/20261008_125024_414063_abnormal-activities-dataset_screen/summary.json) | Custom [16,16] | 2026 | 25.000 | 25.000 | 25.000 | 25.000 | 2.1158 | 29,691 | 16 / 16 | 25.000 | 20.45 | 10.50 |
-| [20261008_130108_521245](../runs/experiments/20261008_130108_521245_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16,16] | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3850 | 66,683 | 14 / 16 | 12.500 | 12.43 | 10.99 |
-| [20261008_131223_230115](../runs/experiments/20261008_131223_230115_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16,16] | 2026 | 21.875 | 21.875 | 21.875 | 21.875 | 2.1904 | 66,683 | 16 / 16 | 21.875 | 19.25 | 10.92 |
-| [20261008_132333_360164](../runs/experiments/20261008_132333_360164_abnormal-activities-dataset_screen/summary.json) | Custom [32,16,16] | 42 | 21.875 | 21.875 | 21.875 | 21.875 | 2.1035 | 86,843 | 16 / 16 | 21.875 | 20.45 | 10.94 |
-| [20261008_133445_476189](../runs/experiments/20261008_133445_476189_abnormal-activities-dataset_screen/summary.json) | Custom [32,16,16] | 2026 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3895 | 86,843 | 4 / 8 | 12.500 | 10.29 | 5.51 |
-| [20261008_134032_043456](../runs/experiments/20261008_134032_043456_abnormal-activities-dataset_screen/summary.json) | Custom [16,32,16] | 42 | 22.500 | 22.500 | 22.500 | 22.500 | 2.0215 | 94,331 | 16 / 16 | 22.500 | 18.85 | 10.97 |
-| [20261008_135145_203056](../runs/experiments/20261008_135145_203056_abnormal-activities-dataset_screen/summary.json) | Custom [16,32,16] | 2026 | 21.875 | 21.875 | 21.875 | 21.875 | 2.1642 | 94,331 | 16 / 16 | 21.875 | 18.85 | 11.21 |
-| [20261008_140312_748157](../runs/experiments/20261008_140312_748157_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,32] | 42 | 23.125 | 23.125 | 23.125 | 23.125 | 1.9849 | 85,291 | 15 / 16 | 26.250 | 23.26 | 11.16 |
-| [20261008_141437_282446](../runs/experiments/20261008_141437_282446_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,32] | 2026 | 25.625 | 25.625 | 25.625 | 25.625 | 1.9835 | 85,291 | 16 / 16 | 25.625 | 23.93 | 11.23 |
-| [20261008_142606_337025](../runs/experiments/20261008_142606_337025_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/48px/WD0.0001 | 42 | 25.625 | 25.625 | 25.625 | 25.625 | 2.1334 | 85,291 | 15 / 16 | 25.625 | 21.26 | 11.20 |
-| [20261008_143733_332002](../runs/experiments/20261008_143733_332002_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/48px/WD0.0001 | 2026 | 26.875 | 26.875 | 26.875 | 26.875 | 2.0638 | 85,291 | 16 / 16 | 26.875 | 22.59 | 11.04 |
-| [20261008_144850_783664](../runs/experiments/20261008_144850_783664_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 16f/32px/WD0.0001 | 42 | 23.750 | 23.750 | 23.750 | 23.750 | 1.9693 | 85,291 | 15 / 16 | 25.000 | 20.86 | 10.85 |
-| [20261008_145956_451719](../runs/experiments/20261008_145956_451719_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 16f/32px/WD0.0001 | 2026 | 28.125 | 28.125 | 28.125 | 28.125 | 1.9405 | 85,291 | 14 / 16 | 28.125 | 27.41 | 10.96 |
-| [20261008_151109_613152](../runs/experiments/20261008_151109_613152_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0 | 42 | 25.000 | 25.000 | 25.000 | 25.000 | 1.9665 | 85,291 | 15 / 16 | 26.875 | 23.80 | 10.32 |
-| [20261008_152143_239151](../runs/experiments/20261008_152143_239151_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0 | 2026 | 25.625 | 25.625 | 25.625 | 25.625 | 1.9334 | 85,291 | 16 / 16 | 26.875 | 23.93 | 10.19 |
-| [20261008_153208_429592](../runs/experiments/20261008_153208_429592_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0.001 | 42 | 19.375 | 19.375 | 19.375 | 19.375 | 2.1868 | 85,291 | 15 / 16 | 22.500 | 20.19 | 10.18 |
-| [20261008_154232_725058](../runs/experiments/20261008_154232_725058_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0.001 | 2026 | 23.125 | 23.125 | 23.125 | 23.125 | 2.0958 | 85,291 | 16 / 16 | 23.125 | 22.19 | 10.28 |
+| [20261008_122505_956936](../../runs/experiments/20261008_122505_956936_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3884 | 48,187 | 1 / 5 | 12.500 | 12.30 | 3.28 |
+| [20261008_122838_332677](../../runs/experiments/20261008_122838_332677_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] | 2026 | 23.125 | 23.125 | 23.125 | 23.125 | 2.1806 | 48,187 | 16 / 16 | 23.125 | 19.79 | 10.65 |
+| [20261008_123931_821983](../../runs/experiments/20261008_123931_821983_abnormal-activities-dataset_screen/summary.json) | Custom [16,16] | 42 | 23.125 | 23.125 | 23.125 | 23.125 | 2.1051 | 29,691 | 16 / 16 | 23.125 | 20.86 | 10.63 |
+| [20261008_125024_414063](../../runs/experiments/20261008_125024_414063_abnormal-activities-dataset_screen/summary.json) | Custom [16,16] | 2026 | 25.000 | 25.000 | 25.000 | 25.000 | 2.1158 | 29,691 | 16 / 16 | 25.000 | 20.45 | 10.50 |
+| [20261008_130108_521245](../../runs/experiments/20261008_130108_521245_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16,16] | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3850 | 66,683 | 14 / 16 | 12.500 | 12.43 | 10.99 |
+| [20261008_131223_230115](../../runs/experiments/20261008_131223_230115_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16,16] | 2026 | 21.875 | 21.875 | 21.875 | 21.875 | 2.1904 | 66,683 | 16 / 16 | 21.875 | 19.25 | 10.92 |
+| [20261008_132333_360164](../../runs/experiments/20261008_132333_360164_abnormal-activities-dataset_screen/summary.json) | Custom [32,16,16] | 42 | 21.875 | 21.875 | 21.875 | 21.875 | 2.1035 | 86,843 | 16 / 16 | 21.875 | 20.45 | 10.94 |
+| [20261008_133445_476189](../../runs/experiments/20261008_133445_476189_abnormal-activities-dataset_screen/summary.json) | Custom [32,16,16] | 2026 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3895 | 86,843 | 4 / 8 | 12.500 | 10.29 | 5.51 |
+| [20261008_134032_043456](../../runs/experiments/20261008_134032_043456_abnormal-activities-dataset_screen/summary.json) | Custom [16,32,16] | 42 | 22.500 | 22.500 | 22.500 | 22.500 | 2.0215 | 94,331 | 16 / 16 | 22.500 | 18.85 | 10.97 |
+| [20261008_135145_203056](../../runs/experiments/20261008_135145_203056_abnormal-activities-dataset_screen/summary.json) | Custom [16,32,16] | 2026 | 21.875 | 21.875 | 21.875 | 21.875 | 2.1642 | 94,331 | 16 / 16 | 21.875 | 18.85 | 11.21 |
+| [20261008_140312_748157](../../runs/experiments/20261008_140312_748157_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,32] | 42 | 23.125 | 23.125 | 23.125 | 23.125 | 1.9849 | 85,291 | 15 / 16 | 26.250 | 23.26 | 11.16 |
+| [20261008_141437_282446](../../runs/experiments/20261008_141437_282446_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,32] | 2026 | 25.625 | 25.625 | 25.625 | 25.625 | 1.9835 | 85,291 | 16 / 16 | 25.625 | 23.93 | 11.23 |
+| [20261008_142606_337025](../../runs/experiments/20261008_142606_337025_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/48px/WD0.0001 | 42 | 25.625 | 25.625 | 25.625 | 25.625 | 2.1334 | 85,291 | 15 / 16 | 25.625 | 21.26 | 11.20 |
+| [20261008_143733_332002](../../runs/experiments/20261008_143733_332002_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/48px/WD0.0001 | 2026 | 26.875 | 26.875 | 26.875 | 26.875 | 2.0638 | 85,291 | 16 / 16 | 26.875 | 22.59 | 11.04 |
+| [20261008_144850_783664](../../runs/experiments/20261008_144850_783664_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 16f/32px/WD0.0001 | 42 | 23.750 | 23.750 | 23.750 | 23.750 | 1.9693 | 85,291 | 15 / 16 | 25.000 | 20.86 | 10.85 |
+| [20261008_145956_451719](../../runs/experiments/20261008_145956_451719_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 16f/32px/WD0.0001 | 2026 | 28.125 | 28.125 | 28.125 | 28.125 | 1.9405 | 85,291 | 14 / 16 | 28.125 | 27.41 | 10.96 |
+| [20261008_151109_613152](../../runs/experiments/20261008_151109_613152_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0 | 42 | 25.000 | 25.000 | 25.000 | 25.000 | 1.9665 | 85,291 | 15 / 16 | 26.875 | 23.80 | 10.32 |
+| [20261008_152143_239151](../../runs/experiments/20261008_152143_239151_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0 | 2026 | 25.625 | 25.625 | 25.625 | 25.625 | 1.9334 | 85,291 | 16 / 16 | 26.875 | 23.93 | 10.19 |
+| [20261008_153208_429592](../../runs/experiments/20261008_153208_429592_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0.001 | 42 | 19.375 | 19.375 | 19.375 | 19.375 | 2.1868 | 85,291 | 15 / 16 | 22.500 | 20.19 | 10.18 |
+| [20261008_154232_725058](../../runs/experiments/20261008_154232_725058_abnormal-activities-dataset_ablation/summary.json) | Custom [16,16,32]; 8f/32px/WD0.001 | 2026 | 23.125 | 23.125 | 23.125 | 23.125 | 2.0958 | 85,291 | 16 / 16 | 23.125 | 22.19 | 10.28 |
 
 ### A2. Model-family comparison
 
 | Run | Model / variant | Seed | Acc % | Prec % | Rec % | F1 % | Loss | Params | Selected / run epochs | Peak val acc % | Train-last acc % | Train min |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| [20261008_155316_510990](../runs/experiments/20261008_155316_510990_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] (`custom_selected`) | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3831 | 48,187 | 7 / 11 | 12.500 | 12.30 | 18.02 |
-| [20261008_161139_720065](../runs/experiments/20261008_161139_720065_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] (`custom_selected`) | 2026 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3847 | 48,187 | 4 / 8 | 12.500 | 11.10 | 13.11 |
-| [20261008_162507_679637](../runs/experiments/20261008_162507_679637_abnormal-activities-dataset_screen/summary.json) | Published PaperConvLSTM | 42 | 82.500 | 82.500 | 82.500 | 82.500 | 76.2879 | 512,197,467 | 5 / 9 | 82.500 | 54.41 | 14.34 |
-| [20261008_164018_299409](../runs/experiments/20261008_164018_299409_abnormal-activities-dataset_screen/summary.json) | Published PaperConvLSTM | 2026 | 86.250 | 86.250 | 86.250 | 86.250 | 4.1742 | 512,197,467 | 14 / 16 | 86.250 | 83.42 | 26.08 |
-| [20261008_170711_912018](../runs/experiments/20261008_170711_912018_abnormal-activities-dataset_screen/summary.json) | R3D-18 | 42 | 68.125 | 68.125 | 68.125 | 68.125 | 1.0347 | 33,171,915 | 9 / 13 | 68.750 | 88.24 | 12.37 |
-| [20261008_171954_635535](../runs/experiments/20261008_171954_635535_abnormal-activities-dataset_screen/summary.json) | R3D-18 | 2026 | 68.750 | 68.750 | 68.750 | 68.750 | 0.9737 | 33,171,915 | 11 / 15 | 68.750 | 85.03 | 13.45 |
-| [20261008_173342_668715](../runs/experiments/20261008_173342_668715_abnormal-activities-dataset_screen/summary.json) | MC3-18 | 42 | 63.750 | 63.750 | 63.750 | 63.750 | 0.9557 | 11,495,883 | 7 / 11 | 63.750 | 81.42 | 9.53 |
-| [20261008_174332_697729](../runs/experiments/20261008_174332_697729_abnormal-activities-dataset_screen/summary.json) | MC3-18 | 2026 | 65.625 | 65.625 | 65.625 | 65.625 | 1.0769 | 11,495,883 | 11 / 15 | 66.875 | 89.71 | 13.04 |
-| [20261008_175654_014815](../runs/experiments/20261008_175654_014815_abnormal-activities-dataset_screen/summary.json) | Swin3D-T | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3854 | 27,858,929 | 10 / 14 | 12.500 | 12.70 | 16.76 |
-| [20261008_181402_048831](../runs/experiments/20261008_181402_048831_abnormal-activities-dataset_screen/summary.json) | Swin3D-T | 2026 | 10.625 | 10.625 | 10.625 | 10.625 | 2.3881 | 27,858,929 | 6 / 10 | 12.500 | 8.96 | 12.01 |
-| [20261008_182626_788221](../runs/experiments/20261008_182626_788221_abnormal-activities-dataset_screen/summary.json) | Swin3D-S | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3858 | 49,517,537 | 9 / 13 | 12.500 | 10.70 | 26.00 |
-| [20261008_185252_002929](../runs/experiments/20261008_185252_002929_abnormal-activities-dataset_screen/summary.json) | Swin3D-S | 2026 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3858 | 49,517,537 | 10 / 14 | 12.500 | 10.70 | 28.11 |
+| [20261008_155316_510990](../../runs/experiments/20261008_155316_510990_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] (`custom_selected`) | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3831 | 48,187 | 7 / 11 | 12.500 | 12.30 | 18.02 |
+| [20261008_161139_720065](../../runs/experiments/20261008_161139_720065_abnormal-activities-dataset_screen/summary.json) | Custom [16,16,16] (`custom_selected`) | 2026 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3847 | 48,187 | 4 / 8 | 12.500 | 11.10 | 13.11 |
+| [20261008_162507_679637](../../runs/experiments/20261008_162507_679637_abnormal-activities-dataset_screen/summary.json) | Published PaperConvLSTM | 42 | 82.500 | 82.500 | 82.500 | 82.500 | 76.2879 | 512,197,467 | 5 / 9 | 82.500 | 54.41 | 14.34 |
+| [20261008_164018_299409](../../runs/experiments/20261008_164018_299409_abnormal-activities-dataset_screen/summary.json) | Published PaperConvLSTM | 2026 | 86.250 | 86.250 | 86.250 | 86.250 | 4.1742 | 512,197,467 | 14 / 16 | 86.250 | 83.42 | 26.08 |
+| [20261008_170711_912018](../../runs/experiments/20261008_170711_912018_abnormal-activities-dataset_screen/summary.json) | R3D-18 | 42 | 68.125 | 68.125 | 68.125 | 68.125 | 1.0347 | 33,171,915 | 9 / 13 | 68.750 | 88.24 | 12.37 |
+| [20261008_171954_635535](../../runs/experiments/20261008_171954_635535_abnormal-activities-dataset_screen/summary.json) | R3D-18 | 2026 | 68.750 | 68.750 | 68.750 | 68.750 | 0.9737 | 33,171,915 | 11 / 15 | 68.750 | 85.03 | 13.45 |
+| [20261008_173342_668715](../../runs/experiments/20261008_173342_668715_abnormal-activities-dataset_screen/summary.json) | MC3-18 | 42 | 63.750 | 63.750 | 63.750 | 63.750 | 0.9557 | 11,495,883 | 7 / 11 | 63.750 | 81.42 | 9.53 |
+| [20261008_174332_697729](../../runs/experiments/20261008_174332_697729_abnormal-activities-dataset_screen/summary.json) | MC3-18 | 2026 | 65.625 | 65.625 | 65.625 | 65.625 | 1.0769 | 11,495,883 | 11 / 15 | 66.875 | 89.71 | 13.04 |
+| [20261008_175654_014815](../../runs/experiments/20261008_175654_014815_abnormal-activities-dataset_screen/summary.json) | Swin3D-T | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3854 | 27,858,929 | 10 / 14 | 12.500 | 12.70 | 16.76 |
+| [20261008_181402_048831](../../runs/experiments/20261008_181402_048831_abnormal-activities-dataset_screen/summary.json) | Swin3D-T | 2026 | 10.625 | 10.625 | 10.625 | 10.625 | 2.3881 | 27,858,929 | 6 / 10 | 12.500 | 8.96 | 12.01 |
+| [20261008_182626_788221](../../runs/experiments/20261008_182626_788221_abnormal-activities-dataset_screen/summary.json) | Swin3D-S | 42 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3858 | 49,517,537 | 9 / 13 | 12.500 | 10.70 | 26.00 |
+| [20261008_185252_002929](../../runs/experiments/20261008_185252_002929_abnormal-activities-dataset_screen/summary.json) | Swin3D-S | 2026 | 12.500 | 12.500 | 12.500 | 12.500 | 2.3858 | 49,517,537 | 10 / 14 | 12.500 | 10.70 | 28.11 |
 
 ## Appendix B. Reproducibility and limitations
 

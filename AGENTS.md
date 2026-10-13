@@ -25,6 +25,9 @@
 ## Research rules
 
 - Never invent or silently alter results, citations, datasets, or claims.
+- Store each paper's Colab reviews in `implementation/reports/YYYY-MM-DD/`
+  using the report date. Keep related logs, tables and figures together;
+  record execution dates separately and preserve raw evidence unchanged.
 - Choose models and checkpoints using validation data only. Keep test data
   locked until a comparison or final configuration has been selected.
 - Use the same documented, stratified split for comparable runs. Use source

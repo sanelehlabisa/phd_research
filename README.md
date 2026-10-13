@@ -20,6 +20,8 @@ evidence. Kinetics notebook workflows are exploratory diagnostics, not part of
 the active paper study. See the
 [Paper 001 guide](papers/001-journal-abnormal-activity-recognition/README.md)
 and [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
+Colab reviews and their evidence are grouped by report date in the
+[reports index](papers/001-journal-abnormal-activity-recognition/implementation/reports/README.md).
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Existing run folders stay local and are
 not included in source commits. A Gradio presentation demo is a later task,
@@ -48,11 +50,11 @@ for local verification; real Colab execution is still pending.
 unchanged as a legacy profile, alongside 069's separate 200-epoch search.
 Their explicit comparison entry points are preserved; 073 adds automatic handoff.
 
-The [October 9 search review](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-09-multiresolution-search-review.md)
+The [October 9 search review](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-09/2026-10-09-multiresolution-search-review.md)
 verifies 36 completed search jobs, but no comparison/test run. Imported evidence
 stays local under ignored `implementation/runs/imports/`; nothing is silently resplit.
 
-The [October 10 interim search analysis](papers/001-journal-abnormal-activity-recognition/implementation/reports/todays.results.md)
+The [October 10 interim search analysis](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-10/todays.results.md)
 summarises the new console snapshot, provisional architecture ranking and full
 appendix. A later appended excerpt reports search completion and a slow first
 comparison-recipe check; final ranking artifacts and test results remain unverified.
@@ -69,7 +71,7 @@ Real AAD/A100 execution remains separate from local verification.
 The latest ranking refines the planned width-64 neighbourhood with an 80-wide
 flat model and single-layer widening to 128, without increasing the run budget.
 
-The [latest AAD report](papers/001-journal-abnormal-activity-recognition/implementation/reports/latest_colab_results.md)
+The [latest AAD report](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-13/latest_colab_results.md)
 reviews 131 console-derived search entries; final comparison/test results remain
 pending. The owner now plans a fresh [077 focused A100 rerun](agents/work/077-focused-aad-colab-rerun/prompt.md):
 16 architectures at two sizes/two FPS values, then [076 fixed finalist comparison](agents/work/076-aad-shortlist-comparison/prompt.md).

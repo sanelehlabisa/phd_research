@@ -3,7 +3,7 @@
 - Ticket: `076-aad-shortlist-comparison`
 - Status: Ready
 - Aim: Train five custom finalists from a fresh AAD search and five baselines once under a frozen recipe, then evaluate the complete comparison.
-- Scope: New `configs/experiments/aad_shortlist_comparison_colab.json`, minimal existing runner/validator support, the focused notebook/export, verification and concise guides. Evidence: [latest Colab report](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/latest_colab_results.md).
+- Scope: New `configs/experiments/aad_shortlist_comparison_colab.json`, minimal existing runner/validator support, the focused notebook/export, verification and concise guides. Evidence: [latest Colab report](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-13/latest_colab_results.md).
 - Dependency: [077 focused rerun](../077-focused-aad-colab-rerun/prompt.md) and its verified selection format. Execute this implementation after 077; actual results require owner training.
 - Context: Revised 13 October 2026: the owner chose a fresh Colab search instead of the console-derived local shortcut. Use new verified receipts/checkpoints, preserving earlier logs. Current comparison accepts only three customs; extend minimally to five.
 
@@ -23,7 +23,7 @@
 - Save accuracy, pooled precision/recall/F1, loss, per-class TP/FP/FN/support, parameters, model bytes, timing, full configs, curves, checkpoints and confusion matrices. Print progress and convergence warnings. Retain constant-class/majority-baseline failures as optimization limitations requiring review.
 - Reuse existing example-video saving: correct/incorrect folders, validation examples during selection, test confusion matrices for all models and final examples from the validation-selected best custom. Set `prediction_samples_per_category: 5` in JSON and log saved counts.
 - Export one ten-row comparison CSV/JSON with traceable artifacts. Save a compact results bundle as models complete and a downloadable final results archive; keep checkpoints available separately and clearly report that browser download completion is unverified. Verify implementation synthetically; owner runs the long training.
-- After the owner supplies completed artifacts, review them and fill Table 2 in `reports/latest_colab_results.md`, or link a dated final report. Preserve raw logs and provisional search results. Then proceed to manuscript ticket 062.
+- After the owner supplies completed artifacts, review them and fill Table 2 in `reports/2026-10-13/latest_colab_results.md`, or link a dated final report. Preserve raw logs and provisional search results. Then proceed to manuscript ticket 062.
 
 - Acceptance criteria:
   - Profile validates/lists exactly five verified finalists plus five baselines, one fixed input/recipe/seed, and no Cartesian expansion; one JSON command and the focused notebook use the existing runner.

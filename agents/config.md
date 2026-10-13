@@ -7,6 +7,8 @@
 - Manuscript source: `papers/NNN-short-title/manuscript/`, using `main.tex` as
   the entry point.
 - Optional code: `papers/NNN-short-title/implementation/`.
+- Colab reports: `implementation/reports/YYYY-MM-DD/` within the paper, grouped
+  by report date with related evidence and a concise `reports/README.md` index.
 - Work directory: `agents/work/NNN-short-title/`.
 - Templates: `agents/templates/prompt.md` and `agents/templates/completion.md`.
 - Ticket numbers: Start at `001` and increase sequentially across the workspace.

@@ -4,7 +4,7 @@
 - Status: Ready
 - Aim: Prepare a bounded A100 rerun that measures architecture and input-setting tradeoffs with recoverable evidence for the final comparison.
 - Scope: One new focused AAD JSON, existing modular search/config/reporting code, a thin `notebooks/aad_focused_workflow.ipynb` and matching Python export, verification and concise guides. Preserve legacy profiles, notebook outputs, logs and runs.
-- Context: Requested 13 October 2026 after reviewing [the saved search](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/latest_colab_results.md). The owner will rerun Colab; this ticket prepares the workflow and does not launch real training.
+- Context: Requested 13 October 2026 after reviewing [the saved search](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-13/latest_colab_results.md). The owner will rerun Colab; this ticket prepares the workflow and does not launch real training.
 
 ## Fixed manifest and budget
 

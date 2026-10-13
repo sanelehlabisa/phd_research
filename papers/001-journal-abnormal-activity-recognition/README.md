@@ -1,9 +1,10 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: AAD search reviewed from saved console logs; final comparison/test evidence pending. See the [latest results report](implementation/reports/latest_colab_results.md).
+- Status: AAD search reviewed from saved console logs; final comparison/test evidence pending. See the [latest results report](implementation/reports/2026-10-13/latest_colab_results.md).
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
+- Dated Colab reports: [`implementation/reports/README.md`](implementation/reports/README.md)
 
 AAD is the primary dataset for the active study. VDD remains available as an optional dataset
 choice in configuration; its existing run artifacts will be kept, but it is not
@@ -37,7 +38,7 @@ reference architecture for ablation.
    Two search seeds give limited uncertainty evidence, not global optimality or
    unseen-data generalisation. The legacy 068 search remains available unchanged.
 
-See the [October 10 interim analysis](implementation/reports/todays.results.md)
+See the [October 10 interim analysis](implementation/reports/2026-10-10/todays.results.md)
 for grouped results, a representative main-paper table and the complete available
 search appendix. These are console-derived validation results, not a final test report.
 The latest appended review includes two-seed confirmation and WD/temporal tables;
@@ -46,13 +47,13 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 ## Next tasks
 
 - [ ] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — 16 architectures × two sizes × two FPS values; verified input-stability ranking, matched train/validation evidence and compact result backups. Implement before rerunning Colab.
-- [ ] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — five fresh-search finalists plus the adapted paper model, two 3D CNNs and two transformers; train once longer under a frozen recipe, then test and update the [results report](implementation/reports/latest_colab_results.md).
+- [ ] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — five fresh-search finalists plus the adapted paper model, two 3D CNNs and two transformers; train once longer under a frozen recipe, then test and update the [results report](implementation/reports/2026-10-13/latest_colab_results.md).
 - [ ] [078 clearer ablation figures](../../agents/work/078-aad-ablation-figures/prompt.md) — tally-style layer markers and condition/width/depth plots; figures lead the paper narrative, tables support it.
 - [x] [075 wider/deeper capacity search](../../agents/work/075-wide-depth-capacity-search/prompt.md) - [Locally verified](../../agents/work/075-wide-depth-capacity-search/completion.md): 32 architectures, depths 1-5; 64 base runs; 256-epoch search cap; 16f/64px final input, selected FPS/recipe, adapted baseline and per-class metrics. Up to 142 trainings overall; real Colab execution pending.
 - [x] [074 validated comparison handoff](../../agents/work/074-validated-comparison-handoff/prompt.md) - recipe validation, cache reuse and stable experiment numbering; [70 local tests passed](../../agents/work/074-validated-comparison-handoff/completion.md). Real Colab execution pending.
 - [x] [073 focused shape search and Run All](../../agents/work/073-focused-shape-search-run-all/prompt.md) - consolidates 070–072; [locally verified](../../agents/work/073-focused-shape-search-run-all/completion.md), with 128-epoch search, 512-epoch comparison, exact ranking and automatic guarded export. Real Colab execution remains pending.
 - [x] [069 staged capacity search](../../agents/work/069-staged-capacity-search/prompt.md) - implemented and locally verified; see [completion](../../agents/work/069-staged-capacity-search/completion.md). Current 068 runs and final-comparison protocol stay intact; actual AAD/A100 runs are separate work.
-- [x] [068 multi-resolution search and top-three comparison](../../agents/work/068-multisize-search-top3-comparison/prompt.md) - implementation verified; [36-run Colab search reviewed](implementation/reports/2026-10-09-multiresolution-search-review.md), comparison/test still pending. Results are clip-level validation evidence, not established source-independent generalization.
+- [x] [068 multi-resolution search and top-three comparison](../../agents/work/068-multisize-search-top3-comparison/prompt.md) - implementation verified; [36-run Colab search reviewed](implementation/reports/2026-10-09/2026-10-09-multiresolution-search-review.md), comparison/test still pending. Results are clip-level validation evidence, not established source-independent generalization.
 - [x] [057 config-driven datasets and classes](../../agents/work/057-configurable-datasets-and-classes/prompt.md)
 - [x] [058 separate custom search and model-family comparison](../../agents/work/058-separate-search-and-comparison/prompt.md) — two AAD profiles and one local smoke profile on the same runner.
 - [x] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — VDD remains optional through generic dataset configuration; old runs are preserved.

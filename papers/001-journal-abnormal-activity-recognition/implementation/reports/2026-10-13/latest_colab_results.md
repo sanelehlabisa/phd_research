@@ -135,7 +135,7 @@ selection. [Cawley and Talbot's model-selection study](https://www.jmlr.org/pape
 explains this problem. Keep the contribution scoped to AAD and acknowledge that
 the current clip split does not independently establish subject/scene separation.
 
-Next: [077 — focused A100 rerun](../../../../agents/work/077-focused-aad-colab-rerun/prompt.md):
+Next: [077 — focused A100 rerun](../../../../../agents/work/077-focused-aad-colab-rerun/prompt.md):
 16 architectures, two frame sizes and two FPS values, with 64 balanced jobs.
 It preserves width-64 depths 1–5, a flat three-layer width ladder, and widening
 at different layer positions. The new notebook/export stays thin and uses the
@@ -143,7 +143,7 @@ modular runner. Input-stability ranking measures preprocessing sensitivity;
 it does not establish unseen-dataset generalization. Compact result bundles
 are saved during execution, with checkpoint bundles separate.
 
-Then [076 — fixed finalist comparison](../../../../agents/work/076-aad-shortlist-comparison/prompt.md)
+Then [076 — fixed finalist comparison](../../../../../agents/work/076-aad-shortlist-comparison/prompt.md)
 trains five finalists and five baselines once longer at a common frozen input
 and recipe, saves artifacts, and updates this report after owner execution.
 Use the A100; local 6 GB execution requires full-step memory checks. The native paper model cannot train with FP32
@@ -153,7 +153,7 @@ The proposed adapted eight-frame model reduces that lower bound to about
 The existing JSON mode accepts only three customs, so five customs require
 a small runner/validation extension, not just another JSON filename.
 
-[078 — ablation figures](../../../../agents/work/078-aad-ablation-figures/prompt.md)
+[078 — ablation figures](../../../../../agents/work/078-aad-ablation-figures/prompt.md)
 will try tally/cross markers for layer count, shared size/FPS panels and
 controlled width/depth/placement curves. Figures can lead the results narrative;
 the top-ten table and complete CSV provide supporting detail. The existing

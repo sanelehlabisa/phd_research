@@ -145,7 +145,7 @@ classes cannot dominate simply by having more videos. It is not the harmonic
 mean of macro precision and macro recall. The implementation includes all declared
 classes and assigns zero where a per-class denominator is zero; balanced accuracy
 is mean recall over classes with support. See the
-[metric implementation](../src/study_reporting.py) and
+[metric implementation](../../src/study_reporting.py) and
 [scikit-learn averaging definitions](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html).
 
 - [32,32,32]: mean accuracy **95.42%**, mean macro-F1 **95.67%**.
@@ -546,7 +546,7 @@ and incompletely verified; no new code changes, experiments, commit or push.
   checks LR/WD before freezing one recipe for all eight final models.
 - Revised upper bound: **142 trainings** before reuse, including calibration,
   confirmation, WD/FPS checks and final comparison. This is not a runtime promise.
-- See the [replacement execution prompt](../../../../agents/work/075-wide-depth-capacity-search/prompt.md)
+- See the [replacement execution prompt](../../../../../agents/work/075-wide-depth-capacity-search/prompt.md)
   for the exact manifest, deterministic selection rules, resource checks and
   verification requirements. The earlier specification is archived, not erased.
   No new experiment code was implemented for this planning revision; the partial
@@ -640,7 +640,7 @@ are **not** measured in these data.
 
 ### Prompt refinements within the same budget
 
-The [updated 075 prompt](../../../../agents/work/075-wide-depth-capacity-search/prompt.md)
+The [updated 075 prompt](../../../../../agents/work/075-wide-depth-capacity-search/prompt.md)
 still declares **32 architectures / 64 base runs / up to 142 total trainings**.
 
 - Add **[80,80,80]** between 64 and 96 to sample the flat-width curve more closely.

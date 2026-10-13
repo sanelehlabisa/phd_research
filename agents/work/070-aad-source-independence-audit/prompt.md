@@ -6,7 +6,7 @@
 - Aim: Resolve suspected shared-source leakage before treating the AAD split as publication evidence.
 - Scope: AAD dataset provenance, current split manifests, existing audit helpers/tests and evidence guides.
 - Changes:
-  - Follow up the [October 9 review](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-09-multiresolution-search-review.md): 18 apparent filename groups cross partitions. Treat names as hypotheses, not verified source IDs.
+  - Follow up the [October 9 review](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-09/2026-10-09-multiresolution-search-review.md): 18 apparent filename groups cross partitions. Treat names as hypotheses, not verified source IDs.
   - Inspect available source metadata, preprocessing and original clips; record the evidence mapping clips to recordings/scenes. Do not decode held-out test clips for model selection.
   - Report verified overlap, unknown identities, duplicate evidence and independent source counts per class. Check whether a grouped three-way split can actually represent every class.
   - Save an explicit audit disposition tied to dataset/split hashes, with verified findings separate from unresolved cases.

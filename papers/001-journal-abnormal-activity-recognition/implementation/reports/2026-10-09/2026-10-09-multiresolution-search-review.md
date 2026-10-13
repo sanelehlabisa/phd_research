@@ -4,7 +4,7 @@ Follow-up on 9 October 2026: the repository owner checked the similarly named
 videos and confirmed they are different recordings, not segments of one recording.
 The filename-only concern below is therefore resolved by user attestation, not
 independent source/subject verification. Exact duplicate and contrary source-ID
-checks remain active. [Ticket 073](../../../../agents/work/073-focused-shape-search-run-all/prompt.md)
+checks remain active. [Ticket 073](../../../../../agents/work/073-focused-shape-search-run-all/prompt.md)
 consolidates and supersedes the initial 070–072 recommendations below. Original
 results are unchanged; the imported bundle was moved intact to ignored
 `runs/imports/20261009-aad-search-2905fca/`.
@@ -41,9 +41,9 @@ checkpoint freeze, one-time test evaluation, examples and ZIP export in sequence
 It must use returned stage paths, not ask the user to paste directories or toggle stages.
 Invalid or incomplete evidence must still stop dependent stages.
 
-Sources: [saved study summary](<../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/summary.json>),
-[stage progress](<../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/progress.json>),
-and [notebook helper](../notebooks/utils/aad_study.py).
+Sources: [saved study summary](<../../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/summary.json>),
+[stage progress](<../../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/progress.json>),
+and [notebook helper](../../notebooks/utils/aad_study.py).
 
 ## Protocol and actual runtime
 
@@ -76,9 +76,9 @@ The old sampler uses a rounded source-FPS stride. The nominal 16 FPS is not
 evidence of exact 16-FPS sampling for every source. This archive does not establish
 source FPS or full-video temporal coverage.
 
-Sources: [resolved study](<../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/study.json>),
-[split manifest](<../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/split_manifest.json>),
-and [job receipts](<../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/jobs/>).
+Sources: [resolved study](<../../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/study.json>),
+[split manifest](<../../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/split_manifest.json>),
+and [job receipts](<../../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/jobs>).
 
 ## Top five and complete architecture ranking
 
@@ -122,7 +122,7 @@ It falls to 31.25% at 64 px, so it is not the strongest architecture across the
 tested resolutions. [16,24] stays between **89.375% and 92.5%**, a spread of only
 3.125 percentage points.
 
-Source: [original selection and rankings](<../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/selected_config.json>).
+Source: [original selection and rankings](<../../runs/imports/20261009-aad-search-2905fca/runs/studies/20261009_161429_214290_abnormal-activities-dataset_multiresolution/selected_config.json>).
 Accuracy above was recomputed from saved full-validation predictions.
 
 ## Precision recall F1 and model cost
@@ -330,7 +330,7 @@ time. Precision and recall for each class remain in the linked raw run artifacts
 - Original videos, inference performance and source independence were not verified
   by this artifact-only review.
 
-[Archive inventory](<../runs/imports/20261009-aad-search-2905fca/archive_inventory.json>) SHA256:
+[Archive inventory](<../../runs/imports/20261009-aad-search-2905fca/archive_inventory.json>) SHA256:
 `c40075751931f90718daa4d0cb2223c4f85c8be2dab8d9f1265bce924b110e4a`.
 
 Split manifest SHA256:
