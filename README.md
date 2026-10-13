@@ -69,6 +69,13 @@ Real AAD/A100 execution remains separate from local verification.
 The latest ranking refines the planned width-64 neighbourhood with an 80-wide
 flat model and single-layer widening to 128, without increasing the run budget.
 
+The [latest AAD report](papers/001-journal-abnormal-activity-recognition/implementation/reports/latest_colab_results.md)
+reviews 131 console-derived search entries; final comparison/test results remain
+pending. The owner now plans a fresh [077 focused A100 rerun](agents/work/077-focused-aad-colab-rerun/prompt.md):
+16 architectures at two sizes/two FPS values, then [076 fixed finalist comparison](agents/work/076-aad-shortlist-comparison/prompt.md).
+[078](agents/work/078-aad-ablation-figures/prompt.md) covers clearer ablation figures/tally markers later; manuscript revision (062) follows verified results.
+These are queued tickets; the current notebook still runs the existing 075 workflow.
+
 ## Structure
 
 ```text

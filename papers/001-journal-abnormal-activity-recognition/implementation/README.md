@@ -16,6 +16,13 @@ Legacy 068/069/073/074 profiles and evidence remain unchanged.
 See the [completion record](../../../agents/work/075-wide-depth-capacity-search/completion.md)
 for local verification; real Colab execution remains separate.
 
+The [latest AAD report](reports/latest_colab_results.md) reviews the completed
+console-derived search, ranks ten custom configurations and keeps final test
+results blank. Next: [077 focused A100 rerun](../../../agents/work/077-focused-aad-colab-rerun/prompt.md),
+16 architectures at 32/64px and 8/16 FPS (64 jobs), then [076 fixed ten-model comparison](../../../agents/work/076-aad-shortlist-comparison/prompt.md).
+[078 figure improvements](../../../agents/work/078-aad-ablation-figures/prompt.md) follow the new evidence.
+The focused notebook/profile are queued for implementation; the existing notebook still runs 075.
+
 The [October 10 interim search analysis](reports/todays.results.md) reviews the
 new 073 console snapshot: 34 architectures at three resolutions, a provisional
 top five, macro-metric interpretation and complete available results. The snapshot

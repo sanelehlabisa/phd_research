@@ -1,0 +1,11 @@
+architecture_rank,shortlisted,rank_in_console,stage,model,filters_per_layer,depth,frame_size,num_frames,target_fps,seed,weight_decay,learning_rate,val_accuracy,val_precision_pooled,val_recall_pooled,val_f1_pooled,correct_validation_clips,validation_clips,val_loss,num_params,raw_source_line,evidence
+1,True,1,refinement,custom_96_64_64,96-64-64,3,64,8,16,42,0.0,0.001,0.99375,0.99375,0.99375,0.99375,159,160,0.29771,1007307,4463,console_validation_only
+2,True,4,refinement,custom_32_64_64,32-64-64,3,32,8,16,42,0.0,0.001,0.9875,0.9875,0.9875,0.9875,158,160,0.170426,557771,4466,console_validation_only
+3,True,6,refinement,custom_64_96_64,64-96-64,3,32,8,16,42,0.0,0.001,0.9875,0.9875,0.9875,0.9875,158,160,0.179411,1077579,4468,console_validation_only
+4,True,7,flat,custom_48_48_48,48-48-48,3,32,8,16,42,0.0,0.001,0.9875,0.9875,0.9875,0.9875,158,160,0.189388,421019,4469,console_validation_only
+5,False,10,refinement,custom_64_128_64,64-128-64,3,64,8,16,42,0.0,0.001,0.9875,0.9875,0.9875,0.9875,158,160,0.258579,1483211,4472,console_validation_only
+6,True,11,refinement,custom_64_64_128,64-64-128,3,64,8,16,42,0.0,0.001,0.9875,0.9875,0.9875,0.9875,158,160,0.290738,1336459,4473,console_validation_only
+7,False,12,refinement,custom_128_64_64,128-64-64,3,32,8,16,42,0.0,0.001,0.98125,0.98125,0.98125,0.98125,157,160,0.149044,1342667,4474,console_validation_only
+8,False,13,refinement,custom_64_64_32,64-64-32,3,32,8,16,42,0.0,0.001,0.98125,0.98125,0.98125,0.98125,157,160,0.155748,560875,4475,console_validation_only
+9,False,14,flat,custom_64_64_64_64_64,64-64-64-64-64,5,32,8,16,42,0.0,0.001,0.98125,0.98125,0.98125,0.98125,157,160,0.167842,1336011,4476,console_validation_only
+10,False,15,flat,custom_96_96_96,96-96-96,3,32,8,16,42,0.0,0.001,0.98125,0.98125,0.98125,0.98125,157,160,0.17606,1671467,4477,console_validation_only

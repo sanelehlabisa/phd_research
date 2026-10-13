@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: 075 implemented and locally verified. Existing evidence preserved; new AAD/A100 performance and final test evidence await execution.
+- Status: AAD search reviewed from saved console logs; final comparison/test evidence pending. See the [latest results report](implementation/reports/latest_colab_results.md).
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -45,6 +45,9 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
+- [ ] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — 16 architectures × two sizes × two FPS values; verified input-stability ranking, matched train/validation evidence and compact result backups. Implement before rerunning Colab.
+- [ ] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — five fresh-search finalists plus the adapted paper model, two 3D CNNs and two transformers; train once longer under a frozen recipe, then test and update the [results report](implementation/reports/latest_colab_results.md).
+- [ ] [078 clearer ablation figures](../../agents/work/078-aad-ablation-figures/prompt.md) — tally-style layer markers and condition/width/depth plots; figures lead the paper narrative, tables support it.
 - [x] [075 wider/deeper capacity search](../../agents/work/075-wide-depth-capacity-search/prompt.md) - [Locally verified](../../agents/work/075-wide-depth-capacity-search/completion.md): 32 architectures, depths 1-5; 64 base runs; 256-epoch search cap; 16f/64px final input, selected FPS/recipe, adapted baseline and per-class metrics. Up to 142 trainings overall; real Colab execution pending.
 - [x] [074 validated comparison handoff](../../agents/work/074-validated-comparison-handoff/prompt.md) - recipe validation, cache reuse and stable experiment numbering; [70 local tests passed](../../agents/work/074-validated-comparison-handoff/completion.md). Real Colab execution pending.
 - [x] [073 focused shape search and Run All](../../agents/work/073-focused-shape-search-run-all/prompt.md) - consolidates 070–072; [locally verified](../../agents/work/073-focused-shape-search-run-all/completion.md), with 128-epoch search, 512-epoch comparison, exact ranking and automatic guarded export. Real Colab execution remains pending.
