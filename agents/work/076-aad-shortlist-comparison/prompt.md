@@ -1,7 +1,9 @@
 # Task Prompt
 
 - Ticket: `076-aad-shortlist-comparison`
-- Status: Ready
+- Status: Done
+- Completion: [Implementation and verification](completion.md). Real training/results review remains pending.
+- Execution: Approved with 077 on 13 October 2026 for an automatic search-to-comparison workflow; LR 0.001/WD 0 remain fixed, while the search selects the shared frame size/FPS. No additional tuning sweep.
 - Aim: Train five custom finalists from a fresh AAD search and five baselines once under a frozen recipe, then evaluate the complete comparison.
 - Scope: New `configs/experiments/aad_shortlist_comparison_colab.json`, minimal existing runner/validator support, the focused notebook/export, verification and concise guides. Evidence: [latest Colab report](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-13/latest_colab_results.md).
 - Dependency: [077 focused rerun](../077-focused-aad-colab-rerun/prompt.md) and its verified selection format. Execute this implementation after 077; actual results require owner training.

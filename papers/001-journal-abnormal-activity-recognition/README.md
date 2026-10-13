@@ -20,23 +20,23 @@ reference architecture for ablation.
 
 ## Evidence plan
 
-1. Run 075's validation-only search: 32 architectures at depths 1-5,
-   8 frames and 32/64px (64 base runs), with a 256-epoch cap. Confirm the top
-   five plus declared controls at seed 2026; rank only that shortlist across
-   both sizes/seeds and advance three. Keep WD evidence separate.
-2. Validate FPS at 16f/64px, then LR/WD; retain the best verified eligible
-   combination. Train the three customs, input-adapted paper model, two 3D CNNs
-   and two transformers at that common input/recipe, up to 512 epochs each.
-   Full-step memory checks freeze common batches; the whole workflow is bounded
-   at 142 trainings before reuse. Main reports use unaveraged per-class metrics.
+1. Run 077's 64 balanced validation-only jobs: 16 architectures, 32/64px,
+   8/16 FPS and eight frames; cap 256 epochs. Rank across all four conditions,
+   preserving the disclosed [96,64,64] anchor slot if outside the numerical top five.
+2. Freeze one common size/FPS using the five finalists, retaining LR 0.001/WD 0
+   from the successful prior recipe. Train all five customs, the input-adapted
+   paper model, two 3D CNNs and two transformers from scratch, cap 512 epochs.
+   Full-step checks freeze common batches; the total is 74 trainings, with no
+   extra recipe or seed sweep. The older 075 workflow remains available unchanged.
 3. Keep one existing split (seed 42); the final comparison uses one
    training seed, 42. Freeze all validation-selected checkpoints and the best
-   custom model before eight full test evaluations. Run All passes verified
+   custom model before ten full test evaluations. Run All passes verified
    paths automatically. The owner confirmed different recordings behind similar
    filenames; this does not establish subject/scene independence.
-4. Review the verified ZIP evidence before updating manuscript claims.
-   Two search seeds give limited uncertainty evidence, not global optimality or
-   unseen-data generalisation. The legacy 068 search remains available unchanged.
+4. Save compact results during execution and checkpoint evidence separately,
+   then review complete artifacts before manuscript claims. This focused run
+   uses one seed; input variation does not estimate seed uncertainty or prove
+   global optimality, unseen-data generalisation or subject/scene independence.
 
 See the [October 10 interim analysis](implementation/reports/2026-10-10/todays.results.md)
 for grouped results, a representative main-paper table and the complete available
@@ -46,8 +46,8 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
-- [ ] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — 16 architectures × two sizes × two FPS values; verified input-stability ranking, matched train/validation evidence and compact result backups. Implement before rerunning Colab.
-- [ ] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — five fresh-search finalists plus the adapted paper model, two 3D CNNs and two transformers; train once longer under a frozen recipe, then test and update the [results report](implementation/reports/2026-10-13/latest_colab_results.md).
+- [x] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — [Locally verified](../../agents/work/077-focused-aad-colab-rerun/completion.md): 64 balanced jobs, honest top-five/anchor selection and compact backups. Real Colab execution pending.
+- [x] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — [Locally verified](../../agents/work/076-aad-shortlist-comparison/completion.md): automatic ten-model fresh training, validation freeze, test and examples. Actual results/report review remains pending.
 - [ ] [078 clearer ablation figures](../../agents/work/078-aad-ablation-figures/prompt.md) — tally-style layer markers and condition/width/depth plots; figures lead the paper narrative, tables support it.
 - [x] [075 wider/deeper capacity search](../../agents/work/075-wide-depth-capacity-search/prompt.md) - [Locally verified](../../agents/work/075-wide-depth-capacity-search/completion.md): 32 architectures, depths 1-5; 64 base runs; 256-epoch search cap; 16f/64px final input, selected FPS/recipe, adapted baseline and per-class metrics. Up to 142 trainings overall; real Colab execution pending.
 - [x] [074 validated comparison handoff](../../agents/work/074-validated-comparison-handoff/prompt.md) - recipe validation, cache reuse and stable experiment numbering; [70 local tests passed](../../agents/work/074-validated-comparison-handoff/completion.md). Real Colab execution pending.

@@ -199,10 +199,9 @@ def load_study(path):
         expected_fields.add("minimum_epochs")
     if isinstance(study, dict) and "comparison_protocol" in study:
         expected_fields.add("comparison_protocol")
-        if (
-            study.get("mode") != "top3_comparison"
-            or study["comparison_protocol"] != "wide_final_v1"
-        ):
+        if study.get("mode") != "top3_comparison" or study[
+            "comparison_protocol"
+        ] not in {"wide_final_v1", "focused_final_v1"}:
             raise ValueError("unknown comparison_protocol")
     if isinstance(study, dict) and "recipe_transfer" in study:
         expected_fields.add("recipe_transfer")
@@ -393,6 +392,38 @@ def load_study(path):
             "weight_decay": reference["weight_decay"],
         }
     )
+    if study.get("comparison_protocol") == "focused_final_v1":
+        from .study_matrix import load_selection
+
+        selected = load_selection(study["selected_config"])
+        if selected.get("protocol") != "focused_top5_v1":
+            raise ValueError("Focused comparison requires the verified 077 selection")
+        final = selected["final_input"]
+        if (
+            study.get("recipe_transfer")
+            or config.epochs != 512
+            or study.get("minimum_epochs") != 128
+            or config.early_stopping_patience != 32
+            or config.learning_rate != selected["shared_recipe"]["learning_rate"]
+            or config.weight_decay != selected["shared_recipe"]["weight_decay"]
+            or config.augment
+            or config.scheduler != "reduce_on_plateau"
+            or not config.cache_dataset
+            or config.prediction_samples_per_category != 5
+            or (config.sequence_length, config.height, config.width)
+            != (8, final["height"], final["width"])
+            or study["max_runs"] != 10
+        ):
+            raise ValueError(
+                "076 requires the frozen input/recipe and 512/128/32 budget, five examples, exactly ten models"
+            )
+        config = ExperimentConfig.from_mapping(
+            {
+                **config.to_dict(),
+                "sampling_version": "timestamps_v1",
+                "target_fps": final["target_fps"],
+            }
+        )
     if study.get("comparison_protocol") == "wide_final_v1":
         from .study_matrix import load_selection
 
@@ -659,7 +690,7 @@ def print_study(path, study, config):
             )
         else:
             print(
-                "Eight fresh trainings; eight full test evaluations ONLY after all checkpoints and best custom are frozen."
+                f"{len(study['models'])} fresh trainings; {len(study['models'])} full test evaluations ONLY after all checkpoints and best custom are frozen."
             )
     elif "custom_selected" in study["models"]:
         print(
@@ -712,6 +743,10 @@ def print_study(path, study, config):
             "PaperConvLSTM is included at its native shared comparison input: "
             f"T={config.sequence_length}, {config.height}x{config.width}, "
             f"batch={config.batch_size}."
+        )
+    elif "paper_convlstm_adapted" in study["models"]:
+        print(
+            f"Input-adapted published topology: T={config.sequence_length}, {config.height}x{config.width}; input-dependent classifier, not an exact reproduction."
         )
     elif study["published_topology"]["enabled"]:
         print("Separate native PaperConvLSTM runs are enabled (not ranked).")

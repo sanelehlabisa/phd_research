@@ -108,6 +108,20 @@ def validate_protocol(study, config):
             raise ValueError(
                 "search architectures must be distinct, not renamed duplicates"
             )
+    elif study.get("comparison_protocol") == "focused_final_v1":
+        from .focused_protocol import SLOTS, BASELINES
+
+        if (
+            study["models"] != SLOTS + BASELINES
+            or config.sequence_length != 8
+            or config.height not in (32, 64)
+            or config.width != config.height
+        ):
+            raise ValueError(
+                "076 requires five finalists and five baselines at the frozen eight-frame input"
+            )
+        if factors["frame_sizes"] != [config.height]:
+            raise ValueError("Final comparison cannot vary resolution")
     else:
         adapted = study.get("comparison_protocol") == "wide_final_v1"
         if study["models"] != (
@@ -335,6 +349,7 @@ def load_selection(path):
     """Do not accept handwritten winners, incomplete matrices or stale artifacts."""
     selected = read_json(path)
     if selected.get("protocol") in {
+        "focused_top5_v1",
         "capacity_top3_v1",
         "capacity_top3_v2",
         "capacity_top3_v3",
@@ -376,6 +391,9 @@ def comparison_candidates(study):
         )
     selected_path = _path(study["selected_config"])
     selected = load_selection(selected_path)
+    is_focused = study.get("comparison_protocol") == "focused_final_v1"
+    if is_focused != (selected.get("protocol") == "focused_top5_v1"):
+        raise ValueError("077 selections require the five-finalist 076 comparison")
     if _path(study["dataset"]["path"]) != _path(selected["dataset_dir"]) or study[
         "seeds"
     ] != [selected["seed"]]:
@@ -393,7 +411,7 @@ def comparison_candidates(study):
         raise ValueError("075 selections require the adapted final-input protocol")
     candidates = [
         {**item["candidate"], "name": item["comparison_name"]}
-        for item in selected["top3"]
+        for item in selected["top5" if is_focused else "top3"]
     ]
     if study["custom_candidates"] and study["custom_candidates"] != candidates:
         raise ValueError("comparison candidate does not match selected_config")
@@ -507,7 +525,9 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
     from .dataset_source import resolve_dataset
     from .study_config import ROOT, study_rows
 
-    raw_presentation = study.get("comparison_protocol") == "wide_final_v1"
+    is_focused = study.get("comparison_protocol") == "focused_final_v1"
+    raw_presentation = is_focused or study.get("comparison_protocol") == "wide_final_v1"
+    campaign_maximum = 74 if is_focused else 142
     root = resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
     source = AHARDataset(root, config.sequence_length, (config.width, config.height))
     split_path = resolve_split_manifest_path(
@@ -612,11 +632,15 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 raise ValueError("comparison split differs from selected search")
             if run_evaluation is None:
                 raise ValueError("comparison requires a post-freeze test evaluator")
-            if selected.get("protocol") in {"capacity_top3_v2", "capacity_top3_v3"}:
+            if selected.get("protocol") in {
+                "capacity_top3_v2",
+                "capacity_top3_v3",
+                "focused_top5_v1",
+            }:
                 experiment_offset = len(
                     read_json(Path(selected["source_group"]) / "progress.json")["jobs"]
                 )
-            if raw_presentation:
+            if raw_presentation and not is_focused:
                 from .wide_protocol import print_final_input
 
                 print_final_input(selected["final_input"])
@@ -636,6 +660,37 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 )
                 state["effective_config"] = config.to_dict()
                 atomic_json(group / "progress.json", state)
+        if is_focused:
+            from .focused_protocol import preflight
+            from notebooks.utils.study_archive import compact_results
+
+            if "comparison_preflight" not in state:
+                if (group / "validation_frozen.json").exists() or state["jobs"]:
+                    raise ValueError(
+                        "Existing comparison is missing its preflight; no silent batch change"
+                    )
+                resource = preflight(config, final=True)
+                atomic_json(group / "preflight.json", resource)
+                if resource["selected_batch_size"] is None:
+                    raise RuntimeError(
+                        "No safe common comparison batch; inspect preflight.json"
+                    )
+                state["comparison_preflight"] = {
+                    "path": str(group / "preflight.json"),
+                    "sha256": file_hash(group / "preflight.json"),
+                }
+                atomic_json(group / "progress.json", state)
+                print(f"Final common-batch preflight: {resource}", flush=True)
+            saved_preflight = state["comparison_preflight"]
+            verify_inventory({saved_preflight["path"]: saved_preflight["sha256"]})
+            config = ExperimentConfig.from_mapping(
+                {
+                    **config.to_dict(),
+                    "batch_size": read_json(saved_preflight["path"])[
+                        "selected_batch_size"
+                    ],
+                }
+            )
         rows = study_rows(study, config)
         candidates = {c.name: c for c in manifest.candidates}
         jobs = []
@@ -669,10 +724,9 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     flush=True,
                 )
             else:
-                if (
-                    study.get("recipe_transfer")
-                    and (group / "validation_frozen.json").exists()
-                ):
+                if (study.get("recipe_transfer") or is_focused) and (
+                    group / "validation_frozen.json"
+                ).exists():
                     raise ValueError(
                         "Frozen comparison receipt missing; no retraining after test selection"
                     )
@@ -696,7 +750,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                         "--campaign-number",
                         str(experiment_number),
                         "--campaign-maximum",
-                        "142",
+                        str(campaign_maximum),
                         "--campaign-stage",
                         "final_comparison",
                     ]
@@ -717,7 +771,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     },
                 )
                 print(
-                    f"Experiment {experiment_number}/{142 if raw_presentation else experiment_offset + len(rows)} maximum | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
+                    f"Experiment {experiment_number}/{campaign_maximum if raw_presentation else experiment_offset + len(rows)} maximum | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
                     flush=True,
                 )
                 before = set((Path(config.runs_dir) / "experiments").glob("*"))
@@ -766,6 +820,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     raise
             _validate_leaf(result, row, values, split["manifest_hash"])
             if study["mode"] == "top3_comparison" and selected.get("protocol") in {
+                "focused_top5_v1",
                 "capacity_top3_v2",
                 "capacity_top3_v3",
             }:
@@ -784,6 +839,16 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 validate_matched_training(
                     result, {"config": values}, source.num_classes
                 )
+            if is_focused:
+                from .focused_protocol import validation_diagnostics
+
+                diagnostics = validation_diagnostics(result)
+                atomic_json(jobdir / "convergence.json", diagnostics)
+                if diagnostics["validation_warnings"]:
+                    print(
+                        f"{row['model']}: {diagnostics['validation_warnings']} (possible optimization failure; retained)",
+                        flush=True,
+                    )
             jobs.append(
                 {
                     "experiment_number": experiment_number,
@@ -794,6 +859,8 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             )
             state.update(jobs=jobs)
             atomic_json(group / "progress.json", state)
+            if is_focused:
+                compact_results(group, config.runs_dir)
         if study["mode"] == "multiresolution":
             bundle = selection_bundle(study, jobs, group)
             atomic_json(group / "selected_config.json", bundle)
@@ -802,7 +869,11 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             print(f"Top-three selection: {group / 'selected_config.json'}", flush=True)
         else:
 
-            exact = selected.get("protocol") in {"capacity_top3_v2", "capacity_top3_v3"}
+            exact = selected.get("protocol") in {
+                "capacity_top3_v2",
+                "capacity_top3_v3",
+                "focused_top5_v1",
+            }
 
             def order(j):
                 r = j["result"]
@@ -813,8 +884,11 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     r["name"],
                 )
 
+            custom_names = (
+                [c.name for c in manifest.candidates] if is_focused else CUSTOM_SLOTS
+            )
             best_custom = min(
-                [j for j in jobs if j["result"]["name"] in CUSTOM_SLOTS], key=order
+                [j for j in jobs if j["result"]["name"] in custom_names], key=order
             )["result"]["name"]
             frozen = {
                 "selection_partition": "validation",
@@ -872,7 +946,11 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 evaluation_config = {
                     **job["result"]["experiment_config"],
                     "checkpoint_path": model["checkpoint"],
-                    "prediction_samples_per_category": 3 if name == best_custom else 0,
+                    "prediction_samples_per_category": (
+                        (config.prediction_samples_per_category if is_focused else 3)
+                        if name == best_custom
+                        else 0
+                    ),
                 }
                 if receipt_path.exists():
                     receipt = read_json(receipt_path)
@@ -950,8 +1028,26 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 table.append(
                     _table_row(job, report, extended=exact, raw=raw_presentation)
                 )
+                if is_focused:
+                    table[-1].update(validation_diagnostics(job["result"]))
+                    table[-1].update(
+                        {
+                            f"{partition}_micro_{metric}": metrics[metric]
+                            for partition, metrics in (
+                                ("validation", job["result"]["validation_metrics"]),
+                                ("test", report["metrics"]),
+                            )
+                            for metric in ("precision", "recall", "f1")
+                        }
+                    )
                 state["tests"] = reports
                 atomic_json(group / "progress.json", state)
+                if is_focused:
+                    atomic_json(
+                        group / "comparison.partial.json",
+                        {"table": table, "tests": reports},
+                    )
+                    compact_results(group, config.runs_dir)
             summary = {
                 "validation_frozen": frozen,
                 **(
@@ -1030,6 +1126,8 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "last_invocation_seconds": perf_counter() - started,
             },
         )
+        if is_focused:
+            compact_results(group, config.runs_dir, announce=True)
         return group
     except BaseException as error:
         if group is not None and state is not None:

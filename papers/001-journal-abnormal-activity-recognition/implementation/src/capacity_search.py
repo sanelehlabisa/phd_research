@@ -53,6 +53,11 @@ def schedule(study, config, completed, comparison_batch_size=None):
     def evidence(rows):
         return [completed[job_key(r)] for r in rows]
 
+    if plan.compact(study):
+        from .focused_protocol import schedule as focused_schedule
+
+        yield from focused_schedule(study, config, completed)
+        return
     calibration = plan.calibration_rows(study, config)
     yield "calibration", calibration
     lrs = plan.select_learning_rates(study, evidence(calibration))
@@ -362,6 +367,10 @@ def validate_matched_training(result, row, class_count):
 
 
 def archive_stage(group, runs_dir):
+    if read_json(group / "study.json").get("schema_version") == 5:
+        from notebooks.utils.study_archive import compact_results
+
+        return compact_results(group, runs_dir, announce=True)
     """Replace one verified ZIP at boundaries; retry never invokes training."""
     from notebooks.utils.study_archive import make_archive
 
@@ -387,10 +396,19 @@ def _report(group, state, print_rows=False, plots=False):
             }
             seen.setdefault(job_key(spec), len(seen) + 1)
             if current.get("status") == "complete":
+                if state.get("study_schema_version") == 5:
+                    from .focused_protocol import validation_diagnostics
+
+                    context.update(validation_diagnostics(current["result"]))
+                    if print_rows and context["validation_warnings"]:
+                        print(
+                            f"{spec['model']}: {context['validation_warnings']} (possible optimization failure)",
+                            flush=True,
+                        )
                 rows.append(
                     result_row(
                         current["result"],
-                        raw=state.get("study_schema_version") == 4,
+                        raw=state.get("study_schema_version") in (4, 5),
                         **context,
                     )
                 )
@@ -422,7 +440,10 @@ def _report(group, state, print_rows=False, plots=False):
                     }
                 )
     write_full_table(
-        group, rows, print_rows=print_rows, raw=state.get("study_schema_version") == 4
+        group,
+        rows,
+        print_rows=print_rows,
+        raw=state.get("study_schema_version") in (4, 5),
     )
     if print_rows and state.get("pending_stages"):
         print(
@@ -431,7 +452,12 @@ def _report(group, state, print_rows=False, plots=False):
             flush=True,
         )
     if plots:
-        search_plots(group, rows, raw=state.get("study_schema_version") == 4)
+        if state.get("study_schema_version") == 5:
+            from .focused_protocol import matched_summaries
+
+            matched_summaries(group, rows)
+        else:
+            search_plots(group, rows, raw=state.get("study_schema_version") == 4)
         if state.get("study_schema_version") == 4:
             from .study_reporting import matched_capacity_summaries
 
@@ -532,6 +558,10 @@ def _ablation_recommendations(rows):
 
 
 def selection_bundle(study, state, group, decisions):
+    if plan.compact(study):
+        from .focused_protocol import selection_bundle as focused_selection
+
+        return focused_selection(study, state, group, decisions)
     jobs = {j["job_id"]: j for j in state["jobs"]}
     specs = decisions["top3_candidates"]
     top3 = []
@@ -780,14 +810,18 @@ def execute_capacity(path, study, config, manifest, run_trial):
             (group / "split_manifest.json").write_bytes(split_path.read_bytes())
             atomic_json(group / "split_audit.json", audit)
             state = {
-                **({"study_schema_version": 4} if plan.wide(study) else {}),
+                **(
+                    {"study_schema_version": study["schema_version"]}
+                    if plan.wide(study) or plan.compact(study)
+                    else {}
+                ),
                 "status": "preparing",
                 "identity": identity,
                 "code_identity": code,
                 "test_access": "locked",
                 "jobs": [],
                 "stages": [],
-                "pending_stages": list(plan.STAGE_LIMITS),
+                "pending_stages": list(plan.stage_limits(study)),
                 "split": {**split, "manifest_path": str(group / "split_manifest.json")},
             }
             atomic_json(group / "progress.json", state)
@@ -797,15 +831,21 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 "Known source/file duplication crosses splits; inspect split_audit.json. No automatic resplit."
             )
         if "effective_config" not in state:
+            from .focused_protocol import preflight as focused_preflight
+
             resource = (
-                capacity_preflight(
-                    config, study["widths"], max_depth=4, native_comparison=True
-                )
-                if plan.wide(study)
+                focused_preflight(config)
+                if plan.compact(study)
                 else (
-                    capacity_preflight(config, [*study["widths"], 64], max_depth=3)
-                    if plan.focused(study)
-                    else capacity_preflight(config, study["widths"])
+                    capacity_preflight(
+                        config, study["widths"], max_depth=4, native_comparison=True
+                    )
+                    if plan.wide(study)
+                    else (
+                        capacity_preflight(config, [*study["widths"], 64], max_depth=3)
+                        if plan.focused(study)
+                        else capacity_preflight(config, study["widths"])
+                    )
                 )
             )
             atomic_json(group / "preflight.json", resource)
@@ -842,6 +882,9 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 "note": "Conservative largest-input training-step extrapolation, not a wall-clock guarantee; excludes validation/decoding/ZIP. One selected checkpoint per job.",
             }
             atomic_json(group / "resource_estimates.json", estimates)
+            if plan.compact(study):
+                print(f"Measured preflight: {resource}", flush=True)
+                print(f"Workload estimate: {estimates}", flush=True)
             state.update(effective_config=safe_config.to_dict(), status="running")
             if plan.wide(study):
                 state["comparison_batch_size"] = resource["comparison_batch_size"]
@@ -879,7 +922,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 state["stages"].append(entry)
             stages_seen.append(stage)
             state["pending_stages"] = [
-                s for s in plan.STAGE_LIMITS if s not in stages_seen
+                s for s in plan.stage_limits(study) if s not in stages_seen
             ]
             atomic_json(group / "progress.json", state)
             _report(group, state)
@@ -897,7 +940,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     verify_inventory(receipt["files"])
                     result, leaf_run = receipt["result"], receipt["run_dir"]
                     print(
-                        f"Experiment {number}/{142 if plan.wide(study) else study['max_runs']} maximum | {stage} {row['model']} (verified reuse)",
+                        f"Experiment {number}/{74 if plan.compact(study) else 142 if plan.wide(study) else study['max_runs']} maximum | {stage} {row['model']} (verified reuse)",
                         flush=True,
                     )
                 else:
@@ -925,7 +968,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                             "--campaign-number",
                             str(number),
                             "--campaign-maximum",
-                            "142",
+                            str(74 if plan.compact(study) else 142),
                             "--campaign-stage",
                             stage,
                         ]
@@ -952,7 +995,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     state["jobs"].append(current)
                     atomic_json(group / "progress.json", state)
                     print(
-                        f"Experiment {number}/{142 if plan.wide(study) else study['max_runs']} campaign maximum | {stage}: "
+                        f"Experiment {number}/{74 if plan.compact(study) else 142 if plan.wide(study) else study['max_runs']} campaign maximum | {stage}: "
                         f"{row['model']} {row['config']['height']}px, "
                         f"{row['config']['sequence_length']}f/{row['config']['target_fps']}fps, seed {row['seed']}",
                         flush=True,
@@ -1028,9 +1071,10 @@ def execute_capacity(path, study, config, manifest, run_trial):
         state["pending_stages"] = []
         atomic_json(group / "decisions.json", decisions)
         rows = _report(group, state, print_rows=True, plots=True)
-        atomic_json(
-            group / "ablation_recommendations.json", _ablation_recommendations(rows)
-        )
+        if not plan.compact(study):
+            atomic_json(
+                group / "ablation_recommendations.json", _ablation_recommendations(rows)
+            )
         atomic_json(group / "progress.json", state)
         selected = selection_bundle(study, state, group, decisions)
         atomic_json(group / "selected_config.json", selected)
@@ -1051,7 +1095,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
         load_capacity_selection(group / "selected_config.json")
         archive_stage(group, config.runs_dir)
         print(
-            f"Capacity search complete. Validation-only top three: {group / 'selected_config.json'}",
+            f"Search complete. Verified validation finalists: {group / 'selected_config.json'}",
             flush=True,
         )
         return group

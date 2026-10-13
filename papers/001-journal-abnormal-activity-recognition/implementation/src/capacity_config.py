@@ -35,11 +35,19 @@ def wide(study):
     return study["schema_version"] == 4
 
 
+def compact(study):
+    return study["schema_version"] == 5
+
+
 def focused(study):
-    return study["schema_version"] in (3, 4)
+    return study["schema_version"] in (3, 4, 5)
 
 
 def stage_limits(study):
+    if compact(study):
+        from .focused_protocol import LIMITS
+
+        return LIMITS
     return (
         WIDE_LIMITS if wide(study) else SHAPE_LIMITS if focused(study) else STAGE_LIMITS
     )
@@ -54,6 +62,10 @@ NOTE = (
 
 
 def protocol_note(study):
+    if compact(study):
+        from .focused_protocol import NOTE as focused_note
+
+        return focused_note
     if not focused(study):
         return NOTE
     note = (
@@ -125,6 +137,10 @@ def shape_candidates(study=None):
 def load_capacity(study):
     from .study_config import _fields, _path
 
+    if compact(study):
+        from .focused_protocol import load_focused
+
+        return load_focused(study)
     study = deepcopy(study)
     if type(study.get("schema_version")) is not int or study["schema_version"] not in (
         2,
@@ -485,6 +501,10 @@ def ablation_rows(study, config, shortlist, lrs, stage):
 
 
 def print_capacity_plan(study, config):
+    if compact(study):
+        from .focused_protocol import print_plan
+
+        return print_plan(study, config)
     if focused(study):
         print(
             "Ticket 075: 32 wide 1-5-layer architectures; 64 base custom runs; test locked"

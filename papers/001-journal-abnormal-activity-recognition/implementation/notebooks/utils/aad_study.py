@@ -33,6 +33,7 @@ def _run_command(command: list[str], root: Path, log_path: Path | None = None) -
         bufsize=0,
     ) as process:
         log_file = log_path.open("w", encoding="utf-8") if log_path else None
+        pending_lines = ""
         try:
             while chunk := os.read(process.stdout.fileno(), 4096):
                 text = chunk.decode("utf-8", errors="replace")
@@ -41,6 +42,11 @@ def _run_command(command: list[str], root: Path, log_path: Path | None = None) -
                 if log_file:
                     log_file.write(text)
                     log_file.flush()
+                pending_lines += text
+                while "\n" in pending_lines:
+                    line, pending_lines = pending_lines.split("\n", 1)
+                    if line.startswith("FOCUSED_RESULTS_ZIP: "):
+                        _download_compact_marker(root, line.partition(": ")[2].strip())
             result = process.wait()
         except BaseException:
             # Do not package files while an interrupted child is still writing.
@@ -56,6 +62,19 @@ def _run_command(command: list[str], root: Path, log_path: Path | None = None) -
                 log_file.close()
     if result:
         raise subprocess.CalledProcessError(result, command)
+
+
+def _download_compact_marker(root, value):
+    from .study_archive import retry_download
+
+    path = Path(value).resolve()
+    if not path.is_relative_to(Path(root).resolve() / "runs/focused_archives"):
+        raise ValueError("Compact results marker outside focused archive directory")
+    try:
+        retry_download(path)
+    except Exception as error:
+        # Browser delivery is not training correctness; never retrain for download.
+        print(f"Results saved at {path}; download retry required: {error}", flush=True)
 
 
 def _run_directories(root: Path) -> set[Path]:
@@ -81,12 +100,24 @@ def _write_progress(path: Path, stages: list[dict[str, object]]) -> None:
 
 
 def _make_archive(
-    root: Path, archive_path: Path, progress_path: Path, run_directories: set[Path]
+    root: Path,
+    archive_path: Path,
+    progress_path: Path,
+    run_directories: set[Path],
+    *,
+    results_only=False,
 ) -> Path:
     """Package this study's profiles, logs, checkpoints, metrics and examples."""
     from .study_archive import make_archive
 
-    return make_archive(root, archive_path, progress_path, run_directories, PROFILES)
+    return make_archive(
+        root,
+        archive_path,
+        progress_path,
+        run_directories,
+        PROFILES,
+        results_only=results_only,
+    )
 
 
 def _download_archive(path: Path) -> None:
@@ -611,7 +642,17 @@ def resume_saved_study(root, profile_path, *, download=True, return_group=False)
             records[-1]["selected_config"] = values["selected_config"]
             created.add(Path(values["selected_config"]).parent)
         _write_progress(progress, records)
-        archive = _make_archive(root, directory / "artifacts.zip", progress, created)
+        compact = (
+            values.get("schema_version") == 5
+            or values.get("comparison_protocol") == "focused_final_v1"
+        )
+        archive = _make_archive(
+            root,
+            directory / "artifacts.zip",
+            progress,
+            created,
+            **({"results_only": True} if compact else {}),
+        )
         if download:
             _download_archive(archive)
     if return_group:
@@ -648,9 +689,13 @@ def run_saved_comparison(
         if template_path is not None
         else implementation_root
         / (
-            "configs/experiments/aad_wide_comparison_colab.json"
-            if selected.get("protocol") == "capacity_top3_v3"
-            else PROFILES[2][1]
+            "configs/experiments/aad_shortlist_comparison_colab.json"
+            if selected.get("protocol") == "focused_top5_v1"
+            else (
+                "configs/experiments/aad_wide_comparison_colab.json"
+                if selected.get("protocol") == "capacity_top3_v3"
+                else PROFILES[2][1]
+            )
         )
     )
     from src.study_matrix import file_hash, atomic_json
@@ -664,6 +709,26 @@ def run_saved_comparison(
     if saved:
         return resume_saved_study(implementation_root, saved)
     resolved_comparison = _resolved_profile(comparison_template, dataset_path)
+    is_focused = selected.get("protocol") == "focused_top5_v1"
+    if is_focused:
+        if resolved_comparison.get("comparison_protocol") != "focused_final_v1":
+            raise ValueError("Use the 076 five-finalist comparison template")
+        final, recipe = selected["final_input"], selected["shared_recipe"]
+        resolved_comparison["reference_input"].update(
+            frame_size=final["height"],
+            sequence_length=final["sequence_length"],
+            weight_decay=recipe["weight_decay"],
+        )
+        resolved_comparison["factors"].update(
+            frame_sizes=[final["height"]],
+            sequence_lengths=[8],
+            weight_decays=[recipe["weight_decay"]],
+        )
+        resolved_comparison["training"].update(
+            learning_rate=recipe["learning_rate"],
+            scheduler=recipe["scheduler"],
+            augment=recipe["augment"],
+        )
     if selected.get("protocol") == "capacity_top3_v3":
         if resolved_comparison.get("comparison_protocol") != "wide_final_v1":
             raise ValueError("Use the 075 adapted comparison template")
@@ -676,7 +741,7 @@ def run_saved_comparison(
     ]
     resolved_comparison["custom_candidates"] = [
         {**item["candidate"], "name": item["comparison_name"]}
-        for item in selected["top3"]
+        for item in selected["top5" if is_focused else "top3"]
     ]
 
     study_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -753,11 +818,51 @@ def run_saved_comparison(
         created_runs.add(study_root)
         _write_progress(progress_path, stage_records)
         archive = _make_archive(
-            implementation_root, archive_path, progress_path, created_runs
+            implementation_root,
+            archive_path,
+            progress_path,
+            created_runs,
+            **({"results_only": True} if is_focused else {}),
         )
         print(f"Comparison archive: {archive}", flush=True)
         _download_archive(archive)
     return archive_path
+
+
+def run_focused_aad_study(root):
+    """077 -> 076: 64 search jobs and ten fresh models, no manual paths."""
+    from src.study_matrix import load_selection
+
+    root = Path(root).expanduser().resolve()
+    group = run_capacity_study(
+        root,
+        profile_name="aad_focused_search_colab.json",
+        download=False,
+        return_group=True,
+    )
+    selection = group / "selected_config.json"
+    selected = load_selection(selection)
+    if selected["protocol"] != "focused_top5_v1":
+        raise ValueError("Automatic focused comparison requires verified 077 evidence")
+    print(
+        "Search complete: numerical top five:", selected["numerical_top5"], flush=True
+    )
+    print(
+        "Declared finalists (reserved anchor disclosed):",
+        selected["finalist_names"],
+        flush=True,
+    )
+    print(
+        "Frozen input and recipe:",
+        selected["final_input"],
+        selected["shared_recipe"],
+        flush=True,
+    )
+    print(
+        "Training all ten models from scratch; validation freeze -> test -> examples -> compact ZIP.",
+        flush=True,
+    )
+    return run_saved_comparison(root, selection)
 
 
 def run_full_aad_study(root, *, profile_name="aad_wide_depth_search_colab.json"):

@@ -75,7 +75,9 @@ def verify_archive(path):
     return manifest
 
 
-def make_archive(root, archive_path, progress_path, run_directories, profiles):
+def make_archive(
+    root, archive_path, progress_path, run_directories, profiles, *, results_only=False
+):
     root = Path(root).resolve()
     archive_path = Path(archive_path).resolve()
     partial = archive_path.with_suffix(".partial")
@@ -124,6 +126,18 @@ def make_archive(root, archive_path, progress_path, run_directories, profiles):
         raise ValueError(
             "Completed evidence is missing from ZIP inventory; restore the missing artifact before packaging."
         )
+    omitted = {}
+    if results_only:
+        weights = {".pth", ".pt", ".ckpt", ".safetensors"}
+        omitted = {
+            p.relative_to(root).as_posix(): {
+                "bytes": p.stat().st_size,
+                "receipt_sha256": required_hashes.get(str(p)),
+            }
+            for p in files
+            if p.suffix.lower() in weights
+        }
+        files = [p for p in files if p.suffix.lower() not in weights]
     total = sum(p.stat().st_size for p in files)
     required = int(total * 1.05) + 64 * 1024**2
     free = shutil.disk_usage(archive_path.parent).free
@@ -148,6 +162,21 @@ def make_archive(root, archive_path, progress_path, run_directories, profiles):
                     raise ValueError(f"Completed evidence changed: {path}")
                 manifest[name] = {"bytes": path.stat().st_size, "sha256": digest}
                 archive.write(path, name)
+            if results_only:
+                payload = json.dumps(
+                    {
+                        "kind": "results_only",
+                        "omitted_checkpoints": omitted,
+                        "warning": "Metrics backup, not a standalone training/test resume archive. Retain checkpoints separately; receipt hashes are references, not verification of omitted payloads.",
+                    },
+                    indent=2,
+                ).encode()
+                name = "bundle_policy.json"
+                archive.writestr(name, payload)
+                manifest[name] = {
+                    "bytes": len(payload),
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                }
             archive.writestr("archive_inventory.json", json.dumps(manifest, indent=2))
         verify_archive(partial)
         partial.replace(
@@ -186,6 +215,33 @@ def download_archive(path):
         flush=True,
     )
     return "requested"
+
+
+def compact_results(group, runs_dir, *, announce=False):
+    """Keep the latest small metrics backup; checkpoint files remain untouched."""
+    group = Path(group).resolve()
+    root = Path(runs_dir).resolve().parent
+    path = root / "runs/focused_archives" / group.name / "results.zip"
+    result = make_archive(
+        root, path, group / "progress.json", {group}, (), results_only=True
+    )
+    if announce:
+        print(f"FOCUSED_RESULTS_ZIP: {result}", flush=True)
+    return result
+
+
+def checkpoint_archive(root, group):
+    """Explicit optional full recovery export, independent of training/test."""
+    root, group = Path(root).resolve(), Path(group).resolve()
+    if not group.is_relative_to(root / "runs/studies"):
+        raise ValueError("Specify an existing runs/studies directory")
+    return make_archive(
+        root,
+        root / "runs/focused_archives" / group.name / "with_checkpoints.zip",
+        group / "progress.json",
+        {group},
+        (),
+    )
 
 
 def retry_download(path):

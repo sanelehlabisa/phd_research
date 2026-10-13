@@ -21,7 +21,82 @@ console-derived search, ranks ten custom configurations and keeps final test
 results blank. Next: [077 focused A100 rerun](../../../agents/work/077-focused-aad-colab-rerun/prompt.md),
 16 architectures at 32/64px and 8/16 FPS (64 jobs), then [076 fixed ten-model comparison](../../../agents/work/076-aad-shortlist-comparison/prompt.md).
 [078 figure improvements](../../../agents/work/078-aad-ablation-figures/prompt.md) follow the new evidence.
-The focused notebook/profile are queued for implementation; the existing notebook still runs 075.
+Use the new [focused notebook](notebooks/aad_focused_workflow.ipynb) or
+[matching Python export](notebooks/aad_focused_workflow.py) for 077 -> 076.
+The existing notebook still runs 075; its saved outputs and profiles are unchanged.
+See [077 verification](../../../agents/work/077-focused-aad-colab-rerun/completion.md)
+and [076 verification](../../../agents/work/076-aad-shortlist-comparison/completion.md).
+Implementation is locally verified; real A100 execution and result review remain pending.
+
+### Focused Run All (077/076)
+
+The single setup/run cell updates the checkout, checks pinned dependencies and
+the GPU, then runs **64 search + ten fresh comparison trainings** without
+manual selection paths or stage switches. Use the latest focused notebook/export
+from master. A dependency repair can require one restart.
+
+- Search: 16 declared architectures x 32/64px x 8/16 FPS, eight frames;
+  256-epoch cap, minimum 64, patience 24. LR 0.001, WD 0 and augmentation off
+  reproduce the successful prior recipe; they are fixed, not a new tuning sweep.
+- Rank all architectures by equal-condition mean validation accuracy, then
+  worst condition, loss, parameters and name. Keep the numerical top five
+  separately from finalists: if [96,64,64] falls outside them, take top four
+  plus that prespecified anchor and disclose its actual rank.
+- Freeze the shared size/FPS on the five finalists' mean validation score.
+  Compare those five with the input-adapted paper model, R3D-18, MC3-18,
+  Swin3D-T and Swin3D-S. All ten start from scratch at **eight frames**, the
+  frozen input/recipe, seed 42, 512-epoch cap, minimum 128 and patience 32.
+- Full Adam-step preflight freezes a common batch separately for search and
+  comparison; it never skips a model or silently reduces input. Global
+  experiment numbers continue through 74. Caps do not guarantee A100 runtime.
+- Freeze all ten validation-selected checkpoints and the best custom before
+  any test evaluation. Every model gets full metrics/confusion; only the
+  validation-selected custom exports up to five correct and five incorrect
+  test videos. Missing example categories are reported, not fabricated.
+- Main comparison tables retain accuracy/loss, explicitly pooled (micro)
+  precision/recall/F1, per-class counts/metrics, size/parameters and timing.
+  Pooled P/R/F1 equal accuracy for single-label multiclass classification;
+  per-class values expose class-specific failures. Constant-class warnings
+  are retained as possible optimization limitations, never evidence of an optimum.
+
+From the implementation directory, inspect or run search through the same CLI:
+
+```bash
+python -m src.experiments --config configs/experiments/aad_focused_search_colab.json --list-plan
+python -m src.experiments --config configs/experiments/aad_focused_search_colab.json
+```
+
+For the automatic full sequence after setup:
+
+```python
+from notebooks.utils.aad_study import run_focused_aad_study
+artifact_zip = run_focused_aad_study(".")
+```
+
+The helper resolves `aad_shortlist_comparison_colab.json` from verified search
+receipts and prints its self-contained JSON command. The template deliberately
+cannot train without a verified selection; no fallback architecture is supplied.
+Compatible reruns verify/reuse completed jobs. Changed evidence, failed training
+or an attempted incomplete test stops for review; never delete guards to force a retry.
+
+Compact results ZIPs are saved/requested after each 16-model input block and
+search completion. Comparison updates the compact backup after each model/test
+and downloads its final bundle. Configs, receipts, curves, prediction records,
+confusion matrices and examples are included; **checkpoint weights are excluded**.
+The ZIP records omitted checkpoint hashes/paths and is not a standalone recovery
+archive. Download completion is unverified; inspect the local ZIP before VM deletion.
+For an optional separate full checkpoint/evidence export, without training/testing:
+
+```python
+from notebooks.utils.study_archive import checkpoint_archive, retry_download
+archive = checkpoint_archive(".", "<printed runs/studies directory>")
+retry_download(archive)
+```
+
+Selection is custom-tuned and single-seed; input sensitivity is not seed
+uncertainty or subject/scene independence. Real performance and runtime await
+owner execution. Reports remain under `reports/YYYY-MM-DD/`; figures (078)
+and manuscript claims (062) follow verified evidence.
 
 Keep Colab reviews and related evidence in `reports/YYYY-MM-DD/` by report date.
 See the [dated reports index](reports/README.md); execution dates are recorded separately.
