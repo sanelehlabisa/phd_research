@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: AAD search reviewed from saved console logs; final comparison/test evidence pending. See the [latest results report](implementation/reports/2026-10-13/latest_colab_results.md).
+- Status: 64 AAD search jobs and ten comparison trainings reviewed; final test failed at a dataset-name compatibility check. See the [October 14 preview](implementation/reports/2026-10-14/README.md) for validation plots, metrics and urgent artifact preservation.
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -46,8 +46,9 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
-- [x] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — [Locally verified](../../agents/work/077-focused-aad-colab-rerun/completion.md): 64 balanced jobs, honest top-five/anchor selection and compact backups. Real Colab execution pending.
-- [x] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — [Locally verified](../../agents/work/076-aad-shortlist-comparison/completion.md): automatic ten-model fresh training, validation freeze, test and examples. Actual results/report review remains pending.
+- [ ] [083 comparison-only recovery](../../agents/work/083-comparison-only-recovery/prompt.md) — Ready for approval: preserve all search results, diagnose transformer learning and prepare comparison-only training/testing with a repaired dataset handoff.
+- [x] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — [Locally verified](../../agents/work/077-focused-aad-colab-rerun/completion.md): 64 balanced jobs, honest top-five/anchor selection and compact backups. All 64 Colab search jobs reviewed on October 14; full artifact recovery pending.
+- [x] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — [Locally verified](../../agents/work/076-aad-shortlist-comparison/completion.md): ten fresh comparison trainings completed; validation reviewed. The first test failed before scoring; test metrics/examples remain pending.
 - [ ] [078 clearer ablation figures](../../agents/work/078-aad-ablation-figures/prompt.md) — tally-style layer markers and condition/width/depth plots; figures lead the paper narrative, tables support it.
 - [x] [075 wider/deeper capacity search](../../agents/work/075-wide-depth-capacity-search/prompt.md) - [Locally verified](../../agents/work/075-wide-depth-capacity-search/completion.md): 32 architectures, depths 1-5; 64 base runs; 256-epoch search cap; 16f/64px final input, selected FPS/recipe, adapted baseline and per-class metrics. Up to 142 trainings overall; real Colab execution pending.
 - [x] [074 validated comparison handoff](../../agents/work/074-validated-comparison-handoff/prompt.md) - recipe validation, cache reuse and stable experiment numbering; [70 local tests passed](../../agents/work/074-validated-comparison-handoff/completion.md). Real Colab execution pending.

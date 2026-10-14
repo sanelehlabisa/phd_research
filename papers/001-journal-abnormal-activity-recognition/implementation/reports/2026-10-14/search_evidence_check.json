@@ -1,0 +1,592 @@
+{
+  "search_runs": 64,
+  "architectures": 16,
+  "conditions": 4,
+  "runs_per_panel": 16,
+  "summaries_checked": 64,
+  "histories_checked": 64,
+  "original_images_linked": 128,
+  "plot_keys": [
+    [
+      "custom_96_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_32_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_64_96_64",
+      32,
+      8
+    ],
+    [
+      "custom_48_48_48",
+      32,
+      8
+    ],
+    [
+      "custom_64_128_64",
+      32,
+      8
+    ],
+    [
+      "custom_64_64_128",
+      32,
+      8
+    ],
+    [
+      "custom_128_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_64_64_32",
+      32,
+      8
+    ],
+    [
+      "custom_64_64_64_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_96_96_96",
+      32,
+      8
+    ],
+    [
+      "custom_16_16_16",
+      32,
+      8
+    ],
+    [
+      "custom_64",
+      32,
+      8
+    ],
+    [
+      "custom_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_64_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_64_64_64_64",
+      32,
+      8
+    ],
+    [
+      "custom_128_128_128",
+      32,
+      8
+    ],
+    [
+      "custom_96_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_32_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_64_96_64",
+      32,
+      16
+    ],
+    [
+      "custom_48_48_48",
+      32,
+      16
+    ],
+    [
+      "custom_64_128_64",
+      32,
+      16
+    ],
+    [
+      "custom_64_64_128",
+      32,
+      16
+    ],
+    [
+      "custom_128_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_64_64_32",
+      32,
+      16
+    ],
+    [
+      "custom_64_64_64_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_96_96_96",
+      32,
+      16
+    ],
+    [
+      "custom_16_16_16",
+      32,
+      16
+    ],
+    [
+      "custom_64",
+      32,
+      16
+    ],
+    [
+      "custom_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_64_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_64_64_64_64",
+      32,
+      16
+    ],
+    [
+      "custom_128_128_128",
+      32,
+      16
+    ],
+    [
+      "custom_96_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_32_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_64_96_64",
+      64,
+      8
+    ],
+    [
+      "custom_48_48_48",
+      64,
+      8
+    ],
+    [
+      "custom_64_128_64",
+      64,
+      8
+    ],
+    [
+      "custom_64_64_128",
+      64,
+      8
+    ],
+    [
+      "custom_128_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_64_64_32",
+      64,
+      8
+    ],
+    [
+      "custom_64_64_64_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_96_96_96",
+      64,
+      8
+    ],
+    [
+      "custom_16_16_16",
+      64,
+      8
+    ],
+    [
+      "custom_64",
+      64,
+      8
+    ],
+    [
+      "custom_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_64_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_64_64_64_64",
+      64,
+      8
+    ],
+    [
+      "custom_128_128_128",
+      64,
+      8
+    ],
+    [
+      "custom_96_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_32_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_64_96_64",
+      64,
+      16
+    ],
+    [
+      "custom_48_48_48",
+      64,
+      16
+    ],
+    [
+      "custom_64_128_64",
+      64,
+      16
+    ],
+    [
+      "custom_64_64_128",
+      64,
+      16
+    ],
+    [
+      "custom_128_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_64_64_32",
+      64,
+      16
+    ],
+    [
+      "custom_64_64_64_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_96_96_96",
+      64,
+      16
+    ],
+    [
+      "custom_16_16_16",
+      64,
+      16
+    ],
+    [
+      "custom_64",
+      64,
+      16
+    ],
+    [
+      "custom_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_64_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_64_64_64_64",
+      64,
+      16
+    ],
+    [
+      "custom_128_128_128",
+      64,
+      16
+    ]
+  ],
+  "source_sha256": {
+    "runs/studies/20261014_055748_815241_abnormal-activities-dataset_capacity/results.json": "95ecdaa11d53f9e99812637d445c84078916c4eec970854ea00cb287ce633506",
+    "runs/studies/20261014_055748_815241_abnormal-activities-dataset_capacity/selection.json": "e608f6d1197f816f875cd36e092e96e4784bf23623ca0665046fbe9d522c6253",
+    "runs/experiments/20261014_055751_451653_abnormal-activities-dataset_capacity/summary.json": "96b4371b602069c92af519dd1eef3e75fb624dc4820a887f846cf88b543982cd",
+    "runs/experiments/20261014_055751_451653_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/history.json": "9da346f37cdaee8e26c9df260bb92bdeffca1bdfe95ea1ace4e70a0166acf2ce",
+    "runs/experiments/20261014_055751_451653_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/training_curves.png": "6cb1ff395df0ed24c4349e3e26f2d0a23adf0d95a04032257f443636d8293eb5",
+    "runs/experiments/20261014_055751_451653_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/validation_confusion_matrix.png": "af0d4fd720965c0701eb55b5612548196bdee8dc7498c07a1e1e1c2fcf6ae16c",
+    "runs/experiments/20261014_060241_793211_abnormal-activities-dataset_capacity/summary.json": "1364f90705c22df527433209e6eb0700171699141df02849b46824b8114b349b",
+    "runs/experiments/20261014_060241_793211_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/history.json": "844350448348bda6a904682dbb5b5490509ccee765d23201f7c9eaf68335858b",
+    "runs/experiments/20261014_060241_793211_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/training_curves.png": "4c1408ae7cfbb826787cf9f2a904f5da854b04edf9689600e0bdc00b5f1360ec",
+    "runs/experiments/20261014_060241_793211_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/validation_confusion_matrix.png": "48ee63a72cc0b03aa298487903d482d9610f8f1ec1d5f2498ffacd20b74a9854",
+    "runs/experiments/20261014_060617_509209_abnormal-activities-dataset_capacity/summary.json": "1b6687117259f656f8b1ef9bb3d4b7bdb77c85cc564e4ba6ee696ee7595462f2",
+    "runs/experiments/20261014_060617_509209_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/history.json": "09eed11f484ee074169d696dfb8e3a71994c0379e8db3b6d48891c0bff803288",
+    "runs/experiments/20261014_060617_509209_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/training_curves.png": "1c2ddae571208e8b2ba8985277654c676150b7e6c59de11e54055fc5898af9d1",
+    "runs/experiments/20261014_060617_509209_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/validation_confusion_matrix.png": "7e8c5729abf2db30d3e96d4e80aaba537eab2cda94c89f5769ffe52f1056e357",
+    "runs/experiments/20261014_061051_182083_abnormal-activities-dataset_capacity/summary.json": "d9e928228fbe6f5942bea671f34a8f2d70f141171039f14d1acf07f26e02aab4",
+    "runs/experiments/20261014_061051_182083_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/history.json": "472423a1f5d34ad70d16e16f8bc19806fdc14f9527491276d68175fc38ba0072",
+    "runs/experiments/20261014_061051_182083_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/training_curves.png": "1d9205b89566756cb492074e7ab5ceecc29e20fd2c3e6289324e5728ac27d969",
+    "runs/experiments/20261014_061051_182083_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/validation_confusion_matrix.png": "3942c894c2cace917cc67cb6d0715caa0f3612bbcfff382073cb7883ed36b40d",
+    "runs/experiments/20261014_061353_515841_abnormal-activities-dataset_capacity/summary.json": "a4a49154ad08ea8ecf948ef45cf83e7ca5ead68a7d19d702fba97ab55c30686d",
+    "runs/experiments/20261014_061353_515841_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/history.json": "0996bbc3dc336fbe0da7882a0bdf1d58119972d4a0a2f1e079ff57332d9e6d77",
+    "runs/experiments/20261014_061353_515841_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/training_curves.png": "e33f23f529f5dbe9bfb56a6ad765d449087369f93d7e1ab21d316ee5a7383503",
+    "runs/experiments/20261014_061353_515841_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/validation_confusion_matrix.png": "cb44cfbd763d71bb6f6477b6b6efb5c31be575c7f2a0eef1df0beaab8795a403",
+    "runs/experiments/20261014_061916_386979_abnormal-activities-dataset_capacity/summary.json": "0244ed6ac4fbcc86f5ab2bb035ae18161c1500e710711b90362c11509c686017",
+    "runs/experiments/20261014_061916_386979_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/history.json": "c8240beebeef6a5e55b2ee4c2f10ea51e0e488a3d72afb3a5fb3238323ca9c70",
+    "runs/experiments/20261014_061916_386979_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/training_curves.png": "8379678d7d4bab689ac45f6c8ebdee6c5a5fdf24edbf87eaaa6264727c024155",
+    "runs/experiments/20261014_061916_386979_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/validation_confusion_matrix.png": "1ffff64317c0f784c3840cdc8d85b782e3dd33f0e383aaaeef9996b60a50f7fc",
+    "runs/experiments/20261014_062330_074074_abnormal-activities-dataset_capacity/summary.json": "8351d921e57c1ef68804f844177dd353f43724b622b552d3df9e38bbbbd683f1",
+    "runs/experiments/20261014_062330_074074_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/history.json": "48783a0cbaabb2ae5cf7b7e161d12bcf57d63eb39d1d64baac7004030b713903",
+    "runs/experiments/20261014_062330_074074_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/training_curves.png": "25cee0fba76ed542defb299da2e58a21dc7cade1feee611b5f571912ff29bbec",
+    "runs/experiments/20261014_062330_074074_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/validation_confusion_matrix.png": "1f3a6b7db0dcdb8e83085dd011cbfdbd50db583eaede47a424da2870fe896124",
+    "runs/experiments/20261014_062829_824838_abnormal-activities-dataset_capacity/summary.json": "26fadf86485086bea37f7e9b9c8ef6f112ab370aefcafd59a587f96b4c11f008",
+    "runs/experiments/20261014_062829_824838_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/history.json": "ad7b997c25de59a6b51774a39ff8eca2a21edd4f92ec16d20ae5809c3ec3b3ae",
+    "runs/experiments/20261014_062829_824838_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/training_curves.png": "bfb0549d1df867a40099808cdb318202a1875a7023b315222f045ce0572c4b20",
+    "runs/experiments/20261014_062829_824838_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/validation_confusion_matrix.png": "c546a2b40b022f480abcd463dcbf5bb6aab055439585c226f7d16345742837aa",
+    "runs/experiments/20261014_063234_009399_abnormal-activities-dataset_capacity/summary.json": "3ff6ad5c1710b2a0c983db7aba7d8d462fbe69c49175fa34bad02711acf8ce9b",
+    "runs/experiments/20261014_063234_009399_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/history.json": "b8bc2f126bf141377dbc8e04e5f40df5f575357529c269fbc057bb878987f2e5",
+    "runs/experiments/20261014_063234_009399_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/training_curves.png": "151cb7fe98ae2d8b4d38632f6bacab4f62be583e6fba56474cac75dc4e27f647",
+    "runs/experiments/20261014_063234_009399_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/validation_confusion_matrix.png": "a6bc0655b9f776c0961b0af242ffe2d9a0b5d200d716d4bdef4544110254e925",
+    "runs/experiments/20261014_063756_532951_abnormal-activities-dataset_capacity/summary.json": "1e6bbc91c0038426aebc39349fd6df2fb1f4a11fa3240b4923a865a4fc1fad47",
+    "runs/experiments/20261014_063756_532951_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/history.json": "c24c4f9a66d5b0816fff786ab9c1079b36860b937b095c854feff21c3f640ea1",
+    "runs/experiments/20261014_063756_532951_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/training_curves.png": "cbeb7cb23dd6fcce6560e693cd68ee494eb4ce123cae96fee1bb9b2a09a04d80",
+    "runs/experiments/20261014_063756_532951_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/validation_confusion_matrix.png": "f4edd153f36b8ec0c0fc7f052cf5aed5d581f66df48f5dd404a722ef228772a4",
+    "runs/experiments/20261014_064208_296286_abnormal-activities-dataset_capacity/summary.json": "9f7845000d9ca2710a7525b57612b1b022cbbf8fc4987158cad2c6f882697bc1",
+    "runs/experiments/20261014_064208_296286_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/history.json": "5c032c83e5803cf5db3df64235efbde2ea8abcfda0372cd7f8b3bfa981c5ed8d",
+    "runs/experiments/20261014_064208_296286_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/training_curves.png": "07bb48041362f65ca3af6304c40aac78094785b6259deea65d0ea92838edef3a",
+    "runs/experiments/20261014_064208_296286_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/validation_confusion_matrix.png": "4c1b6468e3577fe65a77f42db5f2d79061ebfd4dbd2e60edd4a84444048f002a",
+    "runs/experiments/20261014_064528_607861_abnormal-activities-dataset_capacity/summary.json": "43ba020a1f427239d3492cbae99bad48890358c77f2dd8e699ddadc97d541e77",
+    "runs/experiments/20261014_064528_607861_abnormal-activities-dataset_capacity/models/custom_64/metrics/history.json": "b6d31c67aba18676637836adc45a2dd686863d775e127ff02a86c122fb0f4efb",
+    "runs/experiments/20261014_064528_607861_abnormal-activities-dataset_capacity/models/custom_64/metrics/training_curves.png": "f1a8ed22926b9530563e1ab22782bc35c80a1a12b9d5027ce9365f3e2746068b",
+    "runs/experiments/20261014_064528_607861_abnormal-activities-dataset_capacity/models/custom_64/metrics/validation_confusion_matrix.png": "6c2cfd33058aeff00d58287c5161f04e6eac27b5ce0f9eaab23269a111da6171",
+    "runs/experiments/20261014_064733_437702_abnormal-activities-dataset_capacity/summary.json": "edd4d58618a55cd1f97a63abf7342fb2cfcfc60b41c29026fa3dcf5146bdb408",
+    "runs/experiments/20261014_064733_437702_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/history.json": "72232ff9dab8f15310f41a3a5fff0c8e16869134b30c82a1ec08f153477469d7",
+    "runs/experiments/20261014_064733_437702_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/training_curves.png": "82d6f419fec16068b6328020bb93dbd7bc8924df500e06f6c427849dfcdf7efe",
+    "runs/experiments/20261014_064733_437702_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/validation_confusion_matrix.png": "62e21a3d7246a5db257e1c030faea3ca44616b2c583aea3a588c72b6746d1f83",
+    "runs/experiments/20261014_065038_504344_abnormal-activities-dataset_capacity/summary.json": "3c6386ab52f9021be5abce341ccf501b3f2fce7b72bb7a4e9e4f0d5699b67acf",
+    "runs/experiments/20261014_065038_504344_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/history.json": "78fdd6094292bf88dff987af706143ccb1364cb7787c20a0f9a8e45c2fbe62ba",
+    "runs/experiments/20261014_065038_504344_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/training_curves.png": "c85052a8efd00b4a39464c5d4c5836129edbe06944cbed703f951ccb8d184ef6",
+    "runs/experiments/20261014_065038_504344_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/validation_confusion_matrix.png": "af174f627778cade08ae50cda535d0968ba75fb6d64e18d51ae2da7dd4435fff",
+    "runs/experiments/20261014_065316_028078_abnormal-activities-dataset_capacity/summary.json": "de7a7487926f7a7d393f8cd8cc46b2d91a7b039ec657d892e229072d563e781f",
+    "runs/experiments/20261014_065316_028078_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/history.json": "bcb855caeb40c390fbf9b1dda858808cb453006ecfc0cb784a65ffc5e900ece5",
+    "runs/experiments/20261014_065316_028078_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/training_curves.png": "d92b4067ba88cfab5ec1c37461d231f65af08b8c245c1ebec1b181badfcabef3",
+    "runs/experiments/20261014_065316_028078_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/validation_confusion_matrix.png": "735c19dee5f3f30105f67612ec3fbcd8e4c871a138408eed39974197d7b3e12c",
+    "runs/experiments/20261014_065626_018278_abnormal-activities-dataset_capacity/summary.json": "603814cd19750c9345f6beb8b185b45758ac4a147869a8e7c744e097613fb658",
+    "runs/experiments/20261014_065626_018278_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/history.json": "397f70902bc9e54a559ab443a6745fa142ef76cefb97bd2af4df51df0ee613dd",
+    "runs/experiments/20261014_065626_018278_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/training_curves.png": "7035f3dfca1b7c94329fe6c01cde9502c80822dfe3e3fbfe1b52d00ef7740d62",
+    "runs/experiments/20261014_065626_018278_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/validation_confusion_matrix.png": "1edc9650e185fd0a08eb1bc2c12eb2db54a0e3d45581f52c3268d9d92b74529c",
+    "runs/experiments/20261014_070235_261401_abnormal-activities-dataset_capacity/summary.json": "f191c49909c8ff1f2cfe7e711e9a67cae7e116df68c0e6de402c63050573a9b2",
+    "runs/experiments/20261014_070235_261401_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/history.json": "f1506df1128f150d091b3f6e7c191482bbdc507ed4d6d7a19872013ca25d16db",
+    "runs/experiments/20261014_070235_261401_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/training_curves.png": "f8bf31c7add2ff6ebc99074829006c296bbf5a9849d3066545ebd80753f1d11b",
+    "runs/experiments/20261014_070235_261401_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/validation_confusion_matrix.png": "d46f0c6f77f502e923851ea45a5c96e327c7bf86245ba89a17d1e3c2742d01d0",
+    "runs/experiments/20261014_070703_417459_abnormal-activities-dataset_capacity/summary.json": "0d4227d0980c6de395b633bb41e55028f548fe16198d75d58ccafb723ca718e4",
+    "runs/experiments/20261014_070703_417459_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/history.json": "5e2d9c203b51f6c3c1a85d182c5e3c64572e169d23d7d384348c7aa121352253",
+    "runs/experiments/20261014_070703_417459_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/training_curves.png": "1ec12f00f4faf81aaf83fd951099b05d145125ca9cf2dbf4a76202261fae76b8",
+    "runs/experiments/20261014_070703_417459_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/validation_confusion_matrix.png": "f31535c6e7159c7d594e695c22f4088d125af608f47b31c1ad9536cff1e83ec3",
+    "runs/experiments/20261014_071017_545655_abnormal-activities-dataset_capacity/summary.json": "ce6fb3d884d4c34672d73a6dade949c0a0fda6820ff5f2b20ebbb2d8ec1becfa",
+    "runs/experiments/20261014_071017_545655_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/history.json": "e2e79eec5e090da413e4c262d68996f05d380906b0a31a940d42717e65432e12",
+    "runs/experiments/20261014_071017_545655_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/training_curves.png": "7529494839aa6ae5a27981c7579c6aa19e424357aa99967ef5bb0961f51eaa6a",
+    "runs/experiments/20261014_071017_545655_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/validation_confusion_matrix.png": "3288de2ef9954fd2319ece08b8f34f30ab914610e7c905766db067ba3faec2c6",
+    "runs/experiments/20261014_071522_433074_abnormal-activities-dataset_capacity/summary.json": "d10277381aa410389118d69d113ad3fe92081c776aef2087d456037fd37142ad",
+    "runs/experiments/20261014_071522_433074_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/history.json": "ebfe7f6f51c2a0ebf358b47e393380a80298121413c847ea5073c207444febde",
+    "runs/experiments/20261014_071522_433074_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/training_curves.png": "05cb62a665740e96d0a8d18ac4d0954a43f3f3eac0ece71bb70044dc2676f579",
+    "runs/experiments/20261014_071522_433074_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/validation_confusion_matrix.png": "04a734eff38d3607cd008d0b9a530a4f774214cf9a9915d362f423da3598c899",
+    "runs/experiments/20261014_071822_273329_abnormal-activities-dataset_capacity/summary.json": "70dbfc7a54597371e794f0bb7460951ca8cf543edba70cde71552b0a7d444c4c",
+    "runs/experiments/20261014_071822_273329_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/history.json": "a5552c830f77ffd214dc8d6a3fdba20c8aab85636d6444e137a463c3d6c7a506",
+    "runs/experiments/20261014_071822_273329_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/training_curves.png": "7f1a49723ae9539f44d7a8e4d1d8a795201e57ef641a3c8c5580faf886b0524c",
+    "runs/experiments/20261014_071822_273329_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/validation_confusion_matrix.png": "bf1e1c433ffcc79f35dd74d09a9382c1d587c730da657734d2971dcb65620cf0",
+    "runs/experiments/20261014_072222_620262_abnormal-activities-dataset_capacity/summary.json": "47fef61aa71254d388a9034842260d9fd52345a844cc015f231ddcea95339e70",
+    "runs/experiments/20261014_072222_620262_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/history.json": "382d0cca42c5db1a10b919fe74df205d9652f08d867d802abdad1731ae8174fc",
+    "runs/experiments/20261014_072222_620262_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/training_curves.png": "94dd9ae32debdeadac46ee8b37488a06dc6c18b0dc0aaa51a9a6e4077abdda37",
+    "runs/experiments/20261014_072222_620262_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/validation_confusion_matrix.png": "45e5b7bb391ec920685bcd88a30a21b5653217b834104ebb216ae834e852dea5",
+    "runs/experiments/20261014_072640_473860_abnormal-activities-dataset_capacity/summary.json": "a9e907ba41fb9058cfaf0c690ff6c5bc7f676046fcfe8689d1a5a639f565c211",
+    "runs/experiments/20261014_072640_473860_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/history.json": "f67d1b5e16e952a204663c8482a50dcdbe4c69ce882f1a64ae71bf46beea60ef",
+    "runs/experiments/20261014_072640_473860_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/training_curves.png": "5532306075205d928b88c24f074ca0ce8d93ee6529cce4e9c26081ca03a18308",
+    "runs/experiments/20261014_072640_473860_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/validation_confusion_matrix.png": "0512eaf2ce3eb8eca7e8c4451e3a8bbe2bcf94c19e60c0af558d293e589f44f4",
+    "runs/experiments/20261014_073225_570446_abnormal-activities-dataset_capacity/summary.json": "b1035159cbdd64433e4346cb388d415f3b45dbfc6d41f1fb1d1c4f1e3c54015e",
+    "runs/experiments/20261014_073225_570446_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/history.json": "10489cda9604b9988ebdb5ba642239c144202f4ee9ff2f6d0a51d79a466ac123",
+    "runs/experiments/20261014_073225_570446_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/training_curves.png": "d93bca473eb3ecd0c02a2211a992d9108fb09c22964552f9cc72e4a11538b122",
+    "runs/experiments/20261014_073225_570446_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/validation_confusion_matrix.png": "d323a2f57c0e3097b4fc695ef5b75eae1072f56c73033cfff3cb0fed7dd3a854",
+    "runs/experiments/20261014_073619_915865_abnormal-activities-dataset_capacity/summary.json": "4cd0c0808bf079daad541729e62aa472f9e3768b27ddf426c848e6b1b35437c3",
+    "runs/experiments/20261014_073619_915865_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/history.json": "8b2d22b8914602c1753bdb3407f3c2c19a19fe8c27e0d6c621e1e4513f3d3d1c",
+    "runs/experiments/20261014_073619_915865_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/training_curves.png": "0035bf85b3e684202cf0024d947866c30ea979aea8fc2f8a593b2dcd3d9db206",
+    "runs/experiments/20261014_073619_915865_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/validation_confusion_matrix.png": "ba351e8a7fe957bb0968f313990b3ecf5a6adb95b27352ffd191808236b5c840",
+    "runs/experiments/20261014_074216_098189_abnormal-activities-dataset_capacity/summary.json": "f3ad81778d7db457f83caa38dfdb8154f3dc4e6abff35f77fd787f3296671863",
+    "runs/experiments/20261014_074216_098189_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/history.json": "2cba87ca29c0ec05d990c16022858b0532a46b72f32f65f7f474d769bb5a35d0",
+    "runs/experiments/20261014_074216_098189_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/training_curves.png": "0971d3ae8082bd84e5b6b754e2d3f37a3690dc1c3109110d8c2c9e21a48522f4",
+    "runs/experiments/20261014_074216_098189_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/validation_confusion_matrix.png": "f4cf128e828a5c3262ae847acd8defd1da6e65c0609a921d53464690321f760c",
+    "runs/experiments/20261014_074621_804056_abnormal-activities-dataset_capacity/summary.json": "15af458d918ae3b8bb00ae3302441359394d4eacaebea43456e9928aa1b86d9b",
+    "runs/experiments/20261014_074621_804056_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/history.json": "e6ddb7beaef678f7bf7567c56b932113cbe082c84a347b117763fc1bc04aa80f",
+    "runs/experiments/20261014_074621_804056_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/training_curves.png": "ecff6e615237c95b56b445a4806a42bde47e989fa91cc37810d007b2fce5477b",
+    "runs/experiments/20261014_074621_804056_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/validation_confusion_matrix.png": "ca080aa254ffd737a712c91461c6cc6f720caa5d19660566bc38cb6d4e68ebf5",
+    "runs/experiments/20261014_074944_761690_abnormal-activities-dataset_capacity/summary.json": "edfae03fed03ca2684b5d8454265af0e1a1443aba1623ff7b4cba36816b565f5",
+    "runs/experiments/20261014_074944_761690_abnormal-activities-dataset_capacity/models/custom_64/metrics/history.json": "67952cb0e40087063518c7d633c148b8e42589dc148ff9a7640eda68bb9594cc",
+    "runs/experiments/20261014_074944_761690_abnormal-activities-dataset_capacity/models/custom_64/metrics/training_curves.png": "2299b47ab44afb4bf14b85d7d8395f6c8afbf2d002e562bf385066a8469a397b",
+    "runs/experiments/20261014_074944_761690_abnormal-activities-dataset_capacity/models/custom_64/metrics/validation_confusion_matrix.png": "c9ed22a0208c5d92cffc9a927f6d6094f288a9ec0fbb32cb88d5cb58598944f6",
+    "runs/experiments/20261014_075153_343419_abnormal-activities-dataset_capacity/summary.json": "8f714480f3eadd1730328274113f9517409e76dfe4284b9ebbc28b3bf944ec98",
+    "runs/experiments/20261014_075153_343419_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/history.json": "6e2940bf0e909eb0defb0dae6d913aa10c3cba10e453455407720cf147fa1374",
+    "runs/experiments/20261014_075153_343419_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/training_curves.png": "df9008548a612f0f26becfda91b8402984702c0d0df7daaee445ae52f11b779d",
+    "runs/experiments/20261014_075153_343419_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/validation_confusion_matrix.png": "8d236d2e65ee65159e324788fbfbeb7ca6dd696231871ac974bed1563f447bb3",
+    "runs/experiments/20261014_075442_137265_abnormal-activities-dataset_capacity/summary.json": "faa919ba13a9816630fbb3ce5d6441c7aa2c92f8ac28d8bd79d6fe823fc1a0fe",
+    "runs/experiments/20261014_075442_137265_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/history.json": "27141715e653df5ccf0493ec1a2b31806d2073312f92c1e648fc6d741e234bb4",
+    "runs/experiments/20261014_075442_137265_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/training_curves.png": "23e89c7f91c64ed60b7d5e939585bf3ef45ed16792b5729022e3f8fb576af450",
+    "runs/experiments/20261014_075442_137265_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/validation_confusion_matrix.png": "61041a3e837f6925098b514847b96d3f679420879c76f36269b3a84b0086ab5c",
+    "runs/experiments/20261014_075819_015684_abnormal-activities-dataset_capacity/summary.json": "a9c99215bc803479e51f1496a6d96df7f1feb4d18335639bdb1fdae1591ce42b",
+    "runs/experiments/20261014_075819_015684_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/history.json": "ea481059fa6f6364aeee73ed9cbd54dca32a1ec7b3977f8e7431f5582e283226",
+    "runs/experiments/20261014_075819_015684_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/training_curves.png": "ba69a265f8d186d7f7fb089336f28da294e92e0e61ca9a555cf5238a8faa871a",
+    "runs/experiments/20261014_075819_015684_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/validation_confusion_matrix.png": "f4fd3a91db86b767e32e5d772724cb84187ad47ae57c96f2df15883bfe166ba3",
+    "runs/experiments/20261014_080243_030159_abnormal-activities-dataset_capacity/summary.json": "630a219e36da6bf29082ca615360af9994615c899c27d95729dcdb1a4349812c",
+    "runs/experiments/20261014_080243_030159_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/history.json": "ea3ba70274c2a2937529bdfe5bacafde87f4dbb2b5b8cd704a92aed54dfb391d",
+    "runs/experiments/20261014_080243_030159_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/training_curves.png": "479a8b86de1f7edbe1d580f45fd40a4ffb787bba9f4ebed9983d977db909d0c5",
+    "runs/experiments/20261014_080243_030159_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/validation_confusion_matrix.png": "2a9dfd86555430715eca01ffe529a4ebfac5417e5f4e0a13aa25097f8f5e1621",
+    "runs/experiments/20261014_080946_312637_abnormal-activities-dataset_capacity/summary.json": "e74798268dbcfa3ee26de0c99d5e238b14d323d906a48f971b8d0fc352444987",
+    "runs/experiments/20261014_080946_312637_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/history.json": "4946fbfcab9b8bbeaf2bbebd4277f7ec88040c5553867a15ba8f2c50f7cc9ad4",
+    "runs/experiments/20261014_080946_312637_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/training_curves.png": "d8fb4799fa93cfc7cb192354f290b879b4287398386e0a46a56af4e298e20d05",
+    "runs/experiments/20261014_080946_312637_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/validation_confusion_matrix.png": "6bd43ab178ce11259dcdb5f33850bff6a186c9cf46ad9b1e6128becd75efb41d",
+    "runs/experiments/20261014_082730_097704_abnormal-activities-dataset_capacity/summary.json": "991e1740fa0912ddbffb85a86f9f3246e31edffa65456a56a671111e0ffe8554",
+    "runs/experiments/20261014_082730_097704_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/history.json": "ce67b53260b7c27b7152e197c11c7e4ba30516c5b2b413aae0ec3d5c30409b98",
+    "runs/experiments/20261014_082730_097704_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/training_curves.png": "c027f20bdb27a4ece01438c023681169b3b1627dc26b5c328f970117cf914821",
+    "runs/experiments/20261014_082730_097704_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/validation_confusion_matrix.png": "0e267f225e47754ba9cc9f9cb20252be781178fdb8ff746c859e83a108fc2285",
+    "runs/experiments/20261014_083845_154993_abnormal-activities-dataset_capacity/summary.json": "2672d42107859eacf7c14dacac0ca4183ed88dfcca04ce824b4e24cd63a7c7a7",
+    "runs/experiments/20261014_083845_154993_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/history.json": "386593aa7951b960d890c0ac27e7a0f91aca20d805aff805c2329a1ad7ad100d",
+    "runs/experiments/20261014_083845_154993_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/training_curves.png": "a377eb61328fa5f63d83c6d43c28a50511b47f398c7084f3fd9589638ce03020",
+    "runs/experiments/20261014_083845_154993_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/validation_confusion_matrix.png": "c349246e42cc72c93981957aec5a7f5ab39f87d2dacd19f7e446b2a8728382b5",
+    "runs/experiments/20261014_085625_458328_abnormal-activities-dataset_capacity/summary.json": "61392469614910e6fe1ad0ea915f890edf9b47271ebdfe44c5a6366236b9b96d",
+    "runs/experiments/20261014_085625_458328_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/history.json": "9da91a0e54a8e23088f5bba8f89f664944db9258478a3d078ce9030badffa1da",
+    "runs/experiments/20261014_085625_458328_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/training_curves.png": "da94758850ccab5d96815a6b9154efddaee16a6df7ba48d3a35627e9aa8ea28e",
+    "runs/experiments/20261014_085625_458328_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/validation_confusion_matrix.png": "edd6e4d830efaf0032ceb3deaf3ae614b44420bd0cbc471d68353bfa13fe2a78",
+    "runs/experiments/20261014_090643_151541_abnormal-activities-dataset_capacity/summary.json": "ff764073ed6c32c17642448a8cbdffacd6c3cc85dd874f37b1beca15a66d70a7",
+    "runs/experiments/20261014_090643_151541_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/history.json": "f00ee04e9f5e31d072878a7a39c12690e6ff48545d0cfa5b3ace39012815852f",
+    "runs/experiments/20261014_090643_151541_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/training_curves.png": "b94a4a26883ba61ec4612e315918d9192d1b16e3386c797deb434d0ac1201084",
+    "runs/experiments/20261014_090643_151541_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/validation_confusion_matrix.png": "fee59765c89340eb2dbc837d8e80a5a0a596ea70da4b43f52bf155569f6a929c",
+    "runs/experiments/20261014_092713_076747_abnormal-activities-dataset_capacity/summary.json": "b0bac02f7d6d6aa1643f776d1a2ea45eceefd947e24426e7f70be80fe04051f7",
+    "runs/experiments/20261014_092713_076747_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/history.json": "1a43cb6ca1c42b415ad2dc9d34b086940987fa357b03e9158022f41bad584834",
+    "runs/experiments/20261014_092713_076747_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/training_curves.png": "88a37d58cf2077088f99b785d44817f6f995c105631cc9a0dda7ec39da3f344e",
+    "runs/experiments/20261014_092713_076747_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/validation_confusion_matrix.png": "87fe2c8f842e6cc3d89476048cd0fbfc08e0b2c1ca9e866f0681417737921600",
+    "runs/experiments/20261014_094604_454828_abnormal-activities-dataset_capacity/summary.json": "5880f26978d940e5d67e4f5806a3e9621b5dd81d31a5cd2691aee321b56f76bc",
+    "runs/experiments/20261014_094604_454828_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/history.json": "f9584cb2d568255988b299eecbfae353834d78bccbfd0b92865c09b156a6c1cb",
+    "runs/experiments/20261014_094604_454828_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/training_curves.png": "371df7469484c50249116df0bfb68c2903d6a6ff4c02b58fb3dcda6984e81f32",
+    "runs/experiments/20261014_094604_454828_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/validation_confusion_matrix.png": "0512eaf2ce3eb8eca7e8c4451e3a8bbe2bcf94c19e60c0af558d293e589f44f4",
+    "runs/experiments/20261014_100351_897850_abnormal-activities-dataset_capacity/summary.json": "eb284ad1cb6c6bdf4f69de213cebbc55eb8fc99abf72f3874d761433760a0f7b",
+    "runs/experiments/20261014_100351_897850_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/history.json": "96d53c3a40419920c26278c3792476ab98731c53d8f97c43f9ae3432d7865112",
+    "runs/experiments/20261014_100351_897850_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/training_curves.png": "a7fe419d50edd1247b24b83cdeec8e02dd91c8ad2c736b4ed40050f5f4e47e7d",
+    "runs/experiments/20261014_100351_897850_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/validation_confusion_matrix.png": "4c112a26ac6c4cc557cc01ec9bbff8c2c9950616fdc221b5cc48c60c02314c3f",
+    "runs/experiments/20261014_101521_945959_abnormal-activities-dataset_capacity/summary.json": "fc1818e81f61c649515d4b9d0bd78a1b820dab04a7674df660dafca639018809",
+    "runs/experiments/20261014_101521_945959_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/history.json": "102da71d2f1ee529fc9a4095edf0bde34aed3331a3bab2078ac02129b220ff7e",
+    "runs/experiments/20261014_101521_945959_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/training_curves.png": "fc510935cdd4475349b860ce147a7f23288c4a10c751d6d607265a1aab7b8e59",
+    "runs/experiments/20261014_101521_945959_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/validation_confusion_matrix.png": "a96bb09b5945d04501d2e45ce9aec7c68764e6f28fe4829f4e71fe9e4953999e",
+    "runs/experiments/20261014_103731_393506_abnormal-activities-dataset_capacity/summary.json": "861d9916d9263015c98121220c18f02c4d6cbdd35b1fc253a724d1c8f9eefb39",
+    "runs/experiments/20261014_103731_393506_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/history.json": "7aba4921e2dff21fb8294683cc19d7868aff6cc835160afcf5ffab12045e7d5b",
+    "runs/experiments/20261014_103731_393506_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/training_curves.png": "cec23d7a9da9db7bf966116fe03ddb573ab98d632406467d5279edee3c4adbc3",
+    "runs/experiments/20261014_103731_393506_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/validation_confusion_matrix.png": "6f10f4c7baaebf22609ca68ea69881c1c15563eafcc4c55f58cb08311a4e2080",
+    "runs/experiments/20261014_105853_589318_abnormal-activities-dataset_capacity/summary.json": "0eb1cf68e0b2e3db8b378b97e8552d72b720d4081fa7a634b7c5797eae6ad64b",
+    "runs/experiments/20261014_105853_589318_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/history.json": "a66c7c318930e013be8c17ea1a6f86a49fc186577a11d1e6e2dbe11dc9f5c22a",
+    "runs/experiments/20261014_105853_589318_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/training_curves.png": "68690f7f577c48f5a7d19bc0f0752cdaa241ee2a32233e7a18700ffd08270848",
+    "runs/experiments/20261014_105853_589318_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/validation_confusion_matrix.png": "8cefb408b806562cf2903ab67d4ca5ba1bd6d3f53e93faea882658621e1afcc7",
+    "runs/experiments/20261014_110439_805298_abnormal-activities-dataset_capacity/summary.json": "53964ebf02ff54db8545a14b365ddb6ca87bb45e99e40b5d1f5051bf503b4bb7",
+    "runs/experiments/20261014_110439_805298_abnormal-activities-dataset_capacity/models/custom_64/metrics/history.json": "2ee2226455f8fb8c99715bd3d76a9132df3e91b20496b1b9eb7cf25e1c1f0fb2",
+    "runs/experiments/20261014_110439_805298_abnormal-activities-dataset_capacity/models/custom_64/metrics/training_curves.png": "59bc01737f2d3687e41204496194db2e1e1bc75b360428bfefd4798e41478f8b",
+    "runs/experiments/20261014_110439_805298_abnormal-activities-dataset_capacity/models/custom_64/metrics/validation_confusion_matrix.png": "ee64558ff2acaf8db317e257f6a311d7c454c5413748e7a04695d6ea22acea9b",
+    "runs/experiments/20261014_110913_835904_abnormal-activities-dataset_capacity/summary.json": "39ae4ddbefb9c9c1e99ce47e45d6c2ebfcb7398b86b8e85b7d268189c46df92a",
+    "runs/experiments/20261014_110913_835904_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/history.json": "eeb29d012fc4cd30d7c45aee400cfbd68a487fa4423397efdaf935216cfb8ca8",
+    "runs/experiments/20261014_110913_835904_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/training_curves.png": "c33e6ea9d2ceffe76d59ed92f2241d10e2707a0a5fa1c4f854737e89ed01e9f9",
+    "runs/experiments/20261014_110913_835904_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/validation_confusion_matrix.png": "9867e39ef1bd2e80db8b41981f5db442ae925bc56628538b8aef21da0776ee88",
+    "runs/experiments/20261014_111810_906066_abnormal-activities-dataset_capacity/summary.json": "d8433b7b04d9c0f76b8bd75e6f024e68b471e0566bbac516e9961032c51fe4c2",
+    "runs/experiments/20261014_111810_906066_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/history.json": "212da618ed4195e2d45f9a70cbe1d8bf2f51b0d05b7784661a5fa550d288cb1f",
+    "runs/experiments/20261014_111810_906066_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/training_curves.png": "554933b13f4f60e0ef3d16edf3bbf47771cd3771da082de62378f72cdcf8a9bd",
+    "runs/experiments/20261014_111810_906066_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/validation_confusion_matrix.png": "e90fe8aa7ceb1eef3e6745b824a119465488beaa5fd6c21f328dc9631bbd7c9e",
+    "runs/experiments/20261014_113006_947748_abnormal-activities-dataset_capacity/summary.json": "6ec71658d6f0a1f9b726403eb0377475a00cccaa7d8053d3db1a3fda5c733b23",
+    "runs/experiments/20261014_113006_947748_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/history.json": "0cc4f3cd1faebd39bbb2374b8626789304df2eb940af4b1fcd8718a1bcb40446",
+    "runs/experiments/20261014_113006_947748_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/training_curves.png": "f762f4e3baa44b5543f2943ef119ac24d41b1dc775466a8757293f310c9c916d",
+    "runs/experiments/20261014_113006_947748_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/validation_confusion_matrix.png": "56c81b772d449800cb59124d448277a733271aeba60244e2178629efdc2ea450",
+    "runs/experiments/20261014_114752_445530_abnormal-activities-dataset_capacity/summary.json": "046cf10160170a4cae42155c769a8c4a64e3c7cb979d2cb041d5bf48e1581673",
+    "runs/experiments/20261014_114752_445530_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/history.json": "a976c0a01519c0f22d5bd51af0d5b4bce271ed66752c565c52a1fde4fd33deff",
+    "runs/experiments/20261014_114752_445530_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/training_curves.png": "a98dc34a5d5a36544cf506e6bb403551bebc356e310648b1d9e528cdb2589f35",
+    "runs/experiments/20261014_114752_445530_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/validation_confusion_matrix.png": "11a4899af13320963b98aedf7531b798003bce2366610fcd63bdbd40b2f07e46",
+    "runs/experiments/20261014_121953_868509_abnormal-activities-dataset_capacity/summary.json": "c9dded57dfeaaf2289f6a2ebc28ce9a528da7bb78e231d52c233e26f35115be1",
+    "runs/experiments/20261014_121953_868509_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/history.json": "e67be5677d371b128939d69c0bc844e80c8c83bb2f611c82e0f29f0e96296f1e",
+    "runs/experiments/20261014_121953_868509_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/training_curves.png": "cd23afae4c1bc0f8c770a19c02d80891c019853c86f7de3d4d6739e0da005253",
+    "runs/experiments/20261014_121953_868509_abnormal-activities-dataset_capacity/models/custom_96_64_64/metrics/validation_confusion_matrix.png": "c89063396e28565e2bdab861ba5635dc09889207f34c117b2efdde289a8c4793",
+    "runs/experiments/20261014_123737_375358_abnormal-activities-dataset_capacity/summary.json": "ed666eea86f3737fcb4bf4338253f786d78e8de2cf9ea75f84696241a694a0b2",
+    "runs/experiments/20261014_123737_375358_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/history.json": "5a068859adfa0c9486debdc1babb79cbd16cde6d84a154e6e295be07b8608c1b",
+    "runs/experiments/20261014_123737_375358_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/training_curves.png": "b9f890723431bc2807e6434fb33a407f1b5f552cc583c15b4ca86b05b88c0044",
+    "runs/experiments/20261014_123737_375358_abnormal-activities-dataset_capacity/models/custom_32_64_64/metrics/validation_confusion_matrix.png": "382f7ea4005e54b4ae19d3da78e873c7c48de5c70868ff31feef40e6ae16dae5",
+    "runs/experiments/20261014_124854_064371_abnormal-activities-dataset_capacity/summary.json": "163b623a705391f799296e6b095a27c34ef081c2a237373e20f8725e37b77ab9",
+    "runs/experiments/20261014_124854_064371_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/history.json": "0d4e631a4b0cb55cd9bfbbfd27c3c8cc632e17f6f6119aace9d355cfe96a11d8",
+    "runs/experiments/20261014_124854_064371_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/training_curves.png": "c0f22dc419a5ad8cced4bc2abacde80e3531bf90820b00a4460a74a4b9691ab7",
+    "runs/experiments/20261014_124854_064371_abnormal-activities-dataset_capacity/models/custom_64_96_64/metrics/validation_confusion_matrix.png": "7e8c5729abf2db30d3e96d4e80aaba537eab2cda94c89f5769ffe52f1056e357",
+    "runs/experiments/20261014_130635_679336_abnormal-activities-dataset_capacity/summary.json": "995bba38e8598679ec19baf6d9762b190a4ffd4932ad5d1561d6877dcca86826",
+    "runs/experiments/20261014_130635_679336_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/history.json": "c12542d92ceb4db7604dfcdbbedad057a8b403f0649fcb5929f96d081545495d",
+    "runs/experiments/20261014_130635_679336_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/training_curves.png": "fe95cc8a81b6943b0e5c5d64c598a3a12e4abadc563d11be3864f1e14b8e1be0",
+    "runs/experiments/20261014_130635_679336_abnormal-activities-dataset_capacity/models/custom_48_48_48/metrics/validation_confusion_matrix.png": "21543de1f54ef24cf32872a4e11e0ccc4117296043c1ae9d43f65c562d874e7c",
+    "runs/experiments/20261014_131655_581562_abnormal-activities-dataset_capacity/summary.json": "4c453364cb0813332e3cac0e5870d90fd7bba1777f100a6beba669804d7256c1",
+    "runs/experiments/20261014_131655_581562_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/history.json": "2656db513a2a3ba8ef5b4fdb74ca0c9981e028fd296c7b8e0e2d707855248668",
+    "runs/experiments/20261014_131655_581562_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/training_curves.png": "3aa4f26ac570b896e52e1f6b1efb5e4ba03ca711e7f392cc18decd58a396c252",
+    "runs/experiments/20261014_131655_581562_abnormal-activities-dataset_capacity/models/custom_64_128_64/metrics/validation_confusion_matrix.png": "e33cacc64841a5473a622b186baafeee9a4bec18939cd31e8f90e4fd6dee8929",
+    "runs/experiments/20261014_133510_376052_abnormal-activities-dataset_capacity/summary.json": "b7d7d270b36fb4dc91705c9bf895b38c2e1580c0d08854517872b3ef71883f5b",
+    "runs/experiments/20261014_133510_376052_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/history.json": "62bdf4d533c50afd16f237377b4bcbb9b18a433e4250e6f9d4e9a11d4e85f104",
+    "runs/experiments/20261014_133510_376052_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/training_curves.png": "752cae82b07f7c11c3f273b4f5bc4147caab4b69d1c62066f6c4b6ee8c4a3f91",
+    "runs/experiments/20261014_133510_376052_abnormal-activities-dataset_capacity/models/custom_64_64_128/metrics/validation_confusion_matrix.png": "92837349d860332966d0c35601549cabe4a282918830252f560f2ea26d98b75c",
+    "runs/experiments/20261014_134940_631917_abnormal-activities-dataset_capacity/summary.json": "6619f161a7c7b37ba4845ad990e0239daf68b6d3eebe6c62f0d3a7e7b2049096",
+    "runs/experiments/20261014_134940_631917_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/history.json": "03b2011bea557849b4d895dea53776f262b21f202f9c457d10dee8bc71bf8fc8",
+    "runs/experiments/20261014_134940_631917_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/training_curves.png": "192a38b24e602b4f9523c694d71a5a7eaa3f9c6c6621a241d8d9cf9c65e38092",
+    "runs/experiments/20261014_134940_631917_abnormal-activities-dataset_capacity/models/custom_128_64_64/metrics/validation_confusion_matrix.png": "78e7a8589d0922fac197eae302fa671f64ad2f7e13561cb3a29092eedecd548f",
+    "runs/experiments/20261014_141050_381383_abnormal-activities-dataset_capacity/summary.json": "6daa73ba430cb3aef8dd9dc564089a6556bafddf4eda819e2123772ed175453b",
+    "runs/experiments/20261014_141050_381383_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/history.json": "b6f1e5fcfe2e45007593c4e648a58fdf6017f8100ca36687f82695d597c7534c",
+    "runs/experiments/20261014_141050_381383_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/training_curves.png": "8a9341df158e4e05140af0b32bff0e7d2319c131486d084d4f6427f9c2276a5b",
+    "runs/experiments/20261014_141050_381383_abnormal-activities-dataset_capacity/models/custom_64_64_32/metrics/validation_confusion_matrix.png": "97b4771410b411fbb1fc8ea524e432b747e73dfcc6cde5a7bd9a9039ace91225",
+    "runs/experiments/20261014_142223_730925_abnormal-activities-dataset_capacity/summary.json": "eb11b63286b7ee782a19f4a9696500e64e137258c2ede80bad17aa925482f02e",
+    "runs/experiments/20261014_142223_730925_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/history.json": "86e76ee0ce3a44bbeb62e6fcfeca497370e1f0cc78a1fba64b7bd8ca448defa8",
+    "runs/experiments/20261014_142223_730925_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/training_curves.png": "86202f1a4acaa4a51acbfcab777049d36c3151fbb733a0d7b0ced98aee5d18e2",
+    "runs/experiments/20261014_142223_730925_abnormal-activities-dataset_capacity/models/custom_64_64_64_64_64/metrics/validation_confusion_matrix.png": "421e540d6f481daad0ca54b1018a7f042084645ff0ebe0ee05d03b9f93faf90c",
+    "runs/experiments/20261014_142851_193684_abnormal-activities-dataset_capacity/summary.json": "8f51cb1e21b0ff1ee281ec4ed7989b49cbf4147e05deb8323ede806c4b2cf5b9",
+    "runs/experiments/20261014_142851_193684_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/history.json": "39efa3caffb3d854935bce1f164634d72d66ee6bed55e69fbba552211d1e330e",
+    "runs/experiments/20261014_142851_193684_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/training_curves.png": "e1a14fee330abf25d670bcfa6f659038ac818fbf18c8df7dd77cc971c111604b",
+    "runs/experiments/20261014_142851_193684_abnormal-activities-dataset_capacity/models/custom_96_96_96/metrics/validation_confusion_matrix.png": "06742702161ef4aba733fd6ce8cb1534b7b480c3a15e2c0c29fa6e98869b7ed0",
+    "runs/experiments/20261014_145235_077839_abnormal-activities-dataset_capacity/summary.json": "f997041c6307bf12c78ec351e7130765dff1af7f1baa610033dedea4b3685067",
+    "runs/experiments/20261014_145235_077839_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/history.json": "f08142fe78a187429f53e2283a79459c3719e456c5a12573580b9d0ebb79aab0",
+    "runs/experiments/20261014_145235_077839_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/training_curves.png": "dc23f05b5fe4911c0a9f31bc050e8d01a1acde407dd414eddc9769fbc7eda738",
+    "runs/experiments/20261014_145235_077839_abnormal-activities-dataset_capacity/models/custom_16_16_16/metrics/validation_confusion_matrix.png": "608134f3dd630b79c0488d09423bffd19a60866f27362526f6d68cb89336f2b0",
+    "runs/experiments/20261014_145824_548738_abnormal-activities-dataset_capacity/summary.json": "14c7527ea1cfc75e43c80d6bbc2349c577b1bf94e2475cd7b12242a91be69a50",
+    "runs/experiments/20261014_145824_548738_abnormal-activities-dataset_capacity/models/custom_64/metrics/history.json": "c525c3fda1a1a17af3a825566e2a58db5e545a032d25f18e3b85cd11ca1d68b4",
+    "runs/experiments/20261014_145824_548738_abnormal-activities-dataset_capacity/models/custom_64/metrics/training_curves.png": "6e9451ba8508fc30f0b7deddd3d42c737e1374bf26f446aa49f4b6d1b330bbeb",
+    "runs/experiments/20261014_145824_548738_abnormal-activities-dataset_capacity/models/custom_64/metrics/validation_confusion_matrix.png": "6478d5dd6d3ee7e3de64696b29408cb4ee804c07afb25302884cd017cc395c44",
+    "runs/experiments/20261014_150302_701456_abnormal-activities-dataset_capacity/summary.json": "387803031ad8635df86e71b96721f6d6198115398bafabe3269e9d1a89a9be93",
+    "runs/experiments/20261014_150302_701456_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/history.json": "c5f3140acc2dd8010e3ee563fe4e5b0f7703e269987e06596e9d7ada7b0fbf9f",
+    "runs/experiments/20261014_150302_701456_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/training_curves.png": "f1fcbb9ea202b098ac14cb8489877fef81f789ff58ca0de682b91515566ad44f",
+    "runs/experiments/20261014_150302_701456_abnormal-activities-dataset_capacity/models/custom_64_64/metrics/validation_confusion_matrix.png": "c3ec787bff6aeee2dce618aca94a0e9c4919d03e76cd5d6d3ee9e296b5f831d3",
+    "runs/experiments/20261014_151202_248040_abnormal-activities-dataset_capacity/summary.json": "3c5918bec627812981410ad3e805efdc04d62a205b68d304fceb2968fdae3329",
+    "runs/experiments/20261014_151202_248040_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/history.json": "dd094dc8645645578d53e250f011df3c6027fbe2b3773ffad74cfd156c384bee",
+    "runs/experiments/20261014_151202_248040_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/training_curves.png": "847506f5d97fec4317e18f4139cef6b9018c9465a1f95508ec6c77be55ad2aa0",
+    "runs/experiments/20261014_151202_248040_abnormal-activities-dataset_capacity/models/custom_64_64_64/metrics/validation_confusion_matrix.png": "e90fe8aa7ceb1eef3e6745b824a119465488beaa5fd6c21f328dc9631bbd7c9e",
+    "runs/experiments/20261014_152525_422774_abnormal-activities-dataset_capacity/summary.json": "76014910c5c9662b6680afb85c4a64d2fdb78c81e9476122e5094dc4903b45d1",
+    "runs/experiments/20261014_152525_422774_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/history.json": "95d08524330ce4e03bf9fe0cb816c5cc269a862ffc0e11224618666de12d9046",
+    "runs/experiments/20261014_152525_422774_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/training_curves.png": "cec398f6dda566bd141866473c956e7a5ce563b7ced6f6e19f002ab26085e00a",
+    "runs/experiments/20261014_152525_422774_abnormal-activities-dataset_capacity/models/custom_64_64_64_64/metrics/validation_confusion_matrix.png": "da8db578a5608f136cfc33033ae5f5c57b31106d5dfd9bfdd77a4c44cea71a38",
+    "runs/experiments/20261014_154314_055448_abnormal-activities-dataset_capacity/summary.json": "29c1c18aefce5f83d680ec69b97fe288993ea42d29bb7fe6d98275c765fd1f0f",
+    "runs/experiments/20261014_154314_055448_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/history.json": "444ba726940690513cb4e094777f8e222ae254710ebd896691a5957aceeb1da0",
+    "runs/experiments/20261014_154314_055448_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/training_curves.png": "3c98c5c8e544afaac8bb24aa38f07e0ce4b9b8cd2993e152792b74ed27f14e16",
+    "runs/experiments/20261014_154314_055448_abnormal-activities-dataset_capacity/models/custom_128_128_128/metrics/validation_confusion_matrix.png": "b09c65bd7519adf269f058a2cb76b7649cb4d3b55ca36faaefa05d82dd6a234a"
+  },
+  "scope": "Cross-checks search artifacts; does not verify checkpoint weights or test performance."
+}

@@ -16,9 +16,9 @@ Legacy 068/069/073/074 profiles and evidence remain unchanged.
 See the [completion record](../../../agents/work/075-wide-depth-capacity-search/completion.md)
 for local verification; real Colab execution remains separate.
 
-The [latest AAD report](reports/2026-10-13/latest_colab_results.md) reviews the completed
+The [October 13 AAD report](reports/2026-10-13/latest_colab_results.md) reviews the completed
 console-derived search, ranks ten custom configurations and keeps final test
-results blank. Next: [077 focused A100 rerun](../../../agents/work/077-focused-aad-colab-rerun/prompt.md),
+results blank. It informed [077 focused A100 rerun](../../../agents/work/077-focused-aad-colab-rerun/prompt.md),
 16 architectures at 32/64px and 8/16 FPS (64 jobs), then [076 fixed ten-model comparison](../../../agents/work/076-aad-shortlist-comparison/prompt.md).
 [078 figure improvements](../../../agents/work/078-aad-ablation-figures/prompt.md) follow the new evidence.
 Use the new [focused notebook](notebooks/aad_focused_workflow.ipynb) or
@@ -26,7 +26,16 @@ Use the new [focused notebook](notebooks/aad_focused_workflow.ipynb) or
 The existing notebook still runs 075; its saved outputs and profiles are unchanged.
 See [077 verification](../../../agents/work/077-focused-aad-colab-rerun/completion.md)
 and [076 verification](../../../agents/work/076-aad-shortlist-comparison/completion.md).
-Implementation is locally verified; real A100 execution and result review remain pending.
+The [October 14 preview](reports/2026-10-14/README.md) reviews all 64 focused
+search jobs and ten fresh A100 comparison trainings, with four search panels
+and complete available validation metrics. The first final test failed at a
+dataset-name compatibility check (`abnormal-activities-dataset` versus `aad`).
+Save the compact archive and final checkpoints before losing the runtime;
+validation results are not final test results. Recovery remains separate work.
+Next: [083 comparison-only recovery](../../../agents/work/083-comparison-only-recovery/prompt.md)
+plans a thin comparison-only Colab notebook/export, transformer convergence
+investigation and safe test-handoff repair. The 64-job search stays unchanged;
+this ticket is not implemented yet.
 
 ### Focused Run All (077/076)
 

@@ -4,6 +4,10 @@ Folders use the report/review date (`YYYY-MM-DD`), not necessarily the execution
 date. Keep each review with its raw logs, CSV tables and figures. Preserve older
 evidence; add new reviews without overwriting it. Generated run folders stay local.
 
+- [2026-10-14: focused search and ten-model comparison preview](2026-10-14/README.md) —
+  all 64 search jobs checked against imported summaries/histories, a 128-image
+  search gallery and ten comparison trainings; validation plots/tables,
+  transformer collapse and urgent archive recovery. Final test failed before scoring.
 - [2026-10-13: latest AAD search review](2026-10-13/latest_colab_results.md) —
   reviews the 10–11 October console export; final comparison/test results pending.
 - [2026-10-10: interim and expanded search review](2026-10-10/todays.results.md) —

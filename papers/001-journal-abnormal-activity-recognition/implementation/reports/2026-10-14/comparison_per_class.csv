@@ -1,0 +1,111 @@
+model,class_name,precision,recall,f1,support,tp,fp,fn
+custom_top1,Begging,1.0,0.95,0.9743589743589743,20,19,0,1
+custom_top1,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+custom_top1,Fight,1.0,1.0,1.0,14,14,0,0
+custom_top1,Harassment,1.0,1.0,1.0,14,14,0,0
+custom_top1,Hijack,0.9230769230769231,1.0,0.96,12,12,1,0
+custom_top1,Knife Hazard,0.9375,1.0,0.967741935483871,15,15,1,0
+custom_top1,Normal Videos,0.9444444444444444,1.0,0.9714285714285714,17,17,1,0
+custom_top1,Pollution,1.0,0.9411764705882353,0.9696969696969697,17,16,0,1
+custom_top1,Property Damage,1.0,1.0,1.0,14,14,0,0
+custom_top1,Robbery,1.0,1.0,1.0,13,13,0,0
+custom_top1,Terrorism,1.0,1.0,1.0,11,11,0,0
+custom_top2,Begging,1.0,0.95,0.9743589743589743,20,19,0,1
+custom_top2,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+custom_top2,Fight,1.0,1.0,1.0,14,14,0,0
+custom_top2,Harassment,1.0,1.0,1.0,14,14,0,0
+custom_top2,Hijack,0.9166666666666666,0.9166666666666666,0.9166666666666666,12,11,1,1
+custom_top2,Knife Hazard,0.9375,1.0,0.967741935483871,15,15,1,0
+custom_top2,Normal Videos,1.0,1.0,1.0,17,17,0,0
+custom_top2,Pollution,1.0,1.0,1.0,17,17,0,0
+custom_top2,Property Damage,1.0,1.0,1.0,14,14,0,0
+custom_top2,Robbery,1.0,1.0,1.0,13,13,0,0
+custom_top2,Terrorism,0.9166666666666666,1.0,0.9565217391304348,11,11,1,0
+custom_top3,Begging,1.0,0.95,0.9743589743589743,20,19,0,1
+custom_top3,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+custom_top3,Fight,1.0,1.0,1.0,14,14,0,0
+custom_top3,Harassment,1.0,1.0,1.0,14,14,0,0
+custom_top3,Hijack,0.9230769230769231,1.0,0.96,12,12,1,0
+custom_top3,Knife Hazard,0.9375,1.0,0.967741935483871,15,15,1,0
+custom_top3,Normal Videos,1.0,1.0,1.0,17,17,0,0
+custom_top3,Pollution,1.0,1.0,1.0,17,17,0,0
+custom_top3,Property Damage,1.0,1.0,1.0,14,14,0,0
+custom_top3,Robbery,1.0,1.0,1.0,13,13,0,0
+custom_top3,Terrorism,1.0,1.0,1.0,11,11,0,0
+custom_top4,Begging,1.0,0.95,0.9743589743589743,20,19,0,1
+custom_top4,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+custom_top4,Fight,1.0,1.0,1.0,14,14,0,0
+custom_top4,Harassment,1.0,1.0,1.0,14,14,0,0
+custom_top4,Hijack,0.9230769230769231,1.0,0.96,12,12,1,0
+custom_top4,Knife Hazard,0.9375,1.0,0.967741935483871,15,15,1,0
+custom_top4,Normal Videos,1.0,1.0,1.0,17,17,0,0
+custom_top4,Pollution,1.0,1.0,1.0,17,17,0,0
+custom_top4,Property Damage,1.0,1.0,1.0,14,14,0,0
+custom_top4,Robbery,1.0,1.0,1.0,13,13,0,0
+custom_top4,Terrorism,1.0,1.0,1.0,11,11,0,0
+custom_top5,Begging,1.0,0.95,0.9743589743589743,20,19,0,1
+custom_top5,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+custom_top5,Fight,1.0,1.0,1.0,14,14,0,0
+custom_top5,Harassment,1.0,1.0,1.0,14,14,0,0
+custom_top5,Hijack,0.9230769230769231,1.0,0.96,12,12,1,0
+custom_top5,Knife Hazard,0.9375,1.0,0.967741935483871,15,15,1,0
+custom_top5,Normal Videos,1.0,1.0,1.0,17,17,0,0
+custom_top5,Pollution,1.0,1.0,1.0,17,17,0,0
+custom_top5,Property Damage,1.0,1.0,1.0,14,14,0,0
+custom_top5,Robbery,1.0,1.0,1.0,13,13,0,0
+custom_top5,Terrorism,1.0,1.0,1.0,11,11,0,0
+paper_convlstm_adapted,Begging,0.8260869565217391,0.95,0.8837209302325582,20,19,4,1
+paper_convlstm_adapted,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+paper_convlstm_adapted,Fight,1.0,0.8571428571428571,0.9230769230769231,14,12,0,2
+paper_convlstm_adapted,Harassment,0.9230769230769231,0.8571428571428571,0.8888888888888888,14,12,1,2
+paper_convlstm_adapted,Hijack,0.9090909090909091,0.8333333333333334,0.8695652173913043,12,10,1,2
+paper_convlstm_adapted,Knife Hazard,0.9285714285714286,0.8666666666666667,0.896551724137931,15,13,1,2
+paper_convlstm_adapted,Normal Videos,0.7727272727272727,1.0,0.8717948717948718,17,17,5,0
+paper_convlstm_adapted,Pollution,1.0,0.7647058823529411,0.8666666666666667,17,13,0,4
+paper_convlstm_adapted,Property Damage,1.0,1.0,1.0,14,14,0,0
+paper_convlstm_adapted,Robbery,0.9230769230769231,0.9230769230769231,0.9230769230769231,13,12,1,1
+paper_convlstm_adapted,Terrorism,0.8461538461538461,1.0,0.9166666666666666,11,11,2,0
+r3d_18,Begging,0.9473684210526315,0.9,0.9230769230769231,20,18,1,2
+r3d_18,Drunkenness,0.8571428571428571,0.9230769230769231,0.8888888888888888,13,12,2,1
+r3d_18,Fight,0.9285714285714286,0.9285714285714286,0.9285714285714286,14,13,1,1
+r3d_18,Harassment,1.0,1.0,1.0,14,14,0,0
+r3d_18,Hijack,0.9230769230769231,1.0,0.96,12,12,1,0
+r3d_18,Knife Hazard,0.9285714285714286,0.8666666666666667,0.896551724137931,15,13,1,2
+r3d_18,Normal Videos,0.9444444444444444,1.0,0.9714285714285714,17,17,1,0
+r3d_18,Pollution,1.0,0.9411764705882353,0.9696969696969697,17,16,0,1
+r3d_18,Property Damage,1.0,1.0,1.0,14,14,0,0
+r3d_18,Robbery,1.0,1.0,1.0,13,13,0,0
+r3d_18,Terrorism,1.0,1.0,1.0,11,11,0,0
+mc3_18,Begging,1.0,0.9,0.9473684210526315,20,18,0,2
+mc3_18,Drunkenness,1.0,0.9230769230769231,0.96,13,12,0,1
+mc3_18,Fight,0.9285714285714286,0.9285714285714286,0.9285714285714286,14,13,1,1
+mc3_18,Harassment,1.0,0.9285714285714286,0.9629629629629629,14,13,0,1
+mc3_18,Hijack,0.9230769230769231,1.0,0.96,12,12,1,0
+mc3_18,Knife Hazard,0.8823529411764706,1.0,0.9375,15,15,2,0
+mc3_18,Normal Videos,0.8947368421052632,1.0,0.9444444444444444,17,17,2,0
+mc3_18,Pollution,1.0,0.9411764705882353,0.9696969696969697,17,16,0,1
+mc3_18,Property Damage,1.0,1.0,1.0,14,14,0,0
+mc3_18,Robbery,1.0,1.0,1.0,13,13,0,0
+mc3_18,Terrorism,1.0,1.0,1.0,11,11,0,0
+swin3d_t,Begging,0.125,1.0,0.2222222222222222,20,20,140,0
+swin3d_t,Drunkenness,0,0.0,0.0,13,0,0,13
+swin3d_t,Fight,0,0.0,0.0,14,0,0,14
+swin3d_t,Harassment,0,0.0,0.0,14,0,0,14
+swin3d_t,Hijack,0,0.0,0.0,12,0,0,12
+swin3d_t,Knife Hazard,0,0.0,0.0,15,0,0,15
+swin3d_t,Normal Videos,0,0.0,0.0,17,0,0,17
+swin3d_t,Pollution,0,0.0,0.0,17,0,0,17
+swin3d_t,Property Damage,0,0.0,0.0,14,0,0,14
+swin3d_t,Robbery,0,0.0,0.0,13,0,0,13
+swin3d_t,Terrorism,0,0.0,0.0,11,0,0,11
+swin3d_s,Begging,0.125,1.0,0.2222222222222222,20,20,140,0
+swin3d_s,Drunkenness,0,0.0,0.0,13,0,0,13
+swin3d_s,Fight,0,0.0,0.0,14,0,0,14
+swin3d_s,Harassment,0,0.0,0.0,14,0,0,14
+swin3d_s,Hijack,0,0.0,0.0,12,0,0,12
+swin3d_s,Knife Hazard,0,0.0,0.0,15,0,0,15
+swin3d_s,Normal Videos,0,0.0,0.0,17,0,0,17
+swin3d_s,Pollution,0,0.0,0.0,17,0,0,17
+swin3d_s,Property Damage,0,0.0,0.0,14,0,0,14
+swin3d_s,Robbery,0,0.0,0.0,13,0,0,13
+swin3d_s,Terrorism,0,0.0,0.0,11,0,0,11

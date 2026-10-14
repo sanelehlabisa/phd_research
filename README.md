@@ -71,17 +71,26 @@ Real AAD/A100 execution remains separate from local verification.
 The latest ranking refines the planned width-64 neighbourhood with an 80-wide
 flat model and single-layer widening to 128, without increasing the run budget.
 
-The [latest AAD report](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-13/latest_colab_results.md)
-reviews 131 console-derived search entries; final comparison/test results remain
-pending. The owner now plans a fresh [077 focused A100 rerun](agents/work/077-focused-aad-colab-rerun/prompt.md):
+The [October 13 AAD report](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-13/latest_colab_results.md)
+reviews 131 console-derived search entries without final comparison/test results.
+It informed the fresh [077 focused A100 rerun](agents/work/077-focused-aad-colab-rerun/prompt.md):
 16 architectures at two sizes/two FPS values, then [076 fixed finalist comparison](agents/work/076-aad-shortlist-comparison/prompt.md).
 [078](agents/work/078-aad-ablation-figures/prompt.md) covers clearer ablation figures/tally markers later; manuscript revision (062) follows verified results.
 The new focused runner is [aad_focused_workflow.ipynb](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_focused_workflow.ipynb),
 with a matching [copy-paste Python export](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_focused_workflow.py).
 It runs 64 search jobs then ten fresh comparison trainings automatically, with
 compact results backups. The old notebook/profiles and saved evidence remain unchanged.
-Implementation is [locally verified](agents/work/077-focused-aad-colab-rerun/completion.md);
-real A100 execution and result review remain pending.
+Implementation is [locally verified](agents/work/077-focused-aad-colab-rerun/completion.md).
+The [October 14 preview](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-14/README.md)
+reviews all 64 search and ten comparison trainings on A100. Best comparison
+custom validation accuracy is 98.750%; final testing failed at a dataset-name
+compatibility check. Preserve the compact archive and final checkpoints before
+Colab closes; no final test claim is available yet.
+
+Next: [083 comparison-only recovery](agents/work/083-comparison-only-recovery/prompt.md)
+is ready for approval: preserve the completed search, investigate transformer
+collapse and prepare a standalone comparison/test workflow. No new training
+or experiment-code change has been made for that ticket yet.
 
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),

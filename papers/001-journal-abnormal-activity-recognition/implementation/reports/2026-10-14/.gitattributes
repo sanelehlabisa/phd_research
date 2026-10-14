@@ -1,0 +1,5 @@
+# Preserve the original console evidence and its recorded SHA-256 on every OS.
+colab_console.raw.txt -text -whitespace
+
+# Keep generated vector figures consistently formatted across checkouts.
+*.svg text eol=lf
