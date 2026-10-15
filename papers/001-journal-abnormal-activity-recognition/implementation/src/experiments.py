@@ -691,9 +691,24 @@ def _resolved_arguments(
     values: dict[str, object],
 ) -> tuple[argparse.Namespace, ExperimentConfig, CandidateManifest | None, bool]:
     """Combine validated configuration with comparison-only flags."""
+    defaults = EXPERIMENT_DEFAULT_CONFIG
+    if values.get("config") is not None:
+        configured = _load_json_object(Path(values["config"]), "experiment config")
+        if "models" in configured:
+            models = configured.pop("models")
+            if (
+                not isinstance(models, list)
+                or not models
+                or any(not isinstance(name, str) for name in models)
+                or len(models) != len(set(models))
+            ):
+                raise ValueError("models must be a non-empty list of unique model names")
+            defaults = ExperimentConfig.from_mapping(configured, defaults=defaults)
+            values = {key: value for key, value in values.items() if key != "config"}
+            values.setdefault("models", models)
     config, operations, print_only, _ = resolve_config_arguments(
         values,
-        EXPERIMENT_DEFAULT_CONFIG,
+        defaults,
     )
     candidates_path = operations.pop("candidates_config", None)
     candidate_manifest = (
@@ -1387,6 +1402,7 @@ def main(argv: list[str] | None = None) -> Path | None:
     )
     campaign = campaign_label(args)
     raw_presentation = getattr(args, "per_class_reporting", False)
+    legacy_extended_metrics = getattr(args, "campaign_stage", None) is not None
     print(
         f"\n{campaign}\n"
         if campaign
@@ -1586,9 +1602,10 @@ def main(argv: list[str] | None = None) -> Path | None:
             from .study_reporting import extended_metrics
             from .study_resources import inference_measurement
 
-            selected_validation_metrics.update(
-                extended_metrics(all_pred, all_true, num_classes)
-            )
+            if legacy_extended_metrics:
+                selected_validation_metrics.update(
+                    extended_metrics(all_pred, all_true, num_classes)
+                )
             # Exclude optimizer and checkpoint-copy tensors from inference memory.
             del checkpoint, opt, scheduler
             if device.type == "cuda":
@@ -1660,7 +1677,7 @@ def main(argv: list[str] | None = None) -> Path | None:
                     "macro": "all declared classes, zero division = 0",
                     "balanced_accuracy": "mean recall over classes with nonzero support",
                 }
-                if experiment_config.sampling_version == "timestamps_v1"
+                if experiment_config.sampling_version == "timestamps_v1" and legacy_extended_metrics
                 else None
             ),
             "experiment_config": experiment_config.to_dict(),
@@ -1712,7 +1729,6 @@ def main(argv: list[str] | None = None) -> Path | None:
                 f"val_micro_precision={selected_validation_metrics['precision']:.4f}  "
                 f"val_micro_recall={selected_validation_metrics['recall']:.4f}  "
                 f"val_micro_f1={selected_validation_metrics['f1']:.4f}  "
-                f"val_macro_f1={selected_validation_metrics.get('macro_f1', float('nan')):.4f}  "
                 f"val_acc={selected_validation_metrics['accuracy']:.4f}  "
                 f"selected_epoch={checkpoint_selection['selected_epoch']}  "
                 f"time={elapsed:.0f}s"
@@ -1737,9 +1753,10 @@ def main(argv: list[str] | None = None) -> Path | None:
 
     write_full_table(
         run_dir,
-        [result_row(r, raw=raw_presentation) for r in ranked],
+        [result_row(r, raw=raw_presentation, pooled_only=not legacy_extended_metrics) for r in ranked],
         print_rows=len(ranked) > 1,
         raw=raw_presentation,
+        pooled_only=not legacy_extended_metrics,
     )
 
     summary = {

@@ -546,7 +546,7 @@ def build_search_visibility(output_dir: Path) -> dict:
         saved = json.loads(receipt_path.read_text(encoding="utf-8"))
         if saved.get("report_type") != "search_visibility_v1" or set(saved.get("output_sha256", {})) != files:
             raise ValueError("Output is not a verified visibility report.")
-        if {p.name for p in output_dir.iterdir()} != files | {"visibility_check.json"}:
+        if {p.name for p in output_dir.iterdir() if not p.is_dir()} != files | {"visibility_check.json"}:
             raise ValueError("Output contains unrelated files; existing work was preserved.")
         for name, digest in saved["output_sha256"].items():
             if hashlib.sha256((output_dir / name).read_bytes()).hexdigest() != digest:

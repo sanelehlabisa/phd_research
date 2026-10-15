@@ -93,17 +93,24 @@ plots all 64 measurements with the original layer-count legend, per-panel
 highlight keys and a disclosed compressed lower y-range. All 128 image links
 remain; no side/performance tables, arrows or zoom plots.
 Original values/ranking are unchanged; unavailable run files are disclosed.
-Next: [084 transformer diagnosis](agents/work/084-diagnose-transformer-learning/prompt.md),
-then [083 comparison-only JSON runner/test recovery](agents/work/083-comparison-only-recovery/prompt.md)
-for the same ten models on local 6-GB CUDA, with Colab fallback. Do not rerun search.
+[084 transformer diagnosis is complete](agents/work/084-diagnose-transformer-learning/completion.md):
+real 6-GB CUDA checks verify updates but reproduce constant-class learning collapse;
+no causal code defect was established. See the [diagnosis](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-15/transformer-learning/README.md)
+and [lower-LR Swin3D-T follow-up](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-15/transformer-learning/follow-up.md),
+which restores learning in a separate local diagnostic, not final comparison.
+Next: [083 comparison-only JSON runner/test recovery](agents/work/083-comparison-only-recovery/prompt.md)
+for the same ten models, after any recipe change is approved. Do not rerun search.
 [086](agents/work/086-simplify-modular-scripts/prompt.md)
 plans script cleanup after the comparison path works. Those recovery/cleanup
 tickets remain planning-only; no new training or test result was produced by 085.
 
-Later, [087 frame-count/shallow-model expansion](agents/work/087-expand-frame-depth-search/prompt.md)
-queues 24 models x 8/16 frames x two sizes x two FPS values (192 jobs), with
-results-only ZIP backups to Drive. It is a new campaign, not a required replay
-of the completed search; transformer diagnosis remains next. Runtime may exceed overnight.
+Three follow-ups are logged, not implemented: [088 pooled metrics everywhere](agents/work/088-pooled-metrics-everywhere/prompt.md),
+[087 expanded search](agents/work/087-expand-frame-depth-search/prompt.md), and
+[089 Colab readiness](agents/work/089-colab-campaign-readiness/prompt.md).
+The new search fixes **64x64**, with 32 architectures x 8/16 frames x 8/16 FPS
+(128 jobs), at least four models per depth 1-5 and compact backups to Drive.
+089 integrates 083's comparison path after its prerequisites; a push alone does
+not make the old notebook ready. Streaming stays deferred. Runtime may exceed overnight.
 
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),

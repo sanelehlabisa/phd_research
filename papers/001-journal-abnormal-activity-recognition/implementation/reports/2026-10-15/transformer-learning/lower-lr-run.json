@@ -1,0 +1,121 @@
+{
+  "purpose": "experiments",
+  "status": "complete",
+  "started_at": "2026-10-15T12:05:32.205855+02:00",
+  "ended_at": "2026-10-15T12:11:19.486845+02:00",
+  "duration_seconds": 347.281723,
+  "command": [
+    "-c"
+  ],
+  "arguments": {
+    "steps": 128,
+    "batch_size": 2,
+    "learning_rates": [
+      0.0001,
+      1e-05
+    ],
+    "seed": 42
+  },
+  "dataset_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+  "dataset_name": "abnormal-activities-dataset",
+  "environment": {
+    "python": "3.12.12",
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+    "pytorch": "2.9.1+cu128",
+    "torchvision": "0.24.1+cu128",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "cudnn_version": 91002
+  },
+  "git_revision": "77a04258a1f5a0252f02b40ede7e5d1f7aec6edb",
+  "artifacts": {
+    "diagnosis": "diagnosis.json"
+  },
+  "partition": "train-only",
+  "split": {
+    "manifest_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+    "manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+    "seed": 42,
+    "requested_ratios": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "counts": {
+      "train": 748,
+      "validation": 160,
+      "test": 161,
+      "total": 1069
+    },
+    "class_counts": {
+      "Begging": {
+        "total": 133,
+        "train": 93,
+        "validation": 20,
+        "test": 20
+      },
+      "Drunkenness": {
+        "total": 90,
+        "train": 63,
+        "validation": 13,
+        "test": 14
+      },
+      "Fight": {
+        "total": 95,
+        "train": 67,
+        "validation": 14,
+        "test": 14
+      },
+      "Harassment": {
+        "total": 89,
+        "train": 62,
+        "validation": 14,
+        "test": 13
+      },
+      "Hijack": {
+        "total": 77,
+        "train": 54,
+        "validation": 12,
+        "test": 11
+      },
+      "Knife Hazard": {
+        "total": 100,
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "Normal Videos": {
+        "total": 115,
+        "train": 80,
+        "validation": 17,
+        "test": 18
+      },
+      "Pollution": {
+        "total": 114,
+        "train": 80,
+        "validation": 17,
+        "test": 17
+      },
+      "Property Damage": {
+        "total": 96,
+        "train": 67,
+        "validation": 14,
+        "test": 15
+      },
+      "Robbery": {
+        "total": 86,
+        "train": 60,
+        "validation": 13,
+        "test": 13
+      },
+      "Terrorism": {
+        "total": 74,
+        "train": 52,
+        "validation": 11,
+        "test": 11
+      }
+    },
+    "split_level": "clip"
+  }
+}

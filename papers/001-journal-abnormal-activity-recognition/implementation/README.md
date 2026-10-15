@@ -44,11 +44,40 @@ Rebuild from this directory (no training or imported runs required):
 .venv/bin/python reports/2026-10-14/build_preview.py --search-visibility --output-dir reports/2026-10-15
 ```
 
+[084 diagnosis is complete](../../../agents/work/084-diagnose-transformer-learning/completion.md):
+both actual Swin models update on local 6-GB CUDA but fail to distinguish a
+four-clip training subset. No causal production bug was established. The
+[dated report and traces](reports/2026-10-15/transformer-learning/README.md)
+record the audit and proposed lower-LR check; recipe changes require approval.
+Reproduce the bounded train-only check from this directory:
+
+```bash
+CUBLAS_WORKSPACE_CONFIG=:4096:8 .venv/bin/python -u -c 'from notebooks.utils.diagnostics import audit_transformer_learning; result = audit_transformer_learning(".", steps=64, batch_size=2); print(result["run_dir"])'
+```
+
+For a separate Swin3D-T diagnostic (8 epochs, batch 2, LR 0.00001, eight 64px
+frames/16 FPS, cached clips, validation only), run from this directory:
+
+```bash
+CUBLAS_WORKSPACE_CONFIG=:4096:8 .venv/bin/python -m src.experiments --config configs/experiments/aad_swin3d_t_smoke.json
+```
+
+This is a quick lower-LR trial, not the frozen comparison or a promised accuracy
+improvement. It saves checkpoints, curves, validation confusion and sample videos
+under a fresh `runs/experiments/` directory. No test evaluation is triggered.
+New direct modular experiment outputs use pooled precision/recall/F1 with
+accuracy and loss; they do not add macro averages. Per-class metrics remain.
+Legacy campaign contracts and historical evidence are preserved.
+The [verified lower-LR follow-up](reports/2026-10-15/transformer-learning/follow-up.md)
+reached 137/160 validation correct (85.625%) in eight local epochs, versus
+25/160 at LR 0.0001. This is Swin3D-T diagnostic evidence, not final test results.
+
 Remaining work is planning-only; the successful search will not be rerun:
 
-- [084 transformer diagnosis](../../../agents/work/084-diagnose-transformer-learning/prompt.md): next, audit learning and fix proven defects before approving a changed recipe.
-- [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
-- [087 frame-count/shallow-model expansion](../../../agents/work/087-expand-frame-depth-search/prompt.md): later, a new 24-model x 8/16-frame x two-size x two-FPS profile (192 jobs), with results-only ZIP backups to Drive. Preserve the completed campaign; do not launch it as part of 084/083. Measure workload before launch—overnight is not guaranteed.
+- [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): next, consume 084's diagnosis and obtain approval for any recipe changes; reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
+- [088 pooled metrics everywhere](../../../agents/work/088-pooled-metrics-everywhere/prompt.md): remove macro outputs from all new active evaluation/campaign paths while preserving old evidence and compatibility guards; the current direct smoke fix is not global.
+- [087 expanded 64px search](../../../agents/work/087-expand-frame-depth-search/prompt.md): 32 customs, fixed 64x64, 8/16 frames and 8/16 FPS (128 jobs). Depth counts 5/6/13/4/4 provide at least four candidates per depth; flat widths 32/48/64/96 are matched across depths 1-5. Preserve old results and save compact Drive backups. Measure workload before launch; overnight is not guaranteed.
+- [089 Colab readiness](../../../agents/work/089-colab-campaign-readiness/prompt.md): wire the new JSON and 083 comparison into one thin notebook/export after prerequisites, transformer recipe checks and backup preflight. No streaming change or real campaign launch during implementation.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 
 The comparison-only local JSON/command is a planned deliverable, not ready to run

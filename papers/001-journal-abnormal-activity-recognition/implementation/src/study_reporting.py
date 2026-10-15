@@ -79,7 +79,7 @@ def extended_metrics(predictions, targets, num_classes):
     }
 
 
-def result_row(result, raw=False, **context):
+def result_row(result, raw=False, pooled_only=False, **context):
     config = result.get("experiment_config", {})
     metrics = result.get("validation_metrics", {})
     layers = (
@@ -136,15 +136,33 @@ def result_row(result, raw=False, **context):
         row.update(raw_result_fields(result))
         if training.get("predictions"):
             row.update(raw_result_fields(result, "train", training["predictions"]))
-        row = unaveraged_row(row)
+        if not pooled_only:
+            row = unaveraged_row(row)
+    if pooled_only:
+        row = {
+            key: value
+            for key, value in row.items()
+            if "macro" not in key and "balanced_accuracy" not in key
+        }
     return row
 
 
-def write_full_table(directory, rows, stem="results", print_rows=True, raw=False):
-    if raw:
+def write_full_table(
+    directory, rows, stem="results", print_rows=True, raw=False, pooled_only=False
+):
+    if raw and not pooled_only:
         from .wide_protocol import unaveraged_row
 
         rows = [unaveraged_row(r) for r in rows]
+    if pooled_only:
+        rows = [
+            {
+                key: value
+                for key, value in row.items()
+                if "macro" not in key and "balanced_accuracy" not in key
+            }
+            for row in rows
+        ]
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     complete = [r for r in rows if r.get("status") == "complete"]
@@ -204,15 +222,24 @@ def write_full_table(directory, rows, stem="results", print_rows=True, raw=False
         "train_seconds",
     ]
     if raw:
-        columns = [
-            k
-            for k in columns
-            if "macro" not in k and "micro" not in k and "balanced_accuracy" not in k
-        ]
+        if not pooled_only:
+            columns = [
+                k
+                for k in columns
+                if "macro" not in k
+                and "micro" not in k
+                and "balanced_accuracy" not in k
+            ]
         columns += [
             "selected_training_accuracy",
             "matched_accuracy_gap",
             "matched_loss_gap",
+        ]
+    if pooled_only:
+        columns = [
+            key
+            for key in columns
+            if "macro" not in key and "balanced_accuracy" not in key
         ]
     lines = [
         "# Full validation results",
@@ -265,12 +292,19 @@ def write_full_table(directory, rows, stem="results", print_rows=True, raw=False
             flush=True,
         )
         for r in ordered:
+            scores = "" if raw else f"macro_f1={cell(r.get('validation_macro_f1'))} "
+            if pooled_only:
+                scores = (
+                    f"precision={cell(r.get('validation_micro_precision'))} "
+                    f"recall={cell(r.get('validation_micro_recall'))} "
+                    f"f1={cell(r.get('validation_micro_f1'))} "
+                )
             print(
                 f"{r.get('rank') or '-':>3} {r.get('stage', '')} {r.get('model', '')} "
                 f"{r.get('status')} | {r.get('height')}px {r.get('frames')}f/{r.get('fps')}fps "
                 f"seed={r.get('seed')} wd={r.get('weight_decay')} lr={r.get('learning_rate')} "
                 f"val_acc={cell(r.get('validation_accuracy'))} val_loss={cell(r.get('validation_loss'))} "
-                + ("" if raw else f"macro_f1={cell(r.get('validation_macro_f1'))} ")
+                + scores
                 + f"params={r.get('parameters')}",
                 flush=True,
             )

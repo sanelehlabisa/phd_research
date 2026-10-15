@@ -8,6 +8,8 @@ import pytest
 
 from src.experiment_config import CandidateManifest, ExperimentConfig
 from src.experiments import (
+    EXPERIMENT_DEFAULT_CONFIG,
+    _resolved_arguments,
     build_experiment_criterion,
     build_plan_commands,
     controlled_plan_rows,
@@ -301,3 +303,82 @@ def test_published_model_rejects_reduced_input_before_dataset_access() -> None:
                 "paper_convlstm_published",
             ]
         )
+
+
+def test_swin_leaf_json_selects_one_model_without_default_baselines(capsys) -> None:
+    """A single JSON command selects Swin only before loading any dataset."""
+    path = CONFIG_DIR / "experiments" / "aad_swin3d_t_smoke.json"
+    configured_rate = json.loads(path.read_text())["learning_rate"]
+    args, config, candidates, print_only = _resolved_arguments({"config": path})
+    entries = model_registry(config, candidates, selected_models=args.models)
+    assert [entry["name"] for entry in entries] == ["swin3d_t"]
+    assert candidates is None and not print_only
+    assert config.dataset_name == "aad"
+    assert config.sampling_version == "timestamps_v1"
+    assert config.sequence_length == 8
+    assert (config.height, config.width, config.target_fps) == (64, 64, 16)
+    assert config.batch_size == 2 and config.epochs == 8
+    assert config.learning_rate == configured_rate and config.weight_decay == 0
+    assert config.scheduler == "none" and not config.augment
+    assert config.seed == config.split_seed == 42
+    main(["--config", str(path), "--list-models"])
+    output = capsys.readouterr().out
+    assert "swin3d_t" in output
+    assert "swin3d_s" not in output
+    assert "paper_convlstm_published" not in output
+    assert "r3d_18" not in output
+
+
+def test_leaf_json_models_allow_explicit_cli_model_and_training_overrides() -> None:
+    """Explicit CLI values retain precedence over the JSON model selection."""
+    path = CONFIG_DIR / "experiments" / "aad_swin3d_t_smoke.json"
+    configured_rate = json.loads(path.read_text())["learning_rate"]
+    args, config, _, _ = _resolved_arguments(
+        {"config": path, "models": ["swin3d_s"], "epochs": 2}
+    )
+    assert args.models == ["swin3d_s"]
+    assert config.epochs == 2
+    assert config.batch_size == 2 and config.learning_rate == configured_rate
+    assert json.loads(path.read_text())["models"] == ["swin3d_t"]
+
+
+@pytest.mark.parametrize(
+    "models",
+    [[], "swin3d_t", None, ["swin3d_t", "swin3d_t"], [1], [{"name": "swin3d_t"}]],
+)
+def test_leaf_json_rejects_invalid_model_lists_before_training(
+    models, tmp_path
+) -> None:
+    """Model lists must be nonempty, unique and contain only registry names."""
+    path = tmp_path / "invalid-models.json"
+    path.write_text(json.dumps({"models": models}))
+    with pytest.raises(ValueError, match="non-empty list of unique model names"):
+        _resolved_arguments({"config": path})
+
+
+def test_leaf_json_models_do_not_hide_unknown_config_keys_or_model_names(
+    tmp_path,
+) -> None:
+    """Optional models never bypass configuration or registry validation."""
+    path = tmp_path / "unknown-fields.json"
+    path.write_text(json.dumps({"models": ["swin3d_t"], "learning_rtae": 0.0001}))
+    with pytest.raises(ValueError, match="unknown configuration field.*learning_rtae"):
+        _resolved_arguments({"config": path})
+    path.write_text(json.dumps({"models": ["not_registered"]}))
+    args, config, _, _ = _resolved_arguments({"config": path})
+    with pytest.raises(ValueError, match="unknown selected model.*not_registered"):
+        model_registry(config, selected_models=args.models)
+
+
+def test_legacy_leaf_configs_preserve_settings_and_default_model_registry() -> None:
+    """Existing leaf JSONs without models keep their original complete registry."""
+    path = CONFIG_DIR / "experiments" / "aad_architecture_screen_reference.json"
+    args, config, candidates, print_only = _resolved_arguments({"config": path})
+    expected = ExperimentConfig.from_json(path, defaults=EXPERIMENT_DEFAULT_CONFIG)
+    assert config == expected
+    assert not hasattr(args, "models")
+    assert candidates is None and not print_only
+    assert [entry["name"] for entry in model_registry(config)] == [
+        entry["name"] for entry in model_registry(expected)
+    ]
+    assert len(model_registry(config)) == 7

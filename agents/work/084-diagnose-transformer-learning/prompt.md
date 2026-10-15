@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `084-diagnose-transformer-learning`
-- Status: Ready
+- Status: Done
 - Aim: Explain the Swin3D learning collapse and fix demonstrated code defects before final comparison, without tuning on test.
 - Scope: Paper 001's existing model construction, training/preprocessing path, targeted diagnostics/tests and a new dated diagnosis report. Keep helpers minimal and reuse the modular scripts.
 - Evidence: [14 October review](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-14/README.md#why-the-transformers-require-caution). Swin3D-T/S trained from scratch: 93/748 training and 20/160 validation correct; both predict Begging only. The cause is not yet established; 12.5% alone does not prove a code bug.

@@ -135,6 +135,40 @@ def test_macro_and_balanced_metrics_are_not_relabelled_micro():
     assert metrics["balanced_accuracy"] == 0.5
 
 
+def test_pooled_only_tables_omit_macros_without_modifying_legacy_results(
+    tmp_path, capsys
+):
+    metrics = {
+        "loss": 0.4,
+        "accuracy": 0.75,
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        **extended_metrics([0, 0, 0, 0], [0, 0, 0, 1], 3),
+    }
+    result = {"name": "swin3d_t", "validation_metrics": metrics, "num_params": 100}
+    legacy = result_row(result)
+    assert "validation_macro_f1" in legacy
+    row = result_row(result, pooled_only=True)
+    assert not any("macro" in key or "balanced_accuracy" in key for key in row)
+    assert row["validation_micro_precision"] == 0.75
+    assert row["validation_micro_recall"] == 0.75
+    assert row["validation_micro_f1"] == 0.75
+    assert row["validation_loss"] == 0.4 and row["parameters"] == 100
+    # Also filter legacy input rows without mutating the saved source mapping.
+    written = write_full_table(tmp_path, [legacy], pooled_only=True)
+    assert written[0]["validation_micro_f1"] == 0.75
+    assert "validation_macro_f1" in legacy and "macro_f1" in metrics
+    for suffix in ("json", "csv", "md"):
+        text = (tmp_path / f"results.{suffix}").read_text()
+        assert "macro" not in text and "balanced_accuracy" not in text
+        assert "validation_micro_precision" in text
+        assert "validation_micro_recall" in text and "validation_micro_f1" in text
+    output = capsys.readouterr().out
+    assert "macro" not in output
+    assert "precision=0.75 recall=0.75 f1=0.75" in output
+
+
 def test_calibration_uses_family_mean_then_loss_then_lower_lr():
     values, config, _ = study_config.load_study(PROFILE)
     jobs = []
@@ -633,7 +667,9 @@ def test_real_timestamp_cache_and_test_isolation(real_clips, tmp_path, monkeypat
 
 
 @pytest.mark.parametrize("matched", [False, True])
-def test_real_timestamp_leaf_training_and_artifacts(real_clips, tmp_path, matched):
+def test_real_timestamp_leaf_training_and_artifacts(
+    real_clips, tmp_path, matched, capsys
+):
     config = ExperimentConfig(
         dataset_dir=str(real_clips),
         runs_dir=str(tmp_path / "runs"),
@@ -690,10 +726,30 @@ def test_real_timestamp_leaf_training_and_artifacts(real_clips, tmp_path, matche
         assert result["training_evaluation"]["model_mode"] == "eval"
         assert "macro" not in (leaf / "results.md").read_text(encoding="utf-8")
         assert "tp" in result["validation_per_class"][0]
+        assert result["validation_metrics"]["macro_f1"] >= 0
     else:
         assert "training_evaluation" not in result
+        for key in ("accuracy", "loss", "precision", "recall", "f1"):
+            assert key in result["validation_metrics"]
+        assert not any(
+            "macro" in key or "balanced_accuracy" in key
+            for key in result["validation_metrics"]
+        )
+        assert result["extended_metric_protocol"] is None
+        assert result["validation_per_class"]
+        assert result["validation_confusion_matrix"]
+        for name in ("results.csv", "results.md", "results.json", "summary.json"):
+            assert "macro" not in (leaf / name).read_text()
+        assert "macro" not in Path(result["metrics_path"]).read_text()
+        assert "macro" not in capsys.readouterr().out.lower()
+        for key in (
+            "validation_micro_precision",
+            "validation_micro_recall",
+            "validation_micro_f1",
+        ):
+            assert key in (leaf / "results.csv").read_text()
     assert result["test_access"] == "locked"
-    assert result["sampling_report"] and result["validation_metrics"]["macro_f1"] >= 0
+    assert result["sampling_report"]
     assert result["efficiency"]["peak_cuda_memory_bytes"] is None
     assert result["total_parameters"] == result["num_params"]
     assert (leaf / "results.csv").is_file()

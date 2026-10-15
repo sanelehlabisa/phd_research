@@ -325,6 +325,24 @@ def test_unchanged_report_can_be_rebuilt_without_numeric_or_export_drift(builder
     assert receipt["plotted_experiments"] == list(range(1, 65))
 
 
+def test_same_date_diagnosis_subdirectory_is_preserved_on_rebuild(builder, generated, tmp_path):
+    output = tmp_path / "report-with-diagnosis"
+    shutil.copytree(generated[0], output)
+    note = output / "transformer-learning/README.md"
+    note.parent.mkdir()
+    note.write_text("Separate train-only diagnosis; preserve this evidence.\n")
+    before = evidence_hashes(output)
+    receipt = builder.build_search_visibility(output)
+    assert receipt["plotted_experiments"] == list(range(1, 65))
+    assert evidence_hashes(output) == before
+    unexpected = output / "unrelated-user-note.txt"
+    unexpected.write_text("Do not overwrite unrelated root-level work.\n")
+    with pytest.raises(ValueError, match="unrelated files"):
+        builder.build_search_visibility(output)
+    assert note.read_text() == "Separate train-only diagnosis; preserve this evidence.\n"
+    assert unexpected.read_text() == "Do not overwrite unrelated root-level work.\n"
+
+
 def test_edited_generated_report_is_preserved(builder, generated, tmp_path):
     output = tmp_path / "edited-report"
     shutil.copytree(generated[0], output)

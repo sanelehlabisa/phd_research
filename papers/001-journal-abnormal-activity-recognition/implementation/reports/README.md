@@ -8,6 +8,12 @@ evidence; add new reviews without overwriting it. Generated run folders stay loc
   unchanged values/ranking, named per-panel highlights, layer-count-only bottom
   legend, disclosed y-axis compression and 128 image links; no arrows/insets/tables;
   current source-file availability and verification limits disclosed. No new training/test.
+- [2026-10-15: Swin3D learning diagnosis](2026-10-15/transformer-learning/README.md) —
+  both real GPU train-only traces verify parameter updates but reproduce
+  constant-class collapse; no proven production defect or held-out evaluation.
+  The [lower-LR follow-up](2026-10-15/transformer-learning/follow-up.md) restores
+  Swin3D-T learning locally: 85.625% validation in eight epochs at LR 0.00001.
+  This is not final test evidence or a Swin3D-S repair; comparison changes remain gated.
 - [2026-10-14: focused search and ten-model comparison preview](2026-10-14/README.md) —
   all 64 search jobs checked against imported summaries/histories, a 128-image
   search gallery and ten comparison trainings; validation plots/tables,

@@ -1,0 +1,4429 @@
+{
+  "run_dir": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/experiments/20261015_111713_534812_abnormal-activities-dataset_transformer-train-only-audit",
+  "status": "complete",
+  "sources": [
+    {
+      "index": 0,
+      "path": "Begging/GOPR2510.mp4",
+      "label": 0,
+      "class_name": "Begging",
+      "partition": "train",
+      "sha256": "40a52c97f51b1250c5725fd27561d5211dca2e5ed92bbc7ee4e1ef347cc2cb71",
+      "sampling": {
+        "sampling_version": "timestamps_v1",
+        "source_fps": 29.97,
+        "target_fps": 16,
+        "source_frame_count": 294,
+        "source_duration_seconds": 9.80980980980981,
+        "variable_frame_rate": false,
+        "target_timestamps_seconds": [
+          0.0,
+          0.0625,
+          0.125,
+          0.1875,
+          0.25,
+          0.3125,
+          0.375,
+          0.4375
+        ],
+        "selected_indices": [
+          0,
+          1,
+          3,
+          5,
+          7,
+          9,
+          11,
+          13
+        ],
+        "selected_timestamps_seconds": [
+          0.0,
+          0.0333667000333667,
+          0.1001001001001001,
+          0.1668335001668335,
+          0.2335669002335669,
+          0.3003003003003003,
+          0.3670337003670337,
+          0.4337671004337671
+        ],
+        "unique_frames": 8,
+        "padding_mask": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "padding_fraction": 0.0,
+        "duplicate_fraction": 0.0,
+        "temporal_coverage_seconds": 0.4337671004337671,
+        "requested_span_seconds": 0.4375,
+        "policy": "clip_start_zero; causal_zero_order_hold; repeat_last_after_end"
+      }
+    },
+    {
+      "index": 134,
+      "path": "Drunkenness/GOPR2517_1.mp4",
+      "label": 1,
+      "class_name": "Drunkenness",
+      "partition": "train",
+      "sha256": "a9eb661f4c930f46b0fffa696c263fdcac1b478ae47f619e8a612997f2392a62",
+      "sampling": {
+        "sampling_version": "timestamps_v1",
+        "source_fps": 29.97,
+        "target_fps": 16,
+        "source_frame_count": 194,
+        "source_duration_seconds": 6.47313980647314,
+        "variable_frame_rate": false,
+        "target_timestamps_seconds": [
+          0.0,
+          0.0625,
+          0.125,
+          0.1875,
+          0.25,
+          0.3125,
+          0.375,
+          0.4375
+        ],
+        "selected_indices": [
+          0,
+          1,
+          3,
+          5,
+          7,
+          9,
+          11,
+          13
+        ],
+        "selected_timestamps_seconds": [
+          0.0,
+          0.0333667000333667,
+          0.1001001001001001,
+          0.1668335001668335,
+          0.2335669002335669,
+          0.3003003003003003,
+          0.3670337003670337,
+          0.4337671004337671
+        ],
+        "unique_frames": 8,
+        "padding_mask": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "padding_fraction": 0.0,
+        "duplicate_fraction": 0.0,
+        "temporal_coverage_seconds": 0.4337671004337671,
+        "requested_span_seconds": 0.4375,
+        "policy": "clip_start_zero; causal_zero_order_hold; repeat_last_after_end"
+      }
+    },
+    {
+      "index": 3,
+      "path": "Begging/GP012506_1.mp4",
+      "label": 0,
+      "class_name": "Begging",
+      "partition": "train",
+      "sha256": "968c0315c841e957bc88cb0424b32ff29deaa5aa15bdae56fdc61690783777ce",
+      "sampling": {
+        "sampling_version": "timestamps_v1",
+        "source_fps": 29.97,
+        "target_fps": 16,
+        "source_frame_count": 105,
+        "source_duration_seconds": 3.5035035035035036,
+        "variable_frame_rate": false,
+        "target_timestamps_seconds": [
+          0.0,
+          0.0625,
+          0.125,
+          0.1875,
+          0.25,
+          0.3125,
+          0.375,
+          0.4375
+        ],
+        "selected_indices": [
+          0,
+          1,
+          3,
+          5,
+          7,
+          9,
+          11,
+          13
+        ],
+        "selected_timestamps_seconds": [
+          0.0,
+          0.0333667000333667,
+          0.1001001001001001,
+          0.1668335001668335,
+          0.2335669002335669,
+          0.3003003003003003,
+          0.3670337003670337,
+          0.4337671004337671
+        ],
+        "unique_frames": 8,
+        "padding_mask": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "padding_fraction": 0.0,
+        "duplicate_fraction": 0.0,
+        "temporal_coverage_seconds": 0.4337671004337671,
+        "requested_span_seconds": 0.4375,
+        "policy": "clip_start_zero; causal_zero_order_hold; repeat_last_after_end"
+      }
+    },
+    {
+      "index": 138,
+      "path": "Drunkenness/GOPR2517_13.mp4",
+      "label": 1,
+      "class_name": "Drunkenness",
+      "partition": "train",
+      "sha256": "f258c5217c79f03f62c290c1a6a07e2a0bbd50326b27a97b5da3b4faf99fbaf7",
+      "sampling": {
+        "sampling_version": "timestamps_v1",
+        "source_fps": 29.97,
+        "target_fps": 16,
+        "source_frame_count": 200,
+        "source_duration_seconds": 6.67334000667334,
+        "variable_frame_rate": false,
+        "target_timestamps_seconds": [
+          0.0,
+          0.0625,
+          0.125,
+          0.1875,
+          0.25,
+          0.3125,
+          0.375,
+          0.4375
+        ],
+        "selected_indices": [
+          0,
+          1,
+          3,
+          5,
+          7,
+          9,
+          11,
+          13
+        ],
+        "selected_timestamps_seconds": [
+          0.0,
+          0.0333667000333667,
+          0.1001001001001001,
+          0.1668335001668335,
+          0.2335669002335669,
+          0.3003003003003003,
+          0.3670337003670337,
+          0.4337671004337671
+        ],
+        "unique_frames": 8,
+        "padding_mask": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "padding_fraction": 0.0,
+        "duplicate_fraction": 0.0,
+        "temporal_coverage_seconds": 0.4337671004337671,
+        "requested_span_seconds": 0.4375,
+        "policy": "clip_start_zero; causal_zero_order_hold; repeat_last_after_end"
+      }
+    }
+  ],
+  "class_names": [
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism"
+  ],
+  "split": {
+    "manifest_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+    "manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+    "seed": 42,
+    "requested_ratios": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "counts": {
+      "train": 748,
+      "validation": 160,
+      "test": 161,
+      "total": 1069
+    },
+    "class_counts": {
+      "Begging": {
+        "total": 133,
+        "train": 93,
+        "validation": 20,
+        "test": 20
+      },
+      "Drunkenness": {
+        "total": 90,
+        "train": 63,
+        "validation": 13,
+        "test": 14
+      },
+      "Fight": {
+        "total": 95,
+        "train": 67,
+        "validation": 14,
+        "test": 14
+      },
+      "Harassment": {
+        "total": 89,
+        "train": 62,
+        "validation": 14,
+        "test": 13
+      },
+      "Hijack": {
+        "total": 77,
+        "train": 54,
+        "validation": 12,
+        "test": 11
+      },
+      "Knife Hazard": {
+        "total": 100,
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "Normal Videos": {
+        "total": 115,
+        "train": 80,
+        "validation": 17,
+        "test": 18
+      },
+      "Pollution": {
+        "total": 114,
+        "train": 80,
+        "validation": 17,
+        "test": 17
+      },
+      "Property Damage": {
+        "total": 96,
+        "train": 67,
+        "validation": 14,
+        "test": 15
+      },
+      "Robbery": {
+        "total": 86,
+        "train": 60,
+        "validation": 13,
+        "test": 13
+      },
+      "Terrorism": {
+        "total": 74,
+        "train": 52,
+        "validation": 11,
+        "test": 11
+      }
+    },
+    "split_level": "clip"
+  },
+  "source_sha256": {
+    "notebooks/utils/diagnostics.py": "01b3406706dd3c9d797b9e4578db602cdbd29602e2f1e389af44c9a5979ed3b1",
+    "src/experiments.py": "24f4b0cdd74b8ac32ea71b848aafb18441b3c041f23ab7b11c3d747ad8e9c81c",
+    "src/metrics.py": "6d121e4f6a0640ba980c69b85b83efce5ff9451ed0b49dc280d42ab84404c56c",
+    "src/dataset.py": "f38b8e5ed48bca858516d62501af56cd7ca1ad1cb29b414d16a4805e2a606201",
+    "src/temporal_sampling.py": "978317344f5b94ba98ca19551fb7fb27872b7b0136b0875389de9ca3ca805b5d"
+  },
+  "validation_clips_opened": 0,
+  "test_clips_opened": 0,
+  "models": {
+    "swin3d_t": {
+      "model": "swin3d_t",
+      "parameters": 27858929,
+      "device": "cuda",
+      "duration_seconds": 5.588235986997461,
+      "device_name": "NVIDIA GeForce RTX 4050 Laptop GPU",
+      "peak_allocated_bytes": 653025280,
+      "recipe": {
+        "seed": 42,
+        "steps": 64,
+        "batch_size": 2,
+        "weights": null,
+        "optimizer": "Adam",
+        "learning_rate": 0.001,
+        "weight_decay": 0,
+        "augmentation": false,
+        "scheduler": "none",
+        "determinism": {
+          "seed": 42,
+          "python_random": true,
+          "numpy": true,
+          "pytorch_cpu": true,
+          "pytorch_cuda": true,
+          "cudnn_benchmark": false,
+          "cudnn_deterministic": true,
+          "deterministic_algorithms": true,
+          "deterministic_warn_only": true
+        }
+      },
+      "input_shape_btchw": [
+        4,
+        8,
+        3,
+        64,
+        64
+      ],
+      "input_dtype": "torch.float32",
+      "input_range": [
+        0.0,
+        1.0
+      ],
+      "backbone_input_bcthw": {
+        "shape": [
+          2,
+          3,
+          8,
+          64,
+          64
+        ],
+        "minimum": 0.0,
+        "maximum": 0.9686274528503418
+      },
+      "num_classes": 11,
+      "labels": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "optimizer_covers_all_parameters": true,
+      "learning": [
+        {
+          "step": 0,
+          "loss": 3.5353307723999023,
+          "accuracy": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "prediction_counts": {
+            "8": 4
+          },
+          "sample_logit_std": 0.03341761603951454
+        },
+        {
+          "step": 8,
+          "loss": 0.788912832736969,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 5.155124017619528e-05
+        },
+        {
+          "step": 16,
+          "loss": 1.0180943608283997,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 1.7249645679839887e-05
+        },
+        {
+          "step": 24,
+          "loss": 0.8236979246139526,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 1.0730757821875159e-05
+        },
+        {
+          "step": 32,
+          "loss": 0.7313870489597321,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 8.763555342738982e-06
+        },
+        {
+          "step": 40,
+          "loss": 0.6984820663928986,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 8.076949598034844e-06
+        },
+        {
+          "step": 48,
+          "loss": 0.6938125491142273,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 7.756161721772514e-06
+        },
+        {
+          "step": 56,
+          "loss": 0.6948179602622986,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 7.797407306497917e-06
+        },
+        {
+          "step": 64,
+          "loss": 0.6934412717819214,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 7.5343182288634125e-06
+        }
+      ],
+      "step_metrics": [
+        {
+          "step": 1,
+          "loss": 3.5673866271972656,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 2,
+          "loss": 0.7904770970344543,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 3,
+          "loss": 8.429954528808594,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 4,
+          "loss": 4.4942851066589355,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 5,
+          "loss": 1.6468714475631714,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 6,
+          "loss": 0.9310025572776794,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 7,
+          "loss": 1.2857072353363037,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 8,
+          "loss": 1.2581130266189575,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 9,
+          "loss": 0.7852117419242859,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 10,
+          "loss": 0.7469056844711304,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 11,
+          "loss": 0.9660000205039978,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 12,
+          "loss": 1.4171949625015259,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 13,
+          "loss": 0.76957106590271,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 14,
+          "loss": 0.9178051948547363,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 15,
+          "loss": 0.5023338794708252,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 16,
+          "loss": 0.9241434335708618,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 17,
+          "loss": 1.9888689517974854,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 18,
+          "loss": 2.227595567703247,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 19,
+          "loss": 0.8770225644111633,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 20,
+          "loss": 0.6850337386131287,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 21,
+          "loss": 0.6952928304672241,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 22,
+          "loss": 0.755020797252655,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 23,
+          "loss": 0.8334449529647827,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 24,
+          "loss": 0.8602729439735413,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 25,
+          "loss": 0.7608917951583862,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 26,
+          "loss": 0.7573320865631104,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 27,
+          "loss": 0.7295633554458618,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 28,
+          "loss": 0.6964759826660156,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 29,
+          "loss": 0.7319709658622742,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 30,
+          "loss": 0.76265549659729,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 31,
+          "loss": 0.7889703512191772,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 32,
+          "loss": 0.724578857421875,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 33,
+          "loss": 0.6571850776672363,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 34,
+          "loss": 0.9343336224555969,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 35,
+          "loss": 0.7125360369682312,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 36,
+          "loss": 0.707404375076294,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 37,
+          "loss": 0.7662950754165649,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 38,
+          "loss": 0.7795008420944214,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 39,
+          "loss": 0.7139530181884766,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 40,
+          "loss": 0.8252352476119995,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 41,
+          "loss": 0.6980799436569214,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 42,
+          "loss": 0.6655093431472778,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 43,
+          "loss": 0.7112886309623718,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 44,
+          "loss": 0.7297974228858948,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 45,
+          "loss": 0.7362594604492188,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 46,
+          "loss": 0.6473885774612427,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 47,
+          "loss": 0.6564773321151733,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 48,
+          "loss": 0.8219760656356812,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 49,
+          "loss": 0.6931204795837402,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 50,
+          "loss": 0.602940559387207,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 51,
+          "loss": 0.6963735222816467,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 52,
+          "loss": 0.6971021890640259,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 53,
+          "loss": 0.6085489988327026,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 54,
+          "loss": 0.6945434808731079,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 55,
+          "loss": 0.6932947039604187,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 56,
+          "loss": 0.6931384801864624,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 57,
+          "loss": 0.9291560649871826,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 58,
+          "loss": 0.6963443160057068,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 59,
+          "loss": 0.6950503587722778,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 60,
+          "loss": 0.8840197324752808,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 61,
+          "loss": 0.6917129755020142,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 62,
+          "loss": 0.693642258644104,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 63,
+          "loss": 0.6932916641235352,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 64,
+          "loss": 0.6933489441871643,
+          "accuracy": 0.5,
+          "batch_size": 2
+        }
+      ],
+      "gradient_updates": [
+        {
+          "step": 1,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.32232141494751,
+              "update_norm": 0.09599946439266205
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.677317202091217,
+              "update_norm": 0.16537484526634216
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 21.380640029907227,
+              "update_norm": 0.09191291779279709
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 2,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.0274937152862549,
+              "update_norm": 0.0655001774430275
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.10535749793052673,
+              "update_norm": 0.11435738205909729
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.637712478637695,
+              "update_norm": 0.06214199587702751
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 3,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.331046462059021,
+              "update_norm": 0.05068684741854668
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.032882336527109146,
+              "update_norm": 0.08891307562589645
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 19.608964920043945,
+              "update_norm": 0.04813414067029953
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 4,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.05204397812485695,
+              "update_norm": 0.041739437729120255
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0058700102381408215,
+              "update_norm": 0.07314591854810715
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 19.611433029174805,
+              "update_norm": 0.04180220514535904
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 5,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.03208690509200096,
+              "update_norm": 0.03534900024533272
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.003752353135496378,
+              "update_norm": 0.062322743237018585
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 18.181884765625,
+              "update_norm": 0.038345493376255035
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 6,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.011603293009102345,
+              "update_norm": 0.030462386086583138
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.001357257948257029,
+              "update_norm": 0.05334298685193062
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 12.05819034576416,
+              "update_norm": 0.030573531985282898
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 7,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.011404631659388542,
+              "update_norm": 0.026618095114827156
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0013688987819477916,
+              "update_norm": 0.04643234238028526
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 17.70464324951172,
+              "update_norm": 0.026107100769877434
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 8,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.004163773730397224,
+              "update_norm": 0.023481667041778564
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0005229003145359457,
+              "update_norm": 0.04089749604463577
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 15.674220085144043,
+              "update_norm": 0.024354882538318634
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 9,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0019642284605652094,
+              "update_norm": 0.020855551585555077
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00027543416945263743,
+              "update_norm": 0.036283187568187714
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.998048305511475,
+              "update_norm": 0.022843876853585243
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 10,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0015908869681879878,
+              "update_norm": 0.01860312558710575
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00023707958462182432,
+              "update_norm": 0.03237985447049141
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.28823184967041,
+              "update_norm": 0.01948651671409607
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 11,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0024548207875341177,
+              "update_norm": 0.016659308224916458
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003702418180182576,
+              "update_norm": 0.029033975675702095
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 12.70901107788086,
+              "update_norm": 0.016654135659337044
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 12,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.002847128314897418,
+              "update_norm": 0.014964589849114418
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00042275956366211176,
+              "update_norm": 0.026154134422540665
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 15.095573425292969,
+              "update_norm": 0.015926877036690712
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 13,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0020478677470237017,
+              "update_norm": 0.01348031684756279
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003261486126575619,
+              "update_norm": 0.023633690550923347
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 12.583037376403809,
+              "update_norm": 0.0161521565169096
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 14,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0014331832062453032,
+              "update_norm": 0.012173134833574295
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00021745424601249397,
+              "update_norm": 0.021389972418546677
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.665563583374023,
+              "update_norm": 0.015707653015851974
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 15,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.000222146074520424,
+              "update_norm": 0.011017488315701485
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.0098733986960724e-05,
+              "update_norm": 0.019340796396136284
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.3011186122894287,
+              "update_norm": 0.013802972622215748
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 16,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0010469496482983232,
+              "update_norm": 0.009990296326577663
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00017820473294705153,
+              "update_norm": 0.017485033720731735
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 11.925782203674316,
+              "update_norm": 0.01096044946461916
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 17,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.001444831257686019,
+              "update_norm": 0.00907460693269968
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00025585555704310536,
+              "update_norm": 0.015822000801563263
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 12.986824035644531,
+              "update_norm": 0.010545254684984684
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 18,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.003157682018354535,
+              "update_norm": 0.008267117664217949
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0005864680861122906,
+              "update_norm": 0.014338758774101734
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 16.20036506652832,
+              "update_norm": 0.012053086422383785
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 19,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0008044298738241196,
+              "update_norm": 0.007518419064581394
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0001407805539201945,
+              "update_norm": 0.01303163543343544
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.772238731384277,
+              "update_norm": 0.012705398723483086
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 20,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0004938638885505497,
+              "update_norm": 0.006838624831289053
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.137671102304012e-05,
+              "update_norm": 0.011854465119540691
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.975216388702393,
+              "update_norm": 0.013013354502618313
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 21,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.236173016484827e-05,
+              "update_norm": 0.006221488118171692
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.425067603122443e-05,
+              "update_norm": 0.01078212633728981
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.2179580926895142,
+              "update_norm": 0.011641443707048893
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 22,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0004048480186611414,
+              "update_norm": 0.005659624934196472
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.46080550015904e-05,
+              "update_norm": 0.009806293062865734
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.722804069519043,
+              "update_norm": 0.009311615489423275
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 23,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0004872876452282071,
+              "update_norm": 0.005149304401129484
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.063666220754385e-05,
+              "update_norm": 0.008926319889724255
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.68605899810791,
+              "update_norm": 0.007404190953820944
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 24,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0004742212186101824,
+              "update_norm": 0.004685660824179649
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.901496039470658e-05,
+              "update_norm": 0.008138332515954971
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 10.468876838684082,
+              "update_norm": 0.007093898486346006
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 25,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0005332849686965346,
+              "update_norm": 0.004263439681380987
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.000103909129393287,
+              "update_norm": 0.007437391206622124
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.796525001525879,
+              "update_norm": 0.00785116758197546
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 26,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002338795457035303,
+              "update_norm": 0.0038821063935756683
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.5520788262365386e-05,
+              "update_norm": 0.00679576164111495
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.228761196136475,
+              "update_norm": 0.008753729052841663
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 27,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00025398508296348155,
+              "update_norm": 0.0035347051452845335
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.0456179451430216e-05,
+              "update_norm": 0.006213485728949308
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.091514587402344,
+              "update_norm": 0.009304751642048359
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 28,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.330787047976628e-05,
+              "update_norm": 0.003220865735784173
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.271354267373681e-05,
+              "update_norm": 0.005656960885971785
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.5472546815872192,
+              "update_norm": 0.008172690868377686
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 29,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00020850221335422248,
+              "update_norm": 0.0029361965134739876
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.973861021222547e-05,
+              "update_norm": 0.005134718958288431
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.376843452453613,
+              "update_norm": 0.006297995336353779
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 30,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00042146723717451096,
+              "update_norm": 0.0026789528783410788
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.370309660676867e-05,
+              "update_norm": 0.004658597055822611
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.035208702087402,
+              "update_norm": 0.005005549639463425
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 31,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003119958273600787,
+              "update_norm": 0.0024432064965367317
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.906756268814206e-05,
+              "update_norm": 0.0042399936355650425
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.20490837097168,
+              "update_norm": 0.0048661078326404095
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 32,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00020746825612150133,
+              "update_norm": 0.0022276523523032665
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.745596404769458e-05,
+              "update_norm": 0.0038678760174661875
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.789518356323242,
+              "update_norm": 0.005735264625400305
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 33,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003132027923129499,
+              "update_norm": 0.0020321800839155912
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.22478619334288e-05,
+              "update_norm": 0.0035417627077549696
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.306215763092041,
+              "update_norm": 0.006431926041841507
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 34,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0010620204266160727,
+              "update_norm": 0.0018619290785863996
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00022202286345418543,
+              "update_norm": 0.003417622996494174
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.111513137817383,
+              "update_norm": 0.007355750072747469
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 35,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00022207986330613494,
+              "update_norm": 0.0016979901120066643
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.345813795225695e-05,
+              "update_norm": 0.0031785869505256414
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.7940149307250977,
+              "update_norm": 0.007901925593614578
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 36,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0001733653189148754,
+              "update_norm": 0.001544326194562018
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.59876939910464e-05,
+              "update_norm": 0.002841073088347912
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.379578590393066,
+              "update_norm": 0.005802578292787075
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 37,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00034923263592645526,
+              "update_norm": 0.0014022297691553831
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.191555778263137e-05,
+              "update_norm": 0.002503607887774706
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.177148342132568,
+              "update_norm": 0.004045021720230579
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 38,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00031075970036908984,
+              "update_norm": 0.001272925059311092
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.401510472642258e-05,
+              "update_norm": 0.002236246597021818
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.822460174560547,
+              "update_norm": 0.004009888507425785
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 39,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003141200286336243,
+              "update_norm": 0.001154756755568087
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.610302807530388e-05,
+              "update_norm": 0.0020323838107287884
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.487350463867188,
+              "update_norm": 0.005713463295251131
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 40,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.478869469603524e-05,
+              "update_norm": 0.0010517031187191606
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.567659819556866e-05,
+              "update_norm": 0.0018572481349110603
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.6097323894500732,
+              "update_norm": 0.006150995381176472
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 41,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.224962948588654e-05,
+              "update_norm": 0.000956026604399085
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.7219732399098575e-05,
+              "update_norm": 0.001695425366051495
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.9366569519042969,
+              "update_norm": 0.006287055090069771
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 42,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00019018469902221113,
+              "update_norm": 0.0008714897558093071
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.866905899485573e-05,
+              "update_norm": 0.0015526196220889688
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.2458916902542114,
+              "update_norm": 0.0058088116347789764
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 43,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00011272531264694408,
+              "update_norm": 0.0007939935312606394
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.1358337107812986e-05,
+              "update_norm": 0.0014219689182937145
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.662642478942871,
+              "update_norm": 0.0044738249853253365
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 44,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00017569628835190088,
+              "update_norm": 0.0007240602280944586
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.530846879584715e-05,
+              "update_norm": 0.0013290006900206208
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.188716888427734,
+              "update_norm": 0.0034455086570233107
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 45,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002504930307622999,
+              "update_norm": 0.0006614828016608953
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.1022027037106454e-05,
+              "update_norm": 0.0012846962781623006
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.53564453125,
+              "update_norm": 0.003615358378738165
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 46,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.96075289347209e-05,
+              "update_norm": 0.0006003754679113626
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.3837129699822981e-05,
+              "update_norm": 0.00116767268627882
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.5165624618530273,
+              "update_norm": 0.003918186761438847
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 47,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00027693540323525667,
+              "update_norm": 0.0005491048796102405
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.6580640375614166e-05,
+              "update_norm": 0.0011860631639137864
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.9934706687927246,
+              "update_norm": 0.004275540821254253
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 48,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00014109225594438612,
+              "update_norm": 0.0004976242780685425
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.7976708224741742e-05,
+              "update_norm": 0.0010296670952811837
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.4161970615386963,
+              "update_norm": 0.004118600860238075
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 49,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00010811321408255026,
+              "update_norm": 0.000450576888397336
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.3814416636014357e-05,
+              "update_norm": 0.000902222644072026
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.7758320569992065,
+              "update_norm": 0.004112607799470425
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 50,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.175636058789678e-05,
+              "update_norm": 0.00040944520151242614
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.4802547967701685e-06,
+              "update_norm": 0.0008416575728915632
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.9936108589172363,
+              "update_norm": 0.0033995104022324085
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 51,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.044656427344307e-05,
+              "update_norm": 0.00037130239070393145
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.0128603207704145e-05,
+              "update_norm": 0.0007566279964521527
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.439124345779419,
+              "update_norm": 0.0031712395139038563
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 52,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00013038433098699898,
+              "update_norm": 0.00033532618544995785
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.739082628977485e-05,
+              "update_norm": 0.0006784734432585537
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.727966547012329,
+              "update_norm": 0.0030854246579110622
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 53,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0001153144912677817,
+              "update_norm": 0.0003058025613427162
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.154147114197258e-05,
+              "update_norm": 0.0006425032042898238
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.8573646545410156,
+              "update_norm": 0.0035193688236176968
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 54,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0001567743456689641,
+              "update_norm": 0.00027518757269717753
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.2796651794342324e-05,
+              "update_norm": 0.000591426738537848
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.9240735173225403,
+              "update_norm": 0.0035519201774150133
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 55,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.6150721168960445e-05,
+              "update_norm": 0.0002497306268196553
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.9854662645666394e-06,
+              "update_norm": 0.000546867202501744
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.07706374675035477,
+              "update_norm": 0.0034441284369677305
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 56,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.873687379993498e-05,
+              "update_norm": 0.0002256446605315432
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.4765385458304081e-05,
+              "update_norm": 0.0005330729181878269
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.7326480746269226,
+              "update_norm": 0.0032322078477591276
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 57,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.008740016724914e-05,
+              "update_norm": 0.00020508159650489688
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.2412099749781191e-05,
+              "update_norm": 0.0004994465271010995
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.900344729423523,
+              "update_norm": 0.0033104494214057922
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 58,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002437485527480021,
+              "update_norm": 0.00018299015937373042
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.263078128336929e-05,
+              "update_norm": 0.0005988822667859495
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.4313151836395264,
+              "update_norm": 0.0035985014401376247
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 59,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.170015720068477e-05,
+              "update_norm": 0.00016639626119285822
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.167443749902304e-06,
+              "update_norm": 0.0005283240461722016
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.1619490385055542,
+              "update_norm": 0.0035449471324682236
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 60,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00019101814541500062,
+              "update_norm": 0.00014877528883516788
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.060336505062878e-05,
+              "update_norm": 0.0006493501714430749
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.8867990970611572,
+              "update_norm": 0.0032015913166105747
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 61,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.715103856753558e-05,
+              "update_norm": 0.00013500316708814353
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.3291473806020804e-05,
+              "update_norm": 0.0005692461272701621
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.7453463077545166,
+              "update_norm": 0.003119111293926835
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 62,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.7906971051124856e-05,
+              "update_norm": 0.00012285562115721405
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.0800173185998574e-05,
+              "update_norm": 0.0005152386729605496
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.5807522535324097,
+              "update_norm": 0.003070921404287219
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 63,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00010448284592712298,
+              "update_norm": 0.00010994177864631638
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.2380925656761974e-05,
+              "update_norm": 0.0005573728121817112
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.3417379856109619,
+              "update_norm": 0.0030272493604570627
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 64,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.838508852524683e-05,
+              "update_norm": 9.886430052574724e-05
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.4975225894886535e-05,
+              "update_norm": 0.0005904518184252083
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.041375089436769485,
+              "update_norm": 0.0029707688372582197
+            }
+          },
+          "all_gradients_present_and_finite": true
+        }
+      ],
+      "limitations": "Train-only tiny check, not a full-recipe reproduction or held-out score; batch 1/2 and fixed LR replace the historical batch-32 plateau schedule."
+    },
+    "swin3d_s": {
+      "model": "swin3d_s",
+      "parameters": 49517537,
+      "device": "cuda",
+      "duration_seconds": 13.103508791002241,
+      "device_name": "NVIDIA GeForce RTX 4050 Laptop GPU",
+      "peak_allocated_bytes": 1107141632,
+      "recipe": {
+        "seed": 42,
+        "steps": 64,
+        "batch_size": 2,
+        "weights": null,
+        "optimizer": "Adam",
+        "learning_rate": 0.001,
+        "weight_decay": 0,
+        "augmentation": false,
+        "scheduler": "none",
+        "determinism": {
+          "seed": 42,
+          "python_random": true,
+          "numpy": true,
+          "pytorch_cpu": true,
+          "pytorch_cuda": true,
+          "cudnn_benchmark": false,
+          "cudnn_deterministic": true,
+          "deterministic_algorithms": true,
+          "deterministic_warn_only": true
+        }
+      },
+      "input_shape_btchw": [
+        4,
+        8,
+        3,
+        64,
+        64
+      ],
+      "input_dtype": "torch.float32",
+      "input_range": [
+        0.0,
+        1.0
+      ],
+      "backbone_input_bcthw": {
+        "shape": [
+          2,
+          3,
+          8,
+          64,
+          64
+        ],
+        "minimum": 0.0,
+        "maximum": 0.9686274528503418
+      },
+      "num_classes": 11,
+      "labels": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "optimizer_covers_all_parameters": true,
+      "learning": [
+        {
+          "step": 0,
+          "loss": 2.248782753944397,
+          "accuracy": 0.25,
+          "precision": 0.25,
+          "recall": 0.25,
+          "f1": 0.25,
+          "prediction_counts": {
+            "3": 2,
+            "0": 2
+          },
+          "sample_logit_std": 0.04770779609680176
+        },
+        {
+          "step": 8,
+          "loss": 0.7554138004779816,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 2.0233666873537004e-05
+        },
+        {
+          "step": 16,
+          "loss": 0.797295331954956,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 7.042790912237251e-06
+        },
+        {
+          "step": 24,
+          "loss": 0.6965223848819733,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 4.8290944505424704e-06
+        },
+        {
+          "step": 32,
+          "loss": 0.6977977156639099,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 4.017736500827596e-06
+        },
+        {
+          "step": 40,
+          "loss": 0.6998975276947021,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 3.780733777603018e-06
+        },
+        {
+          "step": 48,
+          "loss": 0.709281861782074,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 3.479783345028409e-06
+        },
+        {
+          "step": 56,
+          "loss": 0.7071402966976166,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "0": 4
+          },
+          "sample_logit_std": 3.4706397400441347e-06
+        },
+        {
+          "step": 64,
+          "loss": 0.7202703058719635,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "prediction_counts": {
+            "1": 4
+          },
+          "sample_logit_std": 3.4529221011325717e-06
+        }
+      ],
+      "step_metrics": [
+        {
+          "step": 1,
+          "loss": 2.243039608001709,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 2,
+          "loss": 1.3584002256393433,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 3,
+          "loss": 7.790426254272461,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 4,
+          "loss": 2.9825806617736816,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 5,
+          "loss": 0.7589026689529419,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 6,
+          "loss": 1.8513505458831787,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 7,
+          "loss": 1.3428676128387451,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 8,
+          "loss": 0.8103582859039307,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 9,
+          "loss": 0.7239266633987427,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 10,
+          "loss": 1.0170525312423706,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 11,
+          "loss": 1.0401396751403809,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 12,
+          "loss": 0.9117100834846497,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 13,
+          "loss": 0.7026489973068237,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 14,
+          "loss": 0.9242879748344421,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 15,
+          "loss": 0.8389452695846558,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 16,
+          "loss": 0.8551914095878601,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 17,
+          "loss": 0.7928603887557983,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 18,
+          "loss": 0.6054656505584717,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 19,
+          "loss": 0.5995041728019714,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 20,
+          "loss": 0.7390861511230469,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 21,
+          "loss": 0.7544359564781189,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 22,
+          "loss": 1.3363739252090454,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 23,
+          "loss": 1.2928967475891113,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 24,
+          "loss": 0.732663094997406,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 25,
+          "loss": 0.6956515312194824,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 26,
+          "loss": 0.6943469047546387,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 27,
+          "loss": 0.7076222896575928,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 28,
+          "loss": 0.7595085501670837,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 29,
+          "loss": 0.6833488941192627,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 30,
+          "loss": 0.7065619826316833,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 31,
+          "loss": 0.8187249898910522,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 32,
+          "loss": 0.6919772028923035,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 33,
+          "loss": 0.6506757140159607,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 34,
+          "loss": 0.704386293888092,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 35,
+          "loss": 0.7910091876983643,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 36,
+          "loss": 0.7052128314971924,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 37,
+          "loss": 0.6995279788970947,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 38,
+          "loss": 0.693333625793457,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 39,
+          "loss": 0.6922076940536499,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 40,
+          "loss": 0.6972568035125732,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 41,
+          "loss": 0.7001212239265442,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 42,
+          "loss": 0.7010643482208252,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 43,
+          "loss": 0.6837422847747803,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 44,
+          "loss": 0.7124197483062744,
+          "accuracy": 0.0,
+          "batch_size": 2
+        },
+        {
+          "step": 45,
+          "loss": 0.609451174736023,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 46,
+          "loss": 0.6540365219116211,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 47,
+          "loss": 0.6237772703170776,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 48,
+          "loss": 0.5951464176177979,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 49,
+          "loss": 0.7098093032836914,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 50,
+          "loss": 0.5822364091873169,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 51,
+          "loss": 0.4628793001174927,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 52,
+          "loss": 0.5932217240333557,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 53,
+          "loss": 0.4981811046600342,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 54,
+          "loss": 0.9114385843276978,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 55,
+          "loss": 0.6951749324798584,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 56,
+          "loss": 0.549893856048584,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 57,
+          "loss": 0.7032729387283325,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 58,
+          "loss": 0.49851077795028687,
+          "accuracy": 1.0,
+          "batch_size": 2
+        },
+        {
+          "step": 59,
+          "loss": 0.7184604406356812,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 60,
+          "loss": 0.7103549242019653,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 61,
+          "loss": 0.6983727216720581,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 62,
+          "loss": 0.6025551557540894,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 63,
+          "loss": 0.6970707178115845,
+          "accuracy": 0.5,
+          "batch_size": 2
+        },
+        {
+          "step": 64,
+          "loss": 0.40812280774116516,
+          "accuracy": 1.0,
+          "batch_size": 2
+        }
+      ],
+      "gradient_updates": [
+        {
+          "step": 1,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.747079372406006,
+              "update_norm": 0.09599986672401428
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.45930421352386475,
+              "update_norm": 0.16547128558158875
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 16.670408248901367,
+              "update_norm": 0.0919128879904747
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 2,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.826393723487854,
+              "update_norm": 0.06627391278743744
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.1864110827445984,
+              "update_norm": 0.1224842295050621
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 16.559839248657227,
+              "update_norm": 0.0625937283039093
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 3,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.14353856444358826,
+              "update_norm": 0.05145147070288658
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.015744812786579132,
+              "update_norm": 0.09713934361934662
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 19.61431121826172,
+              "update_norm": 0.04816770181059837
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 4,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.05621599778532982,
+              "update_norm": 0.04235011339187622
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.004513212479650974,
+              "update_norm": 0.07941462844610214
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 19.57185173034668,
+              "update_norm": 0.04128896817564964
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 5,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.008962787687778473,
+              "update_norm": 0.035774555057287216
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0007435974548570812,
+              "update_norm": 0.06716606765985489
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.981239318847656,
+              "update_norm": 0.03391844406723976
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 6,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.003500749124214053,
+              "update_norm": 0.03081531450152397
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00033107155468314886,
+              "update_norm": 0.05785800889134407
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.06210470199585,
+              "update_norm": 0.02955537661910057
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 7,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.005313222296535969,
+              "update_norm": 0.02691742032766342
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0005179165746085346,
+              "update_norm": 0.05065347999334335
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 16.918193817138672,
+              "update_norm": 0.027073746547102928
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 8,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.001505790394730866,
+              "update_norm": 0.02373601123690605
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00016582425450906157,
+              "update_norm": 0.04471531882882118
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.000969886779785,
+              "update_norm": 0.025346005335450172
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 9,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.001006368431262672,
+              "update_norm": 0.021065175533294678
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00011536608508322388,
+              "update_norm": 0.03963663801550865
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.636043548583984,
+              "update_norm": 0.02166922204196453
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 10,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0016140369698405266,
+              "update_norm": 0.018788114190101624
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00019114575115963817,
+              "update_norm": 0.03527923673391342
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 13.56626033782959,
+              "update_norm": 0.01815401390194893
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 11,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0014816031325608492,
+              "update_norm": 0.016826609149575233
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.000175018998561427,
+              "update_norm": 0.03155050054192543
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 13.869853019714355,
+              "update_norm": 0.017036197707057
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 12,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0006996130687184632,
+              "update_norm": 0.015124231576919556
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.749813423492014e-05,
+              "update_norm": 0.028335006907582283
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 10.884343147277832,
+              "update_norm": 0.016926387324929237
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 13,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002598333521746099,
+              "update_norm": 0.013632665388286114
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.0091594453551807e-05,
+              "update_norm": 0.02553826943039894
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.493196487426758,
+              "update_norm": 0.015759030357003212
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 14,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0013606190914288163,
+              "update_norm": 0.012323260307312012
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00015729609003756195,
+              "update_norm": 0.023094698786735535
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.122310638427734,
+              "update_norm": 0.013223281130194664
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 15,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0007714994135312736,
+              "update_norm": 0.01115788146853447
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.671751467976719e-05,
+              "update_norm": 0.020930450409650803
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.882944107055664,
+              "update_norm": 0.0111277736723423
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 16,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0014758548932150006,
+              "update_norm": 0.010122088715434074
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00018054696556646377,
+              "update_norm": 0.01904348097741604
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 10.473310470581055,
+              "update_norm": 0.010659736581146717
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 17,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0006957401637919247,
+              "update_norm": 0.009188842959702015
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.670167881064117e-05,
+              "update_norm": 0.017333634197711945
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.409589767456055,
+              "update_norm": 0.01067329104989767
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 18,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0004455687594600022,
+              "update_norm": 0.00834767334163189
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.2686675189761445e-05,
+              "update_norm": 0.01577233336865902
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.642434120178223,
+              "update_norm": 0.011064326390624046
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 19,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00016825275088194758,
+              "update_norm": 0.007585387676954269
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.0232158931321464e-05,
+              "update_norm": 0.014320781454443932
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.78017258644104,
+              "update_norm": 0.009469912387430668
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 20,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0005270878900773823,
+              "update_norm": 0.006894465070217848
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.272696191444993e-05,
+              "update_norm": 0.012977208010852337
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.882940292358398,
+              "update_norm": 0.007768452633172274
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 21,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0005793721647933125,
+              "update_norm": 0.006268581375479698
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.358133734669536e-05,
+              "update_norm": 0.011765521951019764
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.670477390289307,
+              "update_norm": 0.006515593733638525
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 22,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00040496079600416124,
+              "update_norm": 0.005703848786652088
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.524716132436879e-05,
+              "update_norm": 0.010693780146539211
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.23267936706543,
+              "update_norm": 0.006397661287337542
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 23,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00027503856108523905,
+              "update_norm": 0.005193434655666351
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.27159978041891e-05,
+              "update_norm": 0.009742985479533672
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.732163906097412,
+              "update_norm": 0.006932357791811228
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 24,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002772963489405811,
+              "update_norm": 0.004727527033537626
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.6576959246303886e-05,
+              "update_norm": 0.008857844397425652
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.812673807144165,
+              "update_norm": 0.006839371751993895
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 25,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00018647013348527253,
+              "update_norm": 0.004304596688598394
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.5961213395930827e-05,
+              "update_norm": 0.008062616921961308
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.5107637643814087,
+              "update_norm": 0.006539930589497089
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 26,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.810720590990968e-05,
+              "update_norm": 0.003921428229659796
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.105700438434724e-06,
+              "update_norm": 0.007344900164753199
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.205657958984375,
+              "update_norm": 0.0057432083413004875
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 27,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00024075628607533872,
+              "update_norm": 0.0035744186025112867
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.135628503514454e-05,
+              "update_norm": 0.006705061532557011
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.3370962142944336,
+              "update_norm": 0.004781106486916542
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 28,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00013578898506239057,
+              "update_norm": 0.0032575668301433325
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.7910670067067258e-05,
+              "update_norm": 0.006119006313383579
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.5615649223327637,
+              "update_norm": 0.004445972852408886
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 29,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00047883196384646,
+              "update_norm": 0.00296403537504375
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.331063195830211e-05,
+              "update_norm": 0.005557585973292589
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.790314197540283,
+              "update_norm": 0.004871850833296776
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 30,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00017243869660887867,
+              "update_norm": 0.002701879944652319
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.3398579287459143e-05,
+              "update_norm": 0.005072306375950575
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.1238036155700684,
+              "update_norm": 0.005223653744906187
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 31,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003366559976711869,
+              "update_norm": 0.002458775183185935
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.388247907627374e-05,
+              "update_norm": 0.004615694284439087
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.2790093421936035,
+              "update_norm": 0.004603993147611618
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 32,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.908784366212785e-05,
+              "update_norm": 0.0022391900420188904
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.1933544556086417e-05,
+              "update_norm": 0.004206214100122452
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.38234245777130127,
+              "update_norm": 0.004125131759792566
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 33,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0006327089504338801,
+              "update_norm": 0.0020341547206044197
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.74209072208032e-05,
+              "update_norm": 0.0038636927492916584
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.4674444198608398,
+              "update_norm": 0.0036865482106804848
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 34,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00017311066039837897,
+              "update_norm": 0.0018517316784709692
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.2286367311608046e-05,
+              "update_norm": 0.0035397245083004236
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.894038200378418,
+              "update_norm": 0.0028993661981076
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 35,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.000117177412903402,
+              "update_norm": 0.001687134150415659
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.5859979612287134e-05,
+              "update_norm": 0.0032150486949831247
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.8124366998672485,
+              "update_norm": 0.0025844573974609375
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 36,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00020241162565071136,
+              "update_norm": 0.0015346759464591742
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.68355397565756e-05,
+              "update_norm": 0.0029575342778116465
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.099062919616699,
+              "update_norm": 0.002767277183011174
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 37,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00012636712926905602,
+              "update_norm": 0.0013963882811367512
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.592866101418622e-05,
+              "update_norm": 0.0027126886416226625
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.252592086791992,
+              "update_norm": 0.003149313386529684
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 38,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.436037801904604e-05,
+              "update_norm": 0.0012707283021882176
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.763512596487999e-06,
+              "update_norm": 0.002485614502802491
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.8992694616317749,
+              "update_norm": 0.0031868836376816034
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 39,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.742762292968109e-05,
+              "update_norm": 0.0011572244111448526
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.1552568139450159e-05,
+              "update_norm": 0.002252066507935524
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.5543750524520874,
+              "update_norm": 0.002759569091722369
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 40,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00012891701771877706,
+              "update_norm": 0.0010544364340603352
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.932687700900715e-05,
+              "update_norm": 0.002037258818745613
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.745551347732544,
+              "update_norm": 0.0020923702977597713
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 41,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00011405525583541021,
+              "update_norm": 0.0009604135411791503
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.5247010196617339e-05,
+              "update_norm": 0.0018495075637474656
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.365373373031616,
+              "update_norm": 0.0017462358810007572
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 42,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00017696442955639213,
+              "update_norm": 0.0008754776790738106
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.4798900994937867e-05,
+              "update_norm": 0.0016876209992915392
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.332347869873047,
+              "update_norm": 0.0020386644173413515
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 43,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.21376743260771e-05,
+              "update_norm": 0.0007971309823915362
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.23475183499977e-05,
+              "update_norm": 0.0015500697772949934
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.6078944206237793,
+              "update_norm": 0.00250765192322433
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 44,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.783428009133786e-05,
+              "update_norm": 0.0007251993520185351
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.788255399849731e-06,
+              "update_norm": 0.001418556086719036
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.8931489586830139,
+              "update_norm": 0.0022736943792551756
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 45,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00035718330764211714,
+              "update_norm": 0.0006559623288922012
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.878181789536029e-05,
+              "update_norm": 0.0013148327125236392
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.9574812650680542,
+              "update_norm": 0.0028968730475753546
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 46,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002073567738989368,
+              "update_norm": 0.0005953513318672776
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.4167587980628014e-05,
+              "update_norm": 0.0012415451928973198
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.6479744911193848,
+              "update_norm": 0.0023888712748885155
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 47,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00046040391316637397,
+              "update_norm": 0.0005373876774683595
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.12032599747181e-05,
+              "update_norm": 0.001306828111410141
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.4076104164123535,
+              "update_norm": 0.002135839080438018
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 48,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00043728394666686654,
+              "update_norm": 0.00048520570271648467
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 6.189246050780639e-05,
+              "update_norm": 0.001464519533328712
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.6606546640396118,
+              "update_norm": 0.002034383825957775
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 49,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003535842406563461,
+              "update_norm": 0.0004389051755424589
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.709931090474129e-05,
+              "update_norm": 0.0015715803019702435
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.4771711826324463,
+              "update_norm": 0.0021490738727152348
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 50,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00026888755382969975,
+              "update_norm": 0.0003975521249230951
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.671584272524342e-05,
+              "update_norm": 0.0016511084977537394
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.818614482879639,
+              "update_norm": 0.004243858158588409
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 51,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003580479824449867,
+              "update_norm": 0.0003603369987104088
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.488927879719995e-05,
+              "update_norm": 0.0017618346028029919
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.6615235805511475,
+              "update_norm": 0.005048647522926331
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 52,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.119760994100943e-05,
+              "update_norm": 0.0003273293550591916
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 8.455933311779518e-06,
+              "update_norm": 0.0015756639186292887
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.072530269622803,
+              "update_norm": 0.002709762193262577
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 53,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0003605687525123358,
+              "update_norm": 0.00029884561081416905
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.862311834585853e-05,
+              "update_norm": 0.0011158609995618463
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.536195755004883,
+              "update_norm": 0.0038648154586553574
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 54,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0006700312369503081,
+              "update_norm": 0.00027645297814160585
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 9.475996193941683e-05,
+              "update_norm": 0.0006992875714786351
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.093064308166504,
+              "update_norm": 0.005530157126486301
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 55,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.887969382456504e-05,
+              "update_norm": 0.00025050839758478105
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.915779860923067e-06,
+              "update_norm": 0.0006647821865044534
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.219193458557129,
+              "update_norm": 0.004486185498535633
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 56,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00038210098864510655,
+              "update_norm": 0.00022440233442466706
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 5.2723789849551395e-05,
+              "update_norm": 0.0007954603643156588
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 7.883761882781982,
+              "update_norm": 0.0018084844341501594
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 57,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.0002607584756333381,
+              "update_norm": 0.00020576057431753725
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.712187026394531e-05,
+              "update_norm": 0.0006164691876620054
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.6456451416015625,
+              "update_norm": 0.002122285310178995
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 58,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00012477570271585137,
+              "update_norm": 0.0001859464537119493
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.5941090168780647e-05,
+              "update_norm": 0.000620481267105788
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.9775856733322144,
+              "update_norm": 0.002478170208632946
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 59,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00026488705771043897,
+              "update_norm": 0.00016699204570613801
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.6166489735478535e-05,
+              "update_norm": 0.0007316209375858307
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.453156471252441,
+              "update_norm": 0.002222432056441903
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 60,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00021132614347152412,
+              "update_norm": 0.00015067883941810578
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.9069979063933715e-05,
+              "update_norm": 0.0008472490007989109
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 3.7381038665771484,
+              "update_norm": 0.0033832865301519632
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 61,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00014462003309745342,
+              "update_norm": 0.00013636838411912322
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.9951721696997993e-05,
+              "update_norm": 0.0008938330574892461
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.9510724544525146,
+              "update_norm": 0.003969073761254549
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 62,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00014669443771708757,
+              "update_norm": 0.00012375034566503018
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.0416604456841014e-05,
+              "update_norm": 0.0009387150639668107
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.6016266345977783,
+              "update_norm": 0.0025627065915614367
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 63,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00013796701387036592,
+              "update_norm": 0.000112094399810303
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.8966662537422962e-05,
+              "update_norm": 0.0007354826666414738
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 1.6792758703231812,
+              "update_norm": 0.0017884154804050922
+            }
+          },
+          "all_gradients_present_and_finite": true
+        },
+        {
+          "step": 64,
+          "training": true,
+          "learning_rate": 0.001,
+          "parameters": {
+            "model.patch_embed.proj.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 0.00018009301857091486,
+              "update_norm": 0.00010174155613640323
+            },
+            "model.features.0.0.attn.qkv.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 2.596248668851331e-05,
+              "update_norm": 0.0008408088469877839
+            },
+            "model.head.weight": {
+              "gradient_finite": true,
+              "gradient_norm": 4.52444314956665,
+              "update_norm": 0.003620265983045101
+            }
+          },
+          "all_gradients_present_and_finite": true
+        }
+      ],
+      "limitations": "Train-only tiny check, not a full-recipe reproduction or held-out score; batch 1/2 and fixed LR replace the historical batch-32 plateau schedule."
+    }
+  }
+}

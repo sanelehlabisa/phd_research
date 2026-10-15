@@ -1,0 +1,576 @@
+{
+  "prediction_examples": {
+    "partition": "validation",
+    "prediction_samples_per_category": 3,
+    "saved_counts": {
+      "correct": 3,
+      "incorrect": 3
+    },
+    "scanned_count": 26,
+    "seed": 42,
+    "playback_fps": 8,
+    "records": [
+      {
+        "path": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/correct/000414_gopr2529_15_true-hijack_pred-hijack.mp4",
+        "source": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset/Hijack/GOPR2529_15.mp4",
+        "source_index": 414,
+        "partition": "validation",
+        "true": "Hijack",
+        "pred": "Hijack",
+        "true_index": 4,
+        "predicted_index": 4,
+        "correct": true,
+        "confidence": 0.9956953525543213
+      },
+      {
+        "path": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/correct/000596_gopr2233_25_2_true-normal-videos_pred-normal-videos.mp4",
+        "source": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset/Normal Videos/GOPR2233_25_2.mp4",
+        "source_index": 596,
+        "partition": "validation",
+        "true": "Normal Videos",
+        "pred": "Normal Videos",
+        "true_index": 6,
+        "predicted_index": 6,
+        "correct": true,
+        "confidence": 0.9923681616783142
+      },
+      {
+        "path": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/correct/000696_gopr2449_7_true-normal-videos_pred-normal-videos.mp4",
+        "source": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset/Normal Videos/GOPR2449_7.mp4",
+        "source_index": 696,
+        "partition": "validation",
+        "true": "Normal Videos",
+        "pred": "Normal Videos",
+        "true_index": 6,
+        "predicted_index": 6,
+        "correct": true,
+        "confidence": 0.9799643158912659
+      },
+      {
+        "path": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/incorrect/000963_gopr2501_58_true-robbery_pred-harassment.mp4",
+        "source": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset/Robbery/GOPR2501_58.mp4",
+        "source_index": 963,
+        "partition": "validation",
+        "true": "Robbery",
+        "pred": "Harassment",
+        "true_index": 9,
+        "predicted_index": 3,
+        "correct": false,
+        "confidence": 0.559281051158905
+      },
+      {
+        "path": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/incorrect/000458_gp012527_30_true-hijack_pred-terrorism.mp4",
+        "source": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset/Hijack/GP012527_30.mp4",
+        "source_index": 458,
+        "partition": "validation",
+        "true": "Hijack",
+        "pred": "Terrorism",
+        "true_index": 4,
+        "predicted_index": 10,
+        "correct": false,
+        "confidence": 0.5963212251663208
+      },
+      {
+        "path": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/incorrect/000130_gp012506_97_true-begging_pred-hijack.mp4",
+        "source": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset/Begging/GP012506_97.mp4",
+        "source_index": 130,
+        "partition": "validation",
+        "true": "Begging",
+        "pred": "Hijack",
+        "true_index": 0,
+        "predicted_index": 4,
+        "correct": false,
+        "confidence": 0.971339225769043
+      }
+    ],
+    "manifest": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/predictions/predictions.json"
+  },
+  "input_dimensions": {
+    "sequence_length": 8,
+    "height": 64,
+    "width": 64,
+    "channels": 3
+  },
+  "dataset_name": "aad",
+  "dataset_dir": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+  "split": {
+    "manifest_path": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/splits/abnormal-activities-dataset_seed42.json",
+    "manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+    "seed": 42,
+    "requested_ratios": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "counts": {
+      "train": 748,
+      "validation": 160,
+      "test": 161,
+      "total": 1069
+    },
+    "class_counts": {
+      "Begging": {
+        "total": 133,
+        "train": 93,
+        "validation": 20,
+        "test": 20
+      },
+      "Drunkenness": {
+        "total": 90,
+        "train": 63,
+        "validation": 13,
+        "test": 14
+      },
+      "Fight": {
+        "total": 95,
+        "train": 67,
+        "validation": 14,
+        "test": 14
+      },
+      "Harassment": {
+        "total": 89,
+        "train": 62,
+        "validation": 14,
+        "test": 13
+      },
+      "Hijack": {
+        "total": 77,
+        "train": 54,
+        "validation": 12,
+        "test": 11
+      },
+      "Knife Hazard": {
+        "total": 100,
+        "train": 70,
+        "validation": 15,
+        "test": 15
+      },
+      "Normal Videos": {
+        "total": 115,
+        "train": 80,
+        "validation": 17,
+        "test": 18
+      },
+      "Pollution": {
+        "total": 114,
+        "train": 80,
+        "validation": 17,
+        "test": 17
+      },
+      "Property Damage": {
+        "total": 96,
+        "train": 67,
+        "validation": 14,
+        "test": 15
+      },
+      "Robbery": {
+        "total": 86,
+        "train": 60,
+        "validation": 13,
+        "test": 13
+      },
+      "Terrorism": {
+        "total": 74,
+        "train": 52,
+        "validation": 11,
+        "test": 11
+      }
+    },
+    "split_level": "clip"
+  },
+  "seed": 42,
+  "name": "swin3d_t",
+  "family": "Video-Transformer",
+  "model_class": "torchvision.models.video.swin3d_t",
+  "role": "study practical baseline trained from scratch; weights=None",
+  "num_params": 27858929,
+  "total_parameters": 27858929,
+  "efficiency": {
+    "device": "cuda",
+    "hardware": "NVIDIA GeForce RTX 4050 Laptop GPU",
+    "torch_version": "2.9.1+cu128",
+    "dtype": "torch.float32",
+    "batch_size": 1,
+    "input_shape": [
+      1,
+      8,
+      3,
+      64,
+      64
+    ],
+    "warmup_iterations": 3,
+    "measured_iterations": 10,
+    "latency_ms_per_batch": 87.23745360002795,
+    "samples_per_second": 11.462966406434399,
+    "peak_cuda_memory_bytes": 913455104,
+    "timing_scope": "model-only forward; input already on device; no decode/transfer",
+    "memory_scope": "CUDA allocated peak including model/input; CPU memory unavailable"
+  },
+  "sampling_report": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/sampling.json",
+  "extended_metric_protocol": null,
+  "experiment_config": {
+    "dataset_name": "aad",
+    "dataset_dir": "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "runs_dir": "runs",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 8,
+    "height": 64,
+    "width": 64,
+    "convlstm_layers": [
+      [
+        8,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": null,
+    "epochs": 8,
+    "early_stopping_patience": 4,
+    "batch_size": 2,
+    "prediction_samples": 5,
+    "prediction_samples_per_category": 3,
+    "learning_rate": 1e-05,
+    "weight_decay": 0.0,
+    "augment": false,
+    "cache_dataset": true,
+    "num_workers": 0,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "none",
+    "target_fps": 16,
+    "sampling_version": "timestamps_v1"
+  },
+  "candidate_manifest": null,
+  "study_trial": {
+    "trial_name": null,
+    "changed_factor": null
+  },
+  "partition": "validation",
+  "metric_protocol": {
+    "loss_aggregation": "sample_weighted_mean",
+    "classification_aggregation": "full_partition",
+    "precision_recall_f1_average": "micro"
+  },
+  "validation_metrics": {
+    "loss": 0.34081942348566374,
+    "accuracy": 0.856249988079071,
+    "precision": 0.856249988079071,
+    "recall": 0.856249988079071,
+    "f1": 0.856249988079071
+  },
+  "checkpoint_selection": {
+    "checkpoint_role": "validation_selected_lowest_loss",
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_value": 0.34081942348566374,
+    "selected_epoch": 8,
+    "dataset_name": "abnormal-activities-dataset",
+    "split_manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "seed": 42,
+    "metric_protocol": {
+      "loss_aggregation": "sample_weighted_mean",
+      "classification_aggregation": "full_partition",
+      "precision_recall_f1_average": "micro"
+    },
+    "early_stopping": {
+      "selection_partition": "validation",
+      "selection_metric": "loss",
+      "selection_mode": "min",
+      "best_validation_loss": 0.34081942348566374,
+      "selected_epoch": 8,
+      "patience": 4,
+      "epochs_without_improvement": 0,
+      "actual_epochs": 8,
+      "stopped_early": false,
+      "stop_reason": "maximum_epochs_completed"
+    }
+  },
+  "early_stopping": {
+    "selection_partition": "validation",
+    "selection_metric": "loss",
+    "selection_mode": "min",
+    "best_validation_loss": 0.34081942348566374,
+    "selected_epoch": 8,
+    "patience": 4,
+    "epochs_without_improvement": 0,
+    "actual_epochs": 8,
+    "stopped_early": false,
+    "stop_reason": "maximum_epochs_completed"
+  },
+  "train_time_s": 331.1,
+  "training_time_note": "Epoch training, validation, scheduling and checkpoint/history writes; excludes cache preparation and final metric passes.",
+  "validation_metric_pass_seconds": 8.16438978899896,
+  "weight_tensor_bytes": 126187460,
+  "checkpoint_bytes": 349279057,
+  "validation_predictions": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/metrics/validation_predictions.json",
+  "validation_per_class": [
+    {
+      "class": "Begging",
+      "precision": 0.8571428571428571,
+      "recall": 0.9,
+      "f1": 0.8780487804878049,
+      "support": 20
+    },
+    {
+      "class": "Drunkenness",
+      "precision": 1.0,
+      "recall": 0.9230769230769231,
+      "f1": 0.96,
+      "support": 13
+    },
+    {
+      "class": "Fight",
+      "precision": 0.8461538461538461,
+      "recall": 0.7857142857142857,
+      "f1": 0.8148148148148148,
+      "support": 14
+    },
+    {
+      "class": "Harassment",
+      "precision": 0.6666666666666666,
+      "recall": 0.7142857142857143,
+      "f1": 0.6896551724137931,
+      "support": 14
+    },
+    {
+      "class": "Hijack",
+      "precision": 0.9,
+      "recall": 0.75,
+      "f1": 0.8181818181818182,
+      "support": 12
+    },
+    {
+      "class": "Knife Hazard",
+      "precision": 0.9333333333333333,
+      "recall": 0.9333333333333333,
+      "f1": 0.9333333333333333,
+      "support": 15
+    },
+    {
+      "class": "Normal Videos",
+      "precision": 0.8823529411764706,
+      "recall": 0.8823529411764706,
+      "f1": 0.8823529411764706,
+      "support": 17
+    },
+    {
+      "class": "Pollution",
+      "precision": 0.7,
+      "recall": 0.8235294117647058,
+      "f1": 0.7567567567567568,
+      "support": 17
+    },
+    {
+      "class": "Property Damage",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 14
+    },
+    {
+      "class": "Robbery",
+      "precision": 1.0,
+      "recall": 0.6923076923076923,
+      "f1": 0.8181818181818182,
+      "support": 13
+    },
+    {
+      "class": "Terrorism",
+      "precision": 0.7857142857142857,
+      "recall": 1.0,
+      "f1": 0.88,
+      "support": 11
+    }
+  ],
+  "training_curves": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/metrics/training_curves.png",
+  "cache": {
+    "key": "3e08effabde4a1b6057e8932f83334cddc8b52c2eef7dd3d7d7ac915ee4e96ac",
+    "maximum_bytes": 2147483648,
+    "estimated_bytes": 357040128,
+    "train_clips": 748,
+    "validation_clips": 160,
+    "test_clips": 0,
+    "reused": true,
+    "reuse_source": "disk",
+    "disk_path": "runs/cache/training/3e08effabde4a1b6057e8932f83334cddc8b52c2eef7dd3d7d7ac915ee4e96ac.pt",
+    "bytes": 357040128,
+    "mode": "bounded_train_validation_ram",
+    "maximum_disk_bytes": 17179869184
+  },
+  "validation_confusion_matrix": {
+    "png": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/metrics/validation_confusion_matrix.png",
+    "json": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/metrics/validation_confusion_matrix.json",
+    "class_names": [
+      "Begging",
+      "Drunkenness",
+      "Fight",
+      "Harassment",
+      "Hijack",
+      "Knife Hazard",
+      "Normal Videos",
+      "Pollution",
+      "Property Damage",
+      "Robbery",
+      "Terrorism"
+    ],
+    "matrix": [
+      [
+        18,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        12,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        0,
+        11,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        10,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        0,
+        14,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        15,
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        2,
+        14,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        14,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        9,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        11
+      ]
+    ],
+    "sample_count": 160
+  },
+  "selected_checkpoint": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/checkpoints/best_model.pth",
+  "selected_checkpoint_metadata": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/checkpoints/best_model.json",
+  "history": "runs/experiments/20261015_121227_369614_abnormal-activities-dataset_baseline-comparison/models/swin3d_t/metrics/history.json",
+  "test_access": "locked"
+}
