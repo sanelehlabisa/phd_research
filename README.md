@@ -62,7 +62,7 @@ The later expanded export now permits reconstruction of confirmation and
 WD/temporal scores (168 stage rows, 164 unique configurations); see the appended
 review. Raw inputs are preserved; these are not independently verified test results.
 
-Current workflow: [075 wider/deeper capacity search](agents/work/075-wide-depth-capacity-search/prompt.md),
+Preserved workflow: [075 wider/deeper capacity search](agents/work/075-wide-depth-capacity-search/prompt.md),
 32 custom architectures at depths 1-5, 64 base runs at 32/64px, then shared
 16-frame/64px comparison with validation-selected FPS and per-class reporting.
 Search cap 256 epochs; final cap 512. Up to 142 trainings before reuse, with
@@ -113,10 +113,16 @@ one new JSON, **64x64**, 32 architectures x 8/16 frames x 8/16 FPS (128 jobs),
 four-condition top-five ranking, frame-aware reuse and verified results-only
 Drive-copy safeguards. Existing reports/notebooks remain unchanged; no real
 training or Drive upload was performed. See the implementation guide for CLI use.
-Next: [089 Colab readiness](agents/work/089-colab-campaign-readiness/prompt.md),
-which integrates the new selection with the comparison runner, owner-approved
-transformer recipe/checks and backup preflight. A push alone does not update the
-old notebook's workflow. Streaming stays deferred; runtime may exceed overnight.
+[089 Colab campaign](agents/work/089-colab-campaign-readiness/completion.md) adds the
+[new notebook](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_frame_depth_workflow.ipynb)
+and matching Python export: authorize Drive, verify a visible test file, run
+128 search jobs at 32px/128 epochs, five validation-only 64px checks, checked
+family-specific learning rates and ten fresh 64px/256-epoch comparisons,
+freeze, test and compact JSON-only backups after each completed job.
+Use this new notebook, not the old focused export. Plan roughly 12-18 hours
+(uncertain, potentially longer), not one guaranteed overnight Colab session.
+Epoch caps/early stopping do not guarantee runtime or convergence.
+Results-only backups cannot restore weights after VM loss. Streaming is deferred.
 
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),

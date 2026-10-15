@@ -260,7 +260,7 @@ def training_probe(spec, config, width, depth, device, *, candidate_manifest=Non
         model.train()
         optimizer = torch.optim.Adam(
             model.parameters(),
-            lr=config.learning_rate,
+            lr=spec.get("learning_rate", config.learning_rate),
             weight_decay=config.weight_decay,
         )
         inputs = torch.zeros((batch, frames, 3, size, size), device=device)
@@ -292,7 +292,14 @@ def training_probe(spec, config, width, depth, device, *, candidate_manifest=Non
 
 
 def comparison_preflight(
-    config, manifest, models, *, device=None, probe=None, phase="comparison"
+    config,
+    manifest,
+    models,
+    *,
+    device=None,
+    probe=None,
+    phase="comparison",
+    learning_rates=None,
 ):
     """Measure every declared actual stack/family with full optimizer steps."""
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -323,6 +330,8 @@ def comparison_preflight(
                 size=config.height,
                 phase=phase,
             )
+            if learning_rates is not None:
+                spec["learning_rate"] = learning_rates[name]
             if phase == "search":
                 print(
                     f"Full-step preflight {number}/{len(models)} | {name} | {spec['frames']}f/{spec['size']}px | batch {batch}",

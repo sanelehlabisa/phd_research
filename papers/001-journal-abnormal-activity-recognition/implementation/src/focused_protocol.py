@@ -47,10 +47,21 @@ FRAME_NOTE = (
     "New top-five selection; no reserved anchor. Comparison recipe approval "
     "and notebook integration remain separate (089)."
 )
+FAST_NOTE = (
+    "Single-seed, evidence-guided 32px/128-epoch screening, not a global optimum "
+    "or proof of convergence. 8/16 frames and 8/16 FPS vary temporal coverage. "
+    "Only five shortlisted models receive 64px validation checks; all five advance "
+    "to fresh 256-cap comparisons. Do not claim exhaustive 64px architecture search "
+    "or source-group independence. Pooled P/R/F1 are not macro class averages."
+)
 
 
 def expanded(study):
-    return study is not None and study.get("schema_version") == 6
+    return study is not None and study.get("schema_version") in (6, 7)
+
+
+def fast(study):
+    return study is not None and study.get("schema_version") == 7
 
 
 def input_conditions(study=None):
@@ -128,10 +139,10 @@ def load_focused(study):
         "focused search",
     )
     for key, expected in {
-        "schema_version": 6 if expanded(study) else 5,
+        "schema_version": 7 if fast(study) else (6 if expanded(study) else 5),
         "mode": "capacity_search",
         **({} if expanded(study) else {"architectures": STACKS}),
-        "frame_sizes": [64] if expanded(study) else [32, 64],
+        "frame_sizes": [32] if fast(study) else ([64] if expanded(study) else [32, 64]),
         "target_fps": [8, 16],
         "seeds": [42],
         "max_runs": 128 if expanded(study) else 64,
@@ -182,7 +193,7 @@ def load_focused(study):
         "focused training",
     )
     for key, expected in {
-        "epochs": 256,
+        "epochs": 128 if fast(study) else 256,
         "minimum_epochs": 64,
         "early_stopping_patience": 24,
         "cache_dataset": True,
@@ -202,8 +213,8 @@ def load_focused(study):
             "runs_dir": _path(study["runs_dir"]),
             "seed": 42,
             "sequence_length": 8,
-            "height": 64,
-            "width": 64,
+            "height": study["frame_sizes"][-1],
+            "width": study["frame_sizes"][-1],
             "learning_rate": 0.001,
             "weight_decay": 0,
             "scheduler": "reduce_on_plateau",
@@ -372,7 +383,7 @@ def decisions(jobs, study=None):
             "scheduler": "reduce_on_plateau",
             "augment": False,
         },
-        "note": FRAME_NOTE if expanded(study) else NOTE,
+        "note": FAST_NOTE if fast(study) else (FRAME_NOTE if expanded(study) else NOTE),
     }
 
 
@@ -390,7 +401,11 @@ def selection_bundle(study, state, group, decision):
     config = ExperimentConfig.from_mapping(state["effective_config"])
     specs = {c["name"]: c for c in candidates(study)}
     return {
-        "protocol": "frame_depth_top5_v1" if expanded(study) else "focused_top5_v1",
+        "protocol": (
+            "fast_frame_depth_top5_v1"
+            if fast(study)
+            else ("frame_depth_top5_v1" if expanded(study) else "focused_top5_v1")
+        ),
         **(
             {
                 "reporting_protocol": "pooled_per_class_v2",
@@ -478,25 +493,25 @@ def preflight(config, *, final=False, device=None, probe=None):
 def print_plan(study, config):
     if expanded(study):
         print(
-            "087 frame/depth search: 32 architectures, depths 5/6/13/4/4; 128 jobs, fixed 64x64; test locked."
+            f"{'089 fast' if fast(study) else '087'} frame/depth search: 32 architectures, depths 5/6/13/4/4; 128 jobs, fixed {config.height}x{config.width}; test locked."
         )
         print(
-            "8/16 frames x 8/16 FPS; seed 42; Adam LR=.001 WD=0; 256-cap/64-minimum/24-patience; no augmentation."
+            f"8/16 frames x 8/16 FPS; seed 42; Adam LR=.001 WD=0; {config.epochs}-cap/64-minimum/24-patience; no augmentation."
         )
         for number, row in enumerate(
             (r for _, rows in blocks(config, study) for r in rows), 1
         ):
             c = row["config"]
             print(
-                f"Experiment {number}/128 | {row['model']} | {c['sequence_length']}f/64px/{c['target_fps']}fps | nominal {c['sequence_length']/c['target_fps']:g}s"
+                f"Experiment {number}/128 | {row['model']} | {c['sequence_length']}f/{c['height']}px/{c['target_fps']}fps | nominal {c['sequence_length']/c['target_fps']:g}s"
             )
         print(
             f"Results-only Drive backup: {study['backup']['directory']}/<study-id>/results.zip; authorize/mount before launch."
         )
         print(
-            "Full-step 16f/64px CUDA preflight on all 32 actual stacks precedes training. Prior 64 jobs took ~10.10 training hours; no overnight guarantee. Comparison requires 089; no tests run here."
+            f"Full-step 16f/{config.height}px CUDA preflight on all 32 actual stacks precedes training. No overnight guarantee. The 089 notebook adds five validation-only 64px checks and ten fresh comparisons; no tests run by this search command."
         )
-        print(FRAME_NOTE)
+        print(FAST_NOTE if fast(study) else FRAME_NOTE)
         return
     print(
         "077 focused search: 64 jobs; 16 architectures x 32/64px x 8/16 FPS; test locked."

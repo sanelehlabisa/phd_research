@@ -6,6 +6,10 @@ hyperparameter grid.
 
 ## Current roadmap
 
+For the next Colab run, use [089's new notebook/export](#current-run-all-089-drive-first-search-comparison-and-test):
+32px/128-epoch search, five 64px checks, then 64px/256-epoch comparison.
+Earlier workflows below remain available with their original settings.
+
 [075 wider/deeper search](../../../agents/work/075-wide-depth-capacity-search/prompt.md)
 implements 32 custom stacks at depths 1-5, widths up to 128, and 64 base
 custom runs (8 frames, 32/64px). Search uses a **256-epoch cap**, minimum 64,
@@ -84,7 +88,7 @@ The successful search will not be rerun by comparison recovery:
 
 - [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/completion.md): implemented and locally verified (131 checks); the command below reuses the existing runner. Evidence import and full-training approval remain prerequisites. No new research results or GPU fit claim.
 - [087 expanded 64px search](../../../agents/work/087-expand-frame-depth-search/completion.md): implemented and locally verified (94 checks). One separate JSON, 32 customs, fixed 64x64, 8/16 frames and 8/16 FPS (128 jobs), full-step preflight and verified results-only Drive-copy safeguards. No real campaign or Drive upload; see the command below. Overnight is not guaranteed.
-- [089 Colab readiness](../../../agents/work/089-colab-campaign-readiness/prompt.md): wire the new JSON and 083 comparison into one thin notebook/export after prerequisites, transformer recipe checks and backup preflight. No streaming change or real campaign launch during implementation.
+- [089 Colab readiness](../../../agents/work/089-colab-campaign-readiness/completion.md): new thin notebook/export integrates search, approved transformer checks, ten comparisons and verified small Drive backups. New synthetic Run All/resume passed; the completion records the legacy stress-test limit. See **Current Run All** below; real campaign execution remains separate.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 
 Existing search/comparison notebooks retain their current behavior; 089 owns
@@ -217,6 +221,7 @@ the destination and checksum are printed. Configs, code/split/environment
 provenance, receipts, metrics, class counts, confusion, histories/curves and
 prediction records/examples are included. Datasets, caches and **weights are
 excluded**; keep runtime checkpoints separately until evaluation finishes.
+The newer 089 workflow below uses a smaller JSON-only policy instead.
 Drive failure stops clearly and retains the local ZIP; a failed temporary copy
 does not replace the previous backup.
 No protection from abrupt VM deletion or guarantee of future Drive durability.
@@ -232,13 +237,85 @@ study = read_json(group / "study.json")
 compact_results(group, study["runs_dir"], announce=True)
 ```
 
-This profile stops after search/selection. **089** still owns the new thin
-notebook/export, approved transformer recipe/checks and ten-model handoff.
+This CLI profile stops after search/selection. **089** below instead starts a
+fresh 32px/128-epoch search with its own versioned receipt, then performs
+approved transformer checks and the ten-model handoff. It does not consume
+087's incompatible 64px/256-epoch selection.
 The historical 083 shortlist/recipe is not automatically applied to new finalists.
 Old notebooks/profiles/evidence remain unchanged; do not use their old Run All
 cell expecting this new 128-job campaign.
 
-### Focused Run All (077/076)
+### Current Run All (089): Drive first, search, comparison and test
+
+Open [aad_frame_depth_workflow.ipynb](notebooks/aad_frame_depth_workflow.ipynb),
+or paste the entire [matching Python export](notebooks/aad_frame_depth_workflow.py)
+into one Colab A100 cell. No stage toggles or manual result directories:
+
+1. Safe checkout update, pinned dependencies and CUDA check. If packages need
+   repair, restart the kernel once and rerun before leaving.
+2. Authorize Google Drive; wait for **DRIVE TEST PASSED** and inspect the
+   printed `drive_test_<id>.txt` in `MyDrive/phd_research/paper-001/`.
+   Mount/write/read failure stops before any training.
+3. Run the separate `aad_fast_frame_depth_search_colab.json` (schema 7):
+   the same 32 architectures x 8/16 frames x 8/16 FPS = 128 jobs, now **32x32**
+   and cap/minimum/patience **128/64/24**. Verify the numerical top five and
+   select common frames/FPS using validation only. The original 087 JSON stays
+   unchanged, and its 64px/256-cap scores are not reused.
+4. Full-step memory checks on all ten actual comparison models select one common
+   batch (no model/input skipped or shrunk). Owner-approved scratch recipe:
+   Adam LR **0.00001 for Swin3D-T/S**, **0.001 for all others**, WD 0, no
+   augmentation, plateau schedule. Both transformers must first pass 128 updates
+   on four fixed training clips, repeated to the selected common batch: finite
+   gradients/updates, lower loss, 100% tiny-subset training accuracy. These
+   discarded probe weights never initialize final training. Failure saves
+   diagnostics and stops; this gate does not prove held-out convergence.
+5. Run five validation-only finalist checks at **64x64**, using the selected
+   frames/FPS and cap/minimum/patience **128/64/24**. Save their 64px order
+   alongside their original 32px search order in `resolution_checks.json`.
+   Retain all five, even if their order changes; do not add tuning/test access.
+   These are checks of the shortlist, not an exhaustive 64px search.
+6. Train all ten freshly at **64x64**, cap/minimum/patience **256/128/32**; freeze every
+   validation-selected checkpoint and best custom before any test evaluation.
+   Evaluate all ten once, save confusion/metrics, and create best-custom examples.
+   Experiment numbers: search 1-128, resolution checks 129-133, final training
+   134-143; test progress is separately 1-10. Neither check stage warm-starts
+   final training.
+
+The comparison template is `aad_frame_depth_comparison_colab.json`; the
+orchestrator fills its selection/input paths automatically. Original 077/083
+profiles, notebooks and historical evidence remain unchanged.
+
+After each completed job/test, a verified `results.zip` is replaced only in its
+own Drive study folder. The final comparison ZIP includes **both all 128 search
+results, all five resolution checks and all ten comparisons**. Open
+`essential_results.json` inside:
+architecture/configuration, hyperparameters, seed/input/split, parameter counts,
+epochs/timings, matched training/validation metrics, final test metrics when
+available, per-class P/R/F1/support and confusion counts. Pooled P/R/F1 equal
+accuracy in single-label classification; they are not macro averages.
+The JSON-only bundle has a 128 MiB uncompressed safety cap. Weights, cache,
+plots and video examples are **not uploaded**. The local ZIP
+survives a handled delivery failure; the previous verified Drive copy remains.
+Example MP4s and full evidence remain under the printed local run directories.
+Download `results.zip` from Drive; there are no repeated browser popups.
+
+**Runtime estimate:** roughly **12-18 hours overall on A100**, potentially longer.
+The reviewed run spent 2.15 hours on 32 search jobs at 32px versus 7.95 hours
+at 64px. Scaling recorded per-epoch times to the new caps, architecture mix and
+8/16-frame conditions suggests about 7-10 hours for search; allow additional
+time for five resolution checks, ten final trainings, setup and exports.
+This is an extrapolation, not a measured duration of the new campaign; batch,
+early stopping and successful transformer convergence can change it substantially.
+Printed full-step workload estimates refine this on the attached GPU.
+[Colab's FAQ](https://research.google.com/colaboratory/faq.html) states Pro+
+continuous execution is up to 24 hours with sufficient compute units.
+This approved faster campaign is automatic and may fit an overnight session,
+but completion is **not guaranteed**. Small results backups preserve analysis, **not checkpoint
+recovery after VM deletion**. Do not confuse a metrics ZIP with resumable weights.
+Persistent checkpoint storage still requires a separate storage decision.
+No kept-alive loops, automatic restarts, silent job skips or repeated tests.
+
+### Preserved focused Run All (077/076)
 
 The single setup/run cell updates the checkout, checks pinned dependencies and
 the GPU, then runs **64 search + ten fresh comparison trainings** without
@@ -442,7 +519,7 @@ The comparison runner uses `r3d_18`, `mc3_18`, and `r2plus1d_18` with
 paper reports 3D ResNet-50, 3D ResNet-101, and 3D ResNet-152. These groups are
 not architecture-equivalent reproductions.
 
-### Current automatic study (075)
+### Preserved automatic study (075)
 
 Open `aad_experiment_workflow.ipynb` or its matching Python export on Colab.
 Keep `WORKFLOW_STAGE = "all"`: paths, selected FPS and training settings pass
@@ -592,7 +669,7 @@ Use one runner and one JSON path for each profile:
 | Profile | Fixed protocol |
 |---|---|
 | [Local smoke](configs/experiments/aad_local_smoke.json) | One tiny 1-epoch pass; not paper evidence |
-| [Wide/deep search (075)](configs/experiments/aad_wide_depth_search_colab.json) | Current default; 32 stacks, 64 base runs, 256-epoch search cap |
+| [Wide/deep search (075)](configs/experiments/aad_wide_depth_search_colab.json) | Preserved old-notebook default; 32 stacks, 64 base runs, 256-epoch search cap |
 | [Adapted comparison (075)](configs/experiments/aad_wide_comparison_colab.json) | Automatic selected FPS/recipe, 16f/64px, eight 512-cap trainings |
 | [Focused search (073)](configs/experiments/aad_shape_search_colab.json) | 34 custom stacks; up to 177 search jobs, 128-epoch cap; preserved legacy workflow |
 | [Final comparison (073)](configs/experiments/aad_final_comparison_colab.json) | Verified top three plus five baselines; 512-epoch cap, minimum 128, patience 32 |

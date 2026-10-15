@@ -195,7 +195,10 @@ def load_study(path):
         from notebooks.utils.study_archive import backup_paths
 
         expected_fields.add("backup")
-        if study.get("comparison_protocol") != "focused_final_v1":
+        if study.get("comparison_protocol") not in {
+            "focused_final_v1",
+            "frame_depth_final_v1",
+        }:
             raise ValueError(
                 "Drive backup requires the compact focused comparison path"
             )
@@ -223,8 +226,17 @@ def load_study(path):
         expected_fields.add("comparison_protocol")
         if study.get("mode") != "top3_comparison" or study[
             "comparison_protocol"
-        ] not in {"wide_final_v1", "focused_final_v1"}:
+        ] not in {"wide_final_v1", "focused_final_v1", "frame_depth_final_v1"}:
             raise ValueError("unknown comparison_protocol")
+    if isinstance(study, dict) and "approved_recipe" in study:
+        expected_fields.add("approved_recipe")
+    if study.get("comparison_protocol") == "frame_depth_final_v1":
+        from .campaign_checks import APPROVED_RECIPE
+
+        if study.get("approved_recipe") != APPROVED_RECIPE:
+            raise ValueError("089 requires the owner-approved, checked family recipe")
+    elif "approved_recipe" in study:
+        raise ValueError("The family recipe belongs only to the new 089 protocol")
     if isinstance(study, dict) and "recipe_transfer" in study:
         expected_fields.add("recipe_transfer")
         if (
@@ -414,16 +426,19 @@ def load_study(path):
             "weight_decay": reference["weight_decay"],
         }
     )
-    if study.get("comparison_protocol") == "focused_final_v1":
+    if study.get("comparison_protocol") in {"focused_final_v1", "frame_depth_final_v1"}:
         from .study_matrix import load_selection
 
         selected = load_selection(study["selected_config"])
-        if selected.get("protocol") != "focused_top5_v1":
+        frame_depth = study.get("comparison_protocol") == "frame_depth_final_v1"
+        if selected.get("protocol") != (
+            "fast_frame_depth_top5_v1" if frame_depth else "focused_top5_v1"
+        ):
             raise ValueError("Focused comparison requires the verified 077 selection")
         final = selected["final_input"]
         if (
             study.get("recipe_transfer")
-            or config.epochs != 512
+            or config.epochs != (256 if frame_depth else 512)
             or study.get("minimum_epochs") != 128
             or config.early_stopping_patience != 32
             or config.learning_rate != selected["shared_recipe"]["learning_rate"]
@@ -436,11 +451,15 @@ def load_study(path):
                 and config.prediction_samples_per_category != 5
             )
             or (config.sequence_length, config.height, config.width)
-            != (8, final["height"], final["width"])
-            or study["max_runs"] != 10
+            != (
+                final["sequence_length"] if frame_depth else 8,
+                64 if frame_depth else final["height"],
+                64 if frame_depth else final["width"],
+            )
+            or study["max_runs"] != (15 if frame_depth else 10)
         ):
             raise ValueError(
-                "076 requires the frozen input/recipe and 512/128/32 budget, five examples, exactly ten models"
+                "Comparison requires the approved frozen input/recipe/budget: 076 has ten 512-cap jobs; 089 has five 128-cap resolution checks and ten 256-cap final jobs"
             )
         config = ExperimentConfig.from_mapping(
             {
@@ -557,6 +576,10 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
 
     def row(stage, model, seed, factor, overrides):
         values = {**config.to_dict(), **overrides, "seed": seed}
+        if study.get("comparison_protocol") == "frame_depth_final_v1":
+            from .campaign_checks import model_learning_rate
+
+            values["learning_rate"] = model_learning_rate(model)
         resolved = ExperimentConfig.from_mapping(values)
         trial_id = (
             f"{model}_f{resolved.height}_t{resolved.sequence_length}_"
@@ -615,6 +638,25 @@ def study_rows(study, config, winner="VALIDATION_WINNER"):
             rows.append(row("screen", name, seed, "architecture", {}))
     if study.get("mode") == "top3_comparison":
         # Resolved native-input recipe is fixed, not a fresh weight-decay sweep.
+        if study.get("comparison_protocol") == "frame_depth_final_v1":
+            from copy import deepcopy
+
+            transfer = []
+            for item in rows[:5]:
+                check = deepcopy(item)
+                check.update(
+                    stage="resolution_transfer",
+                    changed_factor="32px_search_to_64px",
+                    minimum_epochs=64,
+                )
+                check["config"].update(
+                    epochs=128,
+                    early_stopping_patience=24,
+                    prediction_samples_per_category=0,
+                )
+                check["trial_id"] = check["trial_id"].replace("_e256_", "_e128_")
+                transfer.append(check)
+            return transfer + rows
         return rows
     for field, values, base in (
         ("frame_size", study["factors"]["frame_sizes"], config.height),
@@ -700,6 +742,13 @@ def print_study(path, study, config):
     if study.get("minimum_epochs", 1) > 1:
         print(f"Minimum completed epochs before stopping: {study['minimum_epochs']}")
     print("Selection: validation accuracy, loss, parameters; test remains locked.")
+    if study.get("comparison_protocol") == "frame_depth_final_v1":
+        print(
+            "Five validation-only 64px checks (128 cap), then ten fresh final trainings (256 cap)."
+        )
+        print(
+            "Adam LR: Swin3D-T/S=0.00001 only after both train-only checks pass; others=0.001."
+        )
     if study.get("mode", "staged") == "grid":
         if study["profile"] == "local_smoke":
             print("This short local grid checks the pipeline only.")

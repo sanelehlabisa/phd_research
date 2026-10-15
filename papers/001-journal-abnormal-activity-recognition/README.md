@@ -20,6 +20,11 @@ reference architecture for ablation.
 
 ## Evidence plan
 
+The next Run All uses [089's faster campaign](implementation/README.md#current-run-all-089-drive-first-search-comparison-and-test):
+128 search jobs at 32px/128 epochs, five validation-only checks at 64px,
+then ten fresh 64px/256-epoch comparisons and guarded tests. It preserves
+the original 077/076 plan below as historical context, not the new run settings.
+
 1. Run 077's 64 balanced validation-only jobs: 16 architectures, 32/64px,
    8/16 FPS and eight frames; cap 256 epochs. Rank across all four conditions,
    preserving the disclosed [96,64,64] anchor slot if outside the numerical top five.
@@ -50,7 +55,7 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 - [x] [083 comparison-only JSON/test recovery](../../agents/work/083-comparison-only-recovery/completion.md) — preparation locally verified: ten models, guarded tests, alias fix and compact backups; no search rerun or new research score. Restore missing evidence/data and obtain launch approval first; GPU fit is unverified.
 - [x] [088 pooled metrics everywhere](../../agents/work/088-pooled-metrics-everywhere/completion.md) — new modular/campaign reports use versioned pooled totals, per-class counts and confusion evidence; legacy results and provenance guards remain intact. No new research run.
 - [x] [087 expanded 64px search](../../agents/work/087-expand-frame-depth-search/completion.md) — 32 architectures, depths 1-5, 8/16 frames and 8/16 FPS: 128 jobs. New validation-only top-five receipt, all-point plots, frame-aware reuse and verified compact Drive-copy safeguards; 94 local checks passed. No real training/Drive upload; notebook integration remains 089.
-- [ ] [089 Colab readiness](../../agents/work/089-colab-campaign-readiness/prompt.md) — integrate 088/087 and 083's comparison path into one thin notebook/export, with recipe/preflight checks and backups before launch. Streaming remains deferred.
+- [x] [089 Colab readiness](../../agents/work/089-colab-campaign-readiness/completion.md) — new `aad_frame_depth_workflow.ipynb`/`.py`: Drive write/read test, 128 search jobs (32px, cap 128), five 64px checks, checked Swin LR 0.00001 (others 0.001), ten fresh comparisons (64px, cap 256), frozen tests and JSON-only backups. New synthetic Run All/resume verified; see completion for the legacy stress-test limit. Real Colab execution remains separate. Estimated 12-18 hours, not guaranteed.
 - [ ] [086 modular-script cleanup plan](../../agents/work/086-simplify-modular-scripts/prompt.md) — later: audit callers and propose exact removals/merges for approval; do not disrupt the comparison work.
 - [x] [085 complete search visibility](../../agents/work/085-complete-search-result-visibility/completion.md) — [all 64 plotted measurements](implementation/reports/2026-10-15/README.md), layer-count-only bottom legend, named Best/Middle/Worst panel keys and a disclosed compressed lower y-range. No arrows/zooms/performance tables; results/ranking unchanged.
 - [x] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — [Locally verified](../../agents/work/077-focused-aad-colab-rerun/completion.md): 64 balanced jobs, honest top-five/anchor selection and compact backups. All 64 Colab search jobs reviewed on October 14; full artifact recovery pending.

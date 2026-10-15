@@ -108,13 +108,17 @@ def validate_protocol(study, config):
             raise ValueError(
                 "search architectures must be distinct, not renamed duplicates"
             )
-    elif study.get("comparison_protocol") == "focused_final_v1":
+    elif study.get("comparison_protocol") in {
+        "focused_final_v1",
+        "frame_depth_final_v1",
+    }:
         from .focused_protocol import SLOTS, BASELINES
 
+        frame_depth = study.get("comparison_protocol") == "frame_depth_final_v1"
         if (
             study["models"] != SLOTS + BASELINES
-            or config.sequence_length != 8
-            or config.height not in (32, 64)
+            or config.sequence_length not in ((8, 16) if frame_depth else (8,))
+            or config.height not in ((64,) if frame_depth else (32, 64))
             or config.width != config.height
         ):
             raise ValueError(
@@ -355,6 +359,7 @@ def load_selection(path):
     if selected.get("protocol") in {
         "focused_top5_v1",
         "frame_depth_top5_v1",
+        "fast_frame_depth_top5_v1",
         "capacity_top3_v1",
         "capacity_top3_v2",
         "capacity_top3_v3",
@@ -396,12 +401,19 @@ def comparison_candidates(study):
         )
     selected_path = _path(study["selected_config"])
     selected = load_selection(selected_path)
+    frame_depth = study.get("comparison_protocol") == "frame_depth_final_v1"
     if selected.get("protocol") == "frame_depth_top5_v1":
+        raise ValueError(
+            "089's faster comparison requires its fresh 32px/128-epoch search; preserve the 087 evidence separately"
+        )
+    if (selected.get("protocol") == "fast_frame_depth_top5_v1") != frame_depth:
         raise ValueError(
             "087 selection verified; comparison requires 089's owner-approved recipe and transformer checks. Do not use the historical 083 shortlist/recipe automatically."
         )
-    is_focused = study.get("comparison_protocol") == "focused_final_v1"
-    if is_focused != (selected.get("protocol") == "focused_top5_v1"):
+    is_focused = frame_depth or study.get("comparison_protocol") == "focused_final_v1"
+    if is_focused != (
+        selected.get("protocol") in {"focused_top5_v1", "fast_frame_depth_top5_v1"}
+    ):
         raise ValueError("077 selections require the five-finalist 076 comparison")
     if _path(study["dataset"]["path"]) != _path(selected["dataset_dir"]) or study[
         "seeds"
@@ -588,13 +600,16 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
         from notebooks.utils.study_archive import preflight_backup
 
         preflight_backup(study["backup"])
-    is_focused = study.get("comparison_protocol") == "focused_final_v1"
+    frame_depth = study.get("comparison_protocol") == "frame_depth_final_v1"
+    is_focused = frame_depth or study.get("comparison_protocol") == "focused_final_v1"
     if is_focused:
         from .focused_protocol import validation_diagnostics
         from notebooks.utils.study_archive import compact_results
     raw_presentation = is_focused or study.get("comparison_protocol") == "wide_final_v1"
     comparison_only = study.get("comparison_only", False)
-    campaign_maximum = 10 if comparison_only else (74 if is_focused else 142)
+    campaign_maximum = (
+        143 if frame_depth else (10 if comparison_only else (74 if is_focused else 142))
+    )
     root = resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
     source = AHARDataset(root, config.sequence_length, (config.width, config.height))
     split_path = resolve_split_manifest_path(
@@ -713,6 +728,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "capacity_top3_v2",
                 "capacity_top3_v3",
                 "focused_top5_v1",
+                "fast_frame_depth_top5_v1",
             }:
                 experiment_offset = len(
                     read_json(Path(selected["source_group"]) / "progress.json")["jobs"]
@@ -742,14 +758,33 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             from notebooks.utils.study_archive import compact_results
 
             if "comparison_preflight" not in state:
-                if (group / "validation_frozen.json").exists() or state["jobs"]:
+                if (
+                    (group / "validation_frozen.json").exists()
+                    or state["jobs"]
+                    or state.get("transfer_jobs")
+                ):
                     raise ValueError(
                         "Existing comparison is missing its preflight; no silent batch change"
                     )
-                if comparison_only:
+                if comparison_only or frame_depth:
                     from .study_resources import comparison_preflight
+                    from .campaign_checks import model_learning_rate
 
-                    resource = comparison_preflight(config, manifest, study["models"])
+                    resource = comparison_preflight(
+                        config,
+                        manifest,
+                        study["models"],
+                        **(
+                            {
+                                "learning_rates": {
+                                    name: model_learning_rate(name)
+                                    for name in study["models"]
+                                }
+                            }
+                            if frame_depth
+                            else {}
+                        ),
+                    )
                 else:
                     resource = preflight(config, final=True)
                 atomic_json(group / "preflight.json", resource)
@@ -775,6 +810,11 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             )
         if study.get("backup"):
             compact_results(group, config.runs_dir)
+        if frame_depth:
+            from .campaign_checks import ensure_transformer_checks
+
+            ensure_transformer_checks(group, study, config, state, selected)
+            compact_results(group, config.runs_dir)
         if recovery:
             jobs = recovered_jobs
             state.update(jobs=jobs)
@@ -783,8 +823,14 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
             rows = study_rows(study, config)
             candidates = {c.name: c for c in manifest.candidates}
             jobs = []
+            transfer_jobs = []
             for number, row in enumerate(rows, 1):
                 experiment_number = experiment_offset + number
+                is_transfer = row["stage"] == "resolution_transfer"
+                if frame_depth and not is_transfer:
+                    from .campaign_checks import freeze_resolution_checks
+
+                    freeze_resolution_checks(group, transfer_jobs, selected)
                 jobdir = group / "jobs" / f"{number:02d}"
                 receipt_path = jobdir / "receipt.json"
                 values = dict(row["config"])
@@ -826,7 +872,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                         "--model",
                         row["model"],
                         "--run-label",
-                        study["mode"],
+                        row["stage"] if is_transfer else study["mode"],
                         "--trial-name",
                         f"{experiment_number:03d}",
                         "--changed-factor",
@@ -841,7 +887,11 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                             "--campaign-maximum",
                             str(campaign_maximum),
                             "--campaign-stage",
-                            "final_comparison",
+                            (
+                                "resolution_transfer"
+                                if is_transfer
+                                else "final_comparison"
+                            ),
                         ]
                     if row["minimum_epochs"] > 1:
                         args += ["--minimum-epochs", str(row["minimum_epochs"])]
@@ -911,6 +961,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 _validate_leaf(result, row, values, split["manifest_hash"])
                 if study["mode"] == "top3_comparison" and selected.get("protocol") in {
                     "focused_top5_v1",
+                    "fast_frame_depth_top5_v1",
                     "capacity_top3_v2",
                     "capacity_top3_v3",
                 }:
@@ -943,15 +994,22 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                             f"{row['model']}: {diagnostics['validation_warnings']} (possible optimization failure; retained)",
                             flush=True,
                         )
-                jobs.append(
+                (transfer_jobs if is_transfer else jobs).append(
                     {
                         "experiment_number": experiment_number,
                         "run_dir": str(leaf_run),
                         "receipt": str(receipt_path.resolve()),
+                        **(
+                            {"role": "validation_only_resolution_transfer"}
+                            if is_transfer
+                            else {}
+                        ),
                         "result": result,
                     }
                 )
                 state.update(jobs=jobs)
+                if frame_depth:
+                    state["transfer_jobs"] = transfer_jobs
                 atomic_json(group / "progress.json", state)
                 if is_focused:
                     compact_results(group, config.runs_dir)
@@ -967,6 +1025,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "capacity_top3_v2",
                 "capacity_top3_v3",
                 "focused_top5_v1",
+                "fast_frame_depth_top5_v1",
             }
 
             def order(j):
@@ -990,6 +1049,16 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 "seed": 42,
                 "split_sha256": split["manifest_hash"],
                 "note": NOTE,
+                **(
+                    {
+                        "transformer_checks": state["transformer_checks"],
+                        "resolution_checks_sha256": file_hash(
+                            group / "resolution_checks.json"
+                        ),
+                    }
+                    if frame_depth
+                    else {}
+                ),
                 **(
                     {
                         "recipe_selection_sha256": file_hash(

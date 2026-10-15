@@ -405,7 +405,7 @@ def validate_matched_training(result, row, class_count):
 
 
 def archive_stage(group, runs_dir):
-    if read_json(group / "study.json").get("schema_version") in (5, 6):
+    if read_json(group / "study.json").get("schema_version") in (5, 6, 7):
         from notebooks.utils.study_archive import compact_results
 
         return compact_results(group, runs_dir, announce=True)
@@ -434,7 +434,7 @@ def _report(group, state, print_rows=False, plots=False):
             }
             seen.setdefault(job_key(spec), len(seen) + 1)
             if current.get("status") == "complete":
-                if state.get("study_schema_version") in (5, 6):
+                if state.get("study_schema_version") in (5, 6, 7):
                     from .focused_protocol import validation_diagnostics
 
                     context.update(validation_diagnostics(current["result"]))
@@ -446,7 +446,7 @@ def _report(group, state, print_rows=False, plots=False):
                 rows.append(
                     result_row(
                         current["result"],
-                        raw=state.get("study_schema_version") in (4, 5, 6),
+                        raw=state.get("study_schema_version") in (4, 5, 6, 7),
                         **context,
                     )
                 )
@@ -481,7 +481,7 @@ def _report(group, state, print_rows=False, plots=False):
         group,
         rows,
         print_rows=print_rows,
-        raw=state.get("study_schema_version") in (4, 5, 6),
+        raw=state.get("study_schema_version") in (4, 5, 6, 7),
     )
     if print_rows and state.get("pending_stages"):
         print(
@@ -490,7 +490,7 @@ def _report(group, state, print_rows=False, plots=False):
             flush=True,
         )
     if plots:
-        if state.get("study_schema_version") == 6:
+        if state.get("study_schema_version") in (6, 7):
             from .focused_protocol import frame_depth_summaries
 
             frame_depth_summaries(group, rows, read_json(group / "study.json"))
@@ -772,8 +772,8 @@ def _frame_preflight(study, config, manifest, **kwargs):
         {
             **config.to_dict(),
             "sequence_length": max(study["num_frames"]),
-            "height": 64,
-            "width": 64,
+            "height": max(study["frame_sizes"]),
+            "width": max(study["frame_sizes"]),
         }
     )
     return comparison_preflight(
@@ -1198,6 +1198,8 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 completed[key] = saved_job
                 atomic_json(group / "progress.json", state)
                 _report(group, state)
+                if study.get("schema_version") == 7:
+                    archive_stage(group, config.runs_dir)
             entry["status"] = "complete"
             atomic_json(group / "progress.json", state)
             _report(group, state, print_rows=True, plots=True)

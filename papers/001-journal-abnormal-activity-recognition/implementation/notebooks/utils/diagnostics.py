@@ -194,6 +194,8 @@ def registered_learning_check(
     steps: int = 64,
     batch_size: int = 2,
     learning_rate: float = 0.001,
+    *,
+    campaign_batch: bool = False,
 ) -> dict:
     """Trace a bounded transformer check through the existing modular trainer.
 
@@ -205,6 +207,7 @@ def registered_learning_check(
         steps: Number of optimizer updates, limited to 128.
         batch_size: One or two clips for the local 6-GB diagnostic.
         learning_rate: Positive Adam rate for a separately labelled diagnostic.
+        campaign_batch: Allow the frozen 089 batch (1-32), using full batches only.
 
     Returns:
         Recipe, input, learning, representative gradient and update records.
@@ -216,8 +219,11 @@ def registered_learning_check(
 
     if type(steps) is not int or not 1 <= steps <= 128:
         raise ValueError("steps must be an integer from 1 to 128")
-    if type(batch_size) is not int or batch_size not in (1, 2):
-        raise ValueError("batch_size must be 1 or 2")
+    allowed_batches = range(1, 33) if campaign_batch else (1, 2)
+    if type(batch_size) is not int or batch_size not in allowed_batches:
+        raise ValueError("batch_size must be 1/2 locally or 1-32 for campaign checks")
+    if campaign_batch and (len(clips) < batch_size or len(clips) % batch_size):
+        raise ValueError("Campaign check requires full batches at the frozen batch size")
     if type(learning_rate) not in (int, float) or not np.isfinite(learning_rate) or learning_rate <= 0:
         raise ValueError("learning_rate must be finite and positive")
     if model_name not in ("swin3d_t", "swin3d_s"):
@@ -321,7 +327,7 @@ def registered_learning_check(
             "labels": labels.tolist(), "optimizer_covers_all_parameters": optimizer_complete,
             "learning": learning, "step_metrics": history, "gradient_updates": gradient_updates,
             "limitations": "Train-only tiny check, not a full-recipe reproduction or held-out score; "
-                            "batch 1/2 and fixed LR replace the historical batch-32 plateau schedule.",
+                            "fixed LR and repeated training clips; no plateau schedule or warm start.",
         }
     finally:
         for handle in handles:

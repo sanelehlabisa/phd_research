@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "mode": "top3_comparison",
+  "comparison_protocol": "frame_depth_final_v1",
+  "selected_config": null,
+  "dataset": {
+    "name": "aad",
+    "path": "datasets/abnormal-activities-dataset/abnormal-activities-dataset",
+    "split_manifest": null
+  },
+  "models": [
+    "custom_top1",
+    "custom_top2",
+    "custom_top3",
+    "custom_top4",
+    "custom_top5",
+    "paper_convlstm_adapted",
+    "r3d_18",
+    "mc3_18",
+    "swin3d_t",
+    "swin3d_s"
+  ],
+  "custom_candidates": [],
+  "reference_input": {
+    "frame_size": 64,
+    "sequence_length": 8,
+    "weight_decay": 0
+  },
+  "factors": {
+    "frame_sizes": [
+      64
+    ],
+    "sequence_lengths": [
+      8
+    ],
+    "weight_decays": [
+      0
+    ]
+  },
+  "training": {
+    "epochs": 256,
+    "early_stopping_patience": 32,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "scheduler": "reduce_on_plateau",
+    "augment": false,
+    "cache_dataset": true,
+    "num_workers": 2,
+    "pin_memory": true,
+    "prediction_samples_per_category": 5
+  },
+  "minimum_epochs": 128,
+  "seeds": [
+    42
+  ],
+  "runs_dir": "runs",
+  "max_runs": 15,
+  "published_topology": {
+    "enabled": false,
+    "batch_size": 1
+  },
+  "approved_recipe": {
+    "approval": "owner_2026-10-15",
+    "weights": null,
+    "default_learning_rate": 0.001,
+    "swin_learning_rate": 0.00001,
+    "check_steps": 128,
+    "check_rule": "finite_updates_lower_loss_and_perfect_tiny_training_accuracy"
+  },
+  "backup": {
+    "mount_root": "/content/drive",
+    "directory": "/content/drive/MyDrive/phd_research/paper-001"
+  }
+}

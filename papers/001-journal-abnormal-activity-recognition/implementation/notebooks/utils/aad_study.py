@@ -642,18 +642,39 @@ def resume_saved_study(root, profile_path, *, download=True, return_group=False)
             records[-1]["selected_config"] = values["selected_config"]
             created.add(Path(values["selected_config"]).parent)
         _write_progress(progress, records)
-        compact = (
-            values.get("schema_version") == 5
-            or values.get("comparison_protocol") == "focused_final_v1"
+        compact = values.get("schema_version") in (5, 6, 7) or values.get(
+            "comparison_protocol"
+        ) in {"focused_final_v1", "frame_depth_final_v1"}
+        new_campaign = (
+            values.get("schema_version") in (6, 7)
+            or values.get("comparison_protocol") == "frame_depth_final_v1"
         )
-        archive = _make_archive(
-            root,
-            directory / "artifacts.zip",
-            progress,
-            created,
-            **({"results_only": True} if compact else {}),
-        )
-        if download:
+        if new_campaign:
+            from notebooks.utils.study_archive import compact_results
+
+            matches = [
+                p
+                for p in created
+                if (p / "run.json").is_file()
+                and json.loads((p / "run.json").read_text(encoding="utf-8"))
+                .get("arguments", {})
+                .get("study_file")
+                == str(profile)
+            ]
+            archive = (
+                compact_results(matches[0], root / "runs")
+                if len(matches) == 1
+                else None
+            )
+        else:
+            archive = _make_archive(
+                root,
+                directory / "artifacts.zip",
+                progress,
+                created,
+                **({"results_only": True} if compact else {}),
+            )
+        if download and archive is not None:
             _download_archive(archive)
     if return_group:
         matches = [
@@ -674,7 +695,12 @@ def resume_saved_study(root, profile_path, *, download=True, return_group=False)
 
 
 def run_saved_comparison(
-    root: str | Path, selected_config_path: str | Path, *, template_path=None
+    root: str | Path,
+    selected_config_path: str | Path,
+    *,
+    template_path=None,
+    download=True,
+    return_group=False,
 ) -> Path:
     """Compare model families using an already frozen validation selection."""
     implementation_root = Path(root).expanduser().resolve()
@@ -707,22 +733,27 @@ def run_saved_comparison(
     }
     saved = _saved_request(implementation_root, request)
     if saved:
-        return resume_saved_study(implementation_root, saved)
+        return resume_saved_study(
+            implementation_root, saved, download=download, return_group=return_group
+        )
     resolved_comparison = _resolved_profile(comparison_template, dataset_path)
     resolved_comparison.pop("entrypoint", None)
-    is_focused = selected.get("protocol") == "focused_top5_v1"
+    frame_depth = selected.get("protocol") == "fast_frame_depth_top5_v1"
+    is_focused = frame_depth or selected.get("protocol") == "focused_top5_v1"
     if is_focused:
-        if resolved_comparison.get("comparison_protocol") != "focused_final_v1":
+        if resolved_comparison.get("comparison_protocol") != (
+            "frame_depth_final_v1" if frame_depth else "focused_final_v1"
+        ):
             raise ValueError("Use the 076 five-finalist comparison template")
         final, recipe = selected["final_input"], selected["shared_recipe"]
         resolved_comparison["reference_input"].update(
-            frame_size=final["height"],
+            frame_size=64 if frame_depth else final["height"],
             sequence_length=final["sequence_length"],
             weight_decay=recipe["weight_decay"],
         )
         resolved_comparison["factors"].update(
-            frame_sizes=[final["height"]],
-            sequence_lengths=[8],
+            frame_sizes=[64 if frame_depth else final["height"]],
+            sequence_lengths=[final["sequence_length"] if frame_depth else 8],
             weight_decays=[recipe["weight_decay"]],
         )
         resolved_comparison["training"].update(
@@ -793,6 +824,14 @@ def run_saved_comparison(
         {"request": request, "profile": str(comparison_path)},
     )
     _write_progress(progress_path, stage_records)
+
+    if frame_depth:
+        return resume_saved_study(
+            implementation_root,
+            comparison_path,
+            download=download,
+            return_group=return_group,
+        )
 
     before = _run_directories(implementation_root)
     try:
@@ -894,6 +933,47 @@ def run_focused_aad_study(root):
         flush=True,
     )
     return run_saved_comparison(root, selection)
+
+
+def run_frame_depth_aad_study(root):
+    """089: owner-authorized Drive -> 128 search -> checks -> ten comparisons/test."""
+    from src.study_matrix import load_selection, read_json
+    from notebooks.utils.study_archive import connect_drive, compact_results
+
+    root = Path(root).expanduser().resolve()
+    profile = root / "configs/experiments/aad_fast_frame_depth_search_colab.json"
+    connect_drive(read_json(profile)["backup"])
+    print(
+        "143 trainings: 128 search + 5 validation-only 64px checks + 10 comparison, plus two bounded train-only checks. "
+        "AAD, seed 42, 32px search/64px final, 8/16 frames, 8/16 FPS. No test-based selection. "
+        "May exceed overnight; results-only backups are not checkpoint recovery.",
+        flush=True,
+    )
+    group = run_capacity_study(
+        root, profile_name=profile.name, download=False, return_group=True
+    )
+    selection = group / "selected_config.json"
+    selected = load_selection(selection)
+    if selected["protocol"] != "fast_frame_depth_top5_v1":
+        raise ValueError(
+            "089 requires its complete verified fast 32px/128-epoch search"
+        )
+    print("Verified top five:", selected["finalist_names"], flush=True)
+    print("Search-selected temporal input:", selected["final_input"], flush=True)
+    print("Finalist validation checks and all final comparisons use 64x64.", flush=True)
+    print(
+        "Fresh comparison LR: Swin3D-T/S=0.00001 (checked); other models=0.001.",
+        flush=True,
+    )
+    final = run_saved_comparison(
+        root,
+        selection,
+        template_path=root
+        / "configs/experiments/aad_frame_depth_comparison_colab.json",
+        download=False,
+        return_group=True,
+    )
+    return compact_results(final, root / "runs")
 
 
 def run_full_aad_study(root, *, profile_name="aad_wide_depth_search_colab.json"):

@@ -244,6 +244,16 @@ def compact_results(group, runs_dir, *, announce=False):
     root = Path(runs_dir).resolve().parent
     path = Path(runs_dir).resolve() / "focused_archives" / group.name / "results.zip"
     study_path = group / "study.json"
+    if study_path.is_file():
+        study = json.loads(study_path.read_text(encoding="utf-8"))
+        if (
+            study.get("schema_version") == 7
+            or study.get("comparison_protocol") == "frame_depth_final_v1"
+        ):
+            result = essential_results(group, runs_dir)
+            if study.get("backup"):
+                backup_results(result, group, study["backup"])
+            return result  # Drive is verified; no per-job browser popup.
     standalone = study_path.is_file() and json.loads(
         study_path.read_text(encoding="utf-8")
     ).get("comparison_only")
@@ -277,6 +287,133 @@ def compact_results(group, runs_dir, *, announce=False):
         if study.get("backup"):
             backup_results(result, group, study["backup"])
     return result
+
+
+def essential_results(group, runs_dir):
+    """Small JSON-only analysis bundle, not a checkpoint/resume backup."""
+    from src.study_matrix import atomic_json, read_json
+
+    group, runs_dir = Path(group).resolve(), Path(runs_dir).resolve()
+    groups = [group]
+    study = read_json(group / "study.json")
+    if study.get("selected_config"):
+        selection = read_json(study["selected_config"])
+        source = Path(selection["source_group"]).resolve()
+        if not source.is_relative_to(runs_dir) or not source.is_dir():
+            raise ValueError(
+                "Search evidence missing/outside runs; incomplete summary refused"
+            )
+        groups.insert(0, source)
+    content = dict(
+        kind="essential_results_v1",
+        note="Analysis results only, NOT a resume archive. Keep checkpoints/full evidence separately. "
+        "Pooled precision/recall/F1 equal accuracy for single-label classification.",
+        studies=[],
+    )
+    members = {}
+
+    def include_records(value, prefix):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in {
+                    "predictions",
+                    "validation_predictions",
+                    "confusion_matrix",
+                } and isinstance(item, str):
+                    path = Path(item).resolve()
+                    if (
+                        path.suffix == ".json"
+                        and path.is_file()
+                        and path.is_relative_to(runs_dir)
+                    ):
+                        members[path.relative_to(runs_dir).as_posix()] = (
+                            path.read_bytes()
+                        )
+                else:
+                    include_records(item, prefix)
+        elif isinstance(value, list):
+            for item in value:
+                include_records(item, prefix)
+
+    for directory in groups:
+        state = read_json(directory / "progress.json")
+        row = dict(
+            study_id=directory.name,
+            configuration=read_json(directory / "study.json"),
+            status=state["status"],
+            test_access=state.get("test_access", "locked"),
+            jobs=state.get("jobs", []),
+            transfer_jobs=state.get("transfer_jobs", []),
+            tests=state.get("tests", []),
+            code_identity=state.get("code_identity"),
+            split=state.get("split"),
+            error=state.get("error"),
+        )
+        for name in (
+            "selected_config.json",
+            "validation_frozen.json",
+            "preflight.json",
+            "resource_estimates.json",
+            "transformer_checks.json",
+            "resolution_checks.json",
+            "split_manifest.json",
+            "run.json",
+            "candidates.json",
+        ):
+            path = directory / name
+            if path.is_file():
+                row[name.removesuffix(".json")] = read_json(path)
+                members[directory.name + "/" + name] = path.read_bytes()
+        content["studies"].append(row)
+        include_records(row, directory.name)
+    target = runs_dir / "focused_archives" / group.name
+    summary = atomic_json(target / "essential_results.json", content)
+    members["essential_results.json"] = summary.read_bytes()
+    # Hard size bound, including uncompressed content; never fill Drive with weights.
+    if sum(len(b) for b in members.values()) > 128 * 1024**2:
+        raise RuntimeError(
+            "Essential results exceed the 128 MiB safety cap; local evidence preserved"
+        )
+    archive, temporary = target / "results.zip", target / "results.partial"
+    with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as out:
+        manifest = {}
+        for name, data in members.items():
+            out.writestr(name, data)
+            manifest[name] = dict(
+                bytes=len(data), sha256=hashlib.sha256(data).hexdigest()
+            )
+        out.writestr("archive_inventory.json", json.dumps(manifest))
+    verify_archive(temporary)
+    temporary.replace(archive)
+    print(
+        f"Essential results: {archive} | {archive.stat().st_size:,} bytes; JSON only, no weights/videos",
+        flush=True,
+    )
+    return archive
+
+
+def connect_drive(backup):
+    """Authorize in the notebook before work; retain a visible write/read test."""
+    import uuid
+    from datetime import datetime, timezone
+
+    mount, _ = backup_paths(backup)
+    if not os.path.ismount(mount):
+        from google.colab import drive
+
+        drive.mount(str(mount))
+    directory = preflight_backup(backup)
+    token = uuid.uuid4().hex
+    destination = directory / f"drive_test_{token}.txt"
+    payload = f"PhD results backup test OK\nUTC: {datetime.now(timezone.utc).isoformat()}\nToken: {token}\n"
+    with destination.open("x", encoding="utf-8") as stream:
+        stream.write(payload)
+        stream.flush()
+        os.fsync(stream.fileno())
+    if destination.read_text(encoding="utf-8") != payload:
+        raise RuntimeError("Visible Drive test failed; training has not started")
+    print(f"DRIVE TEST PASSED: {destination}\nVerified text: {payload}", flush=True)
+    return destination
 
 
 def backup_paths(backup):
