@@ -20,6 +20,9 @@ from .study_matrix import (
 )
 from .study_reporting import (
     extended_metrics,
+    POOLED_REPORTING,
+    reporting_protocol,
+    validate_pooled_evidence,
     result_row,
     write_full_table,
     search_plots,
@@ -241,6 +244,7 @@ def audit_split(source, split_path, review_path=None):
 
 def _validate_result(result, row, split, sources, class_count):
     _validate_leaf(result, row, row["config"], split["manifest_hash"])
+    pooled = reporting_protocol(result) == POOLED_REPORTING
     metrics = result["validation_metrics"]
     required = (
         "loss",
@@ -248,10 +252,15 @@ def _validate_result(result, row, split, sources, class_count):
         "precision",
         "recall",
         "f1",
-        "macro_precision",
-        "macro_recall",
-        "macro_f1",
-        "balanced_accuracy",
+    ) + (
+        ()
+        if pooled
+        else (
+            "macro_precision",
+            "macro_recall",
+            "macro_f1",
+            "balanced_accuracy",
+        )
     )
     if any(
         not isinstance(metrics.get(k), (int, float)) or not math.isfinite(metrics[k])
@@ -280,23 +289,34 @@ def _validate_result(result, row, split, sources, class_count):
         for r, p in zip(predictions, paths)
     ):
         raise ValueError("prediction partition/target differs from the split")
-    checks = extended_metrics(
-        [r["predicted"] for r in predictions],
-        [r["target"] for r in predictions],
-        class_count,
-    )
-    checks.update(
-        accuracy=checks["micro_f1"],
-        precision=checks["micro_f1"],
-        recall=checks["micro_f1"],
-        f1=checks["micro_f1"],
-        loss=statistics.mean(r["loss"] for r in predictions),
-    )
-    if any(
-        not math.isclose(metrics[k], v, abs_tol=1e-5, rel_tol=1e-5)
-        for k, v in checks.items()
-    ):
-        raise ValueError("reported metrics do not reconcile with complete predictions")
+    if pooled:
+        # _validate_leaf already reconciled the versioned prediction/count evidence.
+        classes = read_json(row["config"]["split_manifest"])["class_names"]
+        if len(classes) != class_count:
+            raise ValueError("Class mapping differs from split")
+    else:
+        # Historical contract: verify its original averages, never relabel them.
+        checks = extended_metrics(
+            [r["predicted"] for r in predictions],
+            [r["target"] for r in predictions],
+            class_count,
+        )
+        checks.update(
+            accuracy=checks["micro_f1"],
+            precision=checks["micro_f1"],
+            recall=checks["micro_f1"],
+            f1=checks["micro_f1"],
+            loss=statistics.mean(r["loss"] for r in predictions),
+        )
+        if any(
+            not math.isclose(
+                metrics.get(k, float("nan")), v, abs_tol=1e-5, rel_tol=1e-5
+            )
+            for k, v in checks.items()
+        ):
+            raise ValueError(
+                "reported metrics do not reconcile with complete predictions"
+            )
     if row.get("matched_checkpoint_metrics"):
         validate_matched_training(result, row, class_count)
 
@@ -304,9 +324,12 @@ def _validate_result(result, row, split, sources, class_count):
 def validate_matched_training(result, row, class_count):
     """Reject stale checkpoints, wrong partitions and fabricated training gaps."""
     report = result.get("training_evaluation", {})
+    pooled = reporting_protocol(result) == POOLED_REPORTING
     checkpoint = Path(result["selected_checkpoint"])
     if (
-        report.get("protocol") != "matched_checkpoint_eval_v1"
+        report.get("protocol")
+        != ("matched_checkpoint_eval_v2" if pooled else "matched_checkpoint_eval_v1")
+        or (reporting_protocol(report) == POOLED_REPORTING) != pooled
         or report.get("partition") != "train"
         or report.get("model_mode") != "eval"
         or report.get("augmentation") is not False
@@ -317,6 +340,8 @@ def validate_matched_training(result, row, class_count):
     ):
         raise ValueError("Missing compatible matched-checkpoint training evaluation")
     manifest = read_json(row["config"]["split_manifest"])
+    if pooled and len(manifest["class_names"]) != class_count:
+        raise ValueError("Training class mapping differs from split")
     expected = {
         str((Path(row["config"]["dataset_dir"]) / r["path"]).resolve()): r[
             "class_index"
@@ -336,12 +361,25 @@ def validate_matched_training(result, row, class_count):
         )
     ):
         raise ValueError("Training predictions must cover exactly the training split")
-    metrics = extended_metrics(
-        [r["predicted"] for r in records], [r["target"] for r in records], class_count
-    )
-    metrics.update(
-        loss=statistics.mean(r["loss"] for r in records), accuracy=metrics["micro_f1"]
-    )
+    if pooled:
+        validate_pooled_evidence(
+            report.get("metrics", {}),
+            records,
+            manifest["class_names"],
+            report.get("per_class", []),
+            report.get("confusion_matrix", {}),
+        )
+        metrics = report["metrics"]
+    else:
+        metrics = extended_metrics(
+            [r["predicted"] for r in records],
+            [r["target"] for r in records],
+            class_count,
+        )
+        metrics.update(
+            loss=statistics.mean(r["loss"] for r in records),
+            accuracy=metrics["micro_f1"],
+        )
     if metrics["loss"] < 0 or any(
         not math.isclose(
             report.get("metrics", {}).get(k, float("nan")), v, abs_tol=1e-5

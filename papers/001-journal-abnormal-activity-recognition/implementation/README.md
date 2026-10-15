@@ -65,9 +65,17 @@ CUBLAS_WORKSPACE_CONFIG=:4096:8 .venv/bin/python -m src.experiments --config con
 This is a quick lower-LR trial, not the frozen comparison or a promised accuracy
 improvement. It saves checkpoints, curves, validation confusion and sample videos
 under a fresh `runs/experiments/` directory. No test evaluation is triggered.
-New direct modular experiment outputs use pooled precision/recall/F1 with
-accuracy and loss; they do not add macro averages. Per-class metrics remain.
-Legacy campaign contracts and historical evidence are preserved.
+New modular and campaign outputs use pooled precision/recall/F1 with accuracy,
+sample-weighted loss and per-class precision/recall/F1/support/TP/FP/FN. Pooled
+P/R/F1 equal accuracy in single-label multiclass classification; class counts
+and confusion matrices expose failures that these equal totals cannot.
+`pooled_per_class_v2` reports reconcile scores, class counts and confusion
+counts with complete prediction records. Matched training uses
+`matched_checkpoint_eval_v2`, evaluated without augmentation at the selected
+checkpoint. Split, class, checkpoint and frozen-test guards still apply.
+Unmarked historical campaign reports are read explicitly as `legacy_extended_v1`
+and checked using their original metric definitions; their files are not rewritten.
+Do not remove resume guards or mix contract versions to force continuation.
 The [verified lower-LR follow-up](reports/2026-10-15/transformer-learning/follow-up.md)
 reached 137/160 validation correct (85.625%) in eight local epochs, versus
 25/160 at LR 0.0001. This is Swin3D-T diagnostic evidence, not final test results.
@@ -75,13 +83,14 @@ reached 137/160 validation correct (85.625%) in eight local epochs, versus
 Remaining work is planning-only; the successful search will not be rerun:
 
 - [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): next, consume 084's diagnosis and obtain approval for any recipe changes; reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
-- [088 pooled metrics everywhere](../../../agents/work/088-pooled-metrics-everywhere/prompt.md): remove macro outputs from all new active evaluation/campaign paths while preserving old evidence and compatibility guards; the current direct smoke fix is not global.
 - [087 expanded 64px search](../../../agents/work/087-expand-frame-depth-search/prompt.md): 32 customs, fixed 64x64, 8/16 frames and 8/16 FPS (128 jobs). Depth counts 5/6/13/4/4 provide at least four candidates per depth; flat widths 32/48/64/96 are matched across depths 1-5. Preserve old results and save compact Drive backups. Measure workload before launch; overnight is not guaranteed.
 - [089 Colab readiness](../../../agents/work/089-colab-campaign-readiness/prompt.md): wire the new JSON and 083 comparison into one thin notebook/export after prerequisites, transformer recipe checks and backup preflight. No streaming change or real campaign launch during implementation.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 
 The comparison-only local JSON/command is a planned deliverable, not ready to run
 yet. Existing search/comparison notebooks still retain their current behavior.
+Metric alignment is implemented in [088](../../../agents/work/088-pooled-metrics-everywhere/completion.md);
+this does not recover the failed comparison or launch a new study.
 
 ### Focused Run All (077/076)
 
@@ -346,8 +355,8 @@ The adapted paper classifier is still large. No eight-hour promise.
 Global labels read `Experiment N/142 maximum | stage`, including epoch bars.
 Reuses retain original numbers; pending adaptive stages are not completed jobs.
 Full tables include every configuration, accuracy/loss, costs and unaveraged
-per-class precision/recall/F1/support/TP/FP/FN; legacy averages remain in
-machine-readable evidence only. Matched unaugmented train/validation passes
+per-class precision/recall/F1/support/TP/FP/FN and pooled totals. Legacy averages
+remain only in historical evidence. Matched unaugmented train/validation passes
 use the same selected checkpoint; width/depth/position summaries and cost
 plots do not automatically claim underfitting, overfitting or an optimum.
 
@@ -396,7 +405,7 @@ Final comparison: **eight fresh trainings**, cap 512 epochs, minimum 128,
 patience 32, fixed 50 frames at 50x50, batch 1, seed 42. Caps are not promises
 to finish that many epochs or within eight hours. Test starts only after all
 eight validation-selected checkpoints and the custom example model are frozen.
-All models receive full metrics, including explicitly macro/micro metrics;
+New runs receive pooled metrics and unaveraged per-class/confusion counts;
 the validation-selected custom model supplies correct/incorrect video examples.
 
 **074 handoff:** before those eight trainings, automatically validate search
@@ -569,7 +578,7 @@ dependent unresolved stages remain visible. The capacity group saves
 `results.json`, `results.csv`, `results.md`, width/depth and efficiency plots,
 `decisions.json`, two-seed rankings and `ablation_recommendations.json`.
 Leaves retain complete validation predictions, confusion/per-class metrics,
-explicit micro/macro metrics, balanced accuracy, LR histories and checkpoints.
+pooled P/R/F1, LR histories and checkpoints. Historical metric files are unchanged.
 Model-only inference uses batch 1, three warmups and ten synchronized measured
 forwards at each declared input; hardware/dtype, latency, throughput and CUDA
 peak memory are recorded separately from decode-inclusive training time.

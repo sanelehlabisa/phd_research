@@ -18,7 +18,6 @@ from time import perf_counter
 
 import torch
 import torch.nn as nn
-from sklearn.metrics import precision_recall_fscore_support
 from torch.utils.data import DataLoader
 
 from .dataset import (
@@ -110,21 +109,11 @@ def prediction_records(model, loader, device, class_names, partition="test"):
 
 
 def per_class_metrics(records, class_names):
-    precision, recall, f1, support = precision_recall_fscore_support(
-        [r["target"] for r in records],
-        [r["predicted"] for r in records],
-        labels=list(range(len(class_names))),
-        zero_division=0,
-    )
+    from .wide_protocol import class_counts
+
     return [
-        {
-            "class": name,
-            "precision": float(precision[i]),
-            "recall": float(recall[i]),
-            "f1": float(f1[i]),
-            "support": int(support[i]),
-        }
-        for i, name in enumerate(class_names)
+        {("class" if k == "class_name" else k): v for k, v in row.items()}
+        for row in class_counts(records, class_names)
     ]
 
 
@@ -344,12 +333,6 @@ def main(argv=None) -> Path:
     records_path = write_json(run_dir / "metrics" / "test_predictions.json", records)
     all_true = [record["target"] for record in records]
     all_pred = [record["predicted"] for record in records]
-    from .study_reporting import extended_metrics
-
-    results.update(extended_metrics(all_pred, all_true, num_classes))
-    precision, recall, f1, support = precision_recall_fscore_support(
-        all_true, all_pred, labels=list(range(num_classes)), zero_division=0
-    )
     confusion_artifacts = plot_confusion_matrix(
         all_true,
         all_pred,
@@ -376,21 +359,13 @@ def main(argv=None) -> Path:
         "partition": "test",
         "metric_protocol": metric_protocol(),
         "classes": dataset.class_names,
+        "reporting_protocol": "pooled_per_class_v2",
         "checkpoint": {
             "path": str(checkpoint_path.resolve()),
             **checkpoint_selection,
         },
         "metrics": {k: round(v, 6) for k, v in results.items()},
-        "per_class": [
-            {
-                "class": name,
-                "precision": float(precision[i]),
-                "recall": float(recall[i]),
-                "f1": float(f1[i]),
-                "support": int(support[i]),
-            }
-            for i, name in enumerate(dataset.class_names)
-        ],
+        "per_class": per_class_metrics(records, dataset.class_names),
         "num_params": sum(p.numel() for p in model.parameters() if p.requires_grad),
         "metric_pass_seconds": metric_pass_seconds,
         "runtime_note": "Full metric pass including decoding/data loading; not pure model latency.",
@@ -404,6 +379,15 @@ def main(argv=None) -> Path:
             "prediction_clips": prediction_examples["records"],
         },
     }
+    from .study_reporting import validate_pooled_evidence
+
+    validate_pooled_evidence(
+        report["metrics"],
+        records,
+        dataset.class_names,
+        report["per_class"],
+        confusion_artifacts,
+    )
     json_path = write_json(run_dir / "metrics" / "final.json", report)
     run.complete(
         artifacts={

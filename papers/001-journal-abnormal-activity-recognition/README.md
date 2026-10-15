@@ -48,7 +48,7 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 - [x] [084 transformer learning diagnosis](../../agents/work/084-diagnose-transformer-learning/completion.md) — no proven production bug. A separate [lower-LR follow-up](implementation/reports/2026-10-15/transformer-learning/follow-up.md) restores Swin3D-T learning locally (85.625% validation); Swin3D-S and final comparison remain unverified under that recipe.
 - [ ] [083 comparison-only JSON/test recovery](../../agents/work/083-comparison-only-recovery/prompt.md) — next, after any recipe change is approved: five existing finalists + paper + two 3D CNNs + two transformers; local 6-GB CUDA preflight, Colab fallback, final test metrics/confusion/examples. No search rerun.
-- [ ] [088 pooled metrics everywhere](../../agents/work/088-pooled-metrics-everywhere/prompt.md) — remove macro outputs from all new active modular/campaign results; retain pooled totals, per-class metrics and immutable historical evidence.
+- [x] [088 pooled metrics everywhere](../../agents/work/088-pooled-metrics-everywhere/completion.md) — new modular/campaign reports use versioned pooled totals, per-class counts and confusion evidence; legacy results and provenance guards remain intact. No new research run.
 - [ ] [087 expanded 64px search](../../agents/work/087-expand-frame-depth-search/prompt.md) — 32 architectures at depths 1-5 (at least four per depth), fixed 64x64, 8/16 frames and 8/16 FPS: 128 jobs. Retain the original candidates; back up compact results to Drive. Planning only.
 - [ ] [089 Colab readiness](../../agents/work/089-colab-campaign-readiness/prompt.md) — integrate 088/087 and 083's comparison path into one thin notebook/export, with recipe/preflight checks and backups before launch. Streaming remains deferred.
 - [ ] [086 modular-script cleanup plan](../../agents/work/086-simplify-modular-scripts/prompt.md) — later: audit callers and propose exact removals/merges for approval; do not disrupt the comparison work.
@@ -176,7 +176,7 @@ timing and strict-top-five versus reserved-anchor wording remain unresolved.
 Future manuscript tables use pooled precision/recall/F1, accuracy/loss and
 per-class counts/metrics, not macro averages. These pooled scores equal accuracy
 for single-label multiclass classification; historical reports remain unchanged.
-Ticket 088 aligns active code paths before a new campaign.
+Ticket 088 aligns active code paths; 083 recovery and 089 integration remain separate.
 
 VDD may be used for a separate, explicitly configured generalisation study;
 its historical runs are preserved but are not new comparable evidence.

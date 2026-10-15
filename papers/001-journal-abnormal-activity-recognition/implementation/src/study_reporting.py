@@ -8,6 +8,103 @@ from pathlib import Path
 from .study_matrix import atomic_json
 
 
+POOLED_REPORTING = "pooled_per_class_v2"
+LEGACY_REPORTING = "legacy_extended_v1"
+
+
+def reporting_protocol(report):
+    """Missing markers identify historical evidence, never a new pooled receipt."""
+    protocol = report.get("reporting_protocol", LEGACY_REPORTING)
+    if protocol not in (POOLED_REPORTING, LEGACY_REPORTING):
+        raise ValueError("Unsupported reporting protocol")
+    return protocol
+
+
+def pooled_metrics(records, class_names):
+    """Full-partition pooled scores and mean per-sample loss; no class averaging."""
+    from .metrics import classification_metrics
+    import torch
+
+    if not records or len(class_names) < 2 or len(set(class_names)) != len(class_names):
+        raise ValueError("Nonempty predictions and unique class mapping required")
+    for record in records:
+        if any(
+            type(record.get(key)) is not int or not 0 <= record[key] < len(class_names)
+            for key in ("target", "predicted")
+        ):
+            raise ValueError("prediction or target outside class mapping")
+        loss = record.get("loss")
+        if (
+            isinstance(loss, bool)
+            or not isinstance(loss, (int, float))
+            or not math.isfinite(loss)
+            or loss < 0
+        ):
+            raise ValueError("Prediction loss must be finite and non-negative")
+        for key, index in (("true_class", "target"), ("predicted_class", "predicted")):
+            if key in record and record[key] != class_names[record[index]]:
+                raise ValueError("Prediction class label differs from class mapping")
+        if "correct" in record and record["correct"] != (
+            record["target"] == record["predicted"]
+        ):
+            raise ValueError("Prediction correctness disagrees with class indices")
+    return {
+        "loss": statistics.mean(r["loss"] for r in records),
+        **classification_metrics(
+            torch.tensor([r["predicted"] for r in records]),
+            torch.tensor([r["target"] for r in records]),
+            len(class_names),
+        ),
+    }
+
+
+def confusion_counts(records, class_names):
+    matrix = [[0] * len(class_names) for _ in class_names]
+    for record in records:
+        matrix[record["target"]][record["predicted"]] += 1
+    return dict(class_names=list(class_names), matrix=matrix, sample_count=len(records))
+
+
+def validate_pooled_evidence(metrics, records, class_names, per_class, confusion):
+    """Reconcile the versioned report, including saved confusion JSON when linked."""
+    from .wide_protocol import class_counts
+    from .study_matrix import read_json
+
+    expected = pooled_metrics(records, class_names)
+    if (
+        not isinstance(metrics, dict)
+        or set(metrics) != set(expected)
+        or any(
+            isinstance(metrics[k], bool)
+            or not isinstance(metrics[k], (int, float))
+            or not math.isfinite(metrics[k])
+            or not math.isclose(metrics[k], v, rel_tol=1e-5, abs_tol=2e-6)
+            for k, v in expected.items()
+        )
+    ):
+        raise ValueError("Pooled metrics do not reconcile with complete predictions")
+    if not isinstance(per_class, list) or any(
+        not isinstance(row, dict)
+        or any(type(row.get(k)) is not int for k in ("support", "tp", "fp", "fn"))
+        or any(isinstance(row.get(k), bool) for k in ("precision", "recall", "f1"))
+        for row in per_class
+    ):
+        raise ValueError("Invalid per-class metric/count fields")
+    normalized = [
+        {("class_name" if k == "class" else k): v for k, v in row.items()}
+        for row in per_class
+    ]
+    if normalized != class_counts(records, class_names):
+        raise ValueError("Per-class metrics/counts do not reconcile with predictions")
+    counts = confusion_counts(records, class_names)
+    if not isinstance(confusion, dict) or any(
+        confusion.get(k) != v for k, v in counts.items()
+    ):
+        raise ValueError("Confusion counts do not reconcile with predictions")
+    if confusion.get("json") and read_json(confusion["json"]) != counts:
+        raise ValueError("Saved confusion counts disagree with report")
+
+
 def matched_training_evaluation(
     model, loader, device, class_names, checkpoint, epoch, output, validation
 ):
@@ -18,18 +115,12 @@ def matched_training_evaluation(
 
     started = perf_counter()
     records = prediction_records(model, loader, device, class_names, partition="train")
-    metrics = extended_metrics(
-        [r["predicted"] for r in records],
-        [r["target"] for r in records],
-        len(class_names),
-    )
-    metrics.update(
-        loss=statistics.mean(r["loss"] for r in records), accuracy=metrics["micro_f1"]
-    )
+    metrics = pooled_metrics(records, class_names)
     path = Path(output) / "selected_training_predictions.json"
     atomic_json(path, records)
     return {
-        "protocol": "matched_checkpoint_eval_v1",
+        "protocol": "matched_checkpoint_eval_v2",
+        "reporting_protocol": POOLED_REPORTING,
         "partition": "train",
         "model_mode": "eval",
         "augmentation": False,
@@ -40,6 +131,7 @@ def matched_training_evaluation(
         "metrics": metrics,
         "predictions": str(path),
         "per_class": per_class_metrics(records, class_names),
+        "confusion_matrix": confusion_counts(records, class_names),
         "seconds": perf_counter() - started,
         "train_minus_validation_accuracy": metrics["accuracy"] - validation["accuracy"],
         "validation_minus_train_loss": validation["loss"] - metrics["loss"],
@@ -48,7 +140,10 @@ def matched_training_evaluation(
 
 
 def extended_metrics(predictions, targets, num_classes):
-    """Macro uses every declared class; balanced accuracy uses supported classes."""
+    """Legacy-only verification: never use to produce new active run metrics.
+
+    Historical macro uses all declared classes; balanced accuracy uses support.
+    """
     import torch
 
     p = torch.as_tensor(predictions, dtype=torch.long)
@@ -79,7 +174,9 @@ def extended_metrics(predictions, targets, num_classes):
     }
 
 
-def result_row(result, raw=False, pooled_only=False, **context):
+def result_row(result, raw=False, pooled_only=None, **context):
+    if pooled_only is None:
+        pooled_only = reporting_protocol(result) == POOLED_REPORTING
     config = result.get("experiment_config", {})
     metrics = result.get("validation_metrics", {})
     layers = (
@@ -89,6 +186,7 @@ def result_row(result, raw=False, pooled_only=False, **context):
     )
     row = {
         **context,
+        "reporting_protocol": reporting_protocol(result),
         "model": result.get("name"),
         "family": result.get("family"),
         "status": "complete",
@@ -110,30 +208,43 @@ def result_row(result, raw=False, pooled_only=False, **context):
         "selected_epoch": result.get("checkpoint_selection", {}).get("selected_epoch"),
         "checkpoint": result.get("selected_checkpoint"),
     }
-    for key in (
+    validation_keys = (
         "loss",
         "accuracy",
         "precision",
         "recall",
         "f1",
-        "macro_precision",
-        "macro_recall",
-        "macro_f1",
-        "balanced_accuracy",
-    ):
+    )
+    if not pooled_only:
+        validation_keys += (
+            "macro_precision",
+            "macro_recall",
+            "macro_f1",
+            "balanced_accuracy",
+        )
+    for key in validation_keys:
         label = "micro_" + key if key in {"precision", "recall", "f1"} else key
         row["validation_" + label] = metrics.get(key)
     for key in ("latency_ms_per_batch", "samples_per_second", "peak_cuda_memory_bytes"):
         row[key] = result.get("efficiency", {}).get(key)
     training = result.get("training_evaluation", {})
-    for key in ("loss", "accuracy", "macro_precision", "macro_recall", "macro_f1"):
-        row["selected_training_" + key] = training.get("metrics", {}).get(key)
+    for key in (
+        ("loss", "accuracy", "precision", "recall", "f1")
+        if pooled_only
+        else ("loss", "accuracy", "macro_precision", "macro_recall", "macro_f1")
+    ):
+        label = "micro_" + key if key in {"precision", "recall", "f1"} else key
+        row["selected_training_" + label] = training.get("metrics", {}).get(key)
     row["matched_accuracy_gap"] = training.get("train_minus_validation_accuracy")
     row["matched_loss_gap"] = training.get("validation_minus_train_loss")
-    if raw:
+    if raw or pooled_only:
         from .wide_protocol import raw_result_fields, unaveraged_row
 
-        row.update(raw_result_fields(result))
+        if result.get("validation_predictions"):
+            row.update(raw_result_fields(result))
+        else:
+            row["validation_per_class"] = result.get("validation_per_class", [])
+        row["validation_confusion_matrix"] = result.get("validation_confusion_matrix")
         if training.get("predictions"):
             row.update(raw_result_fields(result, "train", training["predictions"]))
         if not pooled_only:
@@ -148,8 +259,14 @@ def result_row(result, raw=False, pooled_only=False, **context):
 
 
 def write_full_table(
-    directory, rows, stem="results", print_rows=True, raw=False, pooled_only=False
+    directory, rows, stem="results", print_rows=True, raw=False, pooled_only=None
 ):
+    if pooled_only is None:
+        pooled_only = all(
+            r.get("reporting_protocol") == POOLED_REPORTING
+            for r in rows
+            if r.get("status") == "complete"
+        )
     if raw and not pooled_only:
         from .wide_protocol import unaveraged_row
 
@@ -245,6 +362,15 @@ def write_full_table(
         "# Full validation results",
         "",
         "All configurations are shown. Test stays locked; raw configuration rank is not architecture selection.",
+        "Reporting: "
+        + ", ".join(
+            sorted({r.get("reporting_protocol", LEGACY_REPORTING) for r in complete})
+        ),
+        (
+            "Pooled P/R/F1 equal accuracy for single-label multiclass classification; per-class counts retain class-specific evidence."
+            if pooled_only
+            else "Historical metrics retain their original definitions; no scores are relabelled."
+        ),
         "",
         "| " + " | ".join(columns) + " |",
         "| " + " | ".join(["---"] * len(columns)) + " |",
@@ -260,7 +386,7 @@ def write_full_table(
     lines.extend(
         "| " + " | ".join(cell(r.get(k)) for k in columns) + " |" for r in ordered
     )
-    if raw:
+    if raw or pooled_only:
         lines += [
             "",
             "## Unaveraged per-class validation metrics",
@@ -368,11 +494,8 @@ def search_plots(directory, rows, raw=False):
     fig.tight_layout()
     fig.savefig(directory / "accuracy_efficiency.png")
     plt.close(fig)
-    metrics = (
-        ("validation_accuracy",)
-        if raw
-        else ("validation_accuracy", "validation_macro_f1")
-    )
+    # Pooled P/R/F1 equal accuracy for this single-label task; one score axis suffices.
+    metrics = ("validation_accuracy",)
     fig, axes = plt.subplots(
         len(metrics), 3, figsize=(15, 4 * len(metrics)), squeeze=False
     )
@@ -402,7 +525,7 @@ def search_plots(directory, rows, raw=False):
         "Reference-recipe validation; configurations are not independent datasets"
     )
     fig.tight_layout()
-    fig.savefig(directory / ("accuracy_cost.png" if raw else "accuracy_macro_cost.png"))
+    fig.savefig(directory / "accuracy_cost.png")
     plt.close(fig)
 
 

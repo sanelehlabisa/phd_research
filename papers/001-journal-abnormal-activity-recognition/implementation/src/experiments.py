@@ -702,7 +702,9 @@ def _resolved_arguments(
                 or any(not isinstance(name, str) for name in models)
                 or len(models) != len(set(models))
             ):
-                raise ValueError("models must be a non-empty list of unique model names")
+                raise ValueError(
+                    "models must be a non-empty list of unique model names"
+                )
             defaults = ExperimentConfig.from_mapping(configured, defaults=defaults)
             values = {key: value for key, value in values.items() if key != "config"}
             values.setdefault("models", models)
@@ -1402,7 +1404,6 @@ def main(argv: list[str] | None = None) -> Path | None:
     )
     campaign = campaign_label(args)
     raw_presentation = getattr(args, "per_class_reporting", False)
-    legacy_extended_metrics = getattr(args, "campaign_stage", None) is not None
     print(
         f"\n{campaign}\n"
         if campaign
@@ -1570,7 +1571,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         if device.type == "cuda":
             torch.cuda.synchronize()
         validation_seconds = timer() - validation_started
-        from .evaluate import prediction_records, per_class_metrics
+        from .evaluate import prediction_records
         from .wide_protocol import class_counts
         from .utils import plot_training_curves
 
@@ -1599,13 +1600,8 @@ def main(argv: list[str] | None = None) -> Path | None:
                 selected_validation_metrics,
             )
         if experiment_config.sampling_version == "timestamps_v1":
-            from .study_reporting import extended_metrics
             from .study_resources import inference_measurement
 
-            if legacy_extended_metrics:
-                selected_validation_metrics.update(
-                    extended_metrics(all_pred, all_true, num_classes)
-                )
             # Exclude optimizer and checkpoint-copy tensors from inference memory.
             del checkpoint, opt, scheduler
             if device.type == "cuda":
@@ -1672,14 +1668,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             "sampling_report": (
                 str(sampling_report_path) if sampling_report_path else None
             ),
-            "extended_metric_protocol": (
-                {
-                    "macro": "all declared classes, zero division = 0",
-                    "balanced_accuracy": "mean recall over classes with nonzero support",
-                }
-                if experiment_config.sampling_version == "timestamps_v1" and legacy_extended_metrics
-                else None
-            ),
+            "reporting_protocol": "pooled_per_class_v2",
             "experiment_config": experiment_config.to_dict(),
             "candidate_manifest": candidate_provenance,
             "study_trial": trial_metadata,
@@ -1696,11 +1685,7 @@ def main(argv: list[str] | None = None) -> Path | None:
             ),
             "checkpoint_bytes": selected_checkpoint_path.stat().st_size,
             "validation_predictions": str(records_path),
-            "validation_per_class": (
-                class_counts(records, dataset.class_names)
-                if raw_presentation
-                else per_class_metrics(records, dataset.class_names)
-            ),
+            "validation_per_class": class_counts(records, dataset.class_names),
             "training_curves": str(curves),
             "cache": cache_report,
             "validation_confusion_matrix": confusion_artifacts,
@@ -1711,6 +1696,15 @@ def main(argv: list[str] | None = None) -> Path | None:
             "history": str(history_path),
             "test_access": "locked",
         }
+        from .study_reporting import validate_pooled_evidence
+
+        validate_pooled_evidence(
+            selected_validation_metrics,
+            records,
+            dataset.class_names,
+            result["validation_per_class"],
+            confusion_artifacts,
+        )
         metrics_path = write_json(model_dir / "metrics" / "metrics.json", result)
         result["metrics_path"] = str(metrics_path)
         all_results.append(result)
@@ -1753,10 +1747,10 @@ def main(argv: list[str] | None = None) -> Path | None:
 
     write_full_table(
         run_dir,
-        [result_row(r, raw=raw_presentation, pooled_only=not legacy_extended_metrics) for r in ranked],
+        [result_row(r, raw=raw_presentation) for r in ranked],
         print_rows=len(ranked) > 1,
         raw=raw_presentation,
-        pooled_only=not legacy_extended_metrics,
+        pooled_only=True,
     )
 
     summary = {

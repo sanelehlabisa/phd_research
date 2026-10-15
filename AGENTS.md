@@ -26,9 +26,9 @@
 
 - Never invent or silently alter results, citations, datasets, or claims.
 - New active outputs must use pooled precision/recall/F1, accuracy/loss and
-  per-class/confusion evidence, not macro averages. The direct smoke path is
-  fixed; ticket 088 still owns remaining evaluation/campaign paths. Preserve
-  historical metric files and explicit compatibility checks.
+  per-class/confusion evidence, not macro averages. New reports use the
+  `pooled_per_class_v2` contract; pooled P/R/F1 equal accuracy for this
+  single-label task. Preserve historical metric files and explicit legacy checks.
 - Store each paper's Colab reviews in `implementation/reports/YYYY-MM-DD/`
   using the report date. Keep related logs, tables and figures together;
   record execution dates separately and preserve raw evidence unchanged.

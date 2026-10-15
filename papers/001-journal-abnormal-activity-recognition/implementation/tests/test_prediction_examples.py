@@ -154,7 +154,7 @@ def test_final_report_reader_accepts_current_category_counts(
         final_test_report(tmp_path)
 
 
-def test_all_four_commands_use_only_their_partition(tmp_path, monkeypatch):
+def test_all_four_commands_use_only_their_partition(tmp_path, monkeypatch, capsys):
     from src import dataset, dataset_source, evaluate, experiments, model, train
 
     torch.set_num_threads(1)
@@ -254,7 +254,31 @@ def test_all_four_commands_use_only_their_partition(tmp_path, monkeypatch):
     final = json.loads((eval_dir / "metrics/final.json").read_text())
     assert final["partition"] == final["prediction_examples"]["partition"] == "test"
     for run in (report, exp, *smoke_report["models"].values(), final):
+        assert "macro" not in json.dumps(run) and "balanced_accuracy" not in json.dumps(
+            run
+        )
         examples = run["prediction_examples"]
         assert examples["prediction_samples_per_category"] == 1
         assert 1 <= sum(examples["saved_counts"].values()) <= 2
         assert all(value <= 1 for value in examples["saved_counts"].values())
+    from src.study_reporting import POOLED_REPORTING, validate_pooled_evidence
+
+    for result in (report, exp):
+        assert result["reporting_protocol"] == POOLED_REPORTING
+        records = json.loads(Path(result["validation_predictions"]).read_text())
+        validate_pooled_evidence(
+            result["validation_metrics"],
+            records,
+            source.class_names,
+            result["validation_per_class"],
+            result["validation_confusion_matrix"],
+        )
+    assert final["reporting_protocol"] == POOLED_REPORTING
+    validate_pooled_evidence(
+        final["metrics"],
+        json.loads(Path(final["predictions"]).read_text()),
+        source.class_names,
+        final["per_class"],
+        final["artifacts"]["confusion_matrix"],
+    )
+    assert "macro" not in capsys.readouterr().out.lower()

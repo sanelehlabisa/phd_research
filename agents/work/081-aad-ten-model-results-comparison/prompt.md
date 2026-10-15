@@ -8,8 +8,8 @@
 - Changes:
   - Read five custom configurations from the frozen selection receipt and baseline names from the resolved experiment config. Current baseline IDs: `paper_convlstm_adapted`, `r3d_18`, `mc3_18`, `swin3d_t`, `swin3d_s`.
   - Verify all ten trained from scratch on one frozen split with the documented common input, seed and practical training protocol. Report actual batches, early stopping, checkpoint selection and any failures/deviations; disclose custom-selected hyperparameters, not individually tuned family optima.
-  - Add exactly ten rows after shortlist selection: model name, architecture/configuration, parameters, test loss/accuracy, macro precision/recall/F1, and available model-size/latency measurements with units and measurement conditions.
-  - Use matching-checkpoint, full-test metrics. Recompute macro values only from sufficient saved class/prediction evidence, documenting the averaging policy; keep unavailable fields explicitly missing. Keep paper-reported numbers separate from retrained results.
+  - Add exactly ten rows after shortlist selection: model name, architecture/configuration, parameters, test loss/accuracy, pooled precision/recall/F1, and available model-size/latency measurements with units and measurement conditions. Link per-class counts/metrics and confusion evidence.
+  - Use matching-checkpoint, full-test metrics, reconciled with saved predictions. Explain that pooled P/R/F1 equal accuracy in this single-label task; no macro averages (088). Keep unavailable fields missing, historical scores unchanged, and paper-reported numbers separate from retrained results.
   - Label the published ConvLSTM as input-adapted, not an exact reproduction. Follow the table with one paragraph comparing classification performance, parameter savings, gains from larger baselines and the supported proposed-model trade-off.
 - Acceptance criteria:
   - Exactly five verified custom finalists and five configured baselines; each value traces to its frozen checkpoint, split and test receipt.

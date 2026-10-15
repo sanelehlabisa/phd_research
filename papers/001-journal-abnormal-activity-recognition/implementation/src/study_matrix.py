@@ -420,6 +420,9 @@ def comparison_candidates(study):
 
 
 def _validate_leaf(result, row, values, split_hash):
+    from .study_reporting import POOLED_REPORTING, reporting_protocol
+    from .metrics import metric_protocol
+
     if (result["name"], result["seed"], result["partition"], result["test_access"]) != (
         row["model"],
         values["seed"],
@@ -433,6 +436,11 @@ def _validate_leaf(result, row, values, split_hash):
     ):
         raise ValueError("leaf config/split differs from the fixed protocol")
     sidecar = read_json(Path(result["selected_checkpoint"]).with_suffix(".json"))
+    if reporting_protocol(result) == POOLED_REPORTING and (
+        result.get("metric_protocol") != metric_protocol()
+        or sidecar.get("metric_protocol") != metric_protocol()
+    ):
+        raise ValueError("Pooled result/checkpoint metric protocol mismatch")
     if (
         sidecar["selection_partition"] != "validation"
         or sidecar["checkpoint_role"] != "validation_selected_lowest_loss"
@@ -452,11 +460,48 @@ def _validate_leaf(result, row, values, split_hash):
         raise ValueError("checkpoint model/seed mismatch")
     if not Path(result["selected_checkpoint"]).is_file():
         raise ValueError("selected checkpoint missing")
+    if reporting_protocol(result) == POOLED_REPORTING:
+        from .study_reporting import validate_pooled_evidence
+
+        manifest = read_json(values["split_manifest"])
+        if file_hash(values["split_manifest"]) != split_hash:
+            raise ValueError("Validation split manifest has changed")
+        expected = {
+            str((Path(values["dataset_dir"]) / r["path"]).resolve()): r["class_index"]
+            for r in manifest["samples"]
+            if r["split"] == "validation"
+        }
+        records = read_json(result["validation_predictions"])
+        paths = [str(Path(r["source"]).resolve()) for r in records]
+        if (
+            len(paths) != len(expected)
+            or set(paths) != set(expected)
+            or any(
+                r["partition"] != "validation" or r["target"] != expected[p]
+                for r, p in zip(records, paths)
+            )
+        ):
+            raise ValueError(
+                "Predictions must cover the complete validation partition exactly once"
+            )
+        validate_pooled_evidence(
+            result["validation_metrics"],
+            records,
+            manifest["class_names"],
+            result.get("validation_per_class", []),
+            result.get("validation_confusion_matrix", {}),
+        )
 
 
 def _table_row(job, report, extended=False, raw=False):
+    from .study_reporting import POOLED_REPORTING, reporting_protocol
+
     result = job["result"]
+    pooled = reporting_protocol(result) == POOLED_REPORTING
+    if pooled != (reporting_protocol(report) == POOLED_REPORTING):
+        raise ValueError("Cannot mix legacy and pooled comparison reports")
     row = {
+        "reporting_protocol": reporting_protocol(result),
         "experiment_number": job.get("experiment_number"),
         "model": result["name"],
         "learning_rate": result["experiment_config"]["learning_rate"],
@@ -489,7 +534,7 @@ def _table_row(job, report, extended=False, raw=False):
         for key in ("loss", "accuracy", "precision", "recall", "f1"):
             label = f"micro_{key}" if key in {"precision", "recall", "f1"} else key
             row[f"{partition}_{label}"] = metrics[key]
-    if extended:
+    if extended and not pooled:
         from .study_reporting import extended_metrics
 
         class_count = len(read_json(result["split"]["manifest_path"])["class_names"])
@@ -504,18 +549,23 @@ def _table_row(job, report, extended=False, raw=False):
                 class_count,
             )
             row.update({f"{partition}_{k}": v for k, v in metrics.items()})
-    if raw:
+    if raw or pooled:
         from .wide_protocol import raw_result_fields, unaveraged_row
 
         row.update(raw_result_fields(result))
         row.update(raw_result_fields(result, "test", report["predictions"]))
         row.update(result.get("efficiency", {}))
-        row["target_fps"] = result["experiment_config"]["target_fps"]
+        row["target_fps"] = result["experiment_config"].get("target_fps", 16)
         row["matched_training"] = {
             k: result.get("training_evaluation", {}).get(k)
             for k in ("train_minus_validation_accuracy", "validation_minus_train_loss")
         }
-        row = unaveraged_row(row)
+        row["validation_confusion_matrix"] = result.get("validation_confusion_matrix")
+        row["test_confusion_matrix"] = report.get("artifacts", {}).get(
+            "confusion_matrix"
+        )
+        if not pooled:
+            row = unaveraged_row(row)
     return row
 
 
@@ -1097,9 +1147,9 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                         continue
                     print(
                         f"{record['model']}: test accuracy={record['test_accuracy']:.4f}, "
-                        f"macro precision={record['test_macro_precision']:.4f}, "
-                        f"recall={record['test_macro_recall']:.4f}, "
-                        f"F1={record['test_macro_f1']:.4f}, parameters={record['num_params']:,}",
+                        f"pooled precision={record['test_micro_precision']:.4f}, "
+                        f"recall={record['test_micro_recall']:.4f}, "
+                        f"F1={record['test_micro_f1']:.4f}, parameters={record['num_params']:,}",
                         flush=True,
                     )
                 print(
@@ -1148,6 +1198,14 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
 
 
 def _validate_test(report, expected_config, split, expected_sources):
+    from .study_reporting import (
+        POOLED_REPORTING,
+        reporting_protocol,
+        validate_pooled_evidence,
+        extended_metrics,
+    )
+    from .metrics import metric_protocol
+
     if (
         report["partition"] != "test"
         or report["split"]["manifest_hash"] != split["manifest_hash"]
@@ -1170,6 +1228,50 @@ def _validate_test(report, expected_config, split, expected_sources):
         raise ValueError("test predictions do not cover the full unique partition")
     if any(r["partition"] != "test" for r in records):
         raise ValueError("non-test prediction record")
+    if reporting_protocol(report) == POOLED_REPORTING:
+        if file_hash(expected_config["split_manifest"]) != split["manifest_hash"]:
+            raise ValueError("Frozen test split manifest has changed")
+        manifest = read_json(expected_config["split_manifest"])
+        classes = manifest["class_names"]
+        targets = {
+            str((Path(expected_config["dataset_dir"]) / r["path"]).resolve()): r[
+                "class_index"
+            ]
+            for r in manifest["samples"]
+            if r["split"] == "test"
+        }
+        if (
+            report.get("classes") != classes
+            or report.get("metric_protocol") != metric_protocol()
+            or set(targets) != expected_sources
+            or any(
+                r["target"] != targets[str(Path(r["source"]).resolve())]
+                for r in records
+            )
+        ):
+            raise ValueError(
+                "Test class mapping/targets/protocol differs from frozen split"
+            )
+        validate_pooled_evidence(
+            report["metrics"],
+            records,
+            classes,
+            report.get("per_class", []),
+            report.get("artifacts", {}).get("confusion_matrix", {}),
+        )
+    elif any(k.startswith("macro_") for k in report["metrics"]):
+        # Explicit legacy verification keeps old fields and meanings intact.
+        classes = read_json(expected_config["split_manifest"])["class_names"]
+        checks = extended_metrics(
+            [r["predicted"] for r in records],
+            [r["target"] for r in records],
+            len(classes),
+        )
+        if any(
+            not math.isclose(report["metrics"].get(k, float("nan")), v, abs_tol=2e-6)
+            for k, v in checks.items()
+        ):
+            raise ValueError("Legacy metrics do not reconcile with predictions")
     accuracy = statistics.mean(r["target"] == r["predicted"] for r in records)
     loss = statistics.mean(r["loss"] for r in records)
     for key in ("accuracy", "precision", "recall", "f1"):

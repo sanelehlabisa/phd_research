@@ -726,7 +726,10 @@ def test_real_timestamp_leaf_training_and_artifacts(
         assert result["training_evaluation"]["model_mode"] == "eval"
         assert "macro" not in (leaf / "results.md").read_text(encoding="utf-8")
         assert "tp" in result["validation_per_class"][0]
-        assert result["validation_metrics"]["macro_f1"] >= 0
+        assert (
+            result["training_evaluation"]["reporting_protocol"] == "pooled_per_class_v2"
+        )
+        assert "macro" not in str(result)
     else:
         assert "training_evaluation" not in result
         for key in ("accuracy", "loss", "precision", "recall", "f1"):
@@ -735,7 +738,7 @@ def test_real_timestamp_leaf_training_and_artifacts(
             "macro" in key or "balanced_accuracy" in key
             for key in result["validation_metrics"]
         )
-        assert result["extended_metric_protocol"] is None
+        assert result["reporting_protocol"] == "pooled_per_class_v2"
         assert result["validation_per_class"]
         assert result["validation_confusion_matrix"]
         for name in ("results.csv", "results.md", "results.json", "summary.json"):

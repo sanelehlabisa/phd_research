@@ -104,8 +104,10 @@ for the same ten models, after any recipe change is approved. Do not rerun searc
 plans script cleanup after the comparison path works. Those recovery/cleanup
 tickets remain planning-only; no new training or test result was produced by 085.
 
-Three follow-ups are logged, not implemented: [088 pooled metrics everywhere](agents/work/088-pooled-metrics-everywhere/prompt.md),
-[087 expanded search](agents/work/087-expand-frame-depth-search/prompt.md), and
+[088 pooled metrics everywhere](agents/work/088-pooled-metrics-everywhere/completion.md)
+aligns new modular/campaign reports with pooled P/R/F1, per-class counts and
+confusion evidence; historical results retain their original contracts.
+Two follow-ups remain planned: [087 expanded search](agents/work/087-expand-frame-depth-search/prompt.md) and
 [089 Colab readiness](agents/work/089-colab-campaign-readiness/prompt.md).
 The new search fixes **64x64**, with 32 architectures x 8/16 frames x 8/16 FPS
 (128 jobs), at least four models per depth 1-5 and compact backups to Drive.

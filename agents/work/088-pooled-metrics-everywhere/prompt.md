@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `088-pooled-metrics-everywhere`
-- Status: Ready
+- Status: Done
 - Aim: Make all new active modular and campaign outputs use pooled precision/recall/F1, without macro averages.
 - Scope: Existing metric, evaluation, campaign validation/reporting/export paths, targeted tests and concise guides. No parallel metric framework.
 - Context: Direct JSON experiments are already pooled-only. Final `src.evaluate` still saves macro metrics; campaign leaves, matched-training reports and older validators/tables also retain them. Hiding columns alone is insufficient.

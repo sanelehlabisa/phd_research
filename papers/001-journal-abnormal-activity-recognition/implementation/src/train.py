@@ -50,7 +50,6 @@ from .metrics import (
 )
 from .utils import (
     RunContext,
-    collect_predictions,
     data_loader_generator,
     plot_confusion_matrix,
     plot_training_curves,
@@ -835,7 +834,16 @@ def main(argv: list[str] | None = None) -> None:
         device,
         num_classes,
     )
-    true_labels, predicted_labels = collect_predictions(model, val_loader, device)
+    from .evaluate import prediction_records, per_class_metrics
+
+    records = prediction_records(
+        model, val_loader, device, dataset.class_names, "validation"
+    )
+    records_path = write_json(
+        run_dir / "metrics" / "validation_predictions.json", records
+    )
+    true_labels = [r["target"] for r in records]
+    predicted_labels = [r["predicted"] for r in records]
     confusion_artifacts = plot_confusion_matrix(
         true_labels,
         predicted_labels,
@@ -854,6 +862,10 @@ def main(argv: list[str] | None = None) -> None:
         seed=args.seed,
     )
     final_metrics = {
+        "reporting_protocol": "pooled_per_class_v2",
+        "validation_predictions": str(records_path),
+        "validation_per_class": per_class_metrics(records, dataset.class_names),
+        "validation_confusion_matrix": confusion_artifacts,
         "prediction_examples": prediction_examples,
         "evaluated_model": "validation_selected_checkpoint",
         "partition": "validation",
@@ -863,6 +875,15 @@ def main(argv: list[str] | None = None) -> None:
         "early_stopping": selection_state,
         "test_access": "locked",
     }
+    from .study_reporting import validate_pooled_evidence
+
+    validate_pooled_evidence(
+        selected_validation_metrics,
+        records,
+        dataset.class_names,
+        final_metrics["validation_per_class"],
+        confusion_artifacts,
+    )
     final_metrics_path = write_json(run_dir / "metrics" / "final.json", final_metrics)
     resolved_configuration["checkpoint_selection"] = checkpoint_selection
     resolved_configuration["early_stopping"] = selection_state

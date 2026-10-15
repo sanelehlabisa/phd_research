@@ -504,7 +504,7 @@ def test_published_model_checkpoint_restores_native_topology_on_meta():
 
 
 def test_cpu_end_to_end_real_search_training_evaluation_and_playable_examples(
-    protocol, monkeypatch
+    protocol, monkeypatch, capsys
 ):
     """Tiny real ConvLSTM smoke; baseline doubles avoid allocating A100 models on CPU."""
     from src.model import CustomConvLSTM
@@ -615,6 +615,29 @@ def test_cpu_end_to_end_real_search_training_evaluation_and_playable_examples(
         path, *study_config.load_study(path), experiments.main, gated_evaluate
     )
     assert len(calls) == 8
+    # New active reports retain pooled scores/counts throughout tables and ZIPs.
+    assert "macro" not in json.dumps(report) and "balanced_accuracy" not in json.dumps(
+        report
+    )
+    assert all(
+        r["reporting_protocol"] == "pooled_per_class_v2" for r in report["table"]
+    )
+    assert all("tp" in r["test_per_class"][0] for r in report["table"])
+    archive = study_archive.make_archive(
+        p.root,
+        p.root / "runs/results.zip",
+        group / "progress.json",
+        {group},
+        (),
+        results_only=True,
+    )
+    study_archive.verify_archive(archive)
+    with zipfile.ZipFile(archive) as bundle:
+        for name in bundle.namelist():
+            if name.endswith((".json", ".csv", ".md")):
+                content = bundle.read(name).decode("utf-8")
+                assert "macro" not in content and "balanced_accuracy" not in content
+    assert "macro" not in capsys.readouterr().out.lower()
 
 
 def test_changed_resume_identity_preserves_completed_evidence(protocol, monkeypatch):
