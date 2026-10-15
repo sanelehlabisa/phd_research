@@ -38,12 +38,47 @@ NOTE = (
     "The historical anchor has a disclosed reserved slot, not a forced winning score. "
     "Shared input is custom-selected; fixed LR/WD are not independently tuned per family."
 )
+FRAME_NOTE = (
+    "Evidence-guided uneven depth sampling (5/6/13/4/4), one seed; best tested "
+    "accuracy-size trade-off, not a global/depth-three optimum. Equal-condition "
+    "means are not macro class averages. FPS changes coverage, not tensor size. "
+    "Use matched training/validation histories; accuracy alone cannot prove "
+    "overfitting. No subject/scene independence or runtime guarantee. "
+    "New top-five selection; no reserved anchor. Comparison recipe approval "
+    "and notebook integration remain separate (089)."
+)
 
 
-def candidates():
+def expanded(study):
+    return study is not None and study.get("schema_version") == 6
+
+
+def input_conditions(study=None):
+    if expanded(study):
+        return [
+            (n, s, f)
+            for n in study["num_frames"]
+            for s in study["frame_sizes"]
+            for f in study["target_fps"]
+        ]
+    return [(8, s, f) for s, f in CONDITIONS]
+
+
+def stage_name(condition, study=None):
+    frames, size, fps = condition
+    return (
+        f"input_{frames}f_{size}px_{fps}fps"
+        if expanded(study)
+        else f"input_{size}px_{fps}fps"
+    )
+
+
+def candidates(study=None):
     from .capacity_config import candidate
 
-    return [candidate(s) for s in STACKS]
+    return [
+        candidate(s) for s in (study["architectures"] if expanded(study) else STACKS)
+    ]
 
 
 def validation_diagnostics(result):
@@ -88,20 +123,46 @@ def load_focused(study):
             "training",
             "runs_dir",
             "max_runs",
-        },
+        }
+        | ({"num_frames", "backup"} if expanded(study) else set()),
         "focused search",
     )
     for key, expected in {
-        "schema_version": 5,
+        "schema_version": 6 if expanded(study) else 5,
         "mode": "capacity_search",
-        "architectures": STACKS,
-        "frame_sizes": [32, 64],
+        **({} if expanded(study) else {"architectures": STACKS}),
+        "frame_sizes": [64] if expanded(study) else [32, 64],
         "target_fps": [8, 16],
         "seeds": [42],
-        "max_runs": 64,
+        "max_runs": 128 if expanded(study) else 64,
+        **({"num_frames": [8, 16]} if expanded(study) else {}),
     }.items():
         if value_hash(study[key]) != value_hash(expected):
-            raise ValueError(f"077 requires {key}={expected}")
+            raise ValueError(
+                f"{'087' if expanded(study) else '077'} requires {key}={expected}"
+            )
+    if expanded(study):
+        from notebooks.utils.study_archive import backup_paths
+
+        stacks = study["architectures"]
+        # The JSON is the ordered manifest; constrain it to the approved controls.
+        expected = (
+            {tuple(s) for s in STACKS}
+            | {(w,) * d for w in (32, 48, 64, 96) for d in range(1, 6)}
+            | {(128,), (32, 64), (64, 32)}
+        )
+        if (
+            len(stacks) != 32
+            or any(
+                not isinstance(s, list) or any(type(w) is not int for w in s)
+                for s in stacks
+            )
+            or {tuple(s) for s in stacks} != expected
+        ):
+            raise ValueError(
+                "087 requires exactly the approved 32 unique architectures"
+            )
+        backup_paths(study["backup"])
     _fields(study["dataset"], {"name", "path", "split_manifest"}, "dataset")
     if study["dataset"]["name"] != "aad":
         raise ValueError("077 requires AAD and its reviewed existing split")
@@ -156,20 +217,23 @@ def load_focused(study):
         config,
         CandidateManifest.from_mapping(
             {
-                "screening_id": "focused_inputs_v1",
-                "candidates": candidates(),
+                "screening_id": (
+                    "frame_depth_inputs_v1" if expanded(study) else "focused_inputs_v1"
+                ),
+                "candidates": candidates(study),
             }
         ),
     )
 
 
-def blocks(config):
+def blocks(config, study=None):
     from .capacity_config import job
 
-    for size, fps in CONDITIONS:
-        stage = f"input_{size}px_{fps}fps"
+    for condition in input_conditions(study):
+        frames, size, fps = condition
+        stage = stage_name(condition, study)
         rows = []
-        for spec in candidates():
+        for spec in candidates(study):
             row = job(
                 "flat",
                 spec["name"],
@@ -178,24 +242,34 @@ def blocks(config):
                 height=size,
                 width=size,
                 target_fps=fps,
+                sequence_length=frames,
             )
             row.update(
                 stage=stage,
-                changed_factor="architecture_by_size_fps",
+                changed_factor=(
+                    "architecture_by_frames_fps"
+                    if expanded(study)
+                    else "architecture_by_size_fps"
+                ),
                 matched_checkpoint_metrics=True,
             )
             rows.append(row)
         yield stage, rows
 
 
-def decisions(jobs):
+def decisions(jobs, study=None):
     """Equal condition weight; exact counts, not rounded console maxima."""
+    if expanded(study) and any(j.get("status", "complete") != "complete" for j in jobs):
+        raise ValueError("incomplete/failed frame-depth condition coverage")
     records = [j["result"] for j in jobs]
-    expected = {(c["name"], s, f) for c in candidates() for s, f in CONDITIONS}
+    conditions_in = input_conditions(study)
+    expected = {
+        (c["name"], n, s, f) for c in candidates(study) for n, s, f in conditions_in
+    }
     indexed = {}
     for result in records:
         cfg = result["experiment_config"]
-        key = (result["name"], cfg["height"], cfg["target_fps"])
+        key = (result["name"], cfg["sequence_length"], cfg["height"], cfg["target_fps"])
         if key not in expected or key in indexed:
             raise ValueError("focused search requires exactly one result per condition")
         if (result["partition"], result["test_access"], result["seed"]) != (
@@ -205,12 +279,22 @@ def decisions(jobs):
         ):
             raise ValueError("focused ranking requires locked validation evidence")
         indexed[key] = result
+        if expanded(study):
+            from .study_reporting import POOLED_REPORTING, reporting_protocol
+
+            if (
+                reporting_protocol(result) != POOLED_REPORTING
+                or cfg["width"] != cfg["height"]
+            ):
+                raise ValueError(
+                    "087 requires pooled evidence at the declared square input"
+                )
     if set(indexed) != expected:
         raise ValueError("incomplete focused condition coverage")
     ranks = []
     exact = {}
-    for spec in candidates():
-        rows = [indexed[(spec["name"], s, f)] for s, f in CONDITIONS]
+    for spec in candidates(study):
+        rows = [indexed[(spec["name"], n, s, f)] for n, s, f in conditions_in]
         if len({r["num_params"] for r in rows}) != 1:
             raise ValueError("custom parameter count changed across conditions")
         scores = [validation_accuracy(r, True) for r in rows]
@@ -235,25 +319,25 @@ def decisions(jobs):
                     {
                         "frame_size": s,
                         "target_fps": f,
-                        "sequence_length": 8,
-                        "sampling_span_seconds": 7 / f,
-                        "nominal_duration_seconds": 8 / f,
+                        "sequence_length": n,
+                        "sampling_span_seconds": (n - 1) / f,
+                        "nominal_duration_seconds": n / f,
                         "accuracy": float(validation_accuracy(r, True)),
                         "loss": r["validation_metrics"]["loss"],
                     }
-                    for (s, f), r in zip(CONDITIONS, rows)
+                    for (n, s, f), r in zip(conditions_in, rows)
                 ],
             }
         )
     ranks.sort(key=lambda r: exact[r["name"]])
     ranks = [{"rank": i + 1, **r} for i, r in enumerate(ranks)]
     names = [r["name"] for r in ranks[:5]]
-    reserved = ANCHOR not in names
+    reserved = not expanded(study) and ANCHOR not in names
     if reserved:
         names = names[:4] + [ANCHOR]
     conditions = []
-    for s, f in CONDITIONS:
-        rows = [indexed[(name, s, f)] for name in names]
+    for n, s, f in conditions_in:
+        rows = [indexed[(name, n, s, f)] for name in names]
         score = sum(validation_accuracy(r, True) for r in rows) / 5
         conditions.append(
             (
@@ -261,9 +345,12 @@ def decisions(jobs):
                 statistics.mean(r["validation_metrics"]["loss"] for r in rows),
                 s,
                 f,
+                n,
             )
         )
-    score, loss, size, fps = min(conditions, key=lambda c: (-c[0], c[1], c[2], -c[3]))
+    score, loss, size, fps, frames = min(
+        conditions, key=lambda c: (-c[0], c[1], c[2], c[4], -c[3])
+    )
     return {
         "ranking": ranks,
         "numerical_top5": [r["name"] for r in ranks[:5]],
@@ -271,7 +358,7 @@ def decisions(jobs):
         "anchor_reserved_slot": reserved,
         "anchor_rank": next(r["rank"] for r in ranks if r["name"] == ANCHOR),
         "final_input": {
-            "sequence_length": 8,
+            "sequence_length": frames,
             "height": size,
             "width": size,
             "target_fps": fps,
@@ -285,7 +372,7 @@ def decisions(jobs):
             "scheduler": "reduce_on_plateau",
             "augment": False,
         },
-        "note": NOTE,
+        "note": FRAME_NOTE if expanded(study) else NOTE,
     }
 
 
@@ -293,17 +380,26 @@ def schedule(study, config, completed):
     from .capacity_search import job_key
 
     rows_all = []
-    for stage, rows in blocks(config):
+    for stage, rows in blocks(config, study):
         rows_all.extend(rows)
         yield stage, rows
-    yield "decisions", decisions([completed[job_key(r)] for r in rows_all])
+    yield "decisions", decisions([completed[job_key(r)] for r in rows_all], study)
 
 
 def selection_bundle(study, state, group, decision):
     config = ExperimentConfig.from_mapping(state["effective_config"])
-    specs = {c["name"]: c for c in candidates()}
+    specs = {c["name"]: c for c in candidates(study)}
     return {
-        "protocol": "focused_top5_v1",
+        "protocol": "frame_depth_top5_v1" if expanded(study) else "focused_top5_v1",
+        **(
+            {
+                "reporting_protocol": "pooled_per_class_v2",
+                "comparison_gate": "owner-approved recipe and transformer learnability checks required (089)",
+                "input_tie_rule": "mean accuracy, mean loss, smaller size, fewer frames, higher FPS",
+            }
+            if expanded(study)
+            else {}
+        ),
         "selection_partition": "validation",
         "test_access": "locked",
         "seed": 42,
@@ -380,6 +476,28 @@ def preflight(config, *, final=False, device=None, probe=None):
 
 
 def print_plan(study, config):
+    if expanded(study):
+        print(
+            "087 frame/depth search: 32 architectures, depths 5/6/13/4/4; 128 jobs, fixed 64x64; test locked."
+        )
+        print(
+            "8/16 frames x 8/16 FPS; seed 42; Adam LR=.001 WD=0; 256-cap/64-minimum/24-patience; no augmentation."
+        )
+        for number, row in enumerate(
+            (r for _, rows in blocks(config, study) for r in rows), 1
+        ):
+            c = row["config"]
+            print(
+                f"Experiment {number}/128 | {row['model']} | {c['sequence_length']}f/64px/{c['target_fps']}fps | nominal {c['sequence_length']/c['target_fps']:g}s"
+            )
+        print(
+            f"Results-only Drive backup: {study['backup']['directory']}/<study-id>/results.zip; authorize/mount before launch."
+        )
+        print(
+            "Full-step 16f/64px CUDA preflight on all 32 actual stacks precedes training. Prior 64 jobs took ~10.10 training hours; no overnight guarantee. Comparison requires 089; no tests run here."
+        )
+        print(FRAME_NOTE)
+        return
     print(
         "077 focused search: 64 jobs; 16 architectures x 32/64px x 8/16 FPS; test locked."
     )
@@ -441,4 +559,201 @@ def matched_summaries(directory, rows):
     )
     write_full_table(
         directory, records, stem="matched_capacity", print_rows=False, raw=True
+    )
+
+
+def frame_depth_summaries(directory, rows, study):
+    """All measured points; controlled slices keep frame count/FPS distinct."""
+    from .study_matrix import atomic_json
+    from .study_reporting import write_full_table
+    from .capacity_config import candidate
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    complete = [r for r in rows if r.get("status") == "complete"]
+    index = {(r["model"], r["frames"], r["height"], r["fps"]): r for r in complete}
+    if len(index) != len(complete):
+        raise ValueError("Duplicate frame-count/FPS plot condition")
+    specs = candidates(study)
+    groups = []
+    recipe = {
+        "seed": 42,
+        "learning_rate": 0.001,
+        "weight_decay": 0,
+        "augment": False,
+        "scheduler": "reduce_on_plateau",
+        "epochs_cap": 256,
+        "minimum_epochs": 64,
+        "patience": 24,
+    }
+
+    def add(label, changed, keys, controls):
+        found = [index[k] for k in keys if k in index]
+        groups.append(
+            {
+                "group": label,
+                "changed_factor": changed,
+                "fixed": {**recipe, **controls},
+                "missing": [list(k) for k in keys if k not in index],
+                "rows": found,
+            }
+        )
+
+    for n, s, f in input_conditions(study):
+        fixed = {
+            "frames": n,
+            "size": s,
+            "fps": f,
+            "seed": 42,
+            "learning_rate": 0.001,
+            "weight_decay": 0,
+            "augment": False,
+        }
+        for width in (32, 48, 64, 96):
+            add(
+                f"depth_at_width{width}",
+                "depth",
+                [(candidate([width] * d)["name"], n, s, f) for d in range(1, 6)],
+                {**fixed, "flat_width": width},
+            )
+        for depth in range(1, 6):
+            flat = [
+                c
+                for c in specs
+                if len(c["convlstm_layers"]) == depth
+                and len({l[0] for l in c["convlstm_layers"]}) == 1
+            ]
+            add(
+                f"width_at_depth{depth}",
+                "flat_width",
+                [(c["name"], n, s, f) for c in flat],
+                {**fixed, "depth": depth},
+            )
+        for width in (32, 96, 128):
+            stacks = [[width if i == pos else 64 for i in range(3)] for pos in range(3)]
+            add(
+                f"position_{width}_in_64x3",
+                "width_placement",
+                [(candidate(v)["name"], n, s, f) for v in stacks],
+                {**fixed, "depth": 3, "filter_multiset": sorted(stacks[0])},
+            )
+        add(
+            "two_layer_placement",
+            "width_placement",
+            [(candidate(v)["name"], n, s, f) for v in ([32, 64], [64, 32])],
+            {**fixed, "depth": 2, "filter_multiset": [32, 64]},
+        )
+    for spec in specs:
+        name = spec["name"]
+        for n in study["num_frames"]:
+            add(
+                f"fps_{name}_{n}f",
+                "fps_and_coverage",
+                [(name, n, 64, f) for f in study["target_fps"]],
+                {"model": name, "frames": n, "size": 64, "seed": 42},
+            )
+        for f in study["target_fps"]:
+            add(
+                f"frames_{name}_{f}fps",
+                "frames_and_coverage",
+                [(name, n, 64, f) for n in study["num_frames"]],
+                {"model": name, "fps": f, "size": 64, "seed": 42},
+            )
+    atomic_json(
+        directory / "matched_capacity_groups.json",
+        {"note": FRAME_NOTE, "groups": groups},
+    )
+    write_full_table(
+        directory,
+        [
+            {**r, "ablation_group": g["group"], "changed_factor": g["changed_factor"]}
+            for g in groups
+            for r in g["rows"]
+        ],
+        stem="matched_capacity",
+        print_rows=False,
+        raw=True,
+        pooled_only=True,
+    )
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9), sharex=True, sharey=True)
+    markers = ["o", "s", "^", "D", "P"]
+    colors = ["#0072B2", "#E69F00", "#009E73", "#CC79A7", "#D55E00"]
+    panels = []
+    for ax, (n, s, f) in zip(axes.flat, input_conditions(study)):
+        measured = [
+            r for r in complete if (r["frames"], r["height"], r["fps"]) == (n, s, f)
+        ]
+        for depth in range(1, 6):
+            points = [r for r in measured if r["depth"] == depth]
+            ax.scatter(
+                [r["parameters"] for r in points],
+                [100 * r["validation_accuracy"] for r in points],
+                marker=markers[depth - 1],
+                color=colors[depth - 1],
+                alpha=0.75,
+                edgecolors="black",
+                linewidths=0.3,
+            )
+        # Only identify a few points; the complete table retains all identities.
+        if measured:
+            labels = {
+                min(measured, key=lambda r: r["parameters"])["model"],
+                max(measured, key=lambda r: r["parameters"])["model"],
+                max(measured, key=lambda r: r["validation_accuracy"])["model"],
+                "custom_48_48_48",
+            }
+            for r in measured:
+                if r["model"] in labels:
+                    ax.annotate(
+                        r["filters"],
+                        (r["parameters"], 100 * r["validation_accuracy"]),
+                        xytext=(3, 5),
+                        textcoords="offset points",
+                        fontsize=7,
+                    )
+        ax.set_title(f"{n} frames / {f} FPS / {s}px ({len(measured)}/32 measured)")
+        ax.set_xscale("log")
+        ax.set_ylim(-2, 104)
+        ax.set_xlabel("Trainable parameters (log scale)")
+        ax.set_ylabel("Validation accuracy (%)")
+        ax.grid(alpha=0.2)
+        panels.append(
+            {
+                "frames": n,
+                "size": s,
+                "fps": f,
+                "points": [
+                    {
+                        "model": r["model"],
+                        "depth": r["depth"],
+                        "parameters": r["parameters"],
+                        "validation_accuracy": r["validation_accuracy"],
+                    }
+                    for r in measured
+                ],
+            }
+        )
+    fig.legend(
+        handles=[
+            Line2D(
+                [],
+                [],
+                marker=markers[d - 1],
+                color=colors[d - 1],
+                linestyle="",
+                label=f"{d} layers",
+            )
+            for d in range(1, 6)
+        ],
+        loc="lower center",
+        ncol=5,
+    )
+    fig.suptitle("Measured capacity: all frame-count/FPS conditions (validation only)")
+    fig.tight_layout(rect=(0, 0.05, 1, 0.96))
+    fig.savefig(directory / "frame_depth_capacity.png", dpi=160)
+    plt.close(fig)
+    atomic_json(
+        directory / "frame_depth_plot_points.json",
+        {"note": FRAME_NOTE, "measured_points": len(complete), "panels": panels},
     )

@@ -405,7 +405,7 @@ def validate_matched_training(result, row, class_count):
 
 
 def archive_stage(group, runs_dir):
-    if read_json(group / "study.json").get("schema_version") == 5:
+    if read_json(group / "study.json").get("schema_version") in (5, 6):
         from notebooks.utils.study_archive import compact_results
 
         return compact_results(group, runs_dir, announce=True)
@@ -434,7 +434,7 @@ def _report(group, state, print_rows=False, plots=False):
             }
             seen.setdefault(job_key(spec), len(seen) + 1)
             if current.get("status") == "complete":
-                if state.get("study_schema_version") == 5:
+                if state.get("study_schema_version") in (5, 6):
                     from .focused_protocol import validation_diagnostics
 
                     context.update(validation_diagnostics(current["result"]))
@@ -446,7 +446,7 @@ def _report(group, state, print_rows=False, plots=False):
                 rows.append(
                     result_row(
                         current["result"],
-                        raw=state.get("study_schema_version") in (4, 5),
+                        raw=state.get("study_schema_version") in (4, 5, 6),
                         **context,
                     )
                 )
@@ -481,7 +481,7 @@ def _report(group, state, print_rows=False, plots=False):
         group,
         rows,
         print_rows=print_rows,
-        raw=state.get("study_schema_version") in (4, 5),
+        raw=state.get("study_schema_version") in (4, 5, 6),
     )
     if print_rows and state.get("pending_stages"):
         print(
@@ -490,7 +490,11 @@ def _report(group, state, print_rows=False, plots=False):
             flush=True,
         )
     if plots:
-        if state.get("study_schema_version") == 5:
+        if state.get("study_schema_version") == 6:
+            from .focused_protocol import frame_depth_summaries
+
+            frame_depth_summaries(group, rows, read_json(group / "study.json"))
+        elif state.get("study_schema_version") == 5:
             from .focused_protocol import matched_summaries
 
             matched_summaries(group, rows)
@@ -755,8 +759,63 @@ def load_capacity_selection(path):
         )
     expected = selection_bundle(study, state, group, decisions)
     if selected != expected:
-        raise ValueError("selected_config differs from verified two-seed evidence")
+        raise ValueError(
+            "selected_config differs from verified complete search evidence"
+        )
     return selected
+
+
+def _frame_preflight(study, config, manifest, **kwargs):
+    from .study_resources import comparison_preflight
+
+    bound = ExperimentConfig.from_mapping(
+        {
+            **config.to_dict(),
+            "sequence_length": max(study["num_frames"]),
+            "height": 64,
+            "width": 64,
+        }
+    )
+    return comparison_preflight(
+        bound, manifest, [c.name for c in manifest.candidates], phase="search", **kwargs
+    )
+
+
+def _frame_storage_estimates(study, sample_count):
+    import torch
+    from .model import CustomConvLSTM
+    from .focused_protocol import input_conditions
+
+    parameter_counts = {}
+    with torch.device("meta"):
+        for stack in study["architectures"]:
+            model = CustomConvLSTM(11, layers=[(w, (3, 3)) for w in stack])
+            parameter_counts[plan.candidate(stack)["name"]] = sum(
+                p.numel() for p in model.parameters()
+            )
+    conditions = input_conditions(study)
+    cache_bytes = [sample_count * n * 3 * s * s * 4 for n, s, _ in conditions]
+    return {
+        "parameter_counts": parameter_counts,
+        "train_validation_cache_bytes_by_condition": cache_bytes,
+        "cache_disk_tensor_bytes": sum(cache_bytes),
+        "peak_single_condition_cache_tensor_bytes": max(cache_bytes),
+        "selected_checkpoint_parameter_bytes_all_jobs": sum(parameter_counts.values())
+        * 4
+        * len(conditions),
+        "storage_note": "Float32 tensor estimates, not free-space guarantees; add buffers/metadata/curves and ZIP temporary-copy headroom. Cache/test weights are excluded from results ZIP. Runtime checkpoints must remain until evaluation finishes.",
+    }
+
+
+def _validate_frame_split(split, class_count):
+    if {k: split["counts"][k] for k in ("train", "validation", "test")} != {
+        "train": 748,
+        "validation": 160,
+        "test": 161,
+    } or class_count != 11:
+        raise ValueError(
+            "087 requires the reviewed AAD 748/160/161 split and all 11 classes"
+        )
 
 
 def execute_capacity(path, study, config, manifest, run_trial):
@@ -764,6 +823,20 @@ def execute_capacity(path, study, config, manifest, run_trial):
     from .dataset_source import resolve_dataset
     from .study_config import ROOT
     from .study_resources import capacity_preflight
+
+    if plan.frame_depth(study):
+        from notebooks.utils.study_archive import preflight_backup
+
+        preflight_backup(study["backup"])
+    campaign_maximum = (
+        128
+        if plan.frame_depth(study)
+        else (
+            74
+            if plan.compact(study)
+            else 142 if plan.wide(study) else study["max_runs"]
+        )
+    )
 
     root = Path(
         resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
@@ -777,6 +850,8 @@ def execute_capacity(path, study, config, manifest, run_trial):
         )
     source = AHARDataset(root, 8, (48, 48), sampling_version="timestamps_v1")
     train, validation, _, split = load_split_subsets(source, split_path)
+    if plan.frame_depth(study):
+        _validate_frame_split(split, source.num_classes)
     audit = audit_split(
         source,
         split_path,
@@ -829,6 +904,8 @@ def execute_capacity(path, study, config, manifest, run_trial):
             state = saved
             if state["status"] == "complete":
                 load_capacity_selection(group / "selected_config.json")
+                if plan.frame_depth(study):
+                    archive_stage(group, config.runs_dir)
                 print(
                     f"Verified completed capacity study: {group}; no training/test repeated.",
                     flush=True,
@@ -872,17 +949,23 @@ def execute_capacity(path, study, config, manifest, run_trial):
             from .focused_protocol import preflight as focused_preflight
 
             resource = (
-                focused_preflight(config)
-                if plan.compact(study)
+                _frame_preflight(study, config, manifest)
+                if plan.frame_depth(study)
                 else (
-                    capacity_preflight(
-                        config, study["widths"], max_depth=4, native_comparison=True
-                    )
-                    if plan.wide(study)
+                    focused_preflight(config)
+                    if plan.compact(study)
                     else (
-                        capacity_preflight(config, [*study["widths"], 64], max_depth=3)
-                        if plan.focused(study)
-                        else capacity_preflight(config, study["widths"])
+                        capacity_preflight(
+                            config, study["widths"], max_depth=4, native_comparison=True
+                        )
+                        if plan.wide(study)
+                        else (
+                            capacity_preflight(
+                                config, [*study["widths"], 64], max_depth=3
+                            )
+                            if plan.focused(study)
+                            else capacity_preflight(config, study["widths"])
+                        )
                     )
                 )
             )
@@ -920,6 +1003,11 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 "note": "Conservative largest-input training-step extrapolation, not a wall-clock guarantee; excludes validation/decoding/ZIP. One selected checkpoint per job.",
             }
             atomic_json(group / "resource_estimates.json", estimates)
+            if plan.frame_depth(study):
+                estimates.update(
+                    _frame_storage_estimates(study, len(train) + len(validation))
+                )
+                atomic_json(group / "resource_estimates.json", estimates)
             if plan.compact(study):
                 print(f"Measured preflight: {resource}", flush=True)
                 print(f"Workload estimate: {estimates}", flush=True)
@@ -931,7 +1019,12 @@ def execute_capacity(path, study, config, manifest, run_trial):
                 str((group / "progress.json").resolve()), None
             )
             state["preparation_files"].pop(str((group / "run.json").resolve()), None)
+            state["preparation_files"].pop(
+                str((group / "drive_backup.json").resolve()), None
+            )
             atomic_json(group / "progress.json", state)
+            if plan.frame_depth(study):
+                archive_stage(group, config.runs_dir)
         verify_inventory(state["preparation_files"])
         config = ExperimentConfig.from_mapping(state["effective_config"])
         sources = {
@@ -978,7 +1071,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     verify_inventory(receipt["files"])
                     result, leaf_run = receipt["result"], receipt["run_dir"]
                     print(
-                        f"Experiment {number}/{74 if plan.compact(study) else 142 if plan.wide(study) else study['max_runs']} maximum | {stage} {row['model']} (verified reuse)",
+                        f"Experiment {number}/{campaign_maximum} maximum | {stage} {row['model']} (verified reuse)",
                         flush=True,
                     )
                 else:
@@ -1006,7 +1099,11 @@ def execute_capacity(path, study, config, manifest, run_trial):
                             "--campaign-number",
                             str(number),
                             "--campaign-maximum",
-                            str(74 if plan.compact(study) else 142),
+                            str(
+                                campaign_maximum
+                                if plan.frame_depth(study)
+                                else 74 if plan.compact(study) else 142
+                            ),
                             "--campaign-stage",
                             stage,
                         ]
@@ -1033,7 +1130,7 @@ def execute_capacity(path, study, config, manifest, run_trial):
                     state["jobs"].append(current)
                     atomic_json(group / "progress.json", state)
                     print(
-                        f"Experiment {number}/{74 if plan.compact(study) else 142 if plan.wide(study) else study['max_runs']} campaign maximum | {stage}: "
+                        f"Experiment {number}/{campaign_maximum} campaign maximum | {stage}: "
                         f"{row['model']} {row['config']['height']}px, "
                         f"{row['config']['sequence_length']}f/{row['config']['target_fps']}fps, seed {row['seed']}",
                         flush=True,

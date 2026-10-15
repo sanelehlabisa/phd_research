@@ -291,12 +291,14 @@ def training_probe(spec, config, width, depth, device, *, candidate_manifest=Non
         torch.cuda.empty_cache()
 
 
-def comparison_preflight(config, manifest, models, *, device=None, probe=None):
-    """Measure the actual ten finalists, not a surrogate architecture bound."""
+def comparison_preflight(
+    config, manifest, models, *, device=None, probe=None, phase="comparison"
+):
+    """Measure every declared actual stack/family with full optimizer steps."""
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device.type != "cuda" and probe is None:
         raise RuntimeError(
-            "Comparison training requires CUDA preflight; CPU fit is unverified"
+            f"{phase.capitalize()} training requires CUDA preflight; CPU fit is unverified"
         )
     probe = probe or (
         lambda spec: training_probe(
@@ -313,14 +315,19 @@ def comparison_preflight(config, manifest, models, *, device=None, probe=None):
         reverse=True,
     )
     for batch in batches:
-        for name in models:
+        for number, name in enumerate(models, 1):
             spec = dict(
                 model=name,
                 batch_size=batch,
                 frames=config.sequence_length,
                 size=config.height,
-                phase="comparison",
+                phase=phase,
             )
+            if phase == "search":
+                print(
+                    f"Full-step preflight {number}/{len(models)} | {name} | {spec['frames']}f/{spec['size']}px | batch {batch}",
+                    flush=True,
+                )
             try:
                 result = {**spec, **probe(spec)}
             except torch.cuda.OutOfMemoryError:

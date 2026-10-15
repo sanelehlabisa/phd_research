@@ -36,14 +36,25 @@ def wide(study):
 
 
 def compact(study):
-    return study["schema_version"] == 5
+    return study["schema_version"] in (5, 6)
+
+
+def frame_depth(study):
+    return study.get("schema_version") == 6
 
 
 def focused(study):
-    return study["schema_version"] in (3, 4, 5)
+    return study["schema_version"] in (3, 4, 5, 6)
 
 
 def stage_limits(study):
+    if frame_depth(study):
+        from .focused_protocol import input_conditions, stage_name
+
+        return {
+            stage_name(c, study): len(study["architectures"])
+            for c in input_conditions(study)
+        }
     if compact(study):
         from .focused_protocol import LIMITS
 
@@ -62,6 +73,10 @@ NOTE = (
 
 
 def protocol_note(study):
+    if frame_depth(study):
+        from .focused_protocol import FRAME_NOTE
+
+        return FRAME_NOTE
     if compact(study):
         from .focused_protocol import NOTE as focused_note
 

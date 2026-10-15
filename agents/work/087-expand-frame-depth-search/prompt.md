@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `087-expand-frame-depth-search`
-- Status: Ready
+- Status: Done (preparation locally verified; owner-run Colab execution and 089 integration remain separate)
 - Aim: Prepare 32 custom architectures at fixed 64x64 resolution, varying 8/16 frames and 8/16 FPS, with compact results backed up to Drive.
 - Scope: One new JSON profile on the existing runner; minimal frame-aware cache/ranking/report/archive updates, tests and concise guides. Notebook/export integration belongs to [089](../089-colab-campaign-readiness/prompt.md).
 - Dependencies: [084](../084-diagnose-transformer-learning/completion.md) is complete; [088](../088-pooled-metrics-everywhere/prompt.md) owns pooled-only active outputs. Reuse [083](../083-comparison-only-recovery/prompt.md) for comparison preparation; this ticket does not require rerunning the historical search.

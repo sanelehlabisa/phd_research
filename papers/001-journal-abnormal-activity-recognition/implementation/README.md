@@ -83,7 +83,7 @@ reached 137/160 validation correct (85.625%) in eight local epochs, versus
 The successful search will not be rerun by comparison recovery:
 
 - [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/completion.md): implemented and locally verified (131 checks); the command below reuses the existing runner. Evidence import and full-training approval remain prerequisites. No new research results or GPU fit claim.
-- [087 expanded 64px search](../../../agents/work/087-expand-frame-depth-search/prompt.md): 32 customs, fixed 64x64, 8/16 frames and 8/16 FPS (128 jobs). Depth counts 5/6/13/4/4 provide at least four candidates per depth; flat widths 32/48/64/96 are matched across depths 1-5. Preserve old results and save compact Drive backups. Measure workload before launch; overnight is not guaranteed.
+- [087 expanded 64px search](../../../agents/work/087-expand-frame-depth-search/completion.md): implemented and locally verified (94 checks). One separate JSON, 32 customs, fixed 64x64, 8/16 frames and 8/16 FPS (128 jobs), full-step preflight and verified results-only Drive-copy safeguards. No real campaign or Drive upload; see the command below. Overnight is not guaranteed.
 - [089 Colab readiness](../../../agents/work/089-colab-campaign-readiness/prompt.md): wire the new JSON and 083 comparison into one thin notebook/export after prerequisites, transformer recipe checks and backup preflight. No streaming change or real campaign launch during implementation.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 
@@ -167,6 +167,76 @@ metrics, counts, predictions and receipts, **not weights or the whole search**.
 Keep checkpoints separately. Repeating the same verified request reuses completed
 work; a failed/partial test does not silently rerun. AAD aliases require the exact
 same split/class provenance, and evaluation now honors saved FPS/sampling settings.
+
+### Expanded frame/depth search (087)
+
+Inspect the separate profile without downloading, mounting or training:
+
+```bash
+python -m src.experiments --config configs/experiments/aad_frame_depth_search_colab.json --list-plan
+```
+
+The JSON declares **32 architectures x 8/16 frames x 8/16 FPS = 128 jobs**,
+all at **64x64**, depths 1-5 (5/6/13/4/4 models). All original 16 remain;
+flat widths 32/48/64/96 are matched across depths. Search keeps AAD's reviewed
+748/160/161 split, all 11 classes, seed 42, Adam LR .001, WD 0, no augmentation
+and cap/minimum/patience 256/64/24. No extra recipe/seed sweep or test access.
+
+Before owner execution, authorize and mount Google Drive in Colab, then check
+`backup.directory` in the JSON. The default is
+`/content/drive/MyDrive/phd_research/paper-001/<study-id>/results.zip`.
+The CLI checks the existing mount and write/read access before data resolution;
+it never requests credentials or creates a fake unmounted Drive. Removing
+`--list-plan` starts real work, after full Adam-step CUDA probes of **all 32
+actual stacks at 16f/64px**, common-batch selection and printed workload/storage
+estimates. No model/input is silently removed or shrunk. The prior 64-job search
+took about 10.10 training hours; 128 jobs with longer clips may need multiple
+sessions. CPU checks cannot establish A100 fit or duration.
+
+Each four-condition block reuses its processed train/validation cache; frame
+count/FPS belong to cache, job and resume identities. Timestamp/padding audits
+are retained; short clips repeat the last frame. At fixed frame count, FPS
+changes coverage, not tensor size. Rank all 32 by equal-condition mean validation
+accuracy, then worst condition, mean loss, parameters and name. Advance the
+**numerical top five**, without the old reserved-anchor slot. Select a common
+input by their mean validation accuracy/loss, then smaller size/fewer frames/
+higher FPS on ties. This mean is across input conditions, not macro class averaging.
+
+The new `frame_depth_top5_v1` receipt reconstructs all 128 jobs and rejects
+missing/changed evidence. Reports retain pooled/per-class/confusion metrics,
+matched training histories, all 128 plotted points in four frames/FPS panels,
+and controlled width/depth/placement/temporal slices (including missing controls).
+This evidence-guided, single-seed search measures a tested accuracy-size trade-off;
+it cannot establish a global optimum or diagnose overfitting from accuracy alone.
+
+Verified **results-only** ZIPs are copied before search, after each input block,
+at selection and on handled failure. The same backup helper supports comparison
+preflight, each model/test and completion. A temporary destination copy must
+match size/hash and ZIP inventory before replacing only this campaign's backup;
+the destination and checksum are printed. Configs, code/split/environment
+provenance, receipts, metrics, class counts, confusion, histories/curves and
+prediction records/examples are included. Datasets, caches and **weights are
+excluded**; keep runtime checkpoints separately until evaluation finishes.
+Drive failure stops clearly and retains the local ZIP; a failed temporary copy
+does not replace the previous backup.
+No protection from abrupt VM deletion or guarantee of future Drive durability.
+
+To retry delivery only, without any training/testing, after mounting Drive:
+
+```python
+from pathlib import Path
+from src.study_matrix import read_json
+from notebooks.utils.study_archive import compact_results
+group = Path("<printed runs/studies directory>")
+study = read_json(group / "study.json")
+compact_results(group, study["runs_dir"], announce=True)
+```
+
+This profile stops after search/selection. **089** still owns the new thin
+notebook/export, approved transformer recipe/checks and ten-model handoff.
+The historical 083 shortlist/recipe is not automatically applied to new finalists.
+Old notebooks/profiles/evidence remain unchanged; do not use their old Run All
+cell expecting this new 128-job campaign.
 
 ### Focused Run All (077/076)
 

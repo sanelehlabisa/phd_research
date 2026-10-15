@@ -1,0 +1,19 @@
+# Completion
+
+- Status: Done
+- Summary: Prepared the separate 128-job frame/depth search and verified compact backup path. No real AAD training, test evaluation or Drive access; historical evidence and notebooks are unchanged.
+- Changes:
+  - Added `aad_frame_depth_search_colab.json`: exactly 32 approved stacks, depths 5/6/13/4/4, 8/16 frames at 64px and 8/16 FPS. Original 16 candidates and reviewed AAD split/recipe remain fixed.
+  - Extended the existing runner/protocol, not the trainer. Frame-aware job/cache/resume identities; global 1–128 progress; actual-stack full-Adam-step preflight at 16f/64px and storage/workload estimates. CPU cannot certify CUDA fit.
+  - Equal-four-condition validation ranking and numerical top-five/common-input receipt, without the historical anchor reservation. All 128 points appear in four panels; controlled width/depth/placement/temporal groups disclose missing controls and retain pooled/per-class and matched-training evidence.
+  - Results-only ZIPs use the existing archive path, exclude weights/data/caches, and copy to an owner-mounted Drive folder with campaign ownership, temporary-copy/inventory/size/hash checks. Preflight precedes expensive work; search boundaries, comparison models/tests, completion and handled failure reuse the same helper. Local ZIPs and checkpoints remain intact on delivery failure.
+  - New selection is verified separately; automatic comparison refuses the old 083 shortlist/recipe. 089 owns notebook/export integration and approved transformer recipe/learnability gates. Updated root/paper/implementation guides.
+- Verification:
+  - **94 distinct checks passed:** 19 in `test_frame_depth_search.py`; 28 across `test_focused_rerun.py` and `test_comparison_only.py` (excluding the older full-64 campaign); 47 across `test_pooled_reporting.py`, `test_comparison_handoff.py` and `test_multisize_study.py`.
+  - New suite includes complete synthetic 128-job search → reconstructed selection → matching backup → verified zero-retraining resume, missing/altered coverage, 1–128 numbering, four cache identities with RAM/disk reuse and test isolation, all 32 preflight candidates/no-fit/CPU refusal, and all-point plotting.
+  - Separate synthetic ten-model comparison freezes before ten tests, uses the same compact-copy helper before/after stages, and preserves metrics/confusion/receipts without weights. Handled search interruption backs up completed evidence and refuses automatic failed-job retry. Corrupted temporary copies/unmounted Drive/wrong campaign ownership fail safely. Drive was a temporary-filesystem stand-in, not a live upload.
+  - Two real tiny CPU Adam steps exercised `[128,128,128]` and `[96,96,96,96,96]`; these are functional checks, not research results or A100 memory measurements.
+  - CLI `python -m src.experiments --config configs/experiments/aad_frame_depth_search_colab.json --list-plan` lists exactly 128 jobs without data/mount/training. Black check (8 Python files), Markdown links and `git diff --check` passed.
+  - Test environment: isolated CPU Python; `PYTHONDONTWRITEBYTECODE=1`, `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, `OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`, `MPLBACKEND=Agg`; `pytest -q -p no:cacheprovider --tb=short --show-capture=no`, temporary folders outside the repository. Final 19-test rerun passed against stable sources; an earlier in-flight source edit correctly tripped the resume identity guard.
+  - All 179 tracked report/notebook files retain manifest SHA256 `ed6e8555b763180ba3cb5140b5e60a5ed328c10cc0162f365fa4794f4c277f8d`; old profiles are unchanged.
+- Remaining issues: 089 integration, owner-approved transformer recipe/checks, real mounted Drive authorization and A100 preflight/execution. No overnight or forced-VM-loss guarantee. Metrics-only ZIPs cannot restore omitted weights. Changes remain uncommitted/unpushed; the preceding 083 work was published separately as `7d0612b` at the start of this task.

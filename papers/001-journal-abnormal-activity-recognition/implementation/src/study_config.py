@@ -191,6 +191,15 @@ def load_study(path):
         "max_runs",
         "published_topology",
     }
+    if isinstance(study, dict) and "backup" in study:
+        from notebooks.utils.study_archive import backup_paths
+
+        expected_fields.add("backup")
+        if study.get("comparison_protocol") != "focused_final_v1":
+            raise ValueError(
+                "Drive backup requires the compact focused comparison path"
+            )
+        backup_paths(study["backup"])
     if isinstance(study, dict) and "comparison_only" in study:
         expected_fields.add("comparison_only")
         if (

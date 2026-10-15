@@ -354,6 +354,7 @@ def load_selection(path):
         return load_imported_selection(path)
     if selected.get("protocol") in {
         "focused_top5_v1",
+        "frame_depth_top5_v1",
         "capacity_top3_v1",
         "capacity_top3_v2",
         "capacity_top3_v3",
@@ -395,6 +396,10 @@ def comparison_candidates(study):
         )
     selected_path = _path(study["selected_config"])
     selected = load_selection(selected_path)
+    if selected.get("protocol") == "frame_depth_top5_v1":
+        raise ValueError(
+            "087 selection verified; comparison requires 089's owner-approved recipe and transformer checks. Do not use the historical 083 shortlist/recipe automatically."
+        )
     is_focused = study.get("comparison_protocol") == "focused_final_v1"
     if is_focused != (selected.get("protocol") == "focused_top5_v1"):
         raise ValueError("077 selections require the five-finalist 076 comparison")
@@ -579,6 +584,10 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
     from .dataset_source import resolve_dataset
     from .study_config import ROOT, study_rows
 
+    if study.get("backup"):
+        from notebooks.utils.study_archive import preflight_backup
+
+        preflight_backup(study["backup"])
     is_focused = study.get("comparison_protocol") == "focused_final_v1"
     if is_focused:
         from .focused_protocol import validation_diagnostics
@@ -764,6 +773,8 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     ],
                 }
             )
+        if study.get("backup"):
+            compact_results(group, config.runs_dir)
         if recovery:
             jobs = recovered_jobs
             state.update(jobs=jobs)

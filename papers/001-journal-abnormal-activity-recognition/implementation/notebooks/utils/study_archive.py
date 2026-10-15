@@ -2,8 +2,10 @@
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
+import tempfile
 import zipfile
 
 
@@ -270,7 +272,137 @@ def compact_results(group, runs_dir, *, announce=False):
     )
     if announce:
         print(f"FOCUSED_RESULTS_ZIP: {result}", flush=True)
+    if study_path.is_file():
+        study = json.loads(study_path.read_text(encoding="utf-8"))
+        if study.get("backup"):
+            backup_results(result, group, study["backup"])
     return result
+
+
+def backup_paths(backup):
+    """Validate syntax without creating folders (safe for --list-plan)."""
+    if not isinstance(backup, dict) or set(backup) != {"mount_root", "directory"}:
+        raise ValueError("backup requires mount_root and directory")
+    mount, directory = (Path(backup[k]) for k in ("mount_root", "directory"))
+    # Colab POSIX profiles must also be inspectable on Windows.
+    from pathlib import PurePosixPath
+
+    posix_mount, posix_dir = (
+        PurePosixPath(backup[k]) for k in ("mount_root", "directory")
+    )
+    if not (mount.is_absolute() and directory.is_absolute()):
+        if not (posix_mount.is_absolute() and posix_dir.is_absolute()):
+            raise ValueError("Drive backup paths must be absolute")
+    if ".." in directory.parts or ".." in posix_dir.parts:
+        raise ValueError("Drive backup must not traverse outside its folder")
+    if not (
+        directory.is_relative_to(mount / "MyDrive")
+        or posix_dir.is_relative_to(posix_mount / "MyDrive")
+    ):
+        raise ValueError(
+            "Backup directory must be within the authorized mount's MyDrive"
+        )
+    return mount, directory
+
+
+def preflight_backup(backup):
+    """No authentication side effects: the owner mounts Drive before launch."""
+    mount, directory = backup_paths(backup)
+    if not os.path.ismount(mount) or not (mount / "MyDrive").is_dir():
+        raise RuntimeError(
+            f"Drive is not mounted/authorized at {mount}. Mount it with owner authorization before training; no local substitute was created."
+        )
+    mount, directory = mount.resolve(), directory.resolve()
+    if not directory.is_relative_to(mount / "MyDrive"):
+        raise ValueError("Resolved Drive destination escapes MyDrive")
+    directory.mkdir(parents=True, exist_ok=True)
+    probe = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            prefix=".phd-write-probe-", dir=directory, delete=False
+        ) as out:
+            probe = Path(out.name)
+            out.write(b"phd-results-backup-probe")
+            out.flush()
+            os.fsync(out.fileno())
+        if probe.read_bytes() != b"phd-results-backup-probe":
+            raise OSError("Drive write/read verification failed")
+    finally:
+        if probe is not None:
+            probe.unlink(missing_ok=True)
+    return directory
+
+
+def backup_results(archive, group, backup):
+    """Verified campaign-scoped copy; failures keep the local ZIP and prior copy."""
+    from src.study_matrix import atomic_json, file_hash, read_json, value_hash
+
+    archive, group = Path(archive).resolve(), Path(group).resolve()
+    temporary = None
+    try:
+        verify_archive(archive)
+        base = preflight_backup(backup)
+        target_dir = base / group.name
+        owner = {
+            "study_id": group.name,
+            "study_sha256": value_hash(read_json(group / "study.json")),
+        }
+        owner_file = target_dir / "backup_owner.json"
+        if target_dir.exists():
+            if not owner_file.is_file() or read_json(owner_file) != owner:
+                raise ValueError(
+                    "Drive folder belongs to another/unverified campaign; nothing overwritten"
+                )
+        else:
+            target_dir.mkdir()
+            atomic_json(owner_file, owner)
+        destination = target_dir / "results.zip"
+        if destination.is_symlink() or target_dir.is_symlink():
+            raise ValueError("Drive backup must not overwrite a symlink")
+        size, digest = archive.stat().st_size, file_hash(archive)
+        if shutil.disk_usage(target_dir).free < size + 64 * 1024**2:
+            raise OSError(
+                "Insufficient destination space for verified temporary ZIP copy"
+            )
+        with tempfile.NamedTemporaryFile(
+            prefix=".results-", suffix=".partial", dir=target_dir, delete=False
+        ) as out:
+            temporary = Path(out.name)
+            with archive.open("rb") as source:
+                shutil.copyfileobj(source, out)
+            out.flush()
+            os.fsync(out.fileno())
+        if temporary.stat().st_size != size or file_hash(temporary) != digest:
+            raise ValueError("Drive temporary copy size/hash mismatch")
+        verify_archive(temporary)
+        os.replace(temporary, destination)
+        if destination.stat().st_size != size or file_hash(destination) != digest:
+            raise ValueError("Drive destination verification failed; keep local ZIP")
+        receipt = {
+            "status": "verified_copy",
+            "local_zip": str(archive),
+            "destination": str(destination),
+            "bytes": size,
+            "sha256": digest,
+            "note": "Read-back verified now; not a guarantee against later provider/VM loss. Weights excluded.",
+        }
+        atomic_json(group / "drive_backup.json", receipt)
+        print(
+            f"Drive results verified: {destination} | {size:,} bytes | SHA256 {digest}",
+            flush=True,
+        )
+        return receipt
+    except Exception as error:
+        print(
+            f"DRIVE BACKUP FAILED: {error}. Local results retained: {archive}; retry backup only, not training.",
+            flush=True,
+        )
+        raise RuntimeError(
+            f"Drive backup failed; local ZIP preserved at {archive}: {error}"
+        ) from error
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def checkpoint_archive(root, group):

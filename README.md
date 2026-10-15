@@ -108,12 +108,15 @@ plans later script cleanup and remains planning-only.
 [088 pooled metrics everywhere](agents/work/088-pooled-metrics-everywhere/completion.md)
 aligns new modular/campaign reports with pooled P/R/F1, per-class counts and
 confusion evidence; historical results retain their original contracts.
-Two follow-ups remain planned: [087 expanded search](agents/work/087-expand-frame-depth-search/prompt.md) and
-[089 Colab readiness](agents/work/089-colab-campaign-readiness/prompt.md).
-The new search fixes **64x64**, with 32 architectures x 8/16 frames x 8/16 FPS
-(128 jobs), at least four models per depth 1-5 and compact backups to Drive.
-089 integrates 083's comparison path after its prerequisites; a push alone does
-not make the old notebook ready. Streaming stays deferred. Runtime may exceed overnight.
+[087 expanded search is locally verified](agents/work/087-expand-frame-depth-search/completion.md):
+one new JSON, **64x64**, 32 architectures x 8/16 frames x 8/16 FPS (128 jobs),
+four-condition top-five ranking, frame-aware reuse and verified results-only
+Drive-copy safeguards. Existing reports/notebooks remain unchanged; no real
+training or Drive upload was performed. See the implementation guide for CLI use.
+Next: [089 Colab readiness](agents/work/089-colab-campaign-readiness/prompt.md),
+which integrates the new selection with the comparison runner, owner-approved
+transformer recipe/checks and backup preflight. A push alone does not update the
+old notebook's workflow. Streaming stays deferred; runtime may exceed overnight.
 
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),
