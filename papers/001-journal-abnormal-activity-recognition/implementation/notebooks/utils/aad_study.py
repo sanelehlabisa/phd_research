@@ -698,7 +698,7 @@ def run_saved_comparison(
             )
         )
     )
-    from src.study_matrix import file_hash, atomic_json
+    from src.study_matrix import file_hash, atomic_json, value_hash
 
     request = {
         "stage": "comparison",
@@ -709,6 +709,7 @@ def run_saved_comparison(
     if saved:
         return resume_saved_study(implementation_root, saved)
     resolved_comparison = _resolved_profile(comparison_template, dataset_path)
+    resolved_comparison.pop("entrypoint", None)
     is_focused = selected.get("protocol") == "focused_top5_v1"
     if is_focused:
         if resolved_comparison.get("comparison_protocol") != "focused_final_v1":
@@ -743,6 +744,36 @@ def run_saved_comparison(
         {**item["candidate"], "name": item["comparison_name"]}
         for item in selected["top5" if is_focused else "top3"]
     ]
+
+    if resolved_comparison.get("comparison_only"):
+        # Local CLI and the later Colab wrapper share the existing matrix runner.
+        # Do not traverse archived Colab paths while packaging a fresh attempt.
+        from src.study_config import load_study, execute_study
+        from src.experiments import main as train_main
+        from src.evaluate import main as evaluate_main
+
+        if resolved_comparison.get("recovery_source"):
+            resolved_comparison["recovery_source"] = str(
+                (implementation_root / resolved_comparison["recovery_source"]).resolve()
+            )
+        resolved_comparison["runs_dir"] = str(
+            (implementation_root / resolved_comparison["runs_dir"]).resolve()
+        )
+        profile = (
+            implementation_root
+            / "runs/comparison_requests"
+            / (value_hash(request) + ".json")
+        )
+        atomic_json(profile, resolved_comparison)
+        study, config, manifest = load_study(profile)
+        return execute_study(
+            profile,
+            study,
+            config,
+            manifest,
+            train_main,
+            lambda p: evaluate_main(["--config", str(p)]),
+        )
 
     study_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     study_root = (

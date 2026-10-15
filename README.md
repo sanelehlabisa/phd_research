@@ -98,11 +98,12 @@ real 6-GB CUDA checks verify updates but reproduce constant-class learning colla
 no causal code defect was established. See the [diagnosis](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-15/transformer-learning/README.md)
 and [lower-LR Swin3D-T follow-up](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-15/transformer-learning/follow-up.md),
 which restores learning in a separate local diagnostic, not final comparison.
-Next: [083 comparison-only JSON runner/test recovery](agents/work/083-comparison-only-recovery/prompt.md)
-for the same ten models, after any recipe change is approved. Do not rerun search.
+[083 comparison-only JSON/test recovery is locally verified](agents/work/083-comparison-only-recovery/completion.md)
+for the same ten models, without rerunning search. Restore missing evidence/data
+before execution; original final checkpoints are also needed for test-only recovery.
+No new research scores or GPU fit claim. Recipe changes/full training need approval.
 [086](agents/work/086-simplify-modular-scripts/prompt.md)
-plans script cleanup after the comparison path works. Those recovery/cleanup
-tickets remain planning-only; no new training or test result was produced by 085.
+plans later script cleanup and remains planning-only.
 
 [088 pooled metrics everywhere](agents/work/088-pooled-metrics-everywhere/completion.md)
 aligns new modular/campaign reports with pooled P/R/F1, per-class counts and

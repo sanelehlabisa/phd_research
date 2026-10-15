@@ -218,7 +218,7 @@ def select_capacity_batch(requested_batch, probe):
     return report
 
 
-def training_probe(spec, config, width, depth, device):
+def training_probe(spec, config, width, depth, device, *, candidate_manifest=None):
     """Full optimizer-state memory measurement, always releasing failed probes."""
     from .experiments import build_registered_model
     from .experiment_config import ExperimentConfig
@@ -245,11 +245,24 @@ def training_probe(spec, config, width, depth, device):
             )
             if spec["model"] in {"custom_bound", "custom_depth5"}
             else build_registered_model(
-                spec["model"], 11, (3, size, size), frames, bound
+                spec["model"],
+                11,
+                (3, size, size),
+                frames,
+                bound,
+                **(
+                    {"candidate_manifest": candidate_manifest}
+                    if candidate_manifest is not None
+                    else {}
+                ),
             )
         ).to(device)
         model.train()
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        optimizer = torch.optim.Adam(
+            model.parameters(),
+            lr=config.learning_rate,
+            weight_decay=config.weight_decay,
+        )
         inputs = torch.zeros((batch, frames, 3, size, size), device=device)
         labels = torch.zeros(batch, dtype=torch.long, device=device)
         for step in range(3):
@@ -276,3 +289,53 @@ def training_probe(spec, config, width, depth, device):
         del loss, labels, inputs, optimizer, model
         gc.collect()
         torch.cuda.empty_cache()
+
+
+def comparison_preflight(config, manifest, models, *, device=None, probe=None):
+    """Measure the actual ten finalists, not a surrogate architecture bound."""
+    device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device.type != "cuda" and probe is None:
+        raise RuntimeError(
+            "Comparison training requires CUDA preflight; CPU fit is unverified"
+        )
+    probe = probe or (
+        lambda spec: training_probe(
+            spec, config, 0, 0, device, candidate_manifest=manifest
+        )
+    )
+    trials = []
+    batches = sorted(
+        {
+            config.batch_size,
+            1,
+            *(n for n in (32, 16, 8, 4, 2) if n <= config.batch_size),
+        },
+        reverse=True,
+    )
+    for batch in batches:
+        for name in models:
+            spec = dict(
+                model=name,
+                batch_size=batch,
+                frames=config.sequence_length,
+                size=config.height,
+                phase="comparison",
+            )
+            try:
+                result = {**spec, **probe(spec)}
+            except torch.cuda.OutOfMemoryError:
+                result = {**spec, "memory_safe": False, "reason": "CUDA OOM"}
+            trials.append(result)
+            if not result["memory_safe"]:
+                break
+        else:
+            return dict(
+                status="complete",
+                selected_batch_size=batch,
+                results=trials,
+                models=models,
+                note="Full Adam steps on all actual finalists; discarded weights, not accuracy or runtime evidence.",
+            )
+    return dict(
+        status="failed", selected_batch_size=None, results=trials, models=models
+    )

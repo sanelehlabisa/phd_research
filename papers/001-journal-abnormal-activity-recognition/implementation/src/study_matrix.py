@@ -348,6 +348,10 @@ def selection_bundle(study, jobs, group):
 def load_selection(path):
     """Do not accept handwritten winners, incomplete matrices or stale artifacts."""
     selected = read_json(path)
+    if selected.get("protocol") == "comparison_import_v1":
+        from .comparison_import import load_imported_selection
+
+        return load_imported_selection(path)
     if selected.get("protocol") in {
         "focused_top5_v1",
         "capacity_top3_v1",
@@ -576,13 +580,19 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
     from .study_config import ROOT, study_rows
 
     is_focused = study.get("comparison_protocol") == "focused_final_v1"
+    if is_focused:
+        from .focused_protocol import validation_diagnostics
+        from notebooks.utils.study_archive import compact_results
     raw_presentation = is_focused or study.get("comparison_protocol") == "wide_final_v1"
-    campaign_maximum = 74 if is_focused else 142
+    comparison_only = study.get("comparison_only", False)
+    campaign_maximum = 10 if comparison_only else (74 if is_focused else 142)
     root = resolve_dataset(config.dataset_name, config.dataset_dir, ROOT)
     source = AHARDataset(root, config.sequence_length, (config.width, config.height))
     split_path = resolve_split_manifest_path(
         root, config.split_manifest, config.split_seed
     )
+    if study["mode"] == "top3_comparison" and not split_path.is_file():
+        raise FileNotFoundError("Comparison requires the original split; no resplit")
     _, _, test_set, split = load_split_subsets(
         source,
         split_path,
@@ -676,13 +686,21 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
         )
         experiment_offset = 0
         recipe = None
+        recovery = study.get("recovery_source")
+        recovered_freeze = None
         if study["mode"] == "top3_comparison":
             selected = load_selection(study["selected_config"])
+            if recovery:
+                from .comparison_recovery import recover_jobs
+
+                recovered_jobs, recovered_freeze = recover_jobs(
+                    recovery, study, config, selected, group
+                )
             if split["manifest_hash"] != selected["split"]["manifest_hash"]:
                 raise ValueError("comparison split differs from selected search")
             if run_evaluation is None:
                 raise ValueError("comparison requires a post-freeze test evaluator")
-            if selected.get("protocol") in {
+            if not comparison_only and selected.get("protocol") in {
                 "capacity_top3_v2",
                 "capacity_top3_v3",
                 "focused_top5_v1",
@@ -710,7 +728,7 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                 )
                 state["effective_config"] = config.to_dict()
                 atomic_json(group / "progress.json", state)
-        if is_focused:
+        if is_focused and not recovery:
             from .focused_protocol import preflight
             from notebooks.utils.study_archive import compact_results
 
@@ -719,7 +737,12 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     raise ValueError(
                         "Existing comparison is missing its preflight; no silent batch change"
                     )
-                resource = preflight(config, final=True)
+                if comparison_only:
+                    from .study_resources import comparison_preflight
+
+                    resource = comparison_preflight(config, manifest, study["models"])
+                else:
+                    resource = preflight(config, final=True)
                 atomic_json(group / "preflight.json", resource)
                 if resource["selected_batch_size"] is None:
                     raise RuntimeError(
@@ -741,176 +764,186 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     ],
                 }
             )
-        rows = study_rows(study, config)
-        candidates = {c.name: c for c in manifest.candidates}
-        jobs = []
-        for number, row in enumerate(rows, 1):
-            experiment_number = experiment_offset + number
-            jobdir = group / "jobs" / f"{number:02d}"
-            receipt_path = jobdir / "receipt.json"
-            values = dict(row["config"])
-            if row["model"] in candidates:
-                c = candidates[row["model"]]
-                values.update(
-                    convlstm_layers=c.to_dict()["convlstm_layers"],
-                    hidden_classifier_width=c.hidden_classifier_width,
-                )
-            if receipt_path.exists():
-                receipt = read_json(receipt_path)
-                if receipt["status"] != "complete":
-                    raise RuntimeError(
-                        f"Job {number} was interrupted/failed. Evidence preserved at {jobdir}; review before an explicit retry, never silently retrain."
-                    )
-                verify_inventory(receipt["files"])
-                result = receipt["result"]
-                leaf_run = receipt["run_dir"]
-                if (
-                    receipt.get("experiment_number", experiment_number)
-                    != experiment_number
-                ):
-                    raise ValueError("Saved comparison experiment number changed")
-                print(
-                    f"Experiment {experiment_number}: verified {row['model']} (reused)",
-                    flush=True,
-                )
-            else:
-                if (study.get("recipe_transfer") or is_focused) and (
-                    group / "validation_frozen.json"
-                ).exists():
-                    raise ValueError(
-                        "Frozen comparison receipt missing; no retraining after test selection"
-                    )
-                leaf = atomic_json(jobdir / "config.json", values)
-                args = [
-                    "--config",
-                    str(leaf),
-                    "--model",
-                    row["model"],
-                    "--run-label",
-                    study["mode"],
-                    "--trial-name",
-                    f"{experiment_number:03d}",
-                    "--changed-factor",
-                    row["changed_factor"],
-                ]
-                if raw_presentation:
-                    args += [
-                        "--matched-training-evaluation",
-                        "--per-class-reporting",
-                        "--campaign-number",
-                        str(experiment_number),
-                        "--campaign-maximum",
-                        str(campaign_maximum),
-                        "--campaign-stage",
-                        "final_comparison",
-                    ]
-                if row["minimum_epochs"] > 1:
-                    args += ["--minimum-epochs", str(row["minimum_epochs"])]
-                if row["model"] in candidates:
-                    args += ["--candidates-config", str(group / "candidates.json")]
-                atomic_json(
-                    jobdir / "command.json",
-                    [sys.executable, "-m", "src.experiments", *args],
-                )
-                atomic_json(
-                    receipt_path,
-                    {
-                        "status": "running",
-                        "config_sha256": value_hash(values),
-                        "experiment_number": experiment_number,
-                    },
-                )
-                print(
-                    f"Experiment {experiment_number}/{campaign_maximum if raw_presentation else experiment_offset + len(rows)} maximum | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
-                    flush=True,
-                )
-                before = set((Path(config.runs_dir) / "experiments").glob("*"))
-                try:
-                    leaf_run = Path(run_trial(args)).resolve()
-                    payload = read_json(leaf_run / "summary.json")
-                    if len(payload["all"]) != 1:
-                        raise ValueError("one result required per job")
-                    result = payload["all"][0]
-                    _validate_leaf(result, row, values, split["manifest_hash"])
-                    if read_json(leaf_run / "run.json")["status"] != "complete":
-                        raise ValueError("leaf lifecycle incomplete")
-                    atomic_json(
-                        receipt_path,
-                        {
-                            "status": "complete",
-                            "experiment_number": experiment_number,
-                            "run_dir": str(leaf_run),
-                            "result": result,
-                            "files": inventory(leaf_run),
-                        },
-                    )
-                except BaseException as error:
-                    partial = (
-                        set((Path(config.runs_dir) / "experiments").glob("*")) - before
-                    )
-                    for folder in partial:
-                        lifecycle = folder / "run.json"
-                        if lifecycle.exists():
-                            atomic_json(
-                                lifecycle,
-                                {
-                                    **read_json(lifecycle),
-                                    "status": "failed",
-                                    "error": str(error),
-                                },
-                            )
-                    atomic_json(
-                        receipt_path,
-                        {
-                            "status": "failed",
-                            "error": str(error),
-                            "partial_runs": [str(p.resolve()) for p in partial],
-                        },
-                    )
-                    raise
-            _validate_leaf(result, row, values, split["manifest_hash"])
-            if study["mode"] == "top3_comparison" and selected.get("protocol") in {
-                "focused_top5_v1",
-                "capacity_top3_v2",
-                "capacity_top3_v3",
-            }:
-                actual = result["early_stopping"]["actual_epochs"]
-                if not row["minimum_epochs"] <= actual <= values["epochs"]:
-                    raise ValueError(
-                        "comparison checkpoint does not satisfy the longer-training budget"
-                    )
-                if not 1 <= result["checkpoint_selection"]["selected_epoch"] <= actual:
-                    raise ValueError(
-                        "comparison selected epoch exceeds completed training"
-                    )
-            if raw_presentation:
-                from .capacity_search import validate_matched_training
-
-                validate_matched_training(
-                    result, {"config": values}, source.num_classes
-                )
-            if is_focused:
-                from .focused_protocol import validation_diagnostics
-
-                diagnostics = validation_diagnostics(result)
-                atomic_json(jobdir / "convergence.json", diagnostics)
-                if diagnostics["validation_warnings"]:
-                    print(
-                        f"{row['model']}: {diagnostics['validation_warnings']} (possible optimization failure; retained)",
-                        flush=True,
-                    )
-            jobs.append(
-                {
-                    "experiment_number": experiment_number,
-                    "run_dir": str(leaf_run),
-                    "receipt": str(receipt_path.resolve()),
-                    "result": result,
-                }
-            )
+        if recovery:
+            jobs = recovered_jobs
             state.update(jobs=jobs)
             atomic_json(group / "progress.json", state)
-            if is_focused:
-                compact_results(group, config.runs_dir)
+        else:
+            rows = study_rows(study, config)
+            candidates = {c.name: c for c in manifest.candidates}
+            jobs = []
+            for number, row in enumerate(rows, 1):
+                experiment_number = experiment_offset + number
+                jobdir = group / "jobs" / f"{number:02d}"
+                receipt_path = jobdir / "receipt.json"
+                values = dict(row["config"])
+                if row["model"] in candidates:
+                    c = candidates[row["model"]]
+                    values.update(
+                        convlstm_layers=c.to_dict()["convlstm_layers"],
+                        hidden_classifier_width=c.hidden_classifier_width,
+                    )
+                if receipt_path.exists():
+                    receipt = read_json(receipt_path)
+                    if receipt["status"] != "complete":
+                        raise RuntimeError(
+                            f"Job {number} was interrupted/failed. Evidence preserved at {jobdir}; review before an explicit retry, never silently retrain."
+                        )
+                    verify_inventory(receipt["files"])
+                    result = receipt["result"]
+                    leaf_run = receipt["run_dir"]
+                    if (
+                        receipt.get("experiment_number", experiment_number)
+                        != experiment_number
+                    ):
+                        raise ValueError("Saved comparison experiment number changed")
+                    print(
+                        f"Experiment {experiment_number}: verified {row['model']} (reused)",
+                        flush=True,
+                    )
+                else:
+                    if (study.get("recipe_transfer") or is_focused) and (
+                        group / "validation_frozen.json"
+                    ).exists():
+                        raise ValueError(
+                            "Frozen comparison receipt missing; no retraining after test selection"
+                        )
+                    leaf = atomic_json(jobdir / "config.json", values)
+                    args = [
+                        "--config",
+                        str(leaf),
+                        "--model",
+                        row["model"],
+                        "--run-label",
+                        study["mode"],
+                        "--trial-name",
+                        f"{experiment_number:03d}",
+                        "--changed-factor",
+                        row["changed_factor"],
+                    ]
+                    if raw_presentation:
+                        args += [
+                            "--matched-training-evaluation",
+                            "--per-class-reporting",
+                            "--campaign-number",
+                            str(experiment_number),
+                            "--campaign-maximum",
+                            str(campaign_maximum),
+                            "--campaign-stage",
+                            "final_comparison",
+                        ]
+                    if row["minimum_epochs"] > 1:
+                        args += ["--minimum-epochs", str(row["minimum_epochs"])]
+                    if row["model"] in candidates:
+                        args += ["--candidates-config", str(group / "candidates.json")]
+                    atomic_json(
+                        jobdir / "command.json",
+                        [sys.executable, "-m", "src.experiments", *args],
+                    )
+                    atomic_json(
+                        receipt_path,
+                        {
+                            "status": "running",
+                            "config_sha256": value_hash(values),
+                            "experiment_number": experiment_number,
+                        },
+                    )
+                    print(
+                        f"Experiment {experiment_number}/{campaign_maximum if raw_presentation else experiment_offset + len(rows)} maximum | {study['mode']} {number}/{len(rows)}: {row['model']}, {values['height']}x{values['width']}",
+                        flush=True,
+                    )
+                    before = set((Path(config.runs_dir) / "experiments").glob("*"))
+                    try:
+                        leaf_run = Path(run_trial(args)).resolve()
+                        payload = read_json(leaf_run / "summary.json")
+                        if len(payload["all"]) != 1:
+                            raise ValueError("one result required per job")
+                        result = payload["all"][0]
+                        _validate_leaf(result, row, values, split["manifest_hash"])
+                        if read_json(leaf_run / "run.json")["status"] != "complete":
+                            raise ValueError("leaf lifecycle incomplete")
+                        atomic_json(
+                            receipt_path,
+                            {
+                                "status": "complete",
+                                "experiment_number": experiment_number,
+                                "run_dir": str(leaf_run),
+                                "result": result,
+                                "files": inventory(leaf_run),
+                            },
+                        )
+                    except BaseException as error:
+                        partial = (
+                            set((Path(config.runs_dir) / "experiments").glob("*"))
+                            - before
+                        )
+                        for folder in partial:
+                            lifecycle = folder / "run.json"
+                            if lifecycle.exists():
+                                atomic_json(
+                                    lifecycle,
+                                    {
+                                        **read_json(lifecycle),
+                                        "status": "failed",
+                                        "error": str(error),
+                                    },
+                                )
+                        atomic_json(
+                            receipt_path,
+                            {
+                                "status": "failed",
+                                "error": str(error),
+                                "partial_runs": [str(p.resolve()) for p in partial],
+                            },
+                        )
+                        raise
+                _validate_leaf(result, row, values, split["manifest_hash"])
+                if study["mode"] == "top3_comparison" and selected.get("protocol") in {
+                    "focused_top5_v1",
+                    "capacity_top3_v2",
+                    "capacity_top3_v3",
+                }:
+                    actual = result["early_stopping"]["actual_epochs"]
+                    if not row["minimum_epochs"] <= actual <= values["epochs"]:
+                        raise ValueError(
+                            "comparison checkpoint does not satisfy the longer-training budget"
+                        )
+                    if (
+                        not 1
+                        <= result["checkpoint_selection"]["selected_epoch"]
+                        <= actual
+                    ):
+                        raise ValueError(
+                            "comparison selected epoch exceeds completed training"
+                        )
+                if raw_presentation:
+                    from .capacity_search import validate_matched_training
+
+                    validate_matched_training(
+                        result, {"config": values}, source.num_classes
+                    )
+                if is_focused:
+                    from .focused_protocol import validation_diagnostics
+
+                    diagnostics = validation_diagnostics(result)
+                    atomic_json(jobdir / "convergence.json", diagnostics)
+                    if diagnostics["validation_warnings"]:
+                        print(
+                            f"{row['model']}: {diagnostics['validation_warnings']} (possible optimization failure; retained)",
+                            flush=True,
+                        )
+                jobs.append(
+                    {
+                        "experiment_number": experiment_number,
+                        "run_dir": str(leaf_run),
+                        "receipt": str(receipt_path.resolve()),
+                        "result": result,
+                    }
+                )
+                state.update(jobs=jobs)
+                atomic_json(group / "progress.json", state)
+                if is_focused:
+                    compact_results(group, config.runs_dir)
         if study["mode"] == "multiresolution":
             bundle = selection_bundle(study, jobs, group)
             atomic_json(group / "selected_config.json", bundle)
@@ -976,6 +1009,20 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     for j in jobs
                 ],
             }
+            if recovered_freeze:
+                from .comparison_recovery import claim_recovery
+
+                if best_custom != recovered_freeze["best_custom"] or [
+                    m["checkpoint_sha256"] for m in frozen["models"]
+                ] != [m["checkpoint_sha256"] for m in recovered_freeze["models"]]:
+                    raise ValueError(
+                        "Recovered freeze differs from original validation selection"
+                    )
+                claim = claim_recovery(config.runs_dir, group, recovered_freeze)
+                atomic_json(
+                    group / "recovery_claim.json",
+                    {"path": str(claim), "sha256": file_hash(claim)},
+                )
             freeze_path = group / "validation_frozen.json"
             if freeze_path.exists() and read_json(freeze_path) != frozen:
                 raise ValueError(
@@ -1192,6 +1239,16 @@ def execute_matrix(path, study, config, manifest, run_trial, run_evaluation):
                     "test_access": state["test_access"],
                 },
             )
+            if is_focused:
+                from notebooks.utils.study_archive import compact_results
+
+                try:
+                    compact_results(group, config.runs_dir, announce=True)
+                except Exception as archive_error:
+                    print(
+                        f"Failure evidence retained at {group}; ZIP failed: {archive_error}",
+                        flush=True,
+                    )
         raise
     finally:
         lock.unlink(missing_ok=True)

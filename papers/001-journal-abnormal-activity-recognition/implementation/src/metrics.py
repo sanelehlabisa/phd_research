@@ -351,7 +351,11 @@ def validate_selected_checkpoint(
     legacy_protocol = dict(metric_protocol(), precision_recall_f1_average="macro")
     if protocol not in (metric_protocol(), legacy_protocol):
         raise ValueError("checkpoint metric protocol is missing or unsupported")
-    if checkpoint.get("dataset_name") != dataset_name:
+    # Only these documented names identify the same AAD collection. The exact
+    # split hash (including its class/index mapping) is still mandatory.
+    aliases = {"aad": "aad", "abnormal-activities-dataset": "aad"}
+    saved_name = checkpoint.get("dataset_name")
+    if aliases.get(saved_name, saved_name) != aliases.get(dataset_name, dataset_name):
         raise ValueError("checkpoint dataset does not match the requested dataset")
     if checkpoint.get("split_manifest_hash") != split_manifest_hash:
         raise ValueError("checkpoint split manifest does not match this run")

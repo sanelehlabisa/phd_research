@@ -1098,6 +1098,20 @@ def main(argv: list[str] | None = None) -> Path | None:
             configured = json.loads(raw["config"].read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             configured = None
+        if (
+            isinstance(configured, dict)
+            and configured.get("entrypoint") == "saved_comparison"
+        ):
+            from .comparison_only import run_command
+
+            if raw.get("list_models") or any(
+                key not in {"config", "list_plan", "list_models"} and value is not None
+                for key, value in raw.items()
+            ):
+                raise ValueError(
+                    "Comparison-only JSON cannot be combined with CLI overrides"
+                )
+            return run_command(raw["config"], list_plan=raw.get("list_plan", False))
         if isinstance(configured, dict) and (
             configured.get("mode") in {"grid", "capacity_search"}
             or {

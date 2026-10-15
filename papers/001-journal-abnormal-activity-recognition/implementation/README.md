@@ -80,17 +80,93 @@ The [verified lower-LR follow-up](reports/2026-10-15/transformer-learning/follow
 reached 137/160 validation correct (85.625%) in eight local epochs, versus
 25/160 at LR 0.0001. This is Swin3D-T diagnostic evidence, not final test results.
 
-Remaining work is planning-only; the successful search will not be rerun:
+The successful search will not be rerun by comparison recovery:
 
-- [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): next, consume 084's diagnosis and obtain approval for any recipe changes; reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
+- [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/completion.md): implemented and locally verified (131 checks); the command below reuses the existing runner. Evidence import and full-training approval remain prerequisites. No new research results or GPU fit claim.
 - [087 expanded 64px search](../../../agents/work/087-expand-frame-depth-search/prompt.md): 32 customs, fixed 64x64, 8/16 frames and 8/16 FPS (128 jobs). Depth counts 5/6/13/4/4 provide at least four candidates per depth; flat widths 32/48/64/96 are matched across depths 1-5. Preserve old results and save compact Drive backups. Measure workload before launch; overnight is not guaranteed.
 - [089 Colab readiness](../../../agents/work/089-colab-campaign-readiness/prompt.md): wire the new JSON and 083 comparison into one thin notebook/export after prerequisites, transformer recipe checks and backup preflight. No streaming change or real campaign launch during implementation.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 
-The comparison-only local JSON/command is a planned deliverable, not ready to run
-yet. Existing search/comparison notebooks still retain their current behavior.
+Existing search/comparison notebooks retain their current behavior; 089 owns
+their integration. The new comparison-only CLI is separate from Run All search.
 Metric alignment is implemented in [088](../../../agents/work/088-pooled-metrics-everywhere/completion.md);
 this does not recover the failed comparison or launch a new study.
+
+### Comparison only (083)
+
+Inspect the declared ten models without loading data or training:
+
+```bash
+python -m src.experiments --config configs/experiments/aad_comparison_only_local.json --list-plan
+```
+
+After restoring the verified evidence and obtaining launch approval, run the
+same command without `--list-plan`. It invokes `run_saved_comparison`, **zero
+search jobs**, ten scratch trainings, validation freeze, ten full tests and
+best-custom examples. No manual stage switches. The five stacks are
+`[64,96,64]`, `[128,64,64]`, `[64,128,64]`, `[64,64,128]`, `[96,64,64]`, plus the
+input-adapted paper model, R3D-18, MC3-18, Swin3D-T and Swin3D-S.
+
+The original recipe stays fixed: AAD/11 classes, 748/160/161 split, eight 64px
+frames at 16 FPS, seed 42, Adam LR .001, WD 0, no augmentation, cap/minimum/
+patience 512/128/32. This **does not apply the lower-LR transformer diagnostic**.
+Changed recipes need separate approval and versioning. Local requested batch
+is two; full Adam-step probes test every actual finalist and may choose one
+common batch of one. If that fails, use A100 without shrinking inputs/skipping
+models. CPU verification is not a 6-GB/A100 fit or runtime claim.
+
+Evidence setup (once, before execution):
+
+- Restore the original search selection, study/progress/audit, split, receipts,
+  sidecars and validation records. Keep their bytes and relative layout intact.
+  Search weights are not required for fresh training. The checked-in essential
+  ZIP has only 12 summary/config JSONs: **it is insufficient**. The ignored
+  `runs/studies/20261014_055748_815241_abnormal-activities-dataset_capacity/`
+  also retains the matching selection and 64 receipts. On this laptop, 644
+  inventoried non-weight files match their hashes, but 828 are missing (including
+  checkpoint sidecars); AAD data and the final comparison freeze/weights are
+  unavailable. Restore the missing evidence, not a replacement search. No
+  handwritten winner is substituted.
+- Set `selected_config` to an existing selection at its original location, or
+  an import manifest such as `runs/imports/20261014-comparison/import.json`:
+
+```json
+{
+  "protocol": "comparison_import_v1",
+  "selection": {"path": "/original/implementation/runs/studies/SEARCH/selected_config.json", "sha256": "ORIGINAL_SHA256"},
+  "path_map": [
+    {"source": "/original/implementation", "destination": "EXTRACTED_IMPLEMENTATION_DIRECTORY"},
+    {"source": "/original/dataset/root", "destination": "LOCAL_DATASET_ROOT"}
+  ]
+}
+```
+
+Destinations are absolute or relative to the import manifest. Replace the
+example paths/hash with actual originals; no path guessing is performed. Every
+required hash, all 64 validation jobs and the original decision are checked;
+only returned path references are relocated. Set the profile's `dataset.path`
+to that same local dataset root. `dataset.split_manifest: null` means use the
+verified selection's existing split, **not create a split**. Output location,
+worker settings, requested batch and example count live in the JSON.
+
+For **test-only recovery**, also restore all ten frozen checkpoints and the
+original comparison receipts. Set `recovery_source` to an import manifest with
+the same `path_map` and a `recovery` object containing `freeze` and `progress`
+references (`path`/`sha256`), `test_receipts` (original path -> SHA256), and
+`failure_files` (failed evaluator `run.json` and any `evaluation_phase.json`
+path -> SHA256). Every original test receipt must be declared. Only a verified
+pre-scoring failure or an untouched freeze is recoverable; partial/completed or
+ambiguous tests are refused. Missing weights fail, never trigger retraining.
+Recovery writes a separate pooled view and attempt; original checkpoints,
+scores and receipts remain unchanged. Keep `runs/study_receipts/` with backups;
+do not delete claims to force another test.
+
+New attempts save compact `runs/focused_archives/<study>/results.zip` during
+training/testing and on failure. It contains configs, histories, pooled/per-class
+metrics, counts, predictions and receipts, **not weights or the whole search**.
+Keep checkpoints separately. Repeating the same verified request reuses completed
+work; a failed/partial test does not silently rerun. AAD aliases require the exact
+same split/class provenance, and evaluation now honors saved FPS/sampling settings.
 
 ### Focused Run All (077/076)
 

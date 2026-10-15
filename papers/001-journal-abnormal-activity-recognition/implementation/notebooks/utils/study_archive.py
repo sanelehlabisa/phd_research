@@ -76,13 +76,23 @@ def verify_archive(path):
 
 
 def make_archive(
-    root, archive_path, progress_path, run_directories, profiles, *, results_only=False
+    root,
+    archive_path,
+    progress_path,
+    run_directories,
+    profiles,
+    *,
+    results_only=False,
+    follow_links=True,
+    receipts_dir=None,
 ):
     root = Path(root).resolve()
+    receipts_dir = Path(receipts_dir or root / "runs/study_receipts").resolve()
     archive_path = Path(archive_path).resolve()
     partial = archive_path.with_suffix(".partial")
     archive_path.parent.mkdir(parents=True, exist_ok=True)
-    directories = related_runs(root, {*run_directories, Path(progress_path).parent})
+    initial = {*run_directories, Path(progress_path).parent}
+    directories = related_runs(root, initial) if follow_links else initial
     files = {root / config for _, config in profiles}
     files.update(p for d in directories for p in d.rglob("*") if p.is_file())
     required_hashes = {}
@@ -98,16 +108,25 @@ def make_archive(
     # Preserve restart guards when restoring the ZIP at the original Colab path.
     for directory in directories:
         lifecycle = directory / "run.json"
+        claim_path = directory / "recovery_claim.json"
+        if claim_path.is_file():
+            claim = json.loads(claim_path.read_text(encoding="utf-8"))
+            index = Path(claim["path"]).resolve()
+            if not index.is_relative_to(receipts_dir) or not index.is_file():
+                raise ValueError(
+                    "Missing recovery test claim; do not discard restart guards"
+                )
+            with index.open("rb") as stream:
+                if _sha(stream) != claim["sha256"]:
+                    raise ValueError("Recovery test claim changed")
+            files.add(index)
         if lifecycle.is_file():
             resume_index = json.loads(lifecycle.read_text(encoding="utf-8")).get(
                 "resume_index"
             )
             if resume_index:
                 index = Path(resume_index).resolve()
-                if (
-                    not index.is_relative_to(root / "runs/study_receipts")
-                    or not index.is_file()
-                ):
+                if not index.is_relative_to(receipts_dir) or not index.is_file():
                     raise ValueError(f"Missing or invalid restart guard: {index}")
                 files.add(index)
     files = sorted(
@@ -221,9 +240,33 @@ def compact_results(group, runs_dir, *, announce=False):
     """Keep the latest small metrics backup; checkpoint files remain untouched."""
     group = Path(group).resolve()
     root = Path(runs_dir).resolve().parent
-    path = root / "runs/focused_archives" / group.name / "results.zip"
+    path = Path(runs_dir).resolve() / "focused_archives" / group.name / "results.zip"
+    study_path = group / "study.json"
+    standalone = study_path.is_file() and json.loads(
+        study_path.read_text(encoding="utf-8")
+    ).get("comparison_only")
+    directories = {group}
+    if standalone:
+        # Package this attempt, not the immutable search/import tree. Receipts
+        # and the original import hashes remain in the saved study/provenance.
+        for receipt in [
+            *group.rglob("receipt.json"),
+            *(group / "test_receipts").glob("*.json"),
+        ]:
+            value = json.loads(receipt.read_text(encoding="utf-8"))
+            references = value.get("partial_runs", []) + (
+                [value["run_dir"]] if value.get("run_dir") else []
+            )
+            directories.update(Path(p).resolve() for p in references)
     result = make_archive(
-        root, path, group / "progress.json", {group}, (), results_only=True
+        root,
+        path,
+        group / "progress.json",
+        directories,
+        (),
+        results_only=True,
+        follow_links=not standalone,
+        receipts_dir=Path(runs_dir) / "study_receipts",
     )
     if announce:
         print(f"FOCUSED_RESULTS_ZIP: {result}", flush=True)

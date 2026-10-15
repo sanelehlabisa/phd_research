@@ -191,6 +191,19 @@ def load_study(path):
         "max_runs",
         "published_topology",
     }
+    if isinstance(study, dict) and "comparison_only" in study:
+        expected_fields.add("comparison_only")
+        if (
+            study["comparison_only"] is not True
+            or study.get("comparison_protocol") != "focused_final_v1"
+        ):
+            raise ValueError(
+                "comparison_only requires the focused ten-model comparison"
+            )
+    if isinstance(study, dict) and "recovery_source" in study:
+        expected_fields.add("recovery_source")
+        if study.get("comparison_only") is not True:
+            raise ValueError("recovery_source is only supported by comparison_only")
     if isinstance(study, dict) and "confirmation_seed" in study:
         expected_fields.add("confirmation_seed")
     if isinstance(study, dict) and "selected_config" in study:
@@ -409,7 +422,10 @@ def load_study(path):
             or config.augment
             or config.scheduler != "reduce_on_plateau"
             or not config.cache_dataset
-            or config.prediction_samples_per_category != 5
+            or (
+                not study.get("comparison_only")
+                and config.prediction_samples_per_category != 5
+            )
             or (config.sequence_length, config.height, config.width)
             != (8, final["height"], final["width"])
             or study["max_runs"] != 10

@@ -1,7 +1,7 @@
 # Task Prompt
 
 - Ticket: `083-comparison-only-recovery`
-- Status: Ready
+- Status: Done (implementation/preparation; real execution remains separate)
 - Aim: Run the ten fixed finalists through final training and guarded test evaluation using one JSON command, without repeating search.
 - Scope: Paper 001's existing experiment/evaluation runner, selection-import helpers, one comparison-only JSON profile, regression tests and concise commands. A thin Colab notebook/export may call the same runner; no parallel experiment framework.
 - Planning update (15 October 2026): Reuse this existing ticket rather than create a duplicate. Transformer diagnosis/fixes move to [084](../084-diagnose-transformer-learning/prompt.md); this ticket owns comparison preparation and test recovery. Implementation and any fresh full training remain separate actions.

@@ -170,6 +170,10 @@ def main(argv=None) -> Path:
     manifest_path = resolve_split_manifest_path(
         config.dataset_dir, config.split_manifest, config.split_seed
     )
+    if not manifest_path.is_file():
+        raise FileNotFoundError(
+            "Final evaluation requires the original split; no resplit"
+        )
     run = RunContext(
         config.runs_dir,
         purpose="evaluate",
@@ -204,12 +208,25 @@ def main(argv=None) -> Path:
         },
     )
     run_dir = run.run_dir
+    # Durable boundary: compatibility failures must not be confused with a
+    # partial test. Write the second marker BEFORE any held-out decoding.
+    from .study_matrix import atomic_json, file_hash
+
+    phase_path = run_dir / "evaluation_phase.json"
+    phase = {
+        "phase": "before_scoring",
+        "checkpoint_sha256": file_hash(checkpoint_path),
+        "evaluation_config_sha256": file_hash(config_file),
+    }
+    atomic_json(phase_path, phase)
     print(f"📁 Run directory → {run_dir}")
 
     dataset = AHARDataset(
         config.dataset_dir,
         config.sequence_length,
         (config.width, config.height),
+        target_fps=config.target_fps,
+        sampling_version=config.sampling_version,
     )
     num_classes = dataset.num_classes
     print(f"📦 {len(dataset)} samples | {num_classes} classes: {dataset.class_names}")
@@ -245,11 +262,15 @@ def main(argv=None) -> Path:
             "sequence_length": checkpoint_config.get("sequence_length"),
             "height": checkpoint_config.get("height"),
             "width": checkpoint_config.get("width"),
+            "target_fps": checkpoint_config.get("target_fps", 16),
+            "sampling_version": checkpoint_config.get("sampling_version", "legacy"),
         }
         actual_input = {
             "sequence_length": config.sequence_length,
             "height": config.height,
             "width": config.width,
+            "target_fps": config.target_fps,
+            "sampling_version": config.sampling_version,
         }
         if all(value is not None for value in expected_input.values()) and (
             expected_input != actual_input
@@ -314,6 +335,7 @@ def main(argv=None) -> Path:
     if device.type == "cuda":
         torch.cuda.synchronize()
     started = perf_counter()
+    atomic_json(phase_path, {**phase, "phase": "scoring_started"})
     results = evaluate_classifier(
         model,
         test_loader,
@@ -389,6 +411,10 @@ def main(argv=None) -> Path:
         confusion_artifacts,
     )
     json_path = write_json(run_dir / "metrics" / "final.json", report)
+    atomic_json(
+        phase_path,
+        {**phase, "phase": "complete", "report_sha256": file_hash(json_path)},
+    )
     run.complete(
         artifacts={
             "configuration": str(config_path),
