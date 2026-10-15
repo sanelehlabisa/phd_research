@@ -100,6 +100,11 @@ for the same ten models on local 6-GB CUDA, with Colab fallback. Do not rerun se
 plans script cleanup after the comparison path works. Those recovery/cleanup
 tickets remain planning-only; no new training or test result was produced by 085.
 
+Later, [087 frame-count/shallow-model expansion](agents/work/087-expand-frame-depth-search/prompt.md)
+queues 24 models x 8/16 frames x two sizes x two FPS values (192 jobs), with
+results-only ZIP backups to Drive. It is a new campaign, not a required replay
+of the completed search; transformer diagnosis remains next. Runtime may exceed overnight.
+
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),
 [081 ten-model comparison](agents/work/081-aad-ten-model-results-comparison/prompt.md),

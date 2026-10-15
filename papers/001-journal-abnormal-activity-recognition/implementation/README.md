@@ -48,6 +48,7 @@ Remaining work is planning-only; the successful search will not be rerun:
 
 - [084 transformer diagnosis](../../../agents/work/084-diagnose-transformer-learning/prompt.md): next, audit learning and fix proven defects before approving a changed recipe.
 - [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
+- [087 frame-count/shallow-model expansion](../../../agents/work/087-expand-frame-depth-search/prompt.md): later, a new 24-model x 8/16-frame x two-size x two-FPS profile (192 jobs), with results-only ZIP backups to Drive. Preserve the completed campaign; do not launch it as part of 084/083. Measure workload before launch—overnight is not guaranteed.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 
 The comparison-only local JSON/command is a planned deliverable, not ready to run
