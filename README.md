@@ -87,10 +87,14 @@ custom validation accuracy is 98.750%; final testing failed at a dataset-name
 compatibility check. Preserve the compact archive and final checkpoints before
 Colab closes; no final test claim is available yet.
 
-Next: [083 comparison-only recovery](agents/work/083-comparison-only-recovery/prompt.md)
-is ready for approval: preserve the completed search, investigate transformer
-collapse and prepare a standalone comparison/test workflow. No new training
-or experiment-code change has been made for that ticket yet.
+Next: [085 complete search visibility](agents/work/085-complete-search-result-visibility/prompt.md),
+then [084 transformer diagnosis](agents/work/084-diagnose-transformer-learning/prompt.md),
+then [083 comparison-only JSON runner/test recovery](agents/work/083-comparison-only-recovery/prompt.md)
+for the same ten models on local 6-GB CUDA, with Colab fallback. Do not rerun search.
+085 makes all 64 saved configurations visibly inspectable;
+[086](agents/work/086-simplify-modular-scripts/prompt.md)
+plans script cleanup after the comparison path works. These are planning tickets;
+no new code/config, training or test result has been produced for them yet.
 
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),

@@ -46,7 +46,10 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
-- [ ] [083 comparison-only recovery](../../agents/work/083-comparison-only-recovery/prompt.md) — Ready for approval: preserve all search results, diagnose transformer learning and prepare comparison-only training/testing with a repaired dataset handoff.
+- [ ] [085 complete search visibility](../../agents/work/085-complete-search-result-visibility/prompt.md) — next: show all 64 saved configurations by default, without clipping/filtering; preserve existing values and ranking. No training needed.
+- [ ] [084 transformer learning diagnosis](../../agents/work/084-diagnose-transformer-learning/prompt.md) — after 085: explain the constant-class collapse, fix proven bugs and obtain approval before changing the training recipe.
+- [ ] [083 comparison-only JSON/test recovery](../../agents/work/083-comparison-only-recovery/prompt.md) — after 084: five existing finalists + paper + two 3D CNNs + two transformers; local 6-GB CUDA preflight, Colab fallback, final test metrics/confusion/examples. No search rerun.
+- [ ] [086 modular-script cleanup plan](../../agents/work/086-simplify-modular-scripts/prompt.md) — later: audit callers and propose exact removals/merges for approval; do not disrupt the comparison work.
 - [x] [077 focused A100 rerun](../../agents/work/077-focused-aad-colab-rerun/prompt.md) — [Locally verified](../../agents/work/077-focused-aad-colab-rerun/completion.md): 64 balanced jobs, honest top-five/anchor selection and compact backups. All 64 Colab search jobs reviewed on October 14; full artifact recovery pending.
 - [x] [076 fixed finalist comparison](../../agents/work/076-aad-shortlist-comparison/prompt.md) — [Locally verified](../../agents/work/076-aad-shortlist-comparison/completion.md): ten fresh comparison trainings completed; validation reviewed. The first test failed before scoring; test metrics/examples remain pending.
 - [ ] [078 clearer ablation figures](../../agents/work/078-aad-ablation-figures/prompt.md) — tally-style layer markers and condition/width/depth plots; figures lead the paper narrative, tables support it.

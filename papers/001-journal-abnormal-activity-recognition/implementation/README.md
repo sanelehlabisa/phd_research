@@ -32,10 +32,15 @@ and complete available validation metrics. The first final test failed at a
 dataset-name compatibility check (`abnormal-activities-dataset` versus `aad`).
 Save the compact archive and final checkpoints before losing the runtime;
 validation results are not final test results. Recovery remains separate work.
-Next: [083 comparison-only recovery](../../../agents/work/083-comparison-only-recovery/prompt.md)
-plans a thin comparison-only Colab notebook/export, transformer convergence
-investigation and safe test-handoff repair. The 64-job search stays unchanged;
-this ticket is not implemented yet.
+Next work is planning-only; the successful search will not be rerun:
+
+- [085 complete search visibility](../../../agents/work/085-complete-search-result-visibility/prompt.md): first, make all 64 saved configurations visible without filtering or hidden tables; values/ranking unchanged. No training needed.
+- [084 transformer diagnosis](../../../agents/work/084-diagnose-transformer-learning/prompt.md): then audit learning and fix proven defects before approving a changed recipe.
+- [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
+- [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
+
+The comparison-only local JSON/command is a planned deliverable, not ready to run
+yet. Existing search/comparison notebooks still retain their current behavior.
 
 ### Focused Run All (077/076)
 
