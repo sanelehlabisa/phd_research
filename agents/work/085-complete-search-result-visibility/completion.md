@@ -1,0 +1,15 @@
+# Completion
+
+- Status: Done
+- Summary: All 64 saved measurements are plotted without changing results. Latest owner revision uses a disclosed compressed lower y-range, ring highlights and named model keys instead of tables, arrows or zoom subplots.
+- Changes:
+  - The bottom legend shows only layer counts. Panel keys are ordered `Best, Middle, Worst`; "Middle" keeps the same nearest-median model selection.
+  - Highlighted-model keys show accuracy to two decimals, e.g. `Best: 64-64 (98.75%)`; no "tied" label. Model selection and scores are unchanged.
+  - Extended the existing October 14 builder with `--search-visibility --output-dir`, preserving its original full-audit/plotting entry point. The new mode verifies preserved CSV/JSON, console, ZIP and image hashes without requiring missing Colab run folders.
+  - Added [the October 15 report](../../../papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-15/README.md): four 16-model scatter panels with named Best/Middle/Worst ring highlights. The bottom legend retains only the original five depth colours/shapes. Below 90%, the labelled piecewise axis compresses distance by 20x while retaining all scores and true ticks. No tables, arrows or insets; all 64 coordinates, 128 image links and the shortlist remain unchanged.
+  - Added targeted reporting/safety regressions; updated the root, paper, implementation and reports guides. No experiment/model/config/notebook/manuscript changes, training, checkpoint loading, test-data access, commit or push.
+- Verification:
+  - From `implementation/`: `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/tmp/aad-085-matplotlib .venv/bin/python -m pytest -q -p no:cacheprovider tests/test_search_visibility_report.py` — 18 passed, covering all 64 coordinates/12 rings, correct panel keys, layer-count-only bottom legend, no arrows/insets, monotone scale/inverse/ticks, complete bounds, original default plots and existing evidence/output safeguards.
+  - `.venv/bin/python reports/2026-10-14/build_preview.py --search-visibility --output-dir reports/2026-10-15` — rebuilt successfully. Receipt retains 64 unique primary-point IDs, 16 per condition, 12 real-model highlight records, the scale definition, 128 matching image hashes and unchanged ranking/archived finalist handoff. Rings are highlights, not extra observations.
+  - Independent check: all 144 original non-builder October 14 tracked files are byte-identical to `HEAD`; selection's historical digest remains unchanged. PNG visually inspected; failed-learning run 57 remains at 12.500%, no axes omit any point. SVG IDs, Markdown links and `git diff --check` passed.
+- Remaining issues: All 258 original `runs/` files listed in the historical audit are absent here; the new report records this rather than claiming fresh history/selection/checkpoint verification. Recover those artifacts for a complete provenance audit. Transformer diagnosis (084) and final test recovery (083) remain separate; this display task does not require repeating search.

@@ -87,14 +87,18 @@ custom validation accuracy is 98.750%; final testing failed at a dataset-name
 compatibility check. Preserve the compact archive and final checkpoints before
 Colab closes; no final test claim is available yet.
 
-Next: [085 complete search visibility](agents/work/085-complete-search-result-visibility/prompt.md),
-then [084 transformer diagnosis](agents/work/084-diagnose-transformer-learning/prompt.md),
+[085 complete search visibility](agents/work/085-complete-search-result-visibility/completion.md)
+is done: the [October 15 report](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-15/README.md)
+plots all 64 measurements with the original layer-count legend, per-panel
+highlight keys and a disclosed compressed lower y-range. All 128 image links
+remain; no side/performance tables, arrows or zoom plots.
+Original values/ranking are unchanged; unavailable run files are disclosed.
+Next: [084 transformer diagnosis](agents/work/084-diagnose-transformer-learning/prompt.md),
 then [083 comparison-only JSON runner/test recovery](agents/work/083-comparison-only-recovery/prompt.md)
 for the same ten models on local 6-GB CUDA, with Colab fallback. Do not rerun search.
-085 makes all 64 saved configurations visibly inspectable;
 [086](agents/work/086-simplify-modular-scripts/prompt.md)
-plans script cleanup after the comparison path works. These are planning tickets;
-no new code/config, training or test result has been produced for them yet.
+plans script cleanup after the comparison path works. Those recovery/cleanup
+tickets remain planning-only; no new training or test result was produced by 085.
 
 Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
 [080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),

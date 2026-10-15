@@ -32,10 +32,21 @@ and complete available validation metrics. The first final test failed at a
 dataset-name compatibility check (`abnormal-activities-dataset` versus `aad`).
 Save the compact archive and final checkpoints before losing the runtime;
 validation results are not final test results. Recovery remains separate work.
-Next work is planning-only; the successful search will not be rerun:
+[085 is complete](../../../agents/work/085-complete-search-result-visibility/completion.md):
+the [October 15 report](reports/2026-10-15/README.md) plots all 64 measurements,
+with per-panel Best/Middle/Worst ring highlights and named keys. The bottom
+legend shows only layer counts; a labelled compressed lower y-range
+retains all low scores without inset plots. All 128 image links remain.
+Raw evidence/ranking are unchanged; absent original run files are explicitly disclosed.
+Rebuild from this directory (no training or imported runs required):
 
-- [085 complete search visibility](../../../agents/work/085-complete-search-result-visibility/prompt.md): first, make all 64 saved configurations visible without filtering or hidden tables; values/ranking unchanged. No training needed.
-- [084 transformer diagnosis](../../../agents/work/084-diagnose-transformer-learning/prompt.md): then audit learning and fix proven defects before approving a changed recipe.
+```bash
+.venv/bin/python reports/2026-10-14/build_preview.py --search-visibility --output-dir reports/2026-10-15
+```
+
+Remaining work is planning-only; the successful search will not be rerun:
+
+- [084 transformer diagnosis](../../../agents/work/084-diagnose-transformer-learning/prompt.md): next, audit learning and fix proven defects before approving a changed recipe.
 - [083 comparison-only JSON runner](../../../agents/work/083-comparison-only-recovery/prompt.md): reuse `src.experiments --config <json>` for the five saved finalists and five baselines, then frozen test metrics/confusion/examples. Prioritize local 6-GB CUDA with measured common-batch preflight; use Colab if it does not fit.
 - [086 script cleanup inventory](../../../agents/work/086-simplify-modular-scripts/prompt.md): later, propose exact redundant-file removals before deleting anything.
 

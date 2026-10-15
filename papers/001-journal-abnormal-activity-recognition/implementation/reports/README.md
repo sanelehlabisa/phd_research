@@ -4,6 +4,10 @@ Folders use the report/review date (`YYYY-MM-DD`), not necessarily the execution
 date. Keep each review with its raw logs, CSV tables and figures. Preserve older
 evidence; add new reviews without overwriting it. Generated run folders stay local.
 
+- [2026-10-15: all 64 search measurements, graph-first](2026-10-15/README.md) —
+  unchanged values/ranking, named per-panel highlights, layer-count-only bottom
+  legend, disclosed y-axis compression and 128 image links; no arrows/insets/tables;
+  current source-file availability and verification limits disclosed. No new training/test.
 - [2026-10-14: focused search and ten-model comparison preview](2026-10-14/README.md) —
   all 64 search jobs checked against imported summaries/histories, a 128-image
   search gallery and ten comparison trainings; validation plots/tables,

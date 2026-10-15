@@ -1,9 +1,14 @@
 """Rebuild this review from preserved inputs and the imported 64-run evidence.
 
+Full source audit (requires imported runs): python build_preview.py
+Visible saved-results report (no runs needed):
+    python build_preview.py --search-visibility --output-dir ../2026-10-15
+
 Run with Python and matplotlib. No training, checkpoint loading or test access.
 Outputs are derived report files only; source ZIP and console log are read-only.
 """
 
+import argparse
 import ast
 import csv
 import hashlib
@@ -21,6 +26,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
+import numpy as np
 
 
 ROOT = Path(__file__).resolve().parent
@@ -29,6 +35,13 @@ EXPECTED_HASHES = {
     "aad_results_essential.zip": "f4086085850f1bce64aa3abaf7a968cebc6166d4e5cd304afb6b955bc2081384",
 }
 CONDITIONS = [(32, 8), (32, 16), (64, 8), (64, 16)]
+VISIBILITY_HASHES = {
+    **EXPECTED_HASHES,
+    "search_results.csv": "6424afd0d7d86943bffdd354c33eddc6e7c90776f7713ad77880b02973f7a78e",
+    "architecture_ranking.csv": "3fe8a203f166d258086060d8e06d13f393e730a27bbf9bff979411f90066700d",
+    "preview_results.json": "a4c4a93fb38fc6c9c01ac450a2b5270942ae7d89a19a01c085292ac876052d68",
+    "search_evidence_check.json": "318536cbe2660efcc4060f735142ef5194b0b04b1e14a31d3ba47cd236dbd6a2",
+}
 
 
 def checked_metrics(classes):
@@ -291,34 +304,51 @@ def audit_search_artifacts(search, ranking):
     return {k: v for k, v in audit.items() if k not in ("source_sha256", "plot_keys")}
 
 
-def save_plot(fig, stem):
-    fig.savefig(ROOT / f"{stem}.png", dpi=180)
-    svg = ROOT / f"{stem}.svg"
+def save_plot(fig, stem, output_dir=ROOT):
+    fig.savefig(output_dir / f"{stem}.png", dpi=180)
+    svg = output_dir / f"{stem}.svg"
     fig.savefig(svg, metadata={"Date": None})
     # Matplotlib emits trailing spaces in SVG path data; normalize only derived output.
     svg.write_text("\n".join(line.rstrip() for line in svg.read_text(encoding="utf-8").splitlines()) + "\n",
                    encoding="utf-8", newline="\n")
 
 
-def plots(search, ranking, comparison):
+def accuracy_axis_forward(values):
+    """Compress accuracy below 90 percent without removing or changing data."""
+    values = np.asarray(values)
+    return np.where(values <= 90, values * 0.05, 4.5 + values - 90)
+
+
+def accuracy_axis_inverse(values):
+    """Restore actual percentage labels for the compressed accuracy axis."""
+    values = np.asarray(values)
+    return np.where(values <= 4.5, values / 0.05, 90 + values - 4.5)
+
+
+def search_plot(search, ranking, output_dir=ROOT, annotate_examples=False):
+    """Plot every measured model, with optional role rings and a scaled y-axis."""
     plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False,
                          "svg.hashsalt": "aad-2026-10-14"})
     colors = {1: "#0072B2", 2: "#009E73", 3: "#D55E00", 4: "#CC79A7", 5: "#6A5ACD"}
     markers = {1: "o", 2: "s", 3: "^", 4: "D", 5: "P"}
     finalists = {r["name"] for r in ranking[:5]}
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10), sharex=True, sharey=True)
+    fig, original_axes = plt.subplots(2, 2, figsize=(15, 10), sharex=True, sharey=True)
+    axes = list(original_axes.flat)
     plotted = []
-    for ax, (size, fps) in zip(axes.flat, CONDITIONS):
+    axis_limits = []
+    annotations = []
+    role_colors = {"best": "#006D2C", "worst": "#B2182B", "median": "#2166AC"}
+    for ax, (size, fps) in zip(axes, CONDITIONS):
         group = [r for r in search if r["frame_size"] == size and r["fps"] == fps]
         assert len(group) == 16 and len({r["name"] for r in group}) == 16
         for r in group:
             depth = r["layers"]
             point = ax.scatter(r["params"], r["accuracy"] * 100, color=colors[depth], marker=markers[depth],
-                               s=65, edgecolors="black" if r["name"] in finalists else "white",
-                               linewidths=1.1, alpha=0.8, zorder=3)
+                               s=65, edgecolors="black" if not annotate_examples and r["name"] in finalists else "white",
+                               linewidths=1.1, alpha=0.8, zorder=3 + depth if annotate_examples else 3)
             point.set_gid(f"search-run-{r['experiment']:02d}")
             plotted.append(r["experiment"])
-        # Only annotate named controls/winners, using empty space for the labels.
+        # Keep the original review labels when rebuilding the historical figures.
         labels = [
             ("custom_16_16_16", "Smallest: 16-16-16", (0.03, 0.43)),
             ("custom_128_128_128", "Largest: 128-128-128", (0.70, 0.61)),
@@ -328,7 +358,7 @@ def plots(search, ranking, comparison):
         ]
         if (size, fps) == (64, 16):
             labels.append(("custom_64_64_64_64_64", "Deep: 64 x 5", (0.65, 0.22)))
-        for name, title, location in labels:
+        for name, title, location in ([] if annotate_examples else labels):
             r = next(r for r in group if r["name"] == name)
             label = f"{title}\n{100 * r['accuracy']:.3f}%"
             ax.annotate(label, (r["params"], r["accuracy"] * 100), xytext=location,
@@ -337,22 +367,74 @@ def plots(search, ranking, comparison):
                         arrowprops={"arrowstyle": "-", "color": "0.45", "lw": 0.8})
         ax.set_title(f"{size} x {size} pixels | {fps} FPS | 16/16 runs", fontsize=12)
         ax.set_xscale("log")
-        ax.set_xlim(35000, 4500000)
-        ax.set_ylim(0, 104)
+        x_limits = (min(r["params"] for r in search) * 0.72,
+                    max(r["params"] for r in search) * 1.52) if annotate_examples else (35000, 4500000)
+        ax.set_xlim(*x_limits)
+        if annotate_examples:
+            ax.set_yscale("function", functions=(accuracy_axis_forward, accuracy_axis_inverse))
+            ax.set_ylim(0, 100.5)
+            ax.set_yticks([0, 20, 40, 60, 80, 90, 92, 94, 96, 98, 100])
+            ax.axhline(90, color="0.5", linestyle="--", linewidth=0.8)
+            ax.text(0.98, 90.3, "compressed below 90%", transform=ax.get_yaxis_transform(),
+                    ha="right", va="bottom", fontsize=8, color="0.35")
+        else:
+            ax.set_ylim(0, 104)
+        axis_limits.append({"frame_size": size, "fps": fps, "x": list(x_limits),
+                            "y": [0, 100.5] if annotate_examples else [0, 104]})
         ax.set_xticks([50000, 100000, 500000, 1000000, 3000000])
         ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x/1e6:g}M" if x >= 1e6 else f"{x/1000:g}k"))
         ax.grid(alpha=0.2)
-    for ax in axes[-1]:
+        if annotate_examples:
+            # Highlight actual observations without changing their layer markers.
+            middle_score = statistics.median(r["accuracy"] for r in group)
+            examples = {
+                "best": min(group, key=lambda r: (-r["accuracy"], r["params"], r["experiment"])),
+                "worst": min(group, key=lambda r: (r["accuracy"], r["params"], r["experiment"])),
+                "median": min(group, key=lambda r: (round(abs(r["accuracy"] - middle_score), 12),
+                                                    r["params"], r["experiment"])),
+            }
+            panel_handles = []
+            for role in ("best", "median", "worst"):
+                row = examples[role]
+                title = "Middle" if role == "median" else role.capitalize()
+                ring = ax.scatter(row["params"], 100 * row["accuracy"], s=195,
+                                  facecolors="none", edgecolors=role_colors[role],
+                                  linewidths=1.7, zorder=12)
+                ring.set_gid(f"example-{role}-{row['experiment']:02d}")
+                panel_handles.append(Line2D([], [], marker="o", linestyle="", markerfacecolor="none",
+                                            markeredgecolor=role_colors[role], markeredgewidth=1.7,
+                                            markersize=9,
+                                            label=f"{title}: {row['architecture']} ({100 * row['accuracy']:.2f}%)"))
+                annotations.append({"frame_size": size, "fps": fps, "role": role,
+                                    "experiment": row["experiment"], "architecture": row["architecture"],
+                                    "accuracy": row["accuracy"]})
+
+            ax.legend(handles=panel_handles, loc="lower left", bbox_to_anchor=(0.02, 0.35),
+                      fontsize=9, framealpha=0.94, edgecolor="0.85", title="Highlighted models",
+                      title_fontsize=9)
+    for ax in axes[-2:]:
         ax.set_xlabel("Trainable parameters (log scale)")
-    for ax in axes[:, 0]:
+    for ax in axes[::2]:
         ax.set_ylabel("Validation accuracy (%)")
     handles = [Line2D([], [], color=colors[d], marker=markers[d], linestyle="", label=f"{d} layer{'s' if d > 1 else ''}") for d in range(1, 6)]
     assert sorted(plotted) == list(range(1, 65)), "Every search run must appear exactly once."
-    fig.legend(handles=handles, loc="lower center", ncol=5, frameon=False, bbox_to_anchor=(0.5, 0.012))
-    fig.suptitle("64/64 search runs | 8 frames, seed 42 | black outlines = five selected architectures", y=0.98)
+    fig.legend(handles=handles, loc="lower center", ncol=5,
+               frameon=False, bbox_to_anchor=(0.5, 0.012))
+    subtitle = "lower y-range compressed; all measurements retained" if annotate_examples else "black outlines = five selected architectures"
+    fig.suptitle(f"64/64 search runs | 8 frames, seed 42 | {subtitle}", y=0.98)
     fig.tight_layout(rect=(0, 0.06, 1, 0.95))
-    save_plot(fig, "search_capacity")
+    save_plot(fig, "search_capacity", output_dir)
     plt.close(fig)
+    return {"plotted_experiments": plotted, "axis_limits": axis_limits,
+            "annotations": annotations, "zoom_panels": [],
+            "highlight_style": "ring_legend" if annotate_examples else "historical_labels",
+            "y_axis": {"scale": "piecewise_linear", "threshold": 90, "lower_compression": 0.05,
+                       "note": "Below 90% uses one twentieth of the vertical distance per percentage point; no values removed."}
+            if annotate_examples else {"scale": "linear"}}
+
+
+def plots(search, ranking, comparison):
+    search_plot(search, ranking)
 
     # Two comparison panels expose accuracy and parameter counts separately.
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
@@ -382,7 +464,191 @@ def plots(search, ranking, comparison):
     plt.close(fig)
 
 
+def visibility_inputs():
+    """Check preserved report inputs without requiring the lost Colab run tree."""
+    hashes = {}
+    for name, expected in VISIBILITY_HASHES.items():
+        hashes[name] = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+        if hashes[name] != expected:
+            raise ValueError(f"Preserved evidence changed: {name}")
+    payload = json.loads((ROOT / "preview_results.json").read_text(encoding="utf-8"))
+    previous = json.loads((ROOT / "search_evidence_check.json").read_text(encoding="utf-8"))
+    rows, ranking = payload["search"], payload["architecture_ranking"]
+    raw = (ROOT / "colab_console.raw.txt").read_text(encoding="utf-8-sig")
+    console, console_ranking = parse_search(raw)
+    _, config = parse_archive(console, console_ranking)
+    assert ranking == console_ranking
+    assert payload["resolved_comparison_config"] == config
+    assert [r["experiment"] for r in rows] == list(range(1, 65))
+    assert previous["plot_keys"] == [[r["name"], r["frame_size"], r["fps"]] for r in rows]
+    for row, printed in zip(rows, console, strict=True):
+        for key, value in printed.items():
+            if key != "source":
+                assert row[key] == value, (row["experiment"], key)
+
+    # The CSV and portable JSON must describe the exact same scalar values.
+    for name, expected_rows in [("search_results.csv", rows), ("architecture_ranking.csv", ranking)]:
+        with (ROOT / name).open(encoding="utf-8", newline="") as stream:
+            saved = list(csv.DictReader(stream))
+        expected = [{k: "" if v is None else str(v) for k, v in row.items()
+                     if not isinstance(v, (dict, list))} for row in expected_rows]
+        assert saved == expected, name
+
+    for row in rows:
+        source_run = "runs/" + row["source_run"].split("/runs/", 1)[1]
+        for filename in ("training_curves.png", "validation_confusion_matrix.png"):
+            relative = f"search_images/{row['experiment']:02d}/{filename}"
+            image = (ROOT / relative).read_bytes()
+            assert image.startswith(b"\x89PNG\r\n\x1a\n"), relative
+            digest = hashlib.sha256(image).hexdigest()
+            source_image = f"{source_run}/models/{row['name']}/metrics/{filename}"
+            assert digest == previous["source_sha256"][source_image], relative
+            hashes[relative] = digest
+
+    # The old receipt is historical evidence, not proof the originals exist here.
+    missing = []
+    checked = 0
+    implementation = ROOT.parent.parent
+    for relative, expected_hash in previous["source_sha256"].items():
+        source = (implementation / relative).resolve()
+        assert source.is_relative_to((implementation / "runs").resolve()), relative
+        if source.is_file():
+            assert hashlib.sha256(source.read_bytes()).hexdigest() == expected_hash, relative
+            checked += 1
+        else:
+            missing.append(relative)
+    audit = {
+        "source_mode": "preserved_report", "source_sha256": hashes,
+        "original_source_files_checked": checked,
+        "original_source_files_unavailable": missing,
+        "historical_selection_sha256": {k: v for k, v in previous["source_sha256"].items()
+                                        if k.endswith("/selection.json")},
+        "scope": "Reconciles saved report values, raw console, archived comparison selection and image copies. "
+                 "Missing original summaries/histories/selection cannot be freshly verified; "
+                 "available originals are hash-checked only. No checkpoint loading or test access.",
+    }
+    return rows, ranking, audit
+
+
+def build_search_visibility(output_dir: Path) -> dict:
+    """Render all 64 saved configurations in a separate report without training."""
+    output_dir = Path(output_dir).resolve()
+    source_dir = ROOT.resolve()
+    if output_dir.is_relative_to(source_dir) or source_dir.is_relative_to(output_dir):
+        raise ValueError("Output must be separate from the original report and its parents.")
+    if output_dir.exists() and not output_dir.is_dir():
+        raise ValueError("Output must be a directory; existing file was preserved.")
+    files = {"README.md", "search_run_gallery.md", "search_capacity.png", "search_capacity.svg"}
+    if output_dir.exists() and any(output_dir.iterdir()):
+        receipt_path = output_dir / "visibility_check.json"
+        if not receipt_path.is_file():
+            raise ValueError("Output contains unrelated files; existing work was preserved.")
+        saved = json.loads(receipt_path.read_text(encoding="utf-8"))
+        if saved.get("report_type") != "search_visibility_v1" or set(saved.get("output_sha256", {})) != files:
+            raise ValueError("Output is not a verified visibility report.")
+        if {p.name for p in output_dir.iterdir()} != files | {"visibility_check.json"}:
+            raise ValueError("Output contains unrelated files; existing work was preserved.")
+        for name, digest in saved["output_sha256"].items():
+            if hashlib.sha256((output_dir / name).read_bytes()).hexdigest() != digest:
+                raise ValueError(f"Output was edited; existing work was preserved: {name}")
+    try:
+        rows, ranking, audit = visibility_inputs()
+    except (AssertionError, KeyError, OSError, IndexError, TypeError, zipfile.BadZipFile) as error:
+        raise ValueError(f"Preserved search evidence failed verification: {error}") from error
+    output_dir.mkdir(parents=True, exist_ok=True)
+    source_link = Path(os.path.relpath(ROOT, output_dir)).as_posix()
+    lines = [
+        "# AAD search: all 64 configurations", "",
+        "Review: 15 October 2026. Search executed 14 October 2026 (timezone unverified).",
+        f"Reformatted from the unchanged [original review]({source_link}/README.md).",
+        "**Validation-only, single-seed results. No training or test evaluation was run.**", "",
+        "16 architectures x two resolutions x two sampling rates = **64 configurations**, not 64 architectures.",
+        "Each panel plots all 16 measured models; the failed-learning result is retained.", "",
+        "![All 64 search measurements, with role highlights and a compressed lower accuracy range](search_capacity.png)", "",
+        "[Vector figure](search_capacity.svg). The bottom legend shows only the five original layer-count colours/shapes.",
+        "Each panel's small legend names the highlighted models in order: Best, Middle, Worst, with accuracy to two decimals.",
+        "No arrows, inset zooms or performance tables.", "",
+        "## Reading the graphs", "",
+        "Coloured rings highlight the Best, Middle and Worst **observed model within each panel**.",
+        "This keeps different FPS/resolution conditions separate. Ties choose fewer parameters, then run ID;",
+        "these illustrative highlights do not change the across-condition ranking or claim a global optimum.",
+        "Middle means the actual model closest to that panel's median accuracy, not a fabricated average point.", "",
+        "Every marker keeps its measured coordinates; all 64 unique observations remain, including the 12.5% failure.",
+        "The **y-axis is not uniformly spaced**: below 90%, a percentage point uses one twentieth of the",
+        "vertical distance used above 90%. The dashed 90% line marks the transition; tick labels show true accuracy.",
+        "This stretches the high-score region without dropping low values or adding extra zoom plots.",
+        "The same scale is used in all four panels; nearby models can still overlap. Rings repeat selected",
+        "markers as highlights, not new data. Raw scores and the original uniformly scaled figure remain in the prior review.", "",
+        "## Evidence and limits", "",
+        "The saved CSV/portable JSON reconcile with the raw console and archived finalist configuration.",
+        "All 128 report image copies match the hashes in the earlier verification receipt.",
+        f"Original run files available/hash-checked here: {audit['original_source_files_checked']}; "
+        f"unavailable: {len(audit['original_source_files_unavailable'])}.",
+        "The earlier summary/history/selection audit remains historical: this rebuild does not claim",
+        "fresh verification of missing originals, checkpoints, dataset membership or final test performance.",
+        "See [current verification](visibility_check.json) for source hashes and exact unavailable paths.", "",
+        "Nothing here requires repeating search just to display the results. Recover original evidence",
+        "for a full provenance audit; transformer learning and final testing remain separate tasks.",
+        "One seed/input-condition sweep does not establish a global optimum or independent generalisation.", "",
+        "## Fixed settings and unchanged shortlist", "",
+        "All runs use eight RGB frames, seed 42, Adam LR 0.001, WD 0 and no augmentation.",
+        "AAD has 748 training / 160 validation / 161 locked test clips across 11 classes.",
+        "Search cap 256 epochs, minimum 64, patience 24; lowest validation-loss checkpoint.",
+        "Ranking uses equal-condition mean accuracy, worst-condition accuracy, loss, parameters and name.",
+        "The saved top five remain: " + ", ".join(f"[{r['architecture']}]" for r in ranking[:5]) + ".", "",
+        f"[Unchanged full-precision CSV]({source_link}/search_results.csv) · "
+        f"[Unchanged architecture ranking]({source_link}/architecture_ranking.csv) · "
+        "[All 128 original-image links](search_run_gallery.md)", "",
+    ]
+    gallery = ["# All 64 runs: curves and confusion matrices", "",
+               "Validation-only original-image links; no images or scores regenerated.",
+               "Every run is listed openly; click either image link to inspect it.",
+               "[Back to the graphs](README.md#reading-the-graphs)", ""]
+
+    for size, fps in CONDITIONS:
+        group = [r for r in rows if r["frame_size"] == size and r["fps"] == fps]
+        assert len(group) == 16
+        for row in group:
+            number = row["experiment"]
+            gallery += [f"## Run {number:02d}: {row['architecture']} | {size}px / {fps} FPS", "",
+                        f"Eight frames | seed {row['seed']}", "",
+                        f"[Original training curves]({source_link}/search_images/{number:02d}/training_curves.png) · "
+                        f"[Original validation confusion matrix]({source_link}/search_images/{number:02d}/validation_confusion_matrix.png)", ""]
+    lines += ["## Next work", "",
+              "This is reporting, not a new result. Diagnose the collapsed transformers before final comparison.",
+              "The earlier ten comparison trainings finished, but test failed before scoring; no final test metrics are supplied here.",
+              "Use the complete evidence in "
+              "[080: manuscript figure/appendix](../../../../../agents/work/080-aad-search-figure-and-appendix/prompt.md) "
+              "after approval; the manuscript is unchanged.", "",
+              "## Rebuild", "", "From the implementation directory (Python + matplotlib only):", "",
+              "```bash", ".venv/bin/python reports/2026-10-14/build_preview.py --search-visibility --output-dir reports/2026-10-15",
+              "```", "", "Rebuilding verifies source hashes and refuses to overwrite unrelated or edited output files.", ""]
+    (output_dir / "README.md").write_text("\n".join(lines), encoding="utf-8")
+    (output_dir / "search_run_gallery.md").write_text("\n".join(gallery), encoding="utf-8")
+    plot_check = search_plot(rows, ranking, output_dir, annotate_examples=True)
+    audit.update({"report_type": "search_visibility_v1", "search_runs": 64, "architectures": 16,
+                  "runs_per_panel": 16, "original_images_linked": 128,
+                  "plot_keys": [[r["name"], r["frame_size"], r["fps"]] for r in rows],
+                  **plot_check,
+                  "output_sha256": {name: hashlib.sha256((output_dir / name).read_bytes()).hexdigest()
+                                    for name in sorted(files)}})
+    (output_dir / "visibility_check.json").write_text(json.dumps(audit, indent=2) + "\n", encoding="utf-8")
+    return audit
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--search-visibility", action="store_true", help="Render saved results without imported runs.")
+    parser.add_argument("--output-dir", type=Path, help="Separate output directory for --search-visibility.")
+    args = parser.parse_args()
+    if args.search_visibility:
+        output = args.output_dir or ROOT.parent / "2026-10-15"
+        audit = build_search_visibility(output)
+        print(f"Verified 64 measured plot points and 128 unchanged image copies. Report: {output.resolve()}")
+        print(f"Unavailable original run files: {len(audit['original_source_files_unavailable'])}; no training or test access.")
+        return
+    if args.output_dir:
+        parser.error("--output-dir requires --search-visibility")
     for name, expected in EXPECTED_HASHES.items():
         assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, name
     raw = (ROOT / "colab_console.raw.txt").read_text(encoding="utf-8-sig")
