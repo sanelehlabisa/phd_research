@@ -72,35 +72,38 @@
   No pretraining. Checkpoints use validation loss; the best custom is chosen
   by validation accuracy and frozen before test. The paper baseline is
   **input-adapted**, not an exact original-protocol reproduction.
-- The table reports **test metrics only**, with separate columns for all four
-  classification scores. **Accuracy = pooled precision = pooled recall = pooled
-  F1**: each single-label error contributes one false positive and one false
-  negative. Equality is expected, not a bug; these are **not macro averages**.
+- The table reports **test results for all 161 clips**, with exact parameter
+  counts. Precision/recall/F1 were recalculated on 19 October from the saved
+  class counts; no retraining or new test evaluation was performed.
   [Per-class P/R/F1, support and counts](comparison_per_class.csv) and
   [all confusion matrices](test_confusion_matrices.json) retain class detail.
-  [Download the test-only table](comparison_test.csv); parameters are model
-  properties and latency is a separate efficiency benchmark, not a split score.
-- Latency is FP32, batch-one **model-only** on A100: three warm-ups, ten timed
-  forwards; excludes decoding/transfers. It is not end-to-end surveillance speed.
+  The [original pooled test-only CSV](comparison_test.csv) remains unchanged;
+  its precision/recall/F1 use a different aggregation from the table below.
 
-| Model / recurrent widths | Accuracy (%) | Precision (%) | Recall (%) | F1 (%) | Params (M) | Test loss | ms/clip |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| **Custom 64–64–128** | **99.379** | **99.379** | **99.379** | **99.379** | **1.336** | **0.0403** | 6.12 |
-| Custom 96–96–96–96 | 98.137 | 98.137 | 98.137 | 98.137 | 2.335 | 0.0798 | 8.12 |
-| Custom 128–128–128 | 98.758 | 98.758 | 98.758 | 98.758 | 2.966 | 0.0513 | 6.23 |
-| Custom 128–64–64 | 98.137 | 98.137 | 98.137 | 98.137 | 1.343 | 0.0938 | 6.11 |
-| Custom 32–64 | 92.547 | 92.547 | 92.547 | 92.547 | 0.263 | 0.3068 | 4.37 |
-| Paper ConvLSTM, input-adapted | 94.410 | 94.410 | 94.410 | 94.410 | 134.415 | 0.7242 | 3.46 |
-| R3D-18 | 95.031 | 95.031 | 95.031 | 95.031 | 33.172 | 0.1661 | 3.72 |
-| MC3-18 | 97.516 | 97.516 | 97.516 | 97.516 | 11.496 | 0.0695 | **3.30** |
-| Swin3D-T | 93.168 | 93.168 | 93.168 | 93.168 | 27.859 | 0.1496 | 22.05 |
-| Swin3D-S | 95.031 | 95.031 | 95.031 | 95.031 | 49.518 | 0.1437 | 41.03 |
+| Model / recurrent widths | Accuracy (%) | Precision (%) | Recall (%) | F1 (%) | Parameters | Test loss |
+|---|---:|---:|---:|---:|---:|---:|
+| Custom 64–64–128 | **99.379** | **99.242** | **99.174** | **99.172** | 1,336,459 | **0.0403** |
+| Custom 96–96–96–96 | 98.137 | 98.331 | 97.989 | 98.092 | 2,335,403 | 0.0798 |
+| Custom 128–128–128 | 98.758 | 98.737 | 98.669 | 98.652 | 2,965,899 | 0.0513 |
+| Custom 128–64–64 | 98.137 | 98.158 | 98.033 | 98.024 | 1,342,667 | 0.0938 |
+| Custom 32–64 | 92.547 | 93.802 | 92.119 | 92.476 | **262,603** | 0.3068 |
+| Paper ConvLSTM, input-adapted | 94.410 | 95.306 | 94.216 | 94.510 | 134,415,195 | 0.7242 |
+| R3D-18 | 95.031 | 95.724 | 95.827 | 95.680 | 33,171,915 | 0.1661 |
+| MC3-18 | 97.516 | 97.955 | 98.021 | 97.869 | 11,495,883 | 0.0695 |
+| Swin3D-T | 93.168 | 93.794 | 94.139 | 93.862 | 27,858,929 | 0.1496 |
+| Swin3D-S | 95.031 | 95.595 | 95.662 | 95.561 | 49,517,537 | 0.1437 |
+
+Bold marks the highest classification scores, fewest parameters and lowest loss.
+
+Precision, recall and F1 are **macro-averaged**: calculate each score per class,
+then take its arithmetic mean across all 11 classes, giving every activity equal
+importance. F1 is the mean of class F1 scores, not the F1 of averaged precision
+and recall. Accuracy is the overall fraction of correctly classified test clips.
 
 - **Accuracy–parameter trade-off:** the selected custom has the highest
   observed test accuracy, **8.6× fewer parameters than MC3** and **100.6× fewer
-  than the adapted paper model**. It is neither the smallest custom nor the
-  fastest model: MC3 runs in 3.30 ms versus 6.12 ms. See
-  [complete metrics, training times, epochs, memory and sizes](comparison_results.csv).
+  than the adapted paper model**. It is not the smallest custom. See
+  [original pooled metrics, training times, epochs, memory and sizes](comparison_results.csv).
 - **What may explain success:** `[64,64,128]` allocates more recurrent channels
   late; its global-average-pooling classifier avoids a large flattened head.
   Local convolutional/recurrent structure may suit these short, small-data
@@ -155,5 +158,7 @@
   or “state of the art.”
 
 Report preparation only: no new training/testing, manuscript edits or ticket.
-Rebuild figures/tables with `python reports/2026-10-16/build_report.py` from
-`implementation/` (requires matplotlib).
+Rebuild original pooled CSVs and figures with
+`python reports/2026-10-16/build_report.py` from `implementation/` (requires
+matplotlib). The macro-averaged README table is derived from the saved per-class
+counts and is not updated by that builder.
