@@ -22,6 +22,11 @@ the active paper study. See the
 and [implementation guide](papers/001-journal-abnormal-activity-recognition/implementation/README.md).
 Colab reviews and their evidence are grouped by report date in the
 [reports index](papers/001-journal-abnormal-activity-recognition/implementation/reports/README.md).
+Latest evidence: the [October 16 campaign review](papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-16/README.md)
+checks 128 search jobs, five resolution checks and ten final tests. The
+validation-selected 64-64-128 custom scores 160/161 test correct with 1.34M
+parameters; single-seed, clip-split and baseline limitations remain explicit.
+This archive review does not change the manuscript or certify generalization.
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Existing run folders stay local and are
 not included in source commits. A Gradio presentation demo is a later task,

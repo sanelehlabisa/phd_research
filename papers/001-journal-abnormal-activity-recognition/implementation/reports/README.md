@@ -4,6 +4,12 @@ Folders use the report/review date (`YYYY-MM-DD`), not necessarily the execution
 date. Keep each review with its raw logs, CSV tables and figures. Preserve older
 evidence; add new reviews without overwriting it. Generated run folders stay local.
 
+- [2026-10-16: completed AAD campaign](2026-10-16/README.md) — 128 search
+  trainings, five resolution checks and ten frozen tests; archive/prediction
+  reconciliation, October-15-style Best/Middle/Worst search highlights,
+  test-only comparison columns, best-custom confusion matrix and per-class metrics.
+  Includes a candid publication-readiness assessment. Best custom 64-64-128: 160/161 test
+  correct, 1.34M parameters. Single seed and clip-level split; no new experiment.
 - [2026-10-15: all 64 search measurements, graph-first](2026-10-15/README.md) —
   unchanged values/ranking, named per-panel highlights, layer-count-only bottom
   legend, disclosed y-axis compression and 128 image links; no arrows/insets/tables;

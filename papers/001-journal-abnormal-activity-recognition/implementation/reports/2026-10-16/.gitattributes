@@ -1,0 +1,5 @@
+# Preserve original console bytes and intentional whitespace on every laptop.
+evidence/*_console.txt -text -whitespace
+
+# Keep generated vector figures consistently formatted across checkouts.
+*.svg text eol=lf

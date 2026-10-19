@@ -1,0 +1,10 @@
+reference,other,reference_only_correct,other_only_correct,exact_mcnemar_p_unadjusted
+custom_top1,custom_top2,2,0,0.5
+custom_top1,custom_top3,1,0,1.0
+custom_top1,custom_top4,2,0,0.5
+custom_top1,custom_top5,11,0,0.0009765625
+custom_top1,paper_convlstm_adapted,8,0,0.0078125
+custom_top1,r3d_18,8,1,0.0390625
+custom_top1,mc3_18,4,1,0.375
+custom_top1,swin3d_t,11,1,0.00634765625
+custom_top1,swin3d_s,8,1,0.0390625

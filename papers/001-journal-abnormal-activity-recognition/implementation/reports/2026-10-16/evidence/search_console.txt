@@ -1,0 +1,133 @@
+Essential results: /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/focused_archives/20261015_210350_430154_abnormal-activities-dataset_capacity/results.zip | 3,607,699 bytes; JSON only, no weights/videos
+Drive results verified: /content/drive/MyDrive/phd_research/paper-001/20261015_210350_430154_abnormal-activities-dataset_capacity/results.zip | 3,607,699 bytes | SHA256 b44468e5f8280f7d02522cee73607ed496a4f4b302e8c61753a02744e953e5b7
+
+Full results: 128 completed; 0 failed/pending
+  1 input_8f_32px_16fps custom_128_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9875 val_loss=0.172908 precision=0.9875 recall=0.9875 f1=0.9875 params=1342667
+  2 input_8f_32px_8fps custom_96_96_96 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.98125 val_loss=0.167015 precision=0.98125 recall=0.98125 f1=0.98125 params=1671467
+  3 input_8f_32px_8fps custom_96_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.98125 val_loss=0.17457 precision=0.98125 recall=0.98125 f1=0.98125 params=1007307
+  4 input_8f_32px_16fps custom_96_96_96 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.98125 val_loss=0.17606 precision=0.98125 recall=0.98125 f1=0.98125 params=1671467
+  5 input_8f_32px_16fps custom_64_64_128 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.98125 val_loss=0.197262 precision=0.98125 recall=0.98125 f1=0.98125 params=1336459
+  6 input_8f_32px_16fps custom_96_96 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.98125 val_loss=0.285825 precision=0.98125 recall=0.98125 f1=0.98125 params=1007531
+  7 input_8f_32px_16fps custom_128_128_128 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.975 val_loss=0.201068 precision=0.975 recall=0.975 f1=0.975 params=2965899
+  8 input_8f_32px_16fps custom_64_96_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.975 val_loss=0.211851 precision=0.975 recall=0.975 f1=0.975 params=1077579
+  9 input_8f_32px_8fps custom_64_128_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.975 val_loss=0.271616 precision=0.975 recall=0.975 f1=0.975 params=1483211
+ 10 input_8f_32px_8fps custom_96_96 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.975 val_loss=0.294754 precision=0.975 recall=0.975 f1=0.975 params=1007531
+ 11 input_8f_32px_8fps custom_64_64_128 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.975 val_loss=0.305626 precision=0.975 recall=0.975 f1=0.975 params=1336459
+ 12 input_8f_32px_16fps custom_64_64_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.155816 precision=0.96875 recall=0.96875 f1=0.96875 params=1040843
+ 13 input_8f_32px_16fps custom_96_96_96_96_96 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.166527 precision=0.96875 recall=0.96875 f1=0.96875 params=2999339
+ 14 input_8f_32px_8fps custom_96_96_96_96 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.192269 precision=0.96875 recall=0.96875 f1=0.96875 params=2335403
+ 15 input_8f_32px_8fps custom_64_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.205901 precision=0.96875 recall=0.96875 f1=0.96875 params=745675
+ 16 input_8f_32px_16fps custom_64_128_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.234892 precision=0.96875 recall=0.96875 f1=0.96875 params=1483211
+ 17 input_8f_32px_16fps custom_64_64_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.237687 precision=0.96875 recall=0.96875 f1=0.96875 params=560875
+ 18 input_8f_32px_8fps custom_64_64_64_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.263358 precision=0.96875 recall=0.96875 f1=0.96875 params=1336011
+ 19 input_8f_32px_8fps custom_128_128_128 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.96875 val_loss=0.273111 precision=0.96875 recall=0.96875 f1=0.96875 params=2965899
+ 20 input_8f_32px_16fps custom_96_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9625 val_loss=0.170779 precision=0.9625 recall=0.9625 f1=0.9625 params=1007307
+ 21 input_8f_32px_8fps custom_64_96_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.9625 val_loss=0.221052 precision=0.9625 recall=0.9625 f1=0.9625 params=1077579
+ 22 input_8f_32px_16fps custom_32_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9625 val_loss=0.26285 precision=0.9625 recall=0.9625 f1=0.9625 params=557771
+ 23 input_8f_32px_16fps custom_48_48_48 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9625 val_loss=0.313479 precision=0.9625 recall=0.9625 f1=0.9625 params=421019
+ 24 input_8f_32px_8fps custom_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.9625 val_loss=0.31979 precision=0.9625 recall=0.9625 f1=0.9625 params=450507
+ 25 input_8f_32px_16fps custom_128 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9625 val_loss=0.392404 precision=0.9625 recall=0.9625 f1=0.9625 params=605579
+ 26 input_8f_32px_8fps custom_128_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.95625 val_loss=0.220867 precision=0.95625 recall=0.95625 f1=0.95625 params=1342667
+ 27 input_8f_32px_16fps custom_64_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.95625 val_loss=0.247458 precision=0.95625 recall=0.95625 f1=0.95625 params=745675
+ 28 input_8f_32px_8fps custom_64_64_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.95625 val_loss=0.273431 precision=0.95625 recall=0.95625 f1=0.95625 params=560875
+ 29 input_8f_32px_8fps custom_64_64_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.95 val_loss=0.188121 precision=0.95 recall=0.95 f1=0.95 params=1040843
+ 30 input_16f_32px_8fps custom_96_96_96 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.95 val_loss=0.284745 precision=0.95 recall=0.95 f1=0.95 params=1671467
+ 31 input_8f_32px_8fps custom_32_64_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.94375 val_loss=0.292681 precision=0.94375 recall=0.94375 f1=0.94375 params=557771
+ 32 input_8f_32px_16fps custom_96_96_96_96 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9375 val_loss=0.263021 precision=0.9375 recall=0.9375 f1=0.9375 params=2335403
+ 33 input_8f_32px_16fps custom_64_64_64_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9375 val_loss=0.330294 precision=0.9375 recall=0.9375 f1=0.9375 params=1336011
+ 34 input_8f_32px_16fps custom_64_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.93125 val_loss=0.348616 precision=0.93125 recall=0.93125 f1=0.93125 params=450507
+ 35 input_8f_32px_8fps custom_48_48_48_48 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.93125 val_loss=0.385181 precision=0.93125 recall=0.93125 f1=0.93125 params=587099
+ 36 input_8f_32px_8fps custom_48_48_48 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.91875 val_loss=0.326349 precision=0.91875 recall=0.91875 f1=0.91875 params=421019
+ 37 input_8f_32px_8fps custom_128 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.91875 val_loss=0.422583 precision=0.91875 recall=0.91875 f1=0.91875 params=605579
+ 38 input_16f_32px_16fps custom_128_128_128 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.90625 val_loss=0.446469 precision=0.90625 recall=0.90625 f1=0.90625 params=2965899
+ 39 input_8f_32px_8fps custom_96 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.90625 val_loss=0.471584 precision=0.90625 recall=0.90625 f1=0.90625 params=343595
+ 40 input_8f_32px_8fps custom_48_48 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.90625 val_loss=0.559674 precision=0.90625 recall=0.90625 f1=0.90625 params=254939
+ 41 input_16f_32px_16fps custom_64_64_128 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.9 val_loss=0.402747 precision=0.9 recall=0.9 f1=0.9 params=1336459
+ 42 input_16f_32px_8fps custom_96_96_96_96 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.89375 val_loss=0.422498 precision=0.89375 recall=0.89375 f1=0.89375 params=2335403
+ 43 input_16f_32px_16fps custom_96 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.8875 val_loss=0.526193 precision=0.8875 recall=0.8875 f1=0.8875 params=343595
+ 44 input_8f_32px_8fps custom_32_32_32_32_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.88125 val_loss=0.461672 precision=0.88125 recall=0.88125 f1=0.88125 params=336235
+ 45 input_8f_32px_16fps custom_48_48_48_48 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.88125 val_loss=0.491025 precision=0.88125 recall=0.88125 f1=0.88125 params=587099
+ 46 input_8f_32px_16fps custom_32_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.88125 val_loss=0.616966 precision=0.88125 recall=0.88125 f1=0.88125 params=262603
+ 47 input_8f_32px_16fps custom_32_32_32_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.875 val_loss=0.614571 precision=0.875 recall=0.875 f1=0.875 params=262379
+ 48 input_8f_32px_16fps custom_96 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.86875 val_loss=0.465953 precision=0.86875 recall=0.86875 f1=0.86875 params=343595
+ 49 input_16f_32px_8fps custom_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.86875 val_loss=0.585079 precision=0.86875 recall=0.86875 f1=0.86875 params=450507
+ 50 input_16f_32px_8fps custom_48_48_48 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.8625 val_loss=0.464268 precision=0.8625 recall=0.8625 f1=0.8625 params=421019
+ 51 input_8f_32px_8fps custom_32_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.8625 val_loss=0.576651 precision=0.8625 recall=0.8625 f1=0.8625 params=262603
+ 52 input_8f_32px_16fps custom_48_48_48_48_48 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.8625 val_loss=0.596842 precision=0.8625 recall=0.8625 f1=0.8625 params=753179
+ 53 input_8f_32px_16fps custom_48_48 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.85625 val_loss=0.502463 precision=0.85625 recall=0.85625 f1=0.85625 params=254939
+ 54 input_8f_32px_8fps custom_48_48_48_48_48 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.85 val_loss=0.533308 precision=0.85 recall=0.85 f1=0.85 params=753179
+ 55 input_8f_32px_8fps custom_64_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.84375 val_loss=0.587302 precision=0.84375 recall=0.84375 f1=0.84375 params=265707
+ 56 input_16f_32px_16fps custom_32_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.84375 val_loss=0.641117 precision=0.84375 recall=0.84375 f1=0.84375 params=262603
+ 57 input_8f_32px_16fps custom_32_32_32_32_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.84375 val_loss=0.652934 precision=0.84375 recall=0.84375 f1=0.84375 params=336235
+ 58 input_16f_32px_16fps custom_64_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.8375 val_loss=0.65361 precision=0.8375 recall=0.8375 f1=0.8375 params=265707
+ 59 input_16f_32px_16fps custom_128_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.83125 val_loss=0.566816 precision=0.83125 recall=0.83125 f1=0.83125 params=1342667
+ 60 input_8f_32px_16fps custom_64_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.825 val_loss=0.645077 precision=0.825 recall=0.825 f1=0.825 params=265707
+ 61 input_8f_32px_8fps custom_32_32_32_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.81875 val_loss=0.634845 precision=0.81875 recall=0.81875 f1=0.81875 params=262379
+ 62 input_16f_32px_8fps custom_32_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.80625 val_loss=0.705302 precision=0.80625 recall=0.80625 f1=0.80625 params=262603
+ 63 input_16f_32px_8fps custom_48_48 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.8 val_loss=0.674768 precision=0.8 recall=0.8 f1=0.8 params=254939
+ 64 input_8f_32px_8fps custom_96_96_96_96_96 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.78125 val_loss=0.711322 precision=0.78125 recall=0.78125 f1=0.78125 params=2999339
+ 65 input_8f_32px_8fps custom_64 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.78125 val_loss=0.881155 precision=0.78125 recall=0.78125 f1=0.78125 params=155339
+ 66 input_16f_32px_16fps custom_96_96_96_96 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.76875 val_loss=0.769417 precision=0.76875 recall=0.76875 f1=0.76875 params=2335403
+ 67 input_8f_32px_16fps custom_64 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.7625 val_loss=0.889738 precision=0.7625 recall=0.7625 f1=0.7625 params=155339
+ 68 input_16f_32px_16fps custom_96_96 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.75625 val_loss=0.704598 precision=0.75625 recall=0.75625 f1=0.75625 params=1007531
+ 69 input_8f_32px_16fps custom_32_32_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.75 val_loss=0.732718 precision=0.75 recall=0.75 f1=0.75 params=188523
+ 70 input_16f_32px_8fps custom_64_64_128 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.74375 val_loss=0.844216 precision=0.74375 recall=0.74375 f1=0.74375 params=1336459
+ 71 input_8f_32px_8fps custom_32_32_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.7375 val_loss=0.735017 precision=0.7375 recall=0.7375 f1=0.7375 params=188523
+ 72 input_8f_32px_8fps custom_32_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.7375 val_loss=0.87473 precision=0.7375 recall=0.7375 f1=0.7375 params=114667
+ 73 input_16f_32px_8fps custom_96_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.725 val_loss=0.888926 precision=0.725 recall=0.725 f1=0.725 params=1007307
+ 74 input_16f_32px_16fps custom_32_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.7125 val_loss=0.858615 precision=0.7125 recall=0.7125 f1=0.7125 params=114667
+ 75 input_16f_32px_8fps custom_32_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.69375 val_loss=0.883753 precision=0.69375 recall=0.69375 f1=0.69375 params=557771
+ 76 input_16f_32px_8fps custom_96_96 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.675 val_loss=0.844237 precision=0.675 recall=0.675 f1=0.675 params=1007531
+ 77 input_16f_32px_8fps custom_32_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.675 val_loss=0.956076 precision=0.675 recall=0.675 f1=0.675 params=114667
+ 78 input_16f_32px_8fps custom_128_128_128 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.6625 val_loss=0.892794 precision=0.6625 recall=0.6625 f1=0.6625 params=2965899
+ 79 input_16f_32px_16fps custom_32_32_32_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.65 val_loss=1.03592 precision=0.65 recall=0.65 f1=0.65 params=262379
+ 80 input_8f_32px_8fps custom_48 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.65 val_loss=1.09147 precision=0.65 recall=0.65 f1=0.65 params=88859
+ 81 input_8f_32px_16fps custom_16_16_16 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.64375 val_loss=1.16677 precision=0.64375 recall=0.64375 f1=0.64375 params=48187
+ 82 input_8f_32px_16fps custom_32_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.6375 val_loss=1.00567 precision=0.6375 recall=0.6375 f1=0.6375 params=114667
+ 83 input_16f_32px_8fps custom_128_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.63125 val_loss=0.993516 precision=0.63125 recall=0.63125 f1=0.63125 params=1342667
+ 84 input_8f_32px_16fps custom_48 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.63125 val_loss=1.16055 precision=0.63125 recall=0.63125 f1=0.63125 params=88859
+ 85 input_16f_32px_16fps custom_48_48 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.625 val_loss=0.94935 precision=0.625 recall=0.625 f1=0.625 params=254939
+ 86 input_16f_32px_16fps custom_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.6125 val_loss=1.0785 precision=0.6125 recall=0.6125 f1=0.6125 params=450507
+ 87 input_16f_32px_8fps custom_32_32_32_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.60625 val_loss=0.988509 precision=0.60625 recall=0.60625 f1=0.60625 params=262379
+ 88 input_16f_32px_16fps custom_96_96_96_96_96 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.60625 val_loss=1.05302 precision=0.60625 recall=0.60625 f1=0.60625 params=2999339
+ 89 input_16f_32px_16fps custom_128 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.60625 val_loss=1.067 precision=0.60625 recall=0.60625 f1=0.60625 params=605579
+ 90 input_16f_32px_8fps custom_48_48_48_48_48 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.6 val_loss=0.998015 precision=0.6 recall=0.6 f1=0.6 params=753179
+ 91 input_16f_32px_16fps custom_32_32_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.6 val_loss=1.08831 precision=0.6 recall=0.6 f1=0.6 params=188523
+ 92 input_16f_32px_16fps custom_64_64_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.6 val_loss=1.09264 precision=0.6 recall=0.6 f1=0.6 params=1040843
+ 93 input_16f_32px_8fps custom_16_16_16 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.5875 val_loss=1.12627 precision=0.5875 recall=0.5875 f1=0.5875 params=48187
+ 94 input_16f_32px_8fps custom_64_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.58125 val_loss=0.982148 precision=0.58125 recall=0.58125 f1=0.58125 params=265707
+ 95 input_8f_32px_8fps custom_16_16_16 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.58125 val_loss=1.16094 precision=0.58125 recall=0.58125 f1=0.58125 params=48187
+ 96 input_8f_32px_8fps custom_32 complete | 32px 8f/8fps seed=42 wd=0 lr=0.001 val_acc=0.56875 val_loss=1.22802 precision=0.56875 recall=0.56875 f1=0.56875 params=40811
+ 97 input_16f_32px_16fps custom_16_16_16 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.5625 val_loss=1.13766 precision=0.5625 recall=0.5625 f1=0.5625 params=48187
+ 98 input_16f_32px_8fps custom_64_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.55 val_loss=1.11764 precision=0.55 recall=0.55 f1=0.55 params=745675
+ 99 input_16f_32px_16fps custom_32_32_32_32_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.54375 val_loss=1.22069 precision=0.54375 recall=0.54375 f1=0.54375 params=336235
+100 input_16f_32px_8fps custom_32_32_32_32_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.53125 val_loss=1.06865 precision=0.53125 recall=0.53125 f1=0.53125 params=336235
+101 input_16f_32px_8fps custom_32_32_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.53125 val_loss=1.10709 precision=0.53125 recall=0.53125 f1=0.53125 params=188523
+102 input_8f_32px_16fps custom_32 complete | 32px 8f/16fps seed=42 wd=0 lr=0.001 val_acc=0.53125 val_loss=1.2483 precision=0.53125 recall=0.53125 f1=0.53125 params=40811
+103 input_16f_32px_8fps custom_96 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.50625 val_loss=1.39691 precision=0.50625 recall=0.50625 f1=0.50625 params=343595
+104 input_16f_32px_8fps custom_128 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.5 val_loss=1.27564 precision=0.5 recall=0.5 f1=0.5 params=605579
+105 input_16f_32px_16fps custom_48_48_48 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.48125 val_loss=1.27333 precision=0.48125 recall=0.48125 f1=0.48125 params=421019
+106 input_16f_32px_8fps custom_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.45625 val_loss=1.42306 precision=0.45625 recall=0.45625 f1=0.45625 params=155339
+107 input_16f_32px_16fps custom_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.45625 val_loss=1.43321 precision=0.45625 recall=0.45625 f1=0.45625 params=155339
+108 input_16f_32px_8fps custom_48 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.41875 val_loss=1.48313 precision=0.41875 recall=0.41875 f1=0.41875 params=88859
+109 input_16f_32px_8fps custom_64_64_64_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.4 val_loss=1.52054 precision=0.4 recall=0.4 f1=0.4 params=1336011
+110 input_16f_32px_16fps custom_64_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.4 val_loss=1.52545 precision=0.4 recall=0.4 f1=0.4 params=745675
+111 input_16f_32px_8fps custom_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.36875 val_loss=1.54057 precision=0.36875 recall=0.36875 f1=0.36875 params=40811
+112 input_16f_32px_16fps custom_96_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.3625 val_loss=1.48436 precision=0.3625 recall=0.3625 f1=0.3625 params=1007307
+113 input_16f_32px_16fps custom_48 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.3125 val_loss=1.89762 precision=0.3125 recall=0.3125 f1=0.3125 params=88859
+114 input_16f_32px_8fps custom_64_64_32 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.3 val_loss=1.76903 precision=0.3 recall=0.3 f1=0.3 params=560875
+115 input_16f_32px_16fps custom_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.3 val_loss=1.88309 precision=0.3 recall=0.3 f1=0.3 params=40811
+116 input_16f_32px_16fps custom_96_96_96 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.3 val_loss=1.95729 precision=0.3 recall=0.3 f1=0.3 params=1671467
+117 input_16f_32px_8fps custom_64_64_64_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.29375 val_loss=1.8885 precision=0.29375 recall=0.29375 f1=0.29375 params=1040843
+118 input_16f_32px_8fps custom_96_96_96_96_96 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.2875 val_loss=1.786 precision=0.2875 recall=0.2875 f1=0.2875 params=2999339
+119 input_16f_32px_16fps custom_48_48_48_48_48 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.2875 val_loss=1.83939 precision=0.2875 recall=0.2875 f1=0.2875 params=753179
+120 input_16f_32px_16fps custom_64_96_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.28125 val_loss=1.84788 precision=0.28125 recall=0.28125 f1=0.28125 params=1077579
+121 input_16f_32px_8fps custom_64_96_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.26875 val_loss=1.96483 precision=0.26875 recall=0.26875 f1=0.26875 params=1077579
+122 input_16f_32px_16fps custom_64_64_32 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.25625 val_loss=2.04583 precision=0.25625 recall=0.25625 f1=0.25625 params=560875
+123 input_16f_32px_16fps custom_32_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.25 val_loss=1.91 precision=0.25 recall=0.25 f1=0.25 params=557771
+124 input_16f_32px_8fps custom_64_128_64 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.2375 val_loss=2.03257 precision=0.2375 recall=0.2375 f1=0.2375 params=1483211
+125 input_16f_32px_8fps custom_48_48_48_48 complete | 32px 16f/8fps seed=42 wd=0 lr=0.001 val_acc=0.2375 val_loss=2.07006 precision=0.2375 recall=0.2375 f1=0.2375 params=587099
+126 input_16f_32px_16fps custom_64_128_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.23125 val_loss=2.03107 precision=0.23125 recall=0.23125 f1=0.23125 params=1483211
+127 input_16f_32px_16fps custom_48_48_48_48 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.225 val_loss=1.98356 precision=0.225 recall=0.225 f1=0.225 params=587099
+128 input_16f_32px_16fps custom_64_64_64_64_64 complete | 32px 16f/16fps seed=42 wd=0 lr=0.001 val_acc=0.15 val_loss=2.32997 precision=0.15 recall=0.15 f1=0.15 params=1336011
+Essential results: /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/focused_archives/20261015_210350_430154_abnormal-activities-dataset_capacity/results.zip | 3,625,495 bytes; JSON only, no weights/videos

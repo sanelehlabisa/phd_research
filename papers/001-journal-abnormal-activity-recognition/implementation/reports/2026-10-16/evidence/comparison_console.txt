@@ -1,0 +1,132 @@
+📄 Report → /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/evaluate/20261016_073356_358793_abnormal-activities-dataset_selected-model/metrics/final.json
+Essential results: /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/focused_archives/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,456 bytes; JSON only, no weights/videos
+Drive results verified: /content/drive/MyDrive/phd_research/paper-001/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,456 bytes | SHA256 93ce83c76eb298f4d8d2d4c5ca1ceab4c3f85cbd798879b748be458c0200cf81
+Final frozen comparison (all models; no test-based selection):
+custom_top1: test accuracy=0.9938, loss=0.0403, parameters=1,336,459
+{'class_name': 'Begging', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 20, 'tp': 20, 'fp': 0, 'fn': 0}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Fight', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 0.9090909090909091, 'f1': 0.9523809523809523, 'support': 11, 'tp': 10, 'fp': 0, 'fn': 1}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 18, 'tp': 18, 'fp': 0, 'fn': 0}
+{'class_name': 'Pollution', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 17, 'tp': 17, 'fp': 0, 'fn': 0}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 0.9166666666666666, 'recall': 1.0, 'f1': 0.9565217391304348, 'support': 11, 'tp': 11, 'fp': 1, 'fn': 0}
+custom_top2: test accuracy=0.9814, loss=0.0798, parameters=2,335,403
+{'class_name': 'Begging', 'precision': 0.9523809523809523, 'recall': 1.0, 'f1': 0.975609756097561, 'support': 20, 'tp': 20, 'fp': 1, 'fn': 0}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 0.9285714285714286, 'f1': 0.9629629629629629, 'support': 14, 'tp': 13, 'fp': 0, 'fn': 1}
+{'class_name': 'Fight', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 0.9090909090909091, 'f1': 0.9523809523809523, 'support': 11, 'tp': 10, 'fp': 0, 'fn': 1}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 0.9473684210526315, 'recall': 1.0, 'f1': 0.972972972972973, 'support': 18, 'tp': 18, 'fp': 1, 'fn': 0}
+{'class_name': 'Pollution', 'precision': 1.0, 'recall': 0.9411764705882353, 'f1': 0.9696969696969697, 'support': 17, 'tp': 16, 'fp': 0, 'fn': 1}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 0.9166666666666666, 'recall': 1.0, 'f1': 0.9565217391304348, 'support': 11, 'tp': 11, 'fp': 1, 'fn': 0}
+custom_top3: test accuracy=0.9876, loss=0.0513, parameters=2,965,899
+{'class_name': 'Begging', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 20, 'tp': 20, 'fp': 0, 'fn': 0}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Fight', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 0.9090909090909091, 'f1': 0.9523809523809523, 'support': 11, 'tp': 10, 'fp': 0, 'fn': 1}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 1.0, 'recall': 0.9444444444444444, 'f1': 0.9714285714285714, 'support': 18, 'tp': 17, 'fp': 0, 'fn': 1}
+{'class_name': 'Pollution', 'precision': 0.9444444444444444, 'recall': 1.0, 'f1': 0.9714285714285714, 'support': 17, 'tp': 17, 'fp': 1, 'fn': 0}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 0.9166666666666666, 'recall': 1.0, 'f1': 0.9565217391304348, 'support': 11, 'tp': 11, 'fp': 1, 'fn': 0}
+custom_top4: test accuracy=0.9814, loss=0.0938, parameters=1,342,667
+{'class_name': 'Begging', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 20, 'tp': 20, 'fp': 0, 'fn': 0}
+{'class_name': 'Drunkenness', 'precision': 0.9333333333333333, 'recall': 1.0, 'f1': 0.9655172413793104, 'support': 14, 'tp': 14, 'fp': 1, 'fn': 0}
+{'class_name': 'Fight', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 0.9090909090909091, 'f1': 0.9523809523809523, 'support': 11, 'tp': 10, 'fp': 0, 'fn': 1}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 0.9333333333333333, 'f1': 0.9655172413793104, 'support': 15, 'tp': 14, 'fp': 0, 'fn': 1}
+{'class_name': 'Normal Videos', 'precision': 0.9473684210526315, 'recall': 1.0, 'f1': 0.972972972972973, 'support': 18, 'tp': 18, 'fp': 1, 'fn': 0}
+{'class_name': 'Pollution', 'precision': 1.0, 'recall': 0.9411764705882353, 'f1': 0.9696969696969697, 'support': 17, 'tp': 16, 'fp': 0, 'fn': 1}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 0.9166666666666666, 'recall': 1.0, 'f1': 0.9565217391304348, 'support': 11, 'tp': 11, 'fp': 1, 'fn': 0}
+custom_top5: test accuracy=0.9255, loss=0.3068, parameters=262,603
+{'class_name': 'Begging', 'precision': 0.9090909090909091, 'recall': 1.0, 'f1': 0.9523809523809523, 'support': 20, 'tp': 20, 'fp': 2, 'fn': 0}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 0.7857142857142857, 'f1': 0.88, 'support': 14, 'tp': 11, 'fp': 0, 'fn': 3}
+{'class_name': 'Fight', 'precision': 0.7058823529411765, 'recall': 0.8571428571428571, 'f1': 0.7741935483870968, 'support': 14, 'tp': 12, 'fp': 5, 'fn': 2}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 0.9230769230769231, 'f1': 0.96, 'support': 13, 'tp': 12, 'fp': 0, 'fn': 1}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 0.8181818181818182, 'f1': 0.9, 'support': 11, 'tp': 9, 'fp': 0, 'fn': 2}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 0.8666666666666667, 'f1': 0.9285714285714286, 'support': 15, 'tp': 13, 'fp': 0, 'fn': 2}
+{'class_name': 'Normal Videos', 'precision': 0.8571428571428571, 'recall': 1.0, 'f1': 0.9230769230769231, 'support': 18, 'tp': 18, 'fp': 3, 'fn': 0}
+{'class_name': 'Pollution', 'precision': 1.0, 'recall': 0.8823529411764706, 'f1': 0.9375, 'support': 17, 'tp': 15, 'fp': 0, 'fn': 2}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 0.8461538461538461, 'recall': 1.0, 'f1': 0.9166666666666666, 'support': 11, 'tp': 11, 'fp': 2, 'fn': 0}
+paper_convlstm_adapted: test accuracy=0.9441, loss=0.7242, parameters=134,415,195
+{'class_name': 'Begging', 'precision': 0.9090909090909091, 'recall': 1.0, 'f1': 0.9523809523809523, 'support': 20, 'tp': 20, 'fp': 2, 'fn': 0}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Fight', 'precision': 1.0, 'recall': 0.9285714285714286, 'f1': 0.9629629629629629, 'support': 14, 'tp': 13, 'fp': 0, 'fn': 1}
+{'class_name': 'Harassment', 'precision': 0.9166666666666666, 'recall': 0.8461538461538461, 'f1': 0.88, 'support': 13, 'tp': 11, 'fp': 1, 'fn': 2}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 0.9090909090909091, 'f1': 0.9523809523809523, 'support': 11, 'tp': 10, 'fp': 0, 'fn': 1}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 0.9333333333333333, 'f1': 0.9655172413793104, 'support': 15, 'tp': 14, 'fp': 0, 'fn': 1}
+{'class_name': 'Normal Videos', 'precision': 0.8181818181818182, 'recall': 1.0, 'f1': 0.9, 'support': 18, 'tp': 18, 'fp': 4, 'fn': 0}
+{'class_name': 'Pollution', 'precision': 1.0, 'recall': 0.8235294117647058, 'f1': 0.9032258064516129, 'support': 17, 'tp': 14, 'fp': 0, 'fn': 3}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 0.9230769230769231, 'recall': 0.9230769230769231, 'f1': 0.9230769230769231, 'support': 13, 'tp': 12, 'fp': 1, 'fn': 1}
+{'class_name': 'Terrorism', 'precision': 0.9166666666666666, 'recall': 1.0, 'f1': 0.9565217391304348, 'support': 11, 'tp': 11, 'fp': 1, 'fn': 0}
+r3d_18: test accuracy=0.9503, loss=0.1661, parameters=33,171,915
+{'class_name': 'Begging', 'precision': 1.0, 'recall': 0.9, 'f1': 0.9473684210526315, 'support': 20, 'tp': 18, 'fp': 0, 'fn': 2}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 0.9285714285714286, 'f1': 0.9629629629629629, 'support': 14, 'tp': 13, 'fp': 0, 'fn': 1}
+{'class_name': 'Fight', 'precision': 0.875, 'recall': 1.0, 'f1': 0.9333333333333333, 'support': 14, 'tp': 14, 'fp': 2, 'fn': 0}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+{'class_name': 'Knife Hazard', 'precision': 0.9375, 'recall': 1.0, 'f1': 0.967741935483871, 'support': 15, 'tp': 15, 'fp': 1, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 0.8421052631578947, 'recall': 0.8888888888888888, 'f1': 0.8648648648648649, 'support': 18, 'tp': 16, 'fp': 3, 'fn': 2}
+{'class_name': 'Pollution', 'precision': 0.875, 'recall': 0.8235294117647058, 'f1': 0.8484848484848485, 'support': 17, 'tp': 14, 'fp': 2, 'fn': 3}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+mc3_18: test accuracy=0.9752, loss=0.0695, parameters=11,495,883
+{'class_name': 'Begging', 'precision': 1.0, 'recall': 0.9, 'f1': 0.9473684210526315, 'support': 20, 'tp': 18, 'fp': 0, 'fn': 2}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Fight', 'precision': 0.875, 'recall': 1.0, 'f1': 0.9333333333333333, 'support': 14, 'tp': 14, 'fp': 2, 'fn': 0}
+{'class_name': 'Harassment', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 0.9, 'recall': 1.0, 'f1': 0.9473684210526315, 'support': 18, 'tp': 18, 'fp': 2, 'fn': 0}
+{'class_name': 'Pollution', 'precision': 1.0, 'recall': 0.8823529411764706, 'f1': 0.9375, 'support': 17, 'tp': 15, 'fp': 0, 'fn': 2}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+swin3d_t: test accuracy=0.9317, loss=0.1496, parameters=27,858,929
+{'class_name': 'Begging', 'precision': 0.9444444444444444, 'recall': 0.85, 'f1': 0.8947368421052632, 'support': 20, 'tp': 17, 'fp': 1, 'fn': 3}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 14, 'tp': 14, 'fp': 0, 'fn': 0}
+{'class_name': 'Fight', 'precision': 0.8125, 'recall': 0.9285714285714286, 'f1': 0.8666666666666667, 'support': 14, 'tp': 13, 'fp': 3, 'fn': 1}
+{'class_name': 'Harassment', 'precision': 0.9230769230769231, 'recall': 0.9230769230769231, 'f1': 0.9230769230769231, 'support': 13, 'tp': 12, 'fp': 1, 'fn': 1}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+{'class_name': 'Knife Hazard', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 0.8421052631578947, 'recall': 0.8888888888888888, 'f1': 0.8648648648648649, 'support': 18, 'tp': 16, 'fp': 3, 'fn': 2}
+{'class_name': 'Pollution', 'precision': 0.8666666666666667, 'recall': 0.7647058823529411, 'f1': 0.8125, 'support': 17, 'tp': 13, 'fp': 2, 'fn': 4}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 0.9285714285714286, 'recall': 1.0, 'f1': 0.9629629629629629, 'support': 13, 'tp': 13, 'fp': 1, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+swin3d_s: test accuracy=0.9503, loss=0.1437, parameters=49,517,537
+{'class_name': 'Begging', 'precision': 0.95, 'recall': 0.95, 'f1': 0.95, 'support': 20, 'tp': 19, 'fp': 1, 'fn': 1}
+{'class_name': 'Drunkenness', 'precision': 1.0, 'recall': 0.9285714285714286, 'f1': 0.9629629629629629, 'support': 14, 'tp': 13, 'fp': 0, 'fn': 1}
+{'class_name': 'Fight', 'precision': 0.9285714285714286, 'recall': 0.9285714285714286, 'f1': 0.9285714285714286, 'support': 14, 'tp': 13, 'fp': 1, 'fn': 1}
+{'class_name': 'Harassment', 'precision': 0.9285714285714286, 'recall': 1.0, 'f1': 0.9629629629629629, 'support': 13, 'tp': 13, 'fp': 1, 'fn': 0}
+{'class_name': 'Hijack', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+{'class_name': 'Knife Hazard', 'precision': 0.9375, 'recall': 1.0, 'f1': 0.967741935483871, 'support': 15, 'tp': 15, 'fp': 1, 'fn': 0}
+{'class_name': 'Normal Videos', 'precision': 0.9375, 'recall': 0.8333333333333334, 'f1': 0.8823529411764706, 'support': 18, 'tp': 15, 'fp': 1, 'fn': 3}
+{'class_name': 'Pollution', 'precision': 0.8333333333333334, 'recall': 0.8823529411764706, 'f1': 0.8571428571428571, 'support': 17, 'tp': 15, 'fp': 3, 'fn': 2}
+{'class_name': 'Property Damage', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 15, 'tp': 15, 'fp': 0, 'fn': 0}
+{'class_name': 'Robbery', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 13, 'tp': 13, 'fp': 0, 'fn': 0}
+{'class_name': 'Terrorism', 'precision': 1.0, 'recall': 1.0, 'f1': 1.0, 'support': 11, 'tp': 11, 'fp': 0, 'fn': 0}
+Validation-selected custom examples: custom_top1; see comparison.json and predictions in the ZIP
+Essential results: /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/focused_archives/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,553 bytes; JSON only, no weights/videos
+Drive results verified: /content/drive/MyDrive/phd_research/paper-001/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,553 bytes | SHA256 86c1cd865079f5d350cee3db50051a10f3f230a77b269e41744a0bb216a6cb60
+Essential results: /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/focused_archives/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,553 bytes; JSON only, no weights/videos
+Drive results verified: /content/drive/MyDrive/phd_research/paper-001/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,553 bytes | SHA256 9cb2bdd2e9c04694176a44258c13a9a83e581c44cb77725ac800ce1b55123eb5
+Essential results: /content/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/runs/focused_archives/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,553 bytes; JSON only, no weights/videos
+Drive results verified: /content/drive/MyDrive/phd_research/paper-001/20261016_041454_538943_abnormal-activities-dataset_top3_comparison/results.zip | 4,187,553 bytes | SHA256 3042f4512825c93cfc831f0f591d0ecd37c51c85dcdfbd058290d5153cbefe6f
+

@@ -6,6 +6,14 @@ hyperparameter grid.
 
 ## Current roadmap
 
+Latest evidence: [October 16 campaign review](reports/2026-10-16/README.md),
+128 search jobs + five resolution checks + ten completed final tests.
+All saved prediction counts/metrics reconcile; best validation-selected custom
+64-64-128: 160/161 test correct, 1.34M parameters. The report includes all-point
+search plots, ten-model comparison, per-class counts and scientific limitations.
+This is an archive review, not a new run or manuscript update; retain missing
+weights/history files separately before Colab closes.
+
 For the next Colab run, use [089's new notebook/export](#current-run-all-089-drive-first-search-comparison-and-test):
 32px/128-epoch search, five 64px checks, then 64px/256-epoch comparison.
 Earlier workflows below remain available with their original settings.

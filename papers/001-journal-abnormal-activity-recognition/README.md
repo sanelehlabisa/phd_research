@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: 64 AAD search jobs and ten comparison trainings reviewed; final test failed at a dataset-name compatibility check. See the [October 14 preview](implementation/reports/2026-10-14/README.md) for validation plots, metrics and urgent artifact preservation.
+- Status: [October 16 campaign reviewed](implementation/reports/2026-10-16/README.md): 128 search jobs, five resolution checks and ten completed final tests reconcile with saved predictions. The validation-selected 64-64-128 custom scores 160/161 test correct (1.34M parameters). Single-seed/clip-split limitations remain; no manuscript changes. The October 14 failure remains historical evidence.
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -20,9 +20,11 @@ reference architecture for ablation.
 
 ## Evidence plan
 
-The next Run All uses [089's faster campaign](implementation/README.md#current-run-all-089-drive-first-search-comparison-and-test):
+The completed October 15-16 Run All used [089's faster campaign](implementation/README.md#current-run-all-089-drive-first-search-comparison-and-test):
 128 search jobs at 32px/128 epochs, five validation-only checks at 64px,
-then ten fresh 64px/256-epoch comparisons and guarded tests. It preserves
+then ten fresh 64px/256-epoch comparisons and guarded tests. Its
+[archive review](implementation/reports/2026-10-16/README.md) is available; preserve
+checkpoints and full histories separately. It preserves
 the original 077/076 plan below as historical context, not the new run settings.
 
 1. Run 077's 64 balanced validation-only jobs: 16 architectures, 32/64px,
