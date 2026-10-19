@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: [079 results/discussion revised](../../agents/work/079-aad-results-section-structure/completion.md) from the [verified October 16 campaign](implementation/reports/2026-10-16/README.md): 128 search jobs, five resolution checks and ten final tests. The validation-selected 64-64-128 custom scores 160/161 test correct (1.34M parameters). Single-seed/clip-split limits remain; abstract, methodology and conclusion still need separate alignment. The October 14 failure remains historical evidence.
+- Status: [Experimental/results section Done](../../agents/work/079-aad-results-section-structure/completion.md), reviewed and accepted by the owner on 19 October 2026, including the simplified plot titles. Based on the [verified October 16 campaign](implementation/reports/2026-10-16/README.md): 128 search jobs, five resolution checks and ten final tests. The validation-selected 64-64-128 custom scores 160/161 test correct (1.34M parameters). Single-seed/clip-split limits remain; abstract, methodology and conclusion still need separate alignment. The October 14 failure remains historical evidence.
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -53,7 +53,7 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
-- [x] [079 results/discussion revision](../../agents/work/079-aad-results-section-structure/completion.md) — verified setup, search graphs, numerical top five, one macro-metric comparison table, citations and confusion analysis; streamlined 15-page build checked. Other manuscript sections intentionally unchanged.
+- [x] [079 results/discussion revision](../../agents/work/079-aad-results-section-structure/completion.md) — owner-reviewed and accepted on 19 October 2026; setup, search graphs, comparison, confusion analysis and simplified plot titles are Done. Current 16-page draft builds. Other manuscript sections remain separate work.
 - [ ] [090 configurable methodology and baseline citations — later](../../agents/work/090-configurable-methodology-and-baseline-citations/prompt.md) — explain the configurable stack instead of obsolete hard-coded stages; cite comparison models in Methods. No implementation now.
 - [x] [084 transformer learning diagnosis](../../agents/work/084-diagnose-transformer-learning/completion.md) — no proven production bug. A separate [lower-LR follow-up](implementation/reports/2026-10-15/transformer-learning/follow-up.md) restores Swin3D-T learning locally (85.625% validation); Swin3D-S and final comparison remain unverified under that recipe.
 - [x] [083 comparison-only JSON/test recovery](../../agents/work/083-comparison-only-recovery/completion.md) — preparation locally verified: ten models, guarded tests, alias fix and compact backups; no search rerun or new research score. Restore missing evidence/data and obtain launch approval first; GPU fit is unverified.

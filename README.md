@@ -8,7 +8,7 @@ manuscript sources, and—when needed—its implementation.
 
 | Paper | Current focus |
 |---|---|
-| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Results updated; align remaining manuscript sections |
+| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Experimental/results section accepted; remaining manuscript alignment pending |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
 Paper 001 uses AAD as its primary study, with class labels discovered from the
@@ -132,8 +132,9 @@ Use this new notebook, not the old focused export. Plan roughly 12-18 hours
 Epoch caps/early stopping do not guarantee runtime or convergence.
 Results-only backups cannot restore weights after VM loss. Streaming is deferred.
 
-[079 results/discussion is complete](agents/work/079-aad-results-section-structure/completion.md):
-setup → search graphs and selection → one ten-model test table with macro P/R/F1 →
+[079 results/discussion is complete](agents/work/079-aad-results-section-structure/completion.md),
+owner-reviewed and accepted on 19 October 2026, including the simplified plot titles.
+Section flow: setup → search graphs and selection → one ten-model test table with macro P/R/F1 →
 discussion and best-custom confusion analysis. Figures and citations build; all other manuscript
 sections are unchanged. Draft 080–082 are not marked complete; additional appendix
 work remains deferred.

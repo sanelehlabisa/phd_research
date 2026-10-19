@@ -1,12 +1,13 @@
 # Completion
 
 - Status: Done
+- Owner acceptance: Experimental/results section reviewed and accepted on 19 October 2026, including the simplified plot titles. The owner committed and pushed the revisions as `1ebb8b2`; this closeout updates status records only. Tickets 090/062 remain open for the other manuscript sections.
 - Summary: Revised only Paper 001's Experimental Results and Discussion around the verified October 16 AAD search, shortlist, ten-model comparison and confusion analysis.
 - Changes:
   - `manuscript/main.tex`: short section introduction, combined experimental/search setup with all 11 class names, architecture-search results, comparative evaluation with metric definitions, then discussion/confusion analysis. The redundant shortlist table is removed; the single ten-model table uses `ConvLSTM[filters]` and cited author-led reference labels. Both search graphs remain, with clearer captions. Macro P/R/F1 are explained below short headings; column leaders, minimum parameters and minimum loss are bold, not model names. No latency column.
   - Owner-approved editorial follow-up: added the raw confusion-matrix equation, explained the pooled-head parameter savings and supported late-wide configuration, and qualified real-time/long-video claims. Scratch retraining and the transformer learning-rate exception remain explicit; campaign dates/code hash are omitted from setup. All recorded results are unchanged.
   - Owner-requested plot-title follow-up: shortened the titles inside all three figures to one line, simplified panel titles and regenerated the report PNG/SVGs and manuscript PNG copies. Only title strings in `implementation/reports/2026-10-16/build_report.py` changed; the owner's subsequent manuscript edits and captions were preserved.
-  - `manuscript/figures/2026-10-16/`: byte-identical copies of `search_capacity.png`, `capacity_controls.png` and `best_model_test_confusion.png`; the caption discloses the compressed search-accuracy scale.
+  - `manuscript/figures/2026-10-16/`: byte-identical copies of `search_capacity.png`, `capacity_controls.png` and `best_model_test_confusion.png`; the search plot discloses its compressed accuracy scale.
   - `manuscript/references.bib`: completed existing Tran/CVPR 2018 and Liu/CVPR 2022 conference metadata, pages and primary URLs. Existing Vrskova/Sensors citation reused; all keys/private annotations preserved, no duplicates.
   - Root/paper READMEs: mark 079 complete and retain 090/062 as separate follow-ups. Draft 080–082 are not marked Done.
 - Verification:
