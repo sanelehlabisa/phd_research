@@ -1,6 +1,6 @@
 # Journal Paper: Abnormal Activity Recognition
 
-- Status: [October 16 campaign reviewed](implementation/reports/2026-10-16/README.md): 128 search jobs, five resolution checks and ten completed final tests reconcile with saved predictions. The validation-selected 64-64-128 custom scores 160/161 test correct (1.34M parameters). Single-seed/clip-split limitations remain; no manuscript changes. The October 14 failure remains historical evidence.
+- Status: [079 results/discussion revised](../../agents/work/079-aad-results-section-structure/completion.md) from the [verified October 16 campaign](implementation/reports/2026-10-16/README.md): 128 search jobs, five resolution checks and ten final tests. The validation-selected 64-64-128 custom scores 160/161 test correct (1.34M parameters). Single-seed/clip-split limits remain; abstract, methodology and conclusion still need separate alignment. The October 14 failure remains historical evidence.
 - Target submission: December 2026
 - Manuscript: [`manuscript/main.tex`](manuscript/main.tex)
 - Code and detailed experiment plan: [`implementation/README.md`](implementation/README.md)
@@ -13,10 +13,10 @@ See the [implementation guide](implementation/README.md) for the current code
 status and ticket links.
 
 The paper studies lightweight ConvLSTM-based abnormal human-activity recognition
-from surveillance video. Earlier width experiments made `64-32-16` a useful
-candidate, but not a proven optimum. The revised study will compare the audited
-source-paper topology with narrow stacked ConvLSTM models before selecting a
-reference architecture for ablation.
+from surveillance video. The revised experimental section reports a configurable
+depth/width search, then five custom finalists against the adapted paper model,
+two 3D CNNs and two transformers. Earlier candidate definitions remain in other
+sections until tickets 090/062 align them; no global optimum is claimed.
 
 ## Evidence plan
 
@@ -53,6 +53,8 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
+- [x] [079 results/discussion revision](../../agents/work/079-aad-results-section-structure/completion.md) — verified setup, search graphs, numerical top five, one macro-metric comparison table, citations and confusion analysis; streamlined 15-page build checked. Other manuscript sections intentionally unchanged.
+- [ ] [090 configurable methodology and baseline citations — later](../../agents/work/090-configurable-methodology-and-baseline-citations/prompt.md) — explain the configurable stack instead of obsolete hard-coded stages; cite comparison models in Methods. No implementation now.
 - [x] [084 transformer learning diagnosis](../../agents/work/084-diagnose-transformer-learning/completion.md) — no proven production bug. A separate [lower-LR follow-up](implementation/reports/2026-10-15/transformer-learning/follow-up.md) restores Swin3D-T learning locally (85.625% validation); Swin3D-S and final comparison remain unverified under that recipe.
 - [x] [083 comparison-only JSON/test recovery](../../agents/work/083-comparison-only-recovery/completion.md) — preparation locally verified: ten models, guarded tests, alias fix and compact backups; no search rerun or new research score. Restore missing evidence/data and obtain launch approval first; GPU fit is unverified.
 - [x] [088 pooled metrics everywhere](../../agents/work/088-pooled-metrics-everywhere/completion.md) — new modular/campaign reports use versioned pooled totals, per-class counts and confusion evidence; legacy results and provenance guards remain intact. No new research run.
@@ -73,7 +75,7 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 - [x] [059 retire VDD-only workflow code](../../agents/work/059-retire-vdd-specific-workflow/prompt.md) — VDD remains optional through generic dataset configuration; old runs are preserved.
 - [x] [060 align documentation](../../agents/work/060-align-dataset-documentation/prompt.md)
 - [x] [061 thin Colab runner and artifact download](../../agents/work/061-colab-script-runner-and-artifacts/prompt.md) — one-cell notebook/export runs the two active JSON profiles and downloads run artifacts.
-- [ ] [062 update manuscript after verified AAD results](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — do not execute before the new study is complete.
+- [ ] [062 whole-paper alignment](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — align remaining abstract/introduction/conclusion claims after the results and methodology revisions; the AAD evidence is now available.
 - [x] [063 prepare PRIS 2026 flash presentation](../../agents/work/063-pris-2026-flash-presentation/prompt.md) — current three-slide deck and speaker notes are ready. Revisit after AAD results to add a verified results visual and useful model/example images.
 
 After final results, prepare a small Gradio demo for presentation.
@@ -160,29 +162,23 @@ After final results, prepare a small Gradio demo for presentation.
 - [ ] `033-add-stateful-streaming-inference` — later add chunk-by-chunk stateful
   prediction to the custom model without changing the published baseline.
 
-## Planned results-section flow
+## Results-section flow
 
-Planning only: [079 structure](../../agents/work/079-aad-results-section-structure/prompt.md)
-→ [080 search figure/appendix](../../agents/work/080-aad-search-figure-and-appendix/prompt.md)
-→ [081 ten-model comparison](../../agents/work/081-aad-ten-model-results-comparison/prompt.md)
-→ [082 error analysis/synthesis](../../agents/work/082-aad-error-analysis-and-synthesis/prompt.md).
-All four are Draft; execution requires approval and verified evidence. Scaffold
-timing and strict-top-five versus reserved-anchor wording remain unresolved.
+[079 is complete](../../agents/work/079-aad-results-section-structure/completion.md),
+using complete October 16 artifacts and the saved numerical top five (no reserved
+anchor). It consolidates the requested main-text scope of Draft 080–082, which
+are not marked Done. Additional appendix/figure work remains deferred.
 
-1. Computing environment
-2. AAD dataset and data split
-3. Training configuration and hyperparameters
-4. Evaluation metrics
-5. Architecture-search setup
-6. Search results: capacity subplots, then trend discussion
-7. Five-model selection and reference to the full appendix search table
-8. Final ten-model comparison and discussion
-9. Best validation-selected custom's test confusion matrix and class analysis
-10. Overall interpretation
+1. Experimental setup: all AAD classes, split, computing environment, training and search design.
+2. Architecture-search results: both search graphs, supported trends and the five-model/64px handoff, without a repeated shortlist table.
+3. Comparative evaluation: metric equations and one ten-model test table, with author-led baseline citations.
+4. Discussion and confusion analysis: architectural differences, raw confusion equation, observed error, parameter savings and limitations.
 
-Future manuscript tables use pooled precision/recall/F1, accuracy/loss and
-per-class counts/metrics, not macro averages. These pooled scores equal accuracy
-for single-label multiclass classification; historical reports remain unchanged.
+The owner approved macro precision/recall/F1 for this manuscript table on
+19 October: keep short column titles and explain equal-class averaging below.
+Retain accuracy, exact parameter counts and loss, bold column leaders and omit
+latency. Saved pooled exports and raw evidence remain unchanged. [090](../../agents/work/090-configurable-methodology-and-baseline-citations/prompt.md)
+handles the later methodology explanation/citations; 062 retains broader alignment.
 Ticket 088 aligns active code paths; 083 recovery and 089 integration remain separate.
 
 VDD may be used for a separate, explicitly configured generalisation study;

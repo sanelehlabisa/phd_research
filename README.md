@@ -8,7 +8,7 @@ manuscript sources, and—when needed—its implementation.
 
 | Paper | Current focus |
 |---|---|
-| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Prepare and run controlled ablation studies |
+| [`001-journal-abnormal-activity-recognition`](papers/001-journal-abnormal-activity-recognition/) | Results updated; align remaining manuscript sections |
 | [`002-review-abnormal-activity-recognition`](papers/002-review-abnormal-activity-recognition/) | Initial review-paper scaffold |
 
 Paper 001 uses AAD as its primary study, with class labels discovered from the
@@ -26,7 +26,10 @@ Latest evidence: the [October 16 campaign review](papers/001-journal-abnormal-ac
 checks 128 search jobs, five resolution checks and ten final tests. The
 validation-selected 64-64-128 custom scores 160/161 test correct with 1.34M
 parameters; single-seed, clip-split and baseline limitations remain explicit.
-This archive review does not change the manuscript or certify generalization.
+The verified study now appears in the manuscript's experimental results/discussion
+through [079](agents/work/079-aad-results-section-structure/completion.md).
+Other sections still require separate alignment; no deployment/generalization
+certification is implied.
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Existing run folders stay local and are
 not included in source commits. A Gradio presentation demo is a later task,
@@ -34,8 +37,8 @@ after model selection and verified results.
 
 Tickets 057–061 established configurable datasets/classes, separate search and
 comparison profiles, aligned the guides, and made the Colab notebook a thin
-runner with artifact download. Next, run and review the AAD profiles; manuscript
-changes wait for verified results (062).
+runner with artifact download. The AAD campaign is reviewed and results/discussion
+updated; 090 and 062 retain the remaining methodology/whole-paper alignment.
 
 Preserved legacy workflow: [073 focused shape search and Run All](agents/work/073-focused-shape-search-run-all/prompt.md),
 [implemented and locally verified](agents/work/073-focused-shape-search-run-all/completion.md).
@@ -129,11 +132,15 @@ Use this new notebook, not the old focused export. Plan roughly 12-18 hours
 Epoch caps/early stopping do not guarantee runtime or convergence.
 Results-only backups cannot restore weights after VM loss. Streaming is deferred.
 
-Results-revision tickets (planning only): [079 structure](agents/work/079-aad-results-section-structure/prompt.md),
-[080 search figure/appendix](agents/work/080-aad-search-figure-and-appendix/prompt.md),
-[081 ten-model comparison](agents/work/081-aad-ten-model-results-comparison/prompt.md),
-and [082 error analysis/synthesis](agents/work/082-aad-error-analysis-and-synthesis/prompt.md).
-These drafts require approval and verified evidence; no manuscript or experiment change is authorized yet.
+[079 results/discussion is complete](agents/work/079-aad-results-section-structure/completion.md):
+setup → search graphs and selection → one ten-model test table with macro P/R/F1 →
+discussion and best-custom confusion analysis. Figures and citations build; all other manuscript
+sections are unchanged. Draft 080–082 are not marked complete; additional appendix
+work remains deferred.
+Next, [090 methodology](agents/work/090-configurable-methodology-and-baseline-citations/prompt.md)
+explains the configurable stack and cites baseline models; 062 retains broader
+alignment of outdated abstract/introduction/conclusion claims. Both require
+separate execution approval before implementation.
 
 ## Structure
 

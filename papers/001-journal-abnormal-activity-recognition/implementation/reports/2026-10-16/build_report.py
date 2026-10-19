@@ -301,7 +301,7 @@ def search_figure(base, compressed):
             point = ax.scatter(r["parameters"], 100 * r["validation_accuracy"], color=colors[r["depth"]], marker=markers[r["depth"]], s=65, edgecolors="white", linewidths=1.1, alpha=.8, zorder=3 + r["depth"])
             point.set_gid(f"search-run-{r['experiment_number']:03d}")
             plotted.append(r["experiment_number"])
-        ax.set_title(f"32 x 32 pixels | {frames} frames | {fps} FPS | 32/32 runs", fontsize=12)
+        ax.set_title(f"{frames} frames at {fps} FPS", fontsize=12)
         ax.set_xscale("log")
         ax.set_xlim(min(r["parameters"] for r in base) * .72, max(r["parameters"] for r in base) * 1.52)
         ax.set_xticks([50000, 100000, 500000, 1000000, 3000000])
@@ -332,8 +332,7 @@ def search_figure(base, compressed):
         ax.set_ylabel("Validation accuracy (%)")
     handles = [Line2D([], [], color=colors[d], marker=markers[d], linestyle="", label=f"{d} layer{'s' if d > 1 else ''}") for d in range(1, 6)]
     fig.legend(handles=handles, loc="lower center", ncol=5, frameon=False, bbox_to_anchor=(.5, .012))
-    subtitle = "lower y-range compressed; all measurements retained" if compressed else "linear accuracy scale; all measurements retained"
-    fig.suptitle(f"128/128 search runs | 32px, seed 42, cap 128 epochs | {subtitle}", y=.98)
+    fig.suptitle("ConvLSTM Architecture Search", y=.98)
     fig.tight_layout(rect=(0, .06, 1, .95))
     assert sorted(plotted) == list(range(1, 129))
     save_figure(fig, "search_capacity" if compressed else "search_capacity_linear")
@@ -360,7 +359,7 @@ def confusion_figure(comparison):
             ax.add_patch(Rectangle((j - .5, i - .5), 1, 1, fill=False, edgecolor="#B2182B", linewidth=2))
     ax.set_xticks(range(len(classes)), classes, rotation=45, ha="right", rotation_mode="anchor")
     ax.set_yticks(range(len(classes)), classes)
-    ax.set(xlabel="Predicted class", ylabel="True class", title=f"Validation-selected ConvLSTM [{r['architecture']}] — test counts\n160 / 161 correct | accuracy {100 * r['test_accuracy']:.3f}%")
+    ax.set(xlabel="Predicted class", ylabel="True class", title="ConvLSTM Test Confusion Matrix")
     fig.colorbar(plot, ax=ax, fraction=.046, pad=.04, label="Number of test clips", ticks=range(0, int(matrix.max()) + 1, 4))
     fig.text(.5, .02, "Raw counts (not percentages). Only error: Hijack → Terrorism, 1 clip.", ha="center", fontsize=10)
     fig.tight_layout(rect=(0, .055, 1, 1))
@@ -395,13 +394,13 @@ def figures(base, ranking, comparison):
         widths = [16, 32, 48, 64, 96, 128]
         items = [next(r for r in base if r["architecture"] == "-".join([str(w)] * 3) and (r["frames"], r["fps"]) == (frames, fps)) for w in widths]
         axes[1].plot(widths, [r["validation_accuracy"] * 100 for r in items], marker="o", label=f"{frames} frames / {fps} FPS")
-    axes[0].set(title="Flat stacks: depth sensitivity", xlabel="ConvLSTM layers", ylabel="Mean validation accuracy (%)", xticks=range(1, 6))
-    axes[1].set(title="Three-layer flat stacks: width sensitivity", xlabel="Filters in each layer", ylabel="Validation accuracy (%)", xticks=[16, 32, 48, 64, 96, 128])
+    axes[0].set(title="Recurrent depth", xlabel="ConvLSTM layers", ylabel="Mean validation accuracy (%)", xticks=range(1, 6))
+    axes[1].set(title="Layer width", xlabel="Filters in each layer", ylabel="Validation accuracy (%)", xticks=[16, 32, 48, 64, 96, 128])
     for ax in axes:
         ax.set_ylim(0, 104)
         ax.grid(alpha=.2)
         ax.legend(fontsize=8, loc="lower left")
-    fig.suptitle("Matched subsets of the same search (not new runs)\nLeft: mean across four temporal conditions, not repeated seeds", fontsize=12)
+    fig.suptitle("ConvLSTM Depth and Width", fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, .88))
     save_figure(fig, "capacity_controls")
     plt.close(fig)

@@ -466,156 +466,280 @@ University of KwaZulu-Natal \\
     Together, Eqs.~\eqref{eq:crossentropy}--\eqref{eq:adam3} specify the complete optimization procedure: at each training step, a mini-batch of clips is forward-propagated through Algorithm~\ref{alg:convlstm} to obtain $\hat{y}$, the regularized loss~\eqref{eq:regularized} is computed, gradients are back-propagated through every stage of Section~\ref{sec:architecture}, and parameters are updated via the Adam rule~\eqref{eq:adam1}--\eqref{eq:adam3} until convergence.
 
 
-	% =============================
-	% Experimental Results and Discussion
-	% =============================
-	\section{Experimental Results and Discussion}
-	\label{sec:results}
+    % =============================
+    % Experimental Results and Discussion
+    % =============================
+    \section{Experimental Results and Discussion}
+    \label{sec:results}
 
-	This section discusses the experimental setup, model evaluation, and comparative analysis across two standard abnormal human activity recognition benchmarks. All experiments were conducted on a Google Colab virtual machine equipped with a 12-core x86\_64 CPU, 167~GB RAM, and an NVIDIA A100 Tensor Core GPU (40~GB VRAM, CUDA 13.0, driver 580.82.07). The implementation used PyTorch 2.x with the torchvision library for video I/O and the torchmetrics library for evaluation.
+    This section evaluates how ConvLSTM depth, width, and temporal input affect abnormal activity
+    recognition. The architecture search is first used to identify compact, high-performing ConvLSTM
+    configurations, after which the selected models are compared with representative ConvLSTM, 3D
+    CNN, and transformer-based architectures. The overall objective is to identify a lightweight
+    ConvLSTM configuration that maintains strong classification performance with substantially
+    fewer trainable parameters.
 
-	The \textbf{Abnormal Activities Dataset (AAD)}~\cite{vrskova2022} contains 1,069 surveillance videos across 11 activity classes: Begging, Drunkenness, Fight, Harassment, Hijack, Knife Hazard, Normal Videos, Pollution, Property Damage, Robbery, and Terrorism. The \textbf{AIRTLab Violence Detection Dataset (VDD)}~\cite{sernani2021} contains 350 short clips across two classes: Violent and Non-Violent. Both datasets are publicly available benchmarks for abnormal human activity recognition. Videos were preprocessed by re-encoding to H.264 to remove corrupted frames, then uniformly sampled to 16 frames per clip at 16~FPS and resized to $32 \times 32$ pixels, yielding a fixed input tensor of shape $16 \times 3 \times 32 \times 32$. This aggressive spatial downsampling acts as an implicit regularizer and reduces memory footprint, enabling larger batch sizes and faster iteration cycles without sacrificing the macro-level motion patterns relevant to surveillance anomaly detection.
+    \subsection{Experimental Setup}
+    \label{sec:experimental-setup}
 
-	Both datasets were split 80:10:10 for training, validation, and testing. An aggressive spatial augmentation pipeline was applied consistently across all frames within each clip to preserve temporal coherence, including random horizontal flips, affine transformations, perspective distortion, colour jitter, Gaussian blur, and random region erasure. Models were optimized using Adam with weight decay $1 \times 10^{-4}$ and a \texttt{ReduceLROnPlateau} scheduler (factor 0.9, patience 5). Each model was trained for 128 epochs with a batch size of 32 and training one model configuration took approximately 1.5 hours.
+    The Abnormal Activities Dataset (AAD)~\cite{vrskova2022} contains 1,069 video clips across 11
+    classes: Begging, Drunkenness, Fight, Harassment, Hijack, Knife Hazard, Normal Videos, 
+    Pollution, Property Damage, Robbery, and Terrorism. The dataset contains scenes recorded under
+    different lighting conditions, camera viewpoints, object positions, and environments, including
+    buildings, parking areas, and outdoor locations. These variations make the dataset suitable for
+    evaluating abnormal human activity recognition under diverse visual conditions.
 
-	The model's performance was evaluated using Accuracy, Precision, Recall, and F1-Score, as defined in Equations~\eqref{eq:accuracy}--\eqref{eq:f1}, together with confusion matrices for detailed class-level analysis. These metrics were selected to provide a comprehensive assessment of classification performance, particularly in the presence of class imbalance, where overall accuracy alone may not accurately reflect model behaviour. The confusion matrix further highlights class-specific strengths and misclassifications across both the 11-class AAD and binary VDD datasets. In addition, the total parameter count in Equation~\eqref{eq:param_count} was reported as an indicator of computational efficiency and deployment feasibility, since smaller models generally require less memory, offer faster inference, and are more suitable for real-time surveillance applications.
+    The experiments were conducted using Google Colab with an NVIDIA A100-SXM4 GPU with 80~GB of 
+    memory, PyTorch 2.9.1+cu128, and CUDA 12.8.
 
-	We evaluated three families of video classification architectures: (1) standard 3D convolutional networks (ResNet3D-18, ResNet-MC3-18, ResNet-R2Plus1D-18), (2) ConvLSTM variants derived from the original baseline~\cite{vrskova2022}, and (3) a lightweight ablation. Initial experiments confirmed that 3D ResNets despite their strong performance on large-scale action recognition benchmarks exhibited significant overfitting on the smaller VDD dataset, with validation accuracy stagnating well below training accuracy. Following promising results with the ConvLSTM family on AAD, an empirical architecture search was conducted by progressively reducing filter sizes from the original baseline until validation loss saturated, establishing the minimum viable capacity. From this boundary, filter configurations across \texttt{[td\_conv, convlstm, conv\_post, fc1]} were varied systematically. Models were first trained from scratch on AAD, then all layers were fully fine-tuned on VDD at a reduced learning rate, allowing the spatiotemporal filters to adapt to the new visual domain rather than relying on frozen feature extractors.
+    The architecture search was designed to identify a compact ConvLSTM configuration that performs
+    consistently across different temporal input settings. A configuration such as
+    \texttt{ConvLSTM[64,64,128]} represents three stacked ConvLSTM layers with 64, 64, and 128 
+    filters, respectively. This notation allows both the number of recurrent layers and the width
+    of each layer to be varied.
 
-	Model performance was evaluated using standard multi-class classification metrics. Let $TP$, $TN$, $FP$, and $FN$ represent True Positives, True Negatives, False Positives, and False Negatives, respectively. The metrics are defined as follows:
+    A total of 32 candidate architectures were evaluated, covering one to five ConvLSTM layers
+    with widths ranging from 16 to 128 filters. The search included flat, expanding, contracting,
+    and middle-wide configurations, while all spatial kernels were fixed at $3\times3$. Each
+    architecture was evaluated at $32\times32$ resolution under four temporal conditions: 8 or 16
+    frames sampled at either 8 or 16~FPS, this produced a total of 128 architecture search runs.
 
-	\begin{equation}
-		Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
-		\label{eq:accuracy}
-	\end{equation}
+    Input frames were sampled at fixed target timestamps from the beginning of each video, resized,
+    and normalized to $[0,1]$.Short clips were padded by repeating the final available frame, 
+    whereas longer clips were sampled only within the fixed temporal window used as model input.
 
-	\begin{equation}
-		Precision = \frac{TP}{TP + FP}
-		\label{eq:precision}
-	\end{equation}
+    All ConvLSTM search models were trained using Adam with a batch size of 32, no data 
+    augmentation, zero weight decay, and a validation-loss \texttt{ReduceLROnPlateau} scheduler
+    with factor 0.9 and patience of 5 epochs. Search and resolution check runs used a maximum of
+    128 epochs, a minimum training length of 64 epochs, and early-stopping patience of 16 epochs.
+    The final comparison runs used a maximum of 256 epochs, a minimum of 64 epochs, and 
+    early-stopping patience of 32 epochs.
 
-	\begin{equation}
-		Recall = \frac{TP}{TP + FN}
-		\label{eq:recall}
-	\end{equation}
+    The dataset was divided into 70\% training, 15\% validation, and 15\% testing subsets using
+    a stratified split to preserve class proportions. The initial learning rate was $10^{-3}$
+    for all models.
+    
+    \subsection{Architecture-Search Results}
+    \label{sec:search-results}
 
-	\begin{equation}
-		F1\text{-}Score = 2 \times \frac{Precision \times Recall}{Precision + Recall}
-		\label{eq:f1}
-	\end{equation}
+    Figure~\ref{fig:aad_search_capacity} shows validation accuracy as a function of trainable
+    parameter count for all 128 architecture search runs. Models were ranked using mean
+    validation accuracy across the four temporal conditions, followed by worst-case validation
+    accuracy, mean validation loss, parameter count, and model name. This ranking reduces the
+    influence of a single favourable input configuration when selecting candidates.
 
-	The computational efficiency was measured by the total trainable parameter count across all $L$ layers:
+    \begin{figure}[!htbp]
+        \centering
+        \includegraphics[width=\textwidth]{figures/2026-10-16/search_capacity.png}
+        \caption{Validation accuracy versus parameter count for the ConvLSTM architecture
+        search. Colours and markers indicate recurrent depth, while rings identify selected
+        high, middle, and low performing observations within each panel. Parameter count is
+        shown on a logarithmic scale.}
+        \label{fig:aad_search_capacity}
+    \end{figure}
 
-	\begin{equation}
-		Params = \sum_{l=1}^{L} (\text{weights}_l + \text{biases}_l)
-		\label{eq:param_count}
-	\end{equation}
-	where $\text{weights}_l$ and $\text{biases}_l$ are the learnable parameters of 
-	layer $l$, and $L$ is the total number of trainable layers in the network.
+    The temporal configuration had a substantial effect on performance, for example, the 
+    eight-frame inputs, the mean validation accuracy across the 32 architectures was 88.03\%
+    at 8~FPS and 88.18\% at 16~FPS. Increasing the sequence length to 16 frames reduced these
+    means to 57.03\% and 53.57\%, respectively. Training accuracy followed the same trend,
+    decreasing from approximately 92\% to 61\% and 57\%. Longer sequences therefore did not
+    improve performance within the available training budget. Since both training and
+    validation performance decreased, this behaviour is more consistent with optimization
+    difficulty or increased temporal complexity than with conventional overfitting. 
+    Furthermore, 108 of the 128 runs reached the epoch limit.
 
-	To address the tendency of heavy networks to overfit on small datasets, an empirical sensitivity analysis was conducted. We began with the original ConvLSTM~\cite{vrskova2022} architecture and systematically reduced its parameter count by decreasing the number of filters until the validation loss curve ceased overfitting and reached a stable saturation point. This established a minimum viable baseline capacity. From this baseline, we evaluated various custom filter configurations across the Convolutional and Linear layers, while keeping the LSTM temporal window constant. Ultimately, the \textbf{Custom (64-32-16-64)} configuration emerged as the optimal architecture, providing sufficient representational capacity to track complex motion dynamics without memorizing the training data.
+    Figure~\ref{fig:aad_capacity_controls} separates the effects of model depth and width.
+    At a width of 96 filters, average validation accuracy increased up to four ConvLSTM layers,
+    reaching 89.219\%, before falling to 66.094\% at five layers. In contrast, within the
+    three layers width sweep, the widest tested configuration, \texttt{ConvLSTM[128,128,128]},
+    remained the strongest. These results indicate that increasing capacity can improve
+    performance, but the benefit depends on how that capacity is distributed across the
+    architecture.
 
-	Tables~\ref{tab:aad_results} and~\ref{tab:vdd_results} present the comparative performance of the evaluated architectures, including the proposed Custom ConvLSTM configurations, the original baseline, a lightweight ablation, and standard PyTorch 3D CNNs.
+    \begin{figure}[!htbp]
+        \centering
+        \includegraphics[width=\textwidth]{figures/2026-10-16/capacity_controls.png}
+        \caption{Effects of ConvLSTM depth and width on validation accuracy. Left: flat-stack
+        depth comparisons averaged across the four temporal conditions. Right: three-layer
+        width comparisons separated by temporal condition. Both panels are derived from the
+        same architecture search.}
+        \label{fig:aad_capacity_controls}
+    \end{figure}
 
-	\vspace{0.3cm}
-	\textbf{A. Abnormal Activities Dataset (AAD)}
+    Filter placement also influenced the observed performance. The four-condition mean
+    accuracy was 71.875\% for \texttt{ConvLSTM[64,64,64]}, 85.156\% when the first layer was
+    widened to 128 filters, 60.313\% when the middle layer was widened, and 90.000\% when
+    the final layer was widened. The \texttt{ConvLSTM[64,64,128]} configuration therefore
+    provided a strong balance by maintaining moderate early-layer capacity while expanding
+    the final representation. However, because these configurations also differ in parameter
+    count, the effect cannot be attributed to filter placement alone.
 
-	\begin{table}[h!]
-		\centering
-		\caption{Performance on the Abnormal Activities Dataset (11 Classes).}
-		\label{tab:aad_results}
-		\resizebox{\textwidth}{!}{%
-			\begin{tabular}{lccccc}
-				\toprule
-				\textbf{Model Config} & \textbf{Acc (\%)} & \textbf{Prec (\%)} & \textbf{Rec (\%)} & \textbf{F1 (\%)} & \textbf{Params (M)} \\
-				\midrule
-				Custom (16-32-8-128)           & 93.95 & 93.99 & 94.59 & 94.10 & 1.11 \\
-				Custom (32-32-8-64)            & 93.49 & 93.99 & 94.39 & 93.94 & 0.60 \\
-				Custom (32-64-4-256)           & 94.88 & 95.50 & 95.53 & 95.19 & 1.28 \\
-				Custom (32-64-8-256)           & 94.42 & 95.04 & 94.96 & 94.76 & 2.33 \\
-				Custom (32-64-16-128)		   & 95.35 & 94.98 & 96.02 & 95.22 & 2.33 \\
-				Custom (64-32-8-64)            & 93.49 & 93.96 & 94.05 & 93.74 & 0.64 \\
-				Custom (64-32-8-128)           & 95.35 & 96.14 & 95.66 & 95.64 & 1.16 \\
-				\textbf{Custom (64-32-16-64)}  & \textbf{96.74} & \textbf{96.34} & \textbf{97.17} & \textbf{96.65} & 1.16 \\
-				Custom (64-32-16-128)          & 94.88 & 95.42 & 95.53 & 95.18 & 2.21 \\
-				\midrule
-				ConvLSTM (Baseline)~\cite{vrskova2022} & 94.88 & 95.31 & 95.34 & 95.06 & 4.39 \\
-				Light ConvLSTM                 & 86.98 & 89.37 & 88.77 & 87.70 & \textbf{0.07} \\
-				\midrule
-				ResNet3D-18                    & 89.77 & 89.78 & 91.12 & 90.00 & 33.17 \\
-				ResNet-MC3-18                  & 93.49 & 94.57 & 92.98 & 93.43 & 11.50 \\
-				ResNet-R2Plus1D-18             & 87.91 & 89.88 & 88.89 & 87.67 & 31.30 \\
-				\bottomrule
-			\end{tabular}%
-		}
-	\end{table}
+    The five highest ranked architectures were selected for the final comparison. Across
+    these finalists, eight frames sampled at 16~FPS produced the highest mean validation
+    accuracy, reaching 95.250\%, compared with 94.625\% at 8~FPS. The finalists were then
+    evaluated at $64\times64$ resolution before final training.
 
-	Table~\ref{tab:aad_results} reports results on the 11-class AAD. The proposed Custom (64-32-16-64) configuration achieves the highest accuracy (96.74\%), precision (96.34\%), recall (97.17\%), and F1 (96.65\%) across all evaluated architectures, outperforming the 4.39M parameter baseline by 1.86 percentage points in accuracy while requiring only 1.16M parameters a 3.8$\times$ reduction. The heavier 3D ResNet architectures (ResNet3D-18 at 33.17M and ResNet-R2Plus1D-18 at 31.30M parameters) trail by 6.97 and 8.83 percentage points respectively, confirming that large-scale 3D convolution is not necessary for surveillance-scale video classification. The lightweight ConvLSTM (0.07M) achieves 86.98\%, demonstrating that even a minimal model captures meaningful temporal structure, though with a clear accuracy ceiling due to limited representational capacity.
+    \clearpage
+    \subsection{Comparative Evaluation}
+    \label{sec:aad-comparison}
 
-	\begin{figure}[h!]
-		\centering
-		\includegraphics[width=\textwidth]{figures/cm_abnormal-activities-dataset_custom_64_32_16_64.png}
-		\caption{Confusion Matrix for Custom (64-32-16-64) on the AAD test set.}
-		\label{fig:cm_aad}
-	\end{figure}
+    The five selected ConvLSTM configurations were compared with the input-adapted
+    ConvLSTM of Vršková et al.~\cite{vrskova2022}, the R3D-18 and MC3-18 architectures of
+    Tran et al.~\cite{tran2018closer}, and the Swin3D-T and Swin3D-S video transformers of
+    Liu et al.~\cite{liu2022videoswin}.
 
-	The confusion matrix in Figure~\ref{fig:cm_aad} confirms balanced per-class discrimination across all 11 categories. Notably, the model successfully separates visually similar classes such as Harassment and Robbery, which share overlapping motion patterns, indicating that the ConvLSTM temporal modelling captures action-specific dynamics rather than static scene appearance.
+    All reference models were retrained from scratch on AAD using the same train,
+    validation, and test split and the same input of eight $64\times64$ frames sampled at
+    16~FPS. Training followed the procedure described in 
+    Section~\ref{sec:experimental-setup}.
 
-	\vspace{0.3cm}
-	\textbf{B. Violence Detection Dataset (VDD)}
+    Final training ran for 256 epochs and each model retained the checkpoint with the
+    lowest validation loss, and the final ConvLSTM configuration was selected using
+    validation accuracy, followed by validation loss and parameter count. The test set
+    was evaluated only after all model-selection decisions had been frozen.
 
-	\begin{table}[h!]
-		\centering
-		\caption{Performance on the Violence Detection Dataset (2 Classes) via Fine-Tuning.}
-		\label{tab:vdd_results}
-		\resizebox{\textwidth}{!}{%
-			\begin{tabular}{lccccc}
-				\toprule
-				\textbf{Model Config} & \textbf{Acc (\%)} & \textbf{Prec (\%)} & \textbf{Rec (\%)} & \textbf{F1 (\%)} & \textbf{Params (M)} \\
-				\midrule
-				Custom (16-32-8-128)           & 84.51 & 83.37 & 86.22 & 83.88 & 1.11 \\
-				Custom (32-32-8-64)            & 80.28 & 78.87 & 81.13 & 79.36 & 0.60 \\
-				Custom (32-64-4-256)           & 81.69 & 80.53 & 83.13 & 80.95 & 1.27 \\
-				Custom (32-64-8-256)           & 83.10 & 81.73 & 84.22 & 82.31 & 2.33 \\
-				Custom (32-64-16-128) 		   & 84.51 & 83.94 & 87.13 & 84.05 & 2.33 \\
-				Custom (64-32-8-64)            & 80.28 & 78.39 & 78.39 & 78.39 & 0.64 \\
-				Custom (64-32-8-128)           & 80.28 & 80.96 & 83.87 & 79.96 & 1.16 \\
-				\textbf{Custom (64-32-16-64)}  & \textbf{88.57} & \textbf{89.33} & \textbf{87.50} & \textbf{88.09} & 1.16 \\
-				Custom (64-32-16-128)          & 78.87 & 77.68 & 80.04 & 78.02 & 2.21 \\
-				\midrule
-				ConvLSTM (Baseline)~\cite{vrskova2022} & 80.28 & 78.87 & 81.13 & 79.36 & 4.39 \\
-				Light ConvLSTM                 & 80.28 & 78.53 & 80.22 & 79.08 & \textbf{0.07} \\
-				\midrule
-				ResNet3D-18                    & 77.46 & 79.21 & 81.70 & 77.24 & 33.17 \\
-				ResNet-MC3-18                  & 80.28 & 78.53 & 80.22 & 79.08 & 11.49 \\
-				ResNet-R2Plus1D-18             & 85.92 & 84.36 & 86.39 & 85.06 & 31.30 \\
-				\bottomrule
-			\end{tabular}%
-		}
-	\end{table}
+    Classification performance was measured using accuracy, macro-averaged precision,
+    recall, and F1-score. Accuracy is defined as
 
-	Table~\ref{tab:vdd_results} reports results on the binary VDD following full fine-tuning from AAD weights. The Custom (64-32-16-64) configuration again achieves the best performance: 88.57\% accuracy, 89.33\% precision, 87.50\% recall, and 88.09\% F1. Critically, the original ConvLSTM baseline and all 3D ResNet variants plateau between 77\% and 81\%, demonstrating that high parameter count alone does not confer generalization advantage on small datasets. ResNet-R2Plus1D-18 is the strongest ResNet at 85.92\% accuracy, likely because its factorized spatiotemporal convolutions impose a stronger inductive bias for motion; however, it requires 27$\times$ more parameters than the proposed model. The Custom (64-32-16-64) architecture leads all compared models by at least 2.65 percentage points in accuracy while achieving the best balance of precision and recall, indicating it does not bias predictions toward one class an important property for anomaly detection systems where false negatives (missed anomalies) and false positives (false alarms) carry asymmetric operational costs.
+    \begin{equation}
+        \mathrm{Accuracy}=\frac{1}{N}\sum_{n=1}^{N}
+        \mathbf{1}\!\left[\hat{y}_n=y_n\right].
+        \label{eq:accuracy}
+    \end{equation}
 
-	\begin{figure}[h!]
-		\centering
-		\includegraphics[width=0.5\textwidth]{figures/cm_violence-detection-dataset_custom_64_32_16_64.png}
-		\caption{Confusion Matrix for Custom (64-32-16-64) on the VDD test set.}
-		\label{fig:cm_vdd}
-	\end{figure}
+    For each class $c$, let $TP_c$, $FP_c$, and $FN_c$ denote the true-positive, 
+    false-positive, and false-negative counts. Macro precision, recall, and 
+    F1-score are then
 
-	The confusion matrix in Figure~\ref{fig:cm_vdd} illustrates the model's resistance to false positives on the VDD dataset, which was explicitly constructed to include fast non-violent actions (hugging, clapping) designed to confuse motion-based detectors. The tight balance between predicted Violent and Non-Violent classes confirms that the temporal modelling captures the sustained movement patterns of genuine violence rather than momentary motion bursts.
+    \begin{align}
+        \mathrm{Precision}&=\frac{1}{K}\sum_{c=1}^{K}
+            \frac{TP_c}{TP_c+FP_c}, \label{eq:precision}\\
+        \mathrm{Recall}&=\frac{1}{K}\sum_{c=1}^{K}
+            \frac{TP_c}{TP_c+FN_c}, \label{eq:recall}\\
+        \mathrm{F1}&=\frac{1}{K}\sum_{c=1}^{K}
+            \frac{2TP_c}{2TP_c+FP_c+FN_c}. \label{eq:f1}
+    \end{align}
 
-	Inspection of misclassified samples reveals that a proportion of errors occur between 
-	visually similar classes such as Fight and Harassment, or Knife Hazard and Fight, where 
-	a single clip may contain overlapping behavioural cues from multiple categories. This 
-	suggests that the problem may be better framed as multi-label classification in future 
-	work, where a clip can simultaneously belong to more than one activity class rather than 
-	being forced into a single hard assignment.
+    where $K=11$. Undefined class scores were assigned zero. Test loss is
+    reported as mean cross-entropy loss, while parameter count includes all
+    learnable weights and biases.
 
-	Across both datasets, the Custom (64-32-16-64) configuration consistently achieves top performance, confirming it as the proposed model. The key improvement over the original 4.39M parameter baseline is a 3.8$\times$ parameter reduction without accuracy loss, achieved by widening the initial TimeDistributed Conv2D to 64 filters for rich spatial feature extraction, reducing the post-LSTM convolution to 16 filters to compress temporal representations, and restricting the dense head to 64 neurons to prevent memorization. Combined with augmentation, weight decay, and cross-dataset fine-tuning, these design choices address the overfitting challenge that degrades both the original baseline and 3D ResNet architectures on small surveillance datasets.
+    \begin{table}[!htbp]
+        \centering
+        \small
+        \setlength{\tabcolsep}{4pt}
+        \caption{Test performance of the selected ConvLSTM configurations
+        and retrained reference models on AAD.}
+        \label{tab:aad_results}
+        \resizebox{\textwidth}{!}{%
+            \begin{tabular}{@{}lrrrrrr@{}}
+                \toprule
+                Model & Acc (\%) & Prec (\%) & Rec (\%) & F1 (\%) & 
+                Parameters & Loss\\
+                \midrule
+                \texttt{ConvLSTM[64,64,128]}    & \textbf{99.379} & 
+                \textbf{99.242} & \textbf{99.174} & \textbf{99.172} 
+                & 1,336,459 & \textbf{0.0403}\\
+                \texttt{ConvLSTM[96,96,96,96]}  & 98.137 & 98.331 & 
+                97.989 & 98.092 & 2,335,403 & 0.0798\\
+                \texttt{ConvLSTM[128,128,128]}  & 98.758 & 98.737 & 
+                98.669 & 98.652 & 2,965,899 & 0.0513\\
+                \texttt{ConvLSTM[128,64,64]}    & 98.137 & 98.158 & 
+                98.033 & 98.024 & 1,342,667 & 0.0938\\
+                \texttt{ConvLSTM[32,64]}        & 92.547 & 93.802 & 
+                92.119 & 92.476 & \textbf{262,603} & 0.3068\\
+                \midrule
+                Vrskova et al.~\cite{vrskova2022} (adopted) & 94.410 & 
+                95.306 & 94.216 & 94.510 & 134,415,195 & 0.7242\\
+                Tran et al.~\cite{tran2018closer} (3D)     & 95.031 & 
+                95.724 & 95.827 & 95.680 & 33,171,915 & 0.1661\\
+                Tran et al.~\cite{tran2018closer} (mixed)  & 97.516 & 
+                97.955 & 98.021 & 97.869 & 11,495,883 & 0.0695\\
+                Liu et al.~\cite{liu2022videoswin} (tiny)  & 93.168 & 
+                93.794 & 94.139 & 93.862 & 27,858,929 & 0.1496\\
+                Liu et al.~\cite{liu2022videoswin} (small) & 95.031 & 
+                95.595 & 95.662 & 95.561 & 49,517,537 & 0.1437\\
+                \bottomrule
+            \end{tabular}%
+        }
+        \par\smallskip
+        \begin{minipage}{\textwidth}
+            \footnotesize Precision, recall, and F1 are macro-averaged across all 11
+            classes as defined in Eqs.~\eqref{eq:precision}--\eqref{eq:f1}
+        \end{minipage}
+    \end{table}
 
-	The aggressive spatial downsampling to $32 \times 32$ pixels limits visual acuity: fine-grained anomalies such as small weapons in crowded frames, or subtle posture-based distinctions, may fall below the resolution threshold. The model additionally provides only clip-level classification and cannot spatially localize anomalies within the frame. Extending the architecture to support temporal grounding and spatial attention maps remains an important direction for future work.
+    Table~\ref{tab:aad_results} shows that \texttt{ConvLSTM[64,64,128]} achieved the
+    highest observed test accuracy of 99.379\% using 1,336,459 parameters. The smallest
+    finalist, \texttt{ConvLSTM[32,64]}, reduced the parameter count further to 262,603,
+    but its accuracy decreased to 92.547\%. These results indicate that aggressive
+    parameter reduction eventually degrades performance, while the selected three layers
+    configuration provides a stronger accuracy--complexity trade-off.
 
+    \subsection{Discussion and Confusion Analysis}
+    \label{sec:aad-discussion}
+
+    The proposed architecture does not introduce a new recurrent memory mechanism, its
+    contribution lies in how ConvLSTM layers and the classification head are arranged.
+    The adapted Vršková~\cite{vrskova2022} architecture applies a frame-level convolution,
+    a single ConvLSTM layer, a post-convolution, and a large flattened dense classifier.
+    In contrast, the proposed family stacks configurable ConvLSTM layers and applies
+    global spatial pooling before a lightweight classification head. This design
+    substantially reduces the parameter count, with much of the reduction resulting from
+    removal of the large flattened classifier.
+
+    The architecture search further showed that the distribution of recurrent capacity
+    matters. In particular, the selected \texttt{ConvLSTM[64,64,128]} configuration
+    preserves moderate width in the first two layers and expands the final representation.
+    It consistently performed well compared with flat and middle-wide alternatives.
+
+    For the selected model, the confusion matrix is defined as
+
+    \begin{equation}
+        C_{ij}=\sum_{n=1}^{N}
+        \mathbf{1}\!\left[y_n=i\right]
+        \mathbf{1}\!\left[\hat{y}_n=j\right],
+        \qquad i,j\in\{1,\ldots,K\}.
+        \label{eq:confusion-matrix}
+    \end{equation}
+
+    Rows represent the true classes and columns the predicted classes. Diagonal entries
+    correspond to correct classifications, while off-diagonal entries represent
+    classification errors.
+
+    Figure~\ref{fig:cm_aad} shows that the selected model correctly classified 160 of
+    the 161 test clips. The only error occurred when a Hijack clip was classified as
+    Terrorism, resulting in a Hijack recall of 90.91\% and a Terrorism precision of
+    91.67\%. The remaining nine classes achieved perfect observed precision, recall,
+    and F1-score.
+
+    \begin{figure}[!htbp]
+        \centering
+        \includegraphics[width=0.88\textwidth]{
+            figures/2026-10-16/best_model_test_confusion.png}
+        \caption{Test confusion matrix of the validation-selected
+        \texttt{ConvLSTM[64,64,128]} model. Entries are raw clip counts, rows
+        represent true classes and columns represent predicted classes.}
+        \label{fig:cm_aad}
+    \end{figure}
+
+    The reduced parameter count makes the proposed architecture attractive for
+    resource constrained applications because it lowers model-storage requirements
+    and the global pooling classifier does not grow with frame resolution or sequence
+    length. However, parameter count alone does not determine inference speed. ConvLSTM
+    computation and recurrent-state memory still increase with spatial and temporal
+    input size. The present results therefore demonstrate parameter efficiency rather
+    than real-time or edge-deployment performance.
+
+    Finally, the selected input of eight frames at 16~FPS spans only 0.4375 seconds
+    from the first to the last sampled frame. Events outside this temporal window may
+    therefore be missed. The current model also assigns a single label to each clip
+    and does not preserve recurrent state across consecutive windows. Future work should
+    investigate longer-duration modelling, multi-label activity recognition, 
+    independent scene evaluation, repeated-seed experiments, and direct inference time
+    measurements.
+
+    \clearpage
 	% =============================
 	% Conclusion and Future Work
 	% =============================
