@@ -1,0 +1,21 @@
+# Completion
+
+- Status: Done
+- Summary: Fixed Python 3.10 checkpoint hashing and prepared a one-requirements-file Spaces ZIP.
+- Changes:
+  - `src/demo_inference.py` and exporter: buffered SHA256; metadata/hash and LFS guards preserved.
+  - Spaces template: Python 3.10, the user's eleven exact dependency versions, CPU PyTorch wheels; no nested requirements or runtime pip installation.
+  - Exporter creates a fresh allowlisted folder and ZIP; excludes research artifacts, secrets, datasets and caches.
+  - Added compatibility/export regressions and updated deployment instructions.
+- Verification:
+  - `pytest -q -p no:cacheprovider tests/test_demo_ui.py tests/test_demo_inference.py tests/test_space_export.py tests/test_demo_training_config.py tests/test_demo_colab.py`: 44 passed, 12 subtests passed; one Windows symlink-privilege test skipped.
+  - Exported app built its UI, loaded the real trained checkpoint and predicted on a local video with `hashlib.file_digest` removed; eleven finite probabilities summing to one.
+  - All deployed source parses with Python 3.10 grammar. Official package metadata/wheel listings support Python 3.10/Linux for every direct pin.
+  - Non-installing pip dry run resolved all transitive dependencies with Linux/CPython 3.10 target markers simulated in-process (including SciPy 1.15.3). No environment was modified; this is resolution evidence, not a hosted runtime test.
+  - Fresh bundle: `implementation/runs/spaces_upload/20261020_bnkhg264/`; adjacent ZIP is 14,840,562 bytes with 15 files and exactly one requirements file. ZIP CRC and checkpoint SHA256 verified; no bytecode files.
+  - Checkpoint SHA256 unchanged: `f5f74e5badb5c1d5ad912bc4bbc1629e67b502be05b491af200ee8ed0d2eff61`.
+  - Black and staged/unstaged whitespace checks passed. Research requirements, model metadata, original artifacts and existing staging preserved.
+- Remaining issues:
+  - Runtime tests used local Python 3.14 with the missing API simulated; native Linux/Python 3.10 and the actual hosted build remain untested.
+  - Upload the extracted bundle contents to the Space root, replace the old README/source/requirements, remove obsolete `requirements-base.txt`, then rebuild.
+  - No commit, push, upload, retraining or test-set evaluation performed.

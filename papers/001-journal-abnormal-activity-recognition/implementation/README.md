@@ -6,6 +6,23 @@ hyperparameter grid.
 
 ## Current roadmap
 
+[091 local Gradio demo](../../../agents/work/091-local-gradio-winner-demo/prompt.md)
+provides sample/upload inference for the selected [64,64,128] architecture.
+[094](../../../agents/work/094-trained-demo-lfs/prompt.md) defaults to the owner's
+Colab-retrained weights, prepared as one curated Git LFS file with matching metadata.
+Recorded validation accuracy: 98.75%; no new test result. The original October 16
+checkpoint remains unavailable. See [local demo commands](#local-gradio-demo-091).
+The app stays local. [095](#deploy-to-hugging-face-spaces-095) adds a simplified
+UI and an upload-ready Spaces export; no automatic deployment.
+[096](../../../agents/work/096-spaces-python-compatibility/prompt.md) makes that
+export Python 3.10-compatible, with one requirements file and a ZIP.
+[097](../../../agents/work/097-zerogpu-demo/prompt.md) switches the hosted export
+to ZeroGPU; `demo.py` continues to support the local CPU laptop.
+[098](../../../agents/work/098-demo-example-videos/prompt.md) adds three small,
+original validation examples; [sources](demo_assets/examples/README.md).
+[093](#train-this-model-on-colab-093) provides optional single-model GPU training.
+Presentation work remains deferred.
+
 Latest evidence: [October 16 campaign review](reports/2026-10-16/README.md),
 128 search jobs + five resolution checks + ten completed final tests.
 All saved prediction counts/metrics reconcile; best validation-selected custom
@@ -1267,6 +1284,181 @@ results until versioned evidence exists.
 The split manifest records relative clip paths, class labels, indices, and
 assignments. It is a clip-level protocol because the source dataset provides no
 reliable subject or source-video grouping metadata.
+
+## Local Gradio demo (091)
+
+Run from this `implementation/` directory. In a Python environment with the
+project dependencies, install the separately pinned UI dependency and launch:
+
+```bash
+python -m pip install -r requirements-demo.txt
+python demo.py
+```
+
+Open **http://127.0.0.1:7860**. By default the app loads the verified
+`demo_assets/winner/best_model.pth` and matching `config.json`.
+These are the owner's new Colab weights, not the original paper checkpoint.
+Use `python demo.py --random-weights` only for an explicitly untrained UI test.
+There is no silent random fallback. No public share link is created.
+Use `--port 7861` if needed. Stop the foreground app with Ctrl+C.
+
+The short emoji interface includes **By Sanele Hlabisa**. Architecture,
+checkpoint provenance and sampling details are inside the closed **Model details**
+panel; the initial-window limitation and random-mode warning remain visible.
+
+- Upload a video or select an example; click **Predict** for all 11 probabilities
+  and sampling details. Uploads are limited to 200 MiB.
+- Add original local clips with repeated `--example "path/to/video.mp4"`.
+  Otherwise random mode offers available historical validation previews; those
+  previews may already be processed and are only for UI testing.
+- The input is eight RGB frames at 16 FPS and 64x64, using the exact existing
+  timestamp sampler. Only the initial 0–0.4375-second window is classified;
+  short videos repeat their last frame. Probabilities are not calibrated.
+- Trained mode requires a compatible checkpoint and matching class/input
+  metadata. It never falls back to random weights.
+
+Inspect the single-model, validation-only retraining configuration without
+loading data or starting training:
+
+```bash
+python -m src.experiments --config configs/experiments/aad_demo_selected_local.json --minimum-epochs 128 --print-config
+python -m src.experiments --config configs/experiments/aad_demo_selected_local.json --minimum-epochs 128 --list-models
+```
+
+To train later, replace `PATH_TO_AAD` with the local class-folder directory:
+
+```bash
+python -m src.experiments --config configs/experiments/aad_demo_selected_local.json --dataset_dir "PATH_TO_AAD" --minimum-epochs 128 --run-label demo-selected-retrained --matched-training-evaluation --per-class-reporting
+```
+
+This uses the frozen [64,64,128] recipe: Adam LR 0.001, WD 0, batch 32,
+no augmentation, seed 42, original split, cap 256, minimum 128, patience 32
+and a gentle plateau schedule. `num_workers=0` supports Windows. It trains only
+one model, selects by validation loss and does not evaluate test. Data must
+already exist locally; no automatic dataset download.
+
+The cached dataset found on this laptop is
+`C:/Users/hlabi/.cache/kagglehub/datasets/sanelehlabisa/abnormal-activities-dataset/versions/2/abnormal-activities-dataset`.
+The inspected laptop runtime is CPU-only. Colab-retrained weights are now
+bundled, so local training is optional. Check memory/runtime before starting
+the batch-32 recipe; a new checkpoint does not inherit the archived score.
+
+The new run is saved under `runs/demo/experiments/<run>/`. Keep its `config.json`,
+`resolved_config.json`, split/provenance and
+`models/custom_convlstm_configured/checkpoints/best_model.pth` together.
+After successful training, launch with the actual path:
+
+```bash
+python demo.py --checkpoint "runs/demo/experiments/RUN/models/custom_convlstm_configured/checkpoints/best_model.pth"
+```
+
+The app finds that run's `config.json` automatically; `--metadata path/to/config.json`
+can specify it explicitly. Class order, input settings and architecture are checked.
+The original October 16 checkpoint is identified by its recorded SHA256; a new
+compatible checkpoint does not inherit the original 99.379% test score.
+Videos and generated runs remain ignored. The sole exception for weights is
+the explicitly requested curated Git LFS checkpoint below. Spaces upload
+preparation is described below; publication and the presentation remain separate.
+
+### Clone the trained demo (094)
+
+`demo_assets/winner/` contains the unchanged 16,051,317-byte Colab checkpoint
+and a small normal-Git `config.json` with its SHA256, class order, input recipe
+and provenance. The checkpoint and sidecar agree: selected epoch 172,
+204 trained epochs, validation accuracy 98.75% (158/160), test still locked.
+The imported run-root config was absent; bundled metadata is explicitly
+reconstructed from the matching sidecar, metrics and confusion class order.
+The original imported files under `runs/demo/models/` remain unchanged.
+
+After these changes are committed and pushed, clone with Git LFS installed:
+
+```bash
+git lfs install
+git clone https://github.com/sanelehlabisa/phd_research.git
+cd phd_research
+git lfs pull --include="papers/001-journal-abnormal-activity-recognition/implementation/demo_assets/winner/best_model.pth"
+cd papers/001-journal-abnormal-activity-recognition/implementation
+python -m pip install -r requirements-demo.txt
+python demo.py
+```
+
+For an existing clone, update it before `git lfs pull`. Only this exact checkpoint
+is LFS-managed; no history migration or broad dataset/run inclusion.
+An unresolved LFS pointer fails with a download instruction, never random weights.
+See [GitHub's Git LFS guide](https://docs.github.com/en/repositories/working-with-files/managing-large-files/configuring-git-large-file-storage).
+
+### Deploy to Hugging Face Spaces (095)
+
+The current export targets **ZeroGPU** (097), the hardware available to the owner.
+Check [ZeroGPU eligibility and quotas](https://huggingface.co/docs/hub/spaces-zerogpu).
+The older CPU-only exports are not suitable for a ZeroGPU Space.
+
+1. From `implementation/`, run `python deployment/prepare_space.py`. It prints a
+   fresh folder and ZIP under `runs/spaces_upload/`, containing code, pins and real
+   model weights plus three validation videos (84 KB total). Extract the ZIP
+   before uploading. No full datasets, reports or secrets are copied.
+2. [Create a Space](https://huggingface.co/new-space): choose **Gradio**,
+   **ZeroGPU** hardware and **Private** while testing. For the existing Space,
+   leave ZeroGPU selected; README hardware suggestions do not allocate hardware.
+3. In **Files → Add file → Upload files**, upload the **contents** of that folder
+   to the Space root. `app.py`, `README.md` and `requirements.txt` must be at the
+   root, with `src/` and `demo_assets/` alongside them. Do not upload the whole
+   research repository.
+   When replacing an older export, also delete its obsolete
+   `requirements-base.txt` from the Space; replace the root README and source files.
+4. Commit the upload, wait for **Running**, then upload a video and click
+   **Predict**, or select one of the three bundled examples first. Examples are
+   not prediction-cached and consume GPU time only when **Predict** is clicked.
+   Inspect build/runtime logs if startup fails.
+
+The prepared README sets Python 3.10 and Gradio 6.30.0. Its single standalone
+`requirements.txt` pins the supplied versions (NumPy 2.2.6, scikit-learn 1.7.0),
+`torch==2.9.1`, `torchvision==0.24.1` and `spaces==0.51.3`. Do not add the CPU
+index, `+cpu` suffixes or an unpinned `torch`: the Linux PyPI packages provide
+CUDA dependencies for ZeroGPU. The entry point imports `spaces` first, loads
+the validated model once on CUDA and invokes real inference through
+`@spaces.GPU(duration=30)`. A module-level `demo` supports Spaces discovery.
+Research/local-training dependencies remain unchanged. Hashing works without
+Python 3.11's `hashlib.file_digest`; no pip installation runs inside the app.
+No source editing or GitHub push is needed for this manual upload. Hosted videos
+are processed on Hugging Face, not locally. After replacing the old CPU bundle,
+use **Settings → Factory reboot** to avoid cached CPU dependencies.
+ZeroGPU registration/routing are tested locally with mocks; real hosted GPU
+execution remains untested on this CPU-only laptop. For local CPU use, run
+`python demo.py --device cpu` with the local demo dependencies, not Space `app.py`.
+See the official [Spaces configuration](https://huggingface.co/docs/hub/spaces-config-reference)
+and [dependency guide](https://huggingface.co/docs/hub/spaces-dependencies).
+
+Optional terminal upload after installing the Hugging Face CLI:
+
+```bash
+hf auth login
+hf upload YOUR_USERNAME/YOUR_SPACE "PATH_TO_PRINTED_FOLDER" . --repo-type space
+```
+
+This uploads only the prepared folder; do not substitute `.` or the full repository
+as the local folder. Authentication is interactive; do not put a token in code.
+
+### Train this model on Colab (093)
+
+Upload [train_demo_winner_colab.ipynb](notebooks/train_demo_winner_colab.ipynb),
+or paste the complete [Python export](notebooks/train_demo_winner_colab.py)
+into one Colab cell. Select a GPU (A100 recommended), run, and authorize Drive.
+No stage toggles or local-demo commit/push are required for the pasted script.
+
+- Checks Drive write/read and GPU access, installs pinned requirements, downloads
+  AAD and runs **one** fresh training with the recipe above. Test stays locked.
+- Saves weights/config/class metadata and history to
+  `MyDrive/phd_demo/<run>/` during training; dataset/cache stay on the VM.
+- Finishes with validation curves/examples and `demo_model.zip` on Drive,
+  with a browser download attempt. This bundle includes weights, not just results.
+- Extract the ZIP into local `implementation/runs/demo/`, then use the printed
+  `python demo.py --checkpoint ...` command. Keep the extracted hierarchy intact.
+
+All ML runs in fresh subprocesses, avoiding stale kernel imports after setup.
+Rerunning starts fresh, not a resume. Interrupted writes can damage a checkpoint;
+Drive storage is not an uninterrupted-runtime guarantee. New weights do not
+inherit the paper's score. Local tests verify orchestration, not real Colab training.
 
 ## Setup and commands
 

@@ -1,0 +1,12 @@
+av==16.1.0
+kagglehub==1.0.2
+matplotlib==3.10.8
+numpy==2.2.6
+pandas==2.3.3
+scikit-learn==1.7.0
+torch==2.9.1
+torchmetrics==1.8.2
+torchvision==0.24.1
+tqdm==4.67.3
+gradio==6.30.0
+spaces==0.51.3

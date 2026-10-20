@@ -1,0 +1,21 @@
+# Completion
+
+- Follow-up: Owner reported successful ZeroGPU deployment on 20 October 2026; ticket 098 adds examples separately.
+- Status: Done
+- Summary: Replaced the CPU-only Spaces export with a real ZeroGPU inference entry point.
+- Changes:
+  - Standalone requirements: `torch==2.9.1`, `torchvision==0.24.1`, `spaces==0.51.3`; removed CPU index/suffixes. Other pins unchanged.
+  - Space `app.py`: imports Spaces first, loads validated weights once on CUDA, decorates actual prediction with `@spaces.GPU(duration=30)` and exposes module-level `demo`.
+  - `demo.py`: optional prediction callback; local defaults, UI, output tuple and error handling unchanged. No dummy GPU callback or weakened device/checkpoint checks.
+  - Deployment instructions and regression tests updated; original CPU exports preserved.
+- Verification:
+  - Fresh isolated environment: `pytest -q -p no:cacheprovider tests/test_space_export.py` — 7 passed. Tests mock ZeroGPU registration/execution and verify real callback routing, CUDA startup, launch options, import order, pins and packaging.
+  - Shared UI function executed with mocked Gradio components: default/injected routing, three outputs, empty-video rejection and error conversion passed. Added corresponding real-Gradio pytest cases.
+  - Official ZeroGPU docs support PyTorch 2.9.1/Python 3.10; published Spaces 0.51.3 source confirms startup CUDA emulation and synchronous decorated-helper support. PyPI Linux torch metadata includes CUDA dependencies.
+  - All exported Python parses with Python 3.10 grammar. Black and staged/unstaged whitespace checks passed.
+  - New export: `implementation/runs/spaces_upload/20261020_n11bft8c/`; adjacent ZIP is 14,840,900 bytes, 15 files, exactly one requirements file, no bytecode. ZIP CRC/source equality checks passed.
+  - Checkpoint SHA256 unchanged: `f5f74e5badb5c1d5ad912bc4bbc1629e67b502be05b491af200ee8ed0d2eff61`. No research dependencies, weights, metadata or evidence changed.
+- Remaining issues:
+  - Real ZeroGPU execution needs a hosted rebuild; this laptop has no CUDA GPU. The old temporary ML environment has missing package files, so full real-Gradio/inference tests could not be rerun this turn. No successful GPU execution is claimed.
+  - Upload this new bundle, keep ZeroGPU selected, remove old CPU pins/index and obsolete `requirements-base.txt`, then factory rebuild. Changing a URL alone does not supply CUDA or register GPU inference.
+  - No commit/push, remote changes, retraining or test-set evaluation. Existing local app and staging preserved.

@@ -53,6 +53,14 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 
 ## Next tasks
 
+- [x] [098 three demo examples](../../agents/work/098-demo-example-videos/prompt.md) — original Normal/Fight/Pollution validation clips are clickable locally and in the Spaces bundle; no automatic GPU predictions or test-set access.
+- [x] [097 ZeroGPU deployment](../../agents/work/097-zerogpu-demo/prompt.md) — adapts the Spaces export to the user's available hardware; one pinned CUDA requirements file, real GPU prediction callback and unchanged local CPU demo. Hosted testing remains user-run.
+- [x] [096 Spaces compatibility](../../agents/work/096-spaces-python-compatibility/prompt.md) — Python 3.10-safe hashing, one standalone dependency file and an upload-ready ZIP; research requirements/weights unchanged.
+- [x] [095 simple demo / Spaces preparation](../../agents/work/095-simple-demo-spaces/prompt.md) — short emoji UI with author credit, collapsed technical details and a curated CPU Spaces export. [Deployment steps](implementation/README.md#deploy-to-hugging-face-spaces-095); no hosting action performed.
+- [x] [094 trained demo / Git LFS](../../agents/work/094-trained-demo-lfs/prompt.md) — imported Colab checkpoint is the local app default; curated weights and class/config metadata prepared for cloning. Original artifacts preserved; recorded validation accuracy 98.75%, no new test evaluation. Publication/deployment remain separate.
+- [x] [093 Colab demo training](../../agents/work/093-colab-demo-training/prompt.md) — one-cell GPU retraining of the selected model, Drive-saved weights/metadata, validation curves/examples and ZIP. The app remains local; real Colab training is user-run. See [instructions](implementation/README.md#train-this-model-on-colab-093).
+- [x] [091 local Gradio UI](../../agents/work/091-local-gradio-winner-demo/prompt.md) — uploads/examples and probabilities run locally in explicitly untrained UI-test mode. Winner-training JSON and checkpoint guards added; real winning weights are still unavailable and full training was not launched. See [commands](implementation/README.md#local-gradio-demo-091).
+- [ ] [092 five-minute presentation](../../agents/work/092-five-minute-results-presentation/prompt.md) — after 091 works locally: update the existing three-slide deck and speaker script with verified results and a demo fallback.
 - [x] [079 results/discussion revision](../../agents/work/079-aad-results-section-structure/completion.md) — owner-reviewed and accepted on 19 October 2026; setup, search graphs, comparison, confusion analysis and simplified plot titles are Done. Current 16-page draft builds. Other manuscript sections remain separate work.
 - [ ] [090 configurable methodology and baseline citations — later](../../agents/work/090-configurable-methodology-and-baseline-citations/prompt.md) — explain the configurable stack instead of obsolete hard-coded stages; cite comparison models in Methods. No implementation now.
 - [x] [084 transformer learning diagnosis](../../agents/work/084-diagnose-transformer-learning/completion.md) — no proven production bug. A separate [lower-LR follow-up](implementation/reports/2026-10-15/transformer-learning/follow-up.md) restores Swin3D-T learning locally (85.625% validation); Swin3D-S and final comparison remain unverified under that recipe.
@@ -78,7 +86,8 @@ it informs 075's candidate refinement without changing the 64-base-run budget.
 - [ ] [062 whole-paper alignment](../../agents/work/062-update-manuscript-after-aad-results/prompt.md) — align remaining abstract/introduction/conclusion claims after the results and methodology revisions; the AAD evidence is now available.
 - [x] [063 prepare PRIS 2026 flash presentation](../../agents/work/063-pris-2026-flash-presentation/prompt.md) — current three-slide deck and speaker notes are ready. Revisit after AAD results to add a verified results visual and useful model/example images.
 
-After final results, prepare a small Gradio demo for presentation.
+Ticket 091 implements the approved UI-first scope; trained-model verification
+remains separate. Ticket 092 is still a planning record and was not executed.
 
 ## Tasks
 

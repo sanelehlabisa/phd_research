@@ -1,118 +1,187 @@
-"""
-demo.py
-
-Quick demo: samples clips, runs inference, saves output videos.
-
-Author: Sanele Hlabisa
-
-python demo.py \
-    --dataset_dir "datasets/abnormal_activities" \
-    --checkpoint_path "models/best_model.pth" \
-    --convlstm-layer 8 3 3 \
-    --num_samples 8 \
-    --sequence_length 32 \
-    --height 64 \
-    --width 64
-"""
+"""Local Gradio demo using bundled weights; random UI tests require --random-weights."""
 
 from __future__ import annotations
 
 import argparse
-import random
+import json
+import os
 from pathlib import Path
 
-import torch
-import torchvision
+# The local demo does not need analytics or a public tunnel.
+os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
 
-from src.dataset import AHARDataset
-from src.model import (
-    CustomConvLSTM,
-    custom_model_from_checkpoint,
-    parse_layer_arguments,
+from src.demo_inference import (
+    BUNDLED_CHECKPOINT,
+    BUNDLED_METADATA,
+    DemoPredictor,
+    WINDOW_NOTE,
 )
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--dataset_dir", type=str, default="datasets/abnormal_activities")
-parser.add_argument("--checkpoint_path", type=str, default="models/best_model.pth")
-parser.add_argument("--num_samples", type=int, default=8)
-parser.add_argument("--sequence_length", type=int, default=32)
-parser.add_argument("--height", type=int, default=64)
-parser.add_argument("--width", type=int, default=64)
-parser.add_argument("--fps", type=int, default=8)
-parser.add_argument("--seed", type=int, default=None)
-parser.add_argument(
-    "--convlstm-layer",
-    action="append",
-    nargs=3,
-    type=int,
-    metavar=("FILTERS", "KERNEL_HEIGHT", "KERNEL_WIDTH"),
-    help="Repeat for each CustomConvLSTM layer, for example: 8 3 3",
-)
-parser.add_argument("--hidden-classifier-width", type=int, default=None)
+ROOT = Path(__file__).resolve().parent
 
 
-def main() -> None:
-    args = parser.parse_args()
-    if args.seed is not None:
-        random.seed(args.seed)
+def bundled_examples(root: Path = ROOT) -> list[str]:
+    """Return up to three bundled MP4 files in a stable display order."""
+    return [
+        str(path.resolve())
+        for path in sorted((root / "demo_assets/examples").glob("*.mp4"))
+        if path.is_file()
+    ][:3]
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    dataset = AHARDataset(
-        args.dataset_dir, args.sequence_length, (args.height, args.width)
+
+def validation_previews(root: Path = ROOT, limit: int = 3) -> list[str]:
+    """Find local historical validation previews for random-weight UI tests only."""
+    examples: list[str] = []
+    manifests = sorted(
+        root.glob("runs/experiments/*/models/*/predictions/predictions.json")
     )
-    checkpoint_path = Path(args.checkpoint_path)
-    if not checkpoint_path.is_file():
-        raise FileNotFoundError(f"checkpoint not found: {checkpoint_path}")
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
-    try:
-        model = custom_model_from_checkpoint(checkpoint).to(device)
-    except (KeyError, RuntimeError, TypeError, ValueError) as error:
-        raise SystemExit(f"Checkpoint is incompatible: {error}") from error
-    layers = parse_layer_arguments(args.convlstm_layer)
-    if args.convlstm_layer is not None and model.layers != layers:
-        raise SystemExit("Checkpoint layers do not match --convlstm-layer values")
-    if (
-        args.hidden_classifier_width is not None
-        and model.hidden_classifier_width != args.hidden_classifier_width
-    ):
-        raise SystemExit(
-            "Checkpoint hidden width does not match --hidden-classifier-width"
-        )
-    if model.num_classes != dataset.num_classes:
-        raise SystemExit("Checkpoint class count does not match the dataset")
-    epoch = int(checkpoint.get("epoch", 0))
-    loss = float(checkpoint.get("loss", float("inf")))
-    print(f"📂 Checkpoint → epoch={epoch}, loss={loss:.4f}")
-    model.eval()
+    for path in manifests:
+        try:
+            metadata = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if metadata.get("partition") != "validation":
+            continue
+        for category in ("correct", "incorrect"):
+            for video in sorted((path.parent / category).glob("*.mp4")):
+                examples.append(str(video.resolve()))
+                if len(examples) >= limit:
+                    return examples
+    return examples
 
-    out_dir = Path("outputs") / "demo_samples"
-    out_dir.mkdir(parents=True, exist_ok=True)
 
-    indices = random.sample(range(len(dataset)), min(args.num_samples, len(dataset)))
-    print("\n🎬 Predictions\n" + "─" * 48)
+def build_app(
+    predictor: DemoPredictor, examples: list[str] | None = None, *, predict_fn=None
+):
+    """Build the UI; an optional callback can allocate a GPU per prediction."""
+    import gradio as gr
 
-    with torch.inference_mode():
-        for idx in indices:
-            frames, true_label = dataset[idx]
-            probs = torch.softmax(model(frames.unsqueeze(0).to(device)), dim=1)[0]
-            pred_label = probs.argmax().item()
-            pred_conf = probs[pred_label].item()
+    run_prediction = predictor.predict if predict_fn is None else predict_fn
 
-            true_name = dataset.class_names[true_label]
-            pred_name = dataset.class_names[pred_label]
-            correct = pred_label == true_label
+    def predict(video):
+        if not video:
+            raise gr.Error("Upload a video or select an example first.")
+        try:
+            result = run_prediction(video)
+        except (ValueError, OSError, RuntimeError) as error:
+            raise gr.Error(str(error)) from error
+        return result["probabilities"], result["sampling"], result["status"]
 
-            print(
-                f"  {'✅' if correct else '❌'} true: {true_name:<18} pred: {pred_name:<18} conf: {pred_conf:.2f}"
+    with gr.Blocks(
+        title="Video Activity Recognition",
+        analytics_enabled=False,
+        delete_cache=(3600, 3600),
+    ) as app:
+        gr.Markdown("# 🎬 Video Activity Recognition\nBy Sanele Hlabisa")
+        gr.Markdown("Upload a video, then click **Predict**.")
+        if predictor.mode == "random":
+            gr.Markdown("⚠️ UNTRAINED — UI test only. Predictions are random.")
+        with gr.Row():
+            video = gr.Video(label="📹 Video", sources=["upload"])
+            probabilities = gr.Label(
+                label="📊 Predictions",
+                num_top_classes=len(predictor.class_names),
             )
+        button = gr.Button("🔍 Predict", variant="primary")
+        if examples:
+            gr.Examples(
+                examples=[[p] for p in examples],
+                inputs=[video],
+                cache_examples=False,
+                label="🎞️ Try an example",
+            )
+        with gr.Accordion("ℹ️ Model details", open=False):
+            gr.Markdown(
+                "ConvLSTM [64, 64, 128] · 1,336,459 parameters  \n"
+                "8 RGB frames · 16 FPS · 64 × 64 pixels  \n" + WINDOW_NOTE
+            )
+            status = gr.Textbox(
+                label="Checkpoint", value=predictor.status, interactive=False
+            )
+            sampling = gr.JSON(label="Sampling details")
+            if examples:
+                gr.Markdown(
+                    "Examples are illustrations, not an accuracy evaluation. "
+                    "Use original videos; historical previews may already be processed."
+                )
+        button.click(
+            predict,
+            inputs=[video],
+            outputs=[probabilities, sampling, status],
+            api_name="predict",
+            concurrency_limit=1,
+        )
+        gr.Markdown(
+            "First 0.44 seconds only · Research demo · Scores are not calibrated."
+        )
+    return app
 
-            stem = Path(dataset.samples[idx][0]).stem
-            fname = f"{stem}_true-{true_name}_pred-{pred_name}_{'correct' if correct else 'wrong'}.mp4"
-            clip = (frames * 255).byte().permute(0, 2, 3, 1).cpu()
-            torchvision.io.write_video(str(out_dir / fname), clip, fps=args.fps)
-            print(f"       💾 {out_dir / fname}")
 
-    print(f"\n📁 Done → {out_dir}")
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--random-weights",
+        action="store_true",
+        help="Explicit untrained UI test; probabilities are not meaningful results.",
+    )
+    mode.add_argument(
+        "--checkpoint",
+        type=Path,
+        help="Compatible winner checkpoint; defaults to bundled Git LFS weights.",
+    )
+    parser.add_argument(
+        "--metadata",
+        type=Path,
+        help="Matching run config.json; bundled by default, otherwise inferred.",
+    )
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    parser.add_argument("--port", type=int, default=7860)
+    parser.add_argument(
+        "--example",
+        type=Path,
+        action="append",
+        default=[],
+        help="Local video; repeatable.",
+    )
+    args = parser.parse_args(argv)
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
+    if args.random_weights and args.metadata:
+        parser.error("--metadata applies only to a trained checkpoint")
+    if args.checkpoint is None and not args.random_weights:
+        args.checkpoint = BUNDLED_CHECKPOINT
+        if args.metadata is None:
+            args.metadata = BUNDLED_METADATA
+    return args
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    predictor = DemoPredictor(
+        checkpoint=args.checkpoint,
+        metadata=args.metadata,
+        random_weights=args.random_weights,
+        device=args.device,
+    )
+    examples = []
+    for path in args.example:
+        if not path.is_file():
+            raise SystemExit(f"Example video not found: {path}")
+        examples.append(str(path.resolve()))
+    if not examples:
+        examples = validation_previews() if args.random_weights else bundled_examples()
+    print(predictor.status, flush=True)
+    print(WINDOW_NOTE, flush=True)
+    app = build_app(predictor, examples)
+    app.queue(default_concurrency_limit=1, max_size=8).launch(
+        server_name="127.0.0.1",
+        server_port=args.port,
+        share=False,
+        inbrowser=False,
+        max_file_size="200mb",
+        allowed_paths=examples,
+    )
 
 
 if __name__ == "__main__":

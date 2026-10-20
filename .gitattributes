@@ -1,0 +1,2 @@
+# Curated demo checkpoint only; historical runs and datasets remain ignored.
+papers/001-journal-abnormal-activity-recognition/implementation/demo_assets/winner/best_model.pth filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,23 @@
+# Completion
+
+- Status: Done
+- Summary: Completed the approved UI-first scope on 20 October 2026. Gradio is running locally at `http://127.0.0.1:7860` in explicitly labelled **untrained random-weight mode**, not with the paper's trained checkpoint.
+- Changes:
+  - Replaced the old dataset-sampling `demo.py` with a local upload/example UI, class probabilities, model-status warnings and sampling details.
+  - Added `src/demo_inference.py`: exact [64,64,128] architecture, shared timestamp preprocessing, guarded checkpoint/label/input loading, explicit reproducible random mode and no silent fallback.
+  - Added a pinned optional `requirements-demo.txt` (`gradio==6.30.0`); existing experiment dependencies/runners remain unchanged.
+  - Added `configs/experiments/aad_demo_selected_local.json` and documented a single-model local train-only command, metadata/checkpoint paths and launch instructions.
+  - Used three existing original **training-split** videos (Normal Videos, Fight, Hijack) as live UI examples. No test evaluation, new dataset copy or committed video/weights.
+  - Updated the guides; manuscript, evidence, saved notebooks, slide deck and presentation script were not changed.
+- Verification:
+  - `python -m pytest -q -p no:cacheprovider tests/test_demo_inference.py tests/test_demo_ui.py tests/test_demo_training_config.py tests/test_video_reader.py`: **24 passed, 12 subtests passed**.
+  - Tests check archived winner recipe/parameter count, unchanged split assignments, offline config inspection, class/input/hash guards, sampler parity/padding, actual synthetic-video CPU inference, UI mode warnings and localhost-only launch.
+  - Live Gradio upload API accepted an original training video, decoded its 29.97-FPS source to eight 16-FPS samples and returned 11 finite probabilities summing to one, with the untrained warning retained.
+  - `pip check`: no broken requirements. `git diff --check`: passed. Listener verified on `127.0.0.1:7860`, not a public address.
+  - Launched with the existing local verification environment at `C:/Users/hlabi/AppData/Local/Temp/phd077-verify-b246b6f7/Scripts/python.exe`. Live listener PID was `16100`; startup parent PID `11936`. Logs are ignored under `implementation/runs/demo/ui/gradio-20261020.*.log`.
+- Remaining issues:
+  - Original winning checkpoint is absent. Compatible trained loading was checked with a clearly synthetic test fixture, not recovered research weights. The running app does not reproduce or demonstrate the reported 99.379% accuracy.
+  - Local AAD cache has all 1,069 expected videos, but this inspected environment has CPU-only PyTorch and no CUDA GPU. Full training was not necessary for the UI test and was not launched. The supplied recipe may be slow/memory-intensive on CPU.
+  - Only the initial 0–0.4375-second sampled window is classified. No full-video/streaming or calibrated-confidence claim.
+  - UI structure and live API were checked; visual browser review is left to the user. Hugging Face deployment and ticket 092 remain untouched.
+  - No commit or push.

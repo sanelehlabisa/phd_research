@@ -32,8 +32,27 @@ Other sections still require separate alignment; no deployment/generalization
 certification is implied.
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Existing run folders stay local and are
-not included in source commits. A Gradio presentation demo is a later task,
-after model selection and verified results.
+not included in source commits. [091: the local-only Gradio demo](agents/work/091-local-gradio-winner-demo/prompt.md)
+supports uploads/examples and guarded checkpoint loading.
+[094](agents/work/094-trained-demo-lfs/prompt.md) now defaults to the owner's
+Colab-retrained checkpoint, with one curated weight file prepared in Git LFS.
+Its recorded validation accuracy is 98.75%; no new test score is claimed.
+The original October 16 checkpoint remains unavailable; explicit random mode
+is retained only for UI testing.
+[093](agents/work/093-colab-demo-training/prompt.md) adds a
+[one-cell GPU training notebook/export](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/train_demo_winner_colab.py)
+for that model only, with Drive-saved weights/metadata and validation previews.
+The app stays local; no search or test evaluation is rerun.
+[095](agents/work/095-simple-demo-spaces/prompt.md) simplifies the UI and prepares
+a small, upload-ready Hugging Face Spaces folder. Nothing is deployed automatically.
+[096](agents/work/096-spaces-python-compatibility/prompt.md) adds Python 3.10-safe
+checkpoint loading and a ZIP with one standalone Spaces requirements file.
+[097](agents/work/097-zerogpu-demo/prompt.md) updates that export for ZeroGPU,
+with CUDA dependencies and GPU-decorated inference; local CPU use is unchanged.
+[098](agents/work/098-demo-example-videos/prompt.md) bundles three small validation
+video examples for the local demo and Spaces; no test data or metrics changed.
+[092: the five-minute presentation](agents/work/092-five-minute-results-presentation/prompt.md)
+remains deferred.
 
 Tickets 057–061 established configurable datasets/classes, separate search and
 comparison profiles, aligned the guides, and made the Colab notebook a thin

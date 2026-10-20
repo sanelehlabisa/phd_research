@@ -1,0 +1,136 @@
+{
+  "checkpoint_sha256": "f5f74e5badb5c1d5ad912bc4bbc1629e67b502be05b491af200ee8ed0d2eff61",
+  "class_names": [
+    "Begging",
+    "Drunkenness",
+    "Fight",
+    "Harassment",
+    "Hijack",
+    "Knife Hazard",
+    "Normal Videos",
+    "Pollution",
+    "Property Damage",
+    "Robbery",
+    "Terrorism"
+  ],
+  "model": {
+    "model_name": "CustomConvLSTM",
+    "num_classes": 11,
+    "input_channels": 3,
+    "layers": [
+      {
+        "filters": 64,
+        "kernel_size": [
+          3,
+          3
+        ]
+      },
+      {
+        "filters": 64,
+        "kernel_size": [
+          3,
+          3
+        ]
+      },
+      {
+        "filters": 128,
+        "kernel_size": [
+          3,
+          3
+        ]
+      }
+    ],
+    "dropout": 0.5,
+    "hidden_classifier_width": null
+  },
+  "experiment_config": {
+    "dataset_name": "aad",
+    "dataset_dir": "/root/.cache/kagglehub/datasets/sanelehlabisa/abnormal-activities-dataset/versions/2/abnormal-activities-dataset",
+    "runs_dir": "/content/phd_demo_20261020_180207_cc690696",
+    "split_manifest": "splits/abnormal-activities-dataset_seed42.json",
+    "split_seed": 42,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "seed": 42,
+    "sequence_length": 8,
+    "height": 64,
+    "width": 64,
+    "convlstm_layers": [
+      [
+        64,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        64,
+        [
+          3,
+          3
+        ]
+      ],
+      [
+        128,
+        [
+          3,
+          3
+        ]
+      ]
+    ],
+    "hidden_classifier_width": null,
+    "epochs": 256,
+    "early_stopping_patience": 32,
+    "batch_size": 32,
+    "prediction_samples": 5,
+    "prediction_samples_per_category": 5,
+    "learning_rate": 0.001,
+    "weight_decay": 0,
+    "augment": false,
+    "cache_dataset": true,
+    "num_workers": 0,
+    "pin_memory": true,
+    "optimizer": "adam",
+    "loss": "cross_entropy",
+    "scheduler": "reduce_on_plateau",
+    "target_fps": 16,
+    "sampling_version": "timestamps_v1"
+  },
+  "split": {
+    "manifest_hash": "aada503d63d4433b272237db6cf27d7b1c0eaeb0091d5ba8289343a6111454d8",
+    "inventory_hash": "0421be571cfcf1dbf30aa9edfa0ebb8a649fbe0dcec533772cfbab970674d3a4",
+    "seed": 42,
+    "counts": {
+      "train": 748,
+      "validation": 160,
+      "test": 161,
+      "total": 1069
+    },
+    "split_level": "clip"
+  },
+  "checkpoint_selection": {
+    "role": "validation_selected_lowest_loss",
+    "partition": "validation",
+    "metric": "loss",
+    "selected_epoch": 172,
+    "actual_epochs": 204
+  },
+  "validation_metrics": {
+    "loss": 0.29073849208652974,
+    "accuracy": 0.987500011920929,
+    "precision": 0.987500011920929,
+    "recall": 0.987500011920929,
+    "f1": 0.987500011920929
+  },
+  "test_access": "locked",
+  "provenance": {
+    "description": "Fresh Colab demo retraining, not the original October 16 paper checkpoint. No test evaluation is claimed.",
+    "metadata_note": "Run-root config.json was not supplied. This metadata was reconstructed from the matching checkpoint sidecar, model metrics and ordered validation-confusion class names.",
+    "source_directory": "runs/demo/models/custom_convlstm_configured",
+    "checkpoint_timestamp": "2026-10-20T18:15:40.649378",
+    "sidecar_sha256": "1466260af5803ad3b97a5fcd2e3f8b863ab4b7c0ff39ce44f263d6264d297bb1",
+    "metrics_sha256": "269dfbaaab27c1bbc63b57852958ac9f2309981bbfd12e61d7556e5936e0bf2e",
+    "class_evidence_sha256": "4f21342b49cf5130d4d5e9d5062e49b6d69848fa5169d9be7199abb15e497a5c"
+  }
+}
