@@ -62,87 +62,92 @@ University of KwaZulu-Natal \\
 		Detection, Video Surveillance, Lightweight Deep Learning, Edge Computing.
 	\end{abstract}
 
-	% =============================
-	% Introduction
-	% =============================
-	\section{Introduction}
-	\label{sec:introduction}
+    % =============================
+    % Introduction
+    % =============================
+    \section{Introduction}
+    \label{sec:introduction}
 
-	Surveillance cameras are now widely deployed in public spaces such as shopping
-	malls, universities, transportation hubs, airports, and smart cities to improve
-	public safety and assist law enforcement agencies. However, continuously
-	monitoring large volumes of surveillance footage manually is labor-intensive,
-	time-consuming, and highly prone to human error, particularly in crowded and
-	dynamic environments \cite{arshad2022, mohan2019}. As a result, automated Human
-	Activity Recognition (HAR) and anomaly detection systems have become an
-	important research area in Computer Vision and Deep Learning (DL).
+    Surveillance cameras are widely deployed in shopping centres, universities, transport 
+    hubs, airports, and other public spaces to support safety and incident investigation. 
+    However, continuously monitoring several video streams requires sustained human 
+    attention and is labor-intensive, time-consuming, and susceptible to fatigue and 
+    missed events, particularly in crowded or dynamic 
+    environments~\cite{arshad2022,mohan2019}. These limitations create a need for 
+    automated systems that can assist operators by identifying relevant activities and 
+    prioritising video clips for review.
 
-	Recent advancements in DL have significantly improved the ability of automated 
-	systems to analyze video data and identify suspicious activities \cite{ozyer2021,
-	khan2022}. Advanced architectures such as Three-Dimensional Convolutional Neural
-	Network (3D CNN), Convolutional Long Short-Term Memory (ConvLSTM) networks,
-	and Transformer models have demonstrated strong performance in learning spatial
-	and temporal patterns from video sequences \cite{vrskova2022, challa2021}. These
-	models enable modern surveillance systems to recognize complex abnormal activities
-	such as fighting, theft, robbery, and violent behavior without relying heavily on
-	handcrafted features.
+    Human Activity Recognition (HAR) is the task of identifying human actions from 
+    observed data. In video-based HAR, a sequence of frames is analysed to capture both 
+    appearance within individual frames and changes over time~\cite{ozyer2021,khan2022}. 
+    Abnormal human activity recognition is a surveillance-focused subset of HAR concerned 
+    with activities such as fighting, robbery, harassment, property damage, and 
+    weapon-related threats. In this study, the problem is formulated as supervised 
+    multiclass classification, where each surveillance clip is assigned to one predefined 
+    normal or abnormal activity class. Camera-based recognition is suitable for public 
+    environments because a single system can observe several people and their surrounding 
+    context without requiring each person to carry a sensor.
 
-	Despite these advancements, anomaly detection in surveillance videos remains a
-	challenging task. Real-world surveillance footage often contains low-resolution
-	frames, noise, illumination changes, occlusions, camera motion, and complex
-	backgrounds that negatively affect model performance \cite{sunil2021, vrskova2022}.
-	Furthermore, many publicly available datasets are limited in diversity, contain
-	staged scenarios, or suffer from class imbalance, reducing the generalization
-	ability of trained models \cite{cheng2020, arshad2022}. Additionally, state-of-the-art 
-	architectures typically rely on massive parameter counts that demand immense 
-	computational power, rendering them impractical for real-time deployment on 
-	resource-constrained edge hardware. These compounded challenges highlight
-	the need for robust, lightweight deep learning methods capable of accurately and 
-	efficiently classifying anomalous activities across diverse real-world conditions.
+    Automated video-analysis systems increasingly use deep learning to learn spatial and 
+    temporal features directly from video rather than relying mainly on handcrafted 
+    descriptors. ConvLSTM networks preserve spatial feature maps while modelling temporal 
+    changes, 3D CNNs learn joint spatio-temporal filters, and video transformers use 
+    attention to model relationships across 
+    frames~\cite{xingjian2015convlstm,vrskova2022,tran2018closer,liu2022videoswin}. 
+    These model families have improved the recognition of complex activities and provide 
+    a basis for automated alerting, video prioritisation, and post-event analysis.
 
-	While existing deep learning models achieve high accuracy on benchmark datasets, 
-	their translation to practical surveillance systems is fundamentally hindered by 
-	a strict performance-efficiency trade-off. Current approaches either rely on 
-	lightweight but brittle handcrafted features \cite{arshad2022}, or deploy massive, 
-	computationally expensive 3D architectures that are unsuited for real-time edge 
-	computing \cite{sunil2021}. Furthermore, the inability of these heavy models to 
-	effectively generalize from small, noisy, and imbalanced datasets frequently 
-	results in unacceptable false-positive rates \cite{vrskova2022, dirgova2022, isik2026}. 
-	Therefore, the core problem addressed in this study is how to design and optimize 
-	a spatio-temporal network that matches or exceeds the classification accuracy of 
-	state-of-the-art multi-dimensional models, while strictly bounding the parameter 
-	count to enable efficient, real-time anomaly detection.
+    Despite this progress, abnormal activity recognition remains challenging. 
+    Surveillance footage may contain low resolution, noise, illumination changes, occlusion, 
+    camera motion, and complex backgrounds~\cite{sunil2021,vrskova2022}. Available datasets 
+    may also contain staged activities, limited class diversity, or imbalanced samples, 
+    which can reduce generalisation to unseen environments~\cite{cheng2020,arshad2022}. 
+    In addition, high-performing video architectures often contain millions of parameters 
+    and require substantial computation, limiting their suitability for continuous 
+    operation on resource-constrained hardware.
 
-	The main contributions of this research are summarized as follows:
+    The challenge is therefore not only to obtain high classification accuracy, but to 
+    balance recognition performance with model complexity. Existing studies commonly 
+    evaluate fixed architectures, leaving the effects of depth, filter width, and filter 
+    placement less clearly understood under a consistent protocol. A configurable 
+    architecture makes it possible to examine these design choices and identify where 
+    increasing model capacity stops producing meaningful performance gains.
 
-	\begin{itemize}
-		\item \textbf{Empirical Architecture Optimization:} We systematically 
-		reduced the parameter count of a baseline ConvLSTM architecture to establish
-		a minimum viable capacity. The resulting Custom ($64-32-16-64$) configuration 
-		achieves a $3.8 \times$ size reduction while simultaneously improving accuracy,
-		precision, recall, and F1-score.
-		
-		\item \textbf{Robust Regularization Strategy:} We implemented a highly optimized
-		training protocol combining single-choice spatial augmentations, weight decay,
-		and learning rate scheduling. This strategy successfully eliminates the severe
-		overfitting typically observed when training on small, domain-specific
-		surveillance datasets.
-		
-		\item \textbf{Superior Cross-Domain Generalization:} Through extensive grid-search
-		evaluation, we demonstrated that our lightweight ConvLSTM significantly 
-		outperforms computationally heavy 3D architectures (e.g., ResNet3D-18, 
-		ResNet-R2Plus1D-18) in both accuracy and false-positive resistance when applying
-		full-network fine-tuning across different datasets.
-	\end{itemize}
+    Accordingly, this study develops and evaluates a reconfigurable stacked ConvLSTM 
+    architecture to identify a compact model that maintains strong abnormal activity
+    recognition performance.
 
-	The remainder of this paper is organized as follows:
-	Section~\ref{sec:related-work} explores related work and existing techniques for human
-	activity recognition in surveillance video. Section~\ref{sec:proposed-method} details
-	the problem formulation, proposed lightweight ConvLSTM architecture, and training
-	procedure. Section~\ref{sec:results} presents the experimental
-	setup, empirical results, and a comparative discussion against state-of-the-art models.
-	Finally, Section~\ref{sec:conclusion} concludes the paper and outlines directions for
-	future research.
+    The main contributions of this research are as follows:
+
+    \begin{itemize}
+        \item \textbf{Reconfigurable ConvLSTM architecture:}
+        A modular stacked ConvLSTM model is developed with configurable recurrent 
+        depth, filter widths, and spatial kernels. Global spatial pooling and a 
+        compact classification head allow model capacity to be varied without 
+        creating a separate implementation for every architecture.
+
+        \item \textbf{Controlled architecture search:}
+        Thirty-two ConvLSTM configurations are evaluated under four temporal input 
+        settings, producing 128 validation-based search runs. The experiments 
+        examine recurrent depth, width, filter placement, frame count, and sampling 
+        rate while keeping the test set locked during model selection.
+
+        \item \textbf{Performance--complexity evaluation:}
+        Five selected ConvLSTM configurations are compared with an adapted reference 
+        ConvLSTM, two 3D CNNs, and two video transformers retrained from scratch. The 
+        selected \texttt{ConvLSTM[64,64,128]} achieves 99.379\% test accuracy and a 
+        macro F1-score of 99.172\% using 1,336,459 trainable parameters, providing 
+        the strongest observed performance--complexity trade-off under the 
+        evaluated protocol.
+    \end{itemize}
+
+    The remainder of this paper is organized as follows. Section~\ref{sec:related-work} 
+    reviews existing HAR datasets and model families and motivates the selection of 
+    ConvLSTM. Section~\ref{sec:proposed-method} presents the problem formulation, 
+    reconfigurable architecture, and training procedure. Section~\ref{sec:results} 
+    describes the experimental setup, architecture search, comparative evaluation, 
+    and discussion. Finally, Section~\ref{sec:conclusion} concludes the paper and 
+    outlines future research directions.
 
     % =============================
     % Related Work
