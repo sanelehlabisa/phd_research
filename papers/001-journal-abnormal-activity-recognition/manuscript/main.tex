@@ -901,33 +901,34 @@ University of KwaZulu-Natal \\
     measurements.
 
     \clearpage
-	% =============================
-	% Conclusion and Future Work
-	% =============================
-	\section{Conclusion and Future Work}
-	\label{sec:conclusion}
+    % =============================
+    % Conclusion and Future Work
+    % =============================
+    \section{Conclusion and Future Work}
+    \label{sec:conclusion}
 
-	This paper presented a lightweight ConvLSTM architecture for abnormal human activity 
-	recognition in surveillance video. Following an empirical capacity search from the 
-	original 4M parameter baseline~\cite{vrskova2022}, the proposed Custom 
-	(64-32-16-64) configuration achieves 96.74\% accuracy on the 11-class LoDVP dataset 
-	and 88.57\% on the binary AIRTLab violence detection benchmark, matching or exceeding 
-	both the original ConvLSTM baseline and standard 3D CNN architectures at 1.28M 
-	parameters a 3.8$\times$ reduction. The combination of spatial augmentation, weight 
-	decay, learning rate scheduling, and cross-dataset fine-tuning proved effective in 
-	addressing the overfitting challenge posed by small surveillance datasets.
+    This study investigated lightweight deep-learning models for abnormal human activity 
+    recognition. Based on the related-work analysis, ConvLSTM was selected for its ability
+    to preserve spatial information while modelling temporal changes in video. A 
+    reconfigurable ConvLSTM family was then developed and evaluated by varying recurrent 
+    depth, filter width, and temporal input settings. The selected 
+    \texttt{ConvLSTM[64,64,128]} configuration, combined with global spatial pooling and 
+    a lightweight classifier, achieved 99.379\% test accuracy and a macro F1-score of 
+    99.172\% using 1,336,459 parameters. Under the evaluated protocol, it achieved the 
+    strongest observed performance among the selected ConvLSTM, 3D CNN, 
+    transformer, and adapted reference models, while using approximately 99\% 
+    fewer parameters than the adapted ConvLSTM baseline. These results demonstrate a strong
+    performance--complexity trade-off within the evaluated search space.
 
-	Error analysis revealed that a subset of misclassifications occur between visually 
-	similar classes such as Fight and Harassment, suggesting that some surveillance clips 
-	inherently contain overlapping behavioural cues from multiple categories. This points 
-	toward multi-label classification as a more appropriate formulation, where a clip is 
-	not forced into a single hard class assignment. Additionally, the current model operates 
-	on fixed-length short clips and does not retain context across clip boundaries,
-	incorporating long-term temporal memory through hierarchical recurrence or memory-augmented 
-	networks could improve recognition of activities that unfold over extended durations. 
-	Future work will explore attention-based temporal localization, multi-label reformulation,
-	and evaluation on the larger UCF-Crime benchmark to further validate generalization to
-	real-world surveillance conditions.
+    The deployment prototype also highlighted practical limitations of clip-level 
+    classification. Real surveillance videos may contain several activities at the same 
+    time, while fixed temporal windows may exclude relevant events or earlier context. 
+    Future work will therefore investigate multi-label recognition, continuous or overlapping
+    video windows, and the retention of recurrent state between consecutive windows. 
+    Convolutional variants of the gated recurrent unit introduced by Cho et 
+    al.~\cite{cho2014gru} will also be explored to determine whether simpler gating can 
+    further reduce recurrent complexity without compromising recognition performance. Direct 
+    measurements of inference latency, memory use.
 
 	% =============================
 	% References
