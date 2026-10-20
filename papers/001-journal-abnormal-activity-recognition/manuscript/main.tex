@@ -1,44 +1,40 @@
-\documentclass[11pt,a4paper]{article}
+% Review copy in the MDPI template; main.tex remains unchanged.
+% Replace the generic journal option once the target journal is confirmed.
+\documentclass[journal,article,submit,moreauthors]{Definitions/mdpi}
 
-% Packages
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{cite}
-\usepackage{hyperref}
-\usepackage{array}
+% MDPI publication metadata.
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\datereceived{ }
+\daterevised{ }
+\dateaccepted{ }
+\datepublished{ }
+
+% Additional packages and commands used by the manuscript.
 \usepackage{algorithm}
-\usepackage[margin=1in]{geometry}
-\usepackage{amssymb}
 \usepackage{algpseudocode}
-\usepackage{xcolor}
-\usepackage{titlesec}
-
 \newcommand{\R}{\mathbb{R}}
-% =============================
-% Title
-% =============================
-\title{
+
+\Title{
     A Lightweight ConvLSTM Architecture for Abnormal Human Activity Recognition
     in Surveillance Videos
 }
-\author{Sanele Hlabisa \\
-University of KwaZulu-Natal \\
-\texttt{218023135@stu.ukzn.ac.za}}
-\date{}
 
-\begin{document}
+% Author details intentionally omitted from this review copy.
+\Author{}
+\AuthorNames{}
+\address{}
+\corres{}
 
-	\maketitle
-
-    % =============================
-    % Abstract
-    % =============================
-    \begin{abstract}
-    The rapid deployment of surveillance cameras in urban environments demands
+\abstract{
+The rapid deployment of surveillance cameras in urban environments demands
     automated systems for identifying abnormal activities and assisting human
     operators. Manual monitoring remains labor-intensive and prone to human error,
     while complex video models can require substantial computational resources.
@@ -59,11 +55,11 @@ University of KwaZulu-Natal \\
     multiple activities may occur simultaneously in real surveillance footage.
     This motivates future work on multi-label activity recognition and continuous
     video analysis.
+}
+\keyword{Abnormal Activity Recognition, ConvLSTM, Video
+    Surveillance, Lightweight Deep Learning, Multi-label Classification.}
 
-    \par\medskip
-    \noindent\textbf{Keywords:} Abnormal Activity Recognition, ConvLSTM, Video
-    Surveillance, Lightweight Deep Learning, Multi-label Classification.
-    \end{abstract}
+\begin{document}
 
     % =============================
     % Introduction
@@ -942,7 +938,9 @@ University of KwaZulu-Natal \\
 	% References
 	% =============================
 
-	\bibliographystyle{IEEEtran}
-	\bibliography{references}
+	\begin{adjustwidth}{-\extralength}{0cm}
+    \reftitle{References}
+    \bibliography{references}
+\end{adjustwidth}
 
 \end{document}
