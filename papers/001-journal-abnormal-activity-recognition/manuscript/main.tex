@@ -34,33 +34,36 @@ University of KwaZulu-Natal \\
 
 	\maketitle
 
-	% =============================
-	% Abstract
-	% =============================
-	\begin{abstract}
-		The rapid deployment of surveillance cameras in urban environments demands
-		robust, automated systems for the real-time detection of abnormal activities
-		to ensure public safety. Traditional manual monitoring is inherently 
-		labor-intensive and highly prone to human error, particularly in crowded 
-		scenes. While existing deep learning models offer promising solutions, 
-		they frequently overfit due to excessive architectural complexity and 
-		the limited scale of available datasets, severely hindering generalization. 
-		Furthermore, multi-class video classification naturally demands significant
-		computational resources, highlighting an urgent need for smaller, highly 
-		efficient models. Consequently, we propose an optimization a lightweight
-		ConvLSTM architecture designed to effectively capture spatio-temporal
-		features while aggressively filtering static background noise. Our customized
-		ConvLSTM model achieved state-of-the-art efficiency and performance, with
-		precision, recall, F1-score, and accuracy averaging 96.15\%, 97.72\%, 97.43\%,
-		and 97.37\%, respectively, across the Abnormal Activities and AIRTLab Violence
-		Detection datasets. By drastically reducing parameter count without sacrificing
-		accuracy, this research demonstrates that highly optimized spatiotemporal 
-		networks are extremely viable, paving the way for scalable, real-time anomaly
-		detection on resource-constrained edge devices.
-		\par\medskip
-		\noindent \textbf{Keywords:} Abnormal Activity Recognition, ConvLSTM, Violence 
-		Detection, Video Surveillance, Lightweight Deep Learning, Edge Computing.
-	\end{abstract}
+    % =============================
+    % Abstract
+    % =============================
+    \begin{abstract}
+    The rapid deployment of surveillance cameras in urban environments demands
+    automated systems for identifying abnormal activities and assisting human
+    operators. Manual monitoring remains labor-intensive and prone to human error,
+    while complex video models can require substantial computational resources.
+    This study develops a reconfigurable convolutional long short-term memory
+    (ConvLSTM) architecture that combines configurable recurrent layers with global
+    spatial pooling and a lightweight classifier. A controlled search evaluated
+    32 architectures under four temporal input settings to identify a compact
+    model with strong recognition performance. The selected
+    \texttt{ConvLSTM[64,64,128]} achieved 99.379\% test accuracy, with
+    macro-averaged precision, recall, and F1-score of 99.242\%, 99.174\%, and
+    99.172\%, respectively, using 1,336,459 trainable parameters. It achieved the
+    highest observed test accuracy among the evaluated ConvLSTM, 3D CNN, and
+    video-transformer models while using approximately 99\% fewer parameters than
+    the adapted reference ConvLSTM. These results demonstrate that a carefully
+    configured stacked ConvLSTM can provide a strong balance between recognition
+    performance and model complexity. However, practical deployment also
+    highlighted the limitation of assigning only one label to each clip, since
+    multiple activities may occur simultaneously in real surveillance footage.
+    This motivates future work on multi-label activity recognition and continuous
+    video analysis.
+
+    \par\medskip
+    \noindent\textbf{Keywords:} Abnormal Activity Recognition, ConvLSTM, Video
+    Surveillance, Lightweight Deep Learning, Multi-label Classification.
+    \end{abstract}
 
     % =============================
     % Introduction
