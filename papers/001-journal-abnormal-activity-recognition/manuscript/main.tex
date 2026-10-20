@@ -318,205 +318,309 @@ University of KwaZulu-Natal \\
 	\section{Proposed Method}
 	\label{sec:proposed-method}
 
-	\subsection{Problem Formulation}
-	\label{sec:problem-formulation}
+    This section formulates the classification problem and presents 
+    the configurable ConvLSTM architecture and training procedure 
+    used in this study.
 
-    This work addresses the problem of classifying anomalous human activities in surveillance video through a spatio-temporal deep learning framework. Let a video be represented as an ordered sequence of $T$ frames,
+    \subsection{Problem Formulation}
+    \label{sec:problem-formulation}
+
+    This study treats abnormal activity recognition as a supervised 
+    $K$-class classification problem over fixed-length surveillance 
+    clips. Let a video be represented as an ordered sequence of 
+    $T$ frames,
 
     \begin{equation}
-        V = (f_1, f_2, \ldots, f_T), \qquad f_t \in \R^{H \times W \times C}, \quad t = 1, \ldots, T.
+        V = (f_1, f_2, \ldots, f_T), \qquad f_t \in 
+        \R^{H \times W \times C}, \quad t = 1, \ldots, T.
         \label{eq:video}
     \end{equation}
 
-    Each frame $f_t$ is an $H \times W$ image with $C$ channels. The task is to learn a mapping function $F$ that jointly encodes the spatial appearance within each frame and the temporal evolution across frames, and outputs a predicted activity label:
+    where each frame $f_t$ is an $H\times W$ image with $C$ channels.
+    The objective is to learn a mapping $F$ that captures both the 
+    spatial information within individual frames and the temporal
+    changes across the sequence, and then predicts one activity class:
 
     \begin{equation}
-        F : \R^{T \times H \times W \times C} \rightarrow y, \qquad y \in \mathcal{Y} = \{c_1, c_2, \ldots, c_K\},
+        F : \R^{T \times H \times W \times C} \rightarrow y, 
+        \qquad y \in \mathcal{Y} = \{c_1, c_2, \ldots, c_K\},
         \label{eq:mapping}
     \end{equation}
 
-    where $\mathcal{Y}$ is the predefined label set containing $K$ normal and anomalous activity classes. Internally, $F$ is decomposed into a feature-extraction stage $\varphi$ and a classification stage $g$, so that
+    Here, $\mathcal{Y}$ is the predefined label set containing $K$ 
+    normal and abnormal activity classes. The mapping $F$ is 
+    decomposed into a spatio-temporal feature extractor $\varphi$ 
+    and a classifier $g$:
 
     \begin{equation}
-        F(V) = g(\varphi(V)), \qquad \varphi : \R^{T \times H \times W \times C} \rightarrow \R^{d}, \quad g : \R^{d} \rightarrow \R^{K}.
+        F(V) = g(\varphi(V)), \qquad \varphi : \R^{T \times H 
+        \times W \times C} \rightarrow \R^{d}, \quad g : 
+        \R^{d} \rightarrow \R^{K}.
         \label{eq:decomposition}
     \end{equation}
 
-    Here $\varphi$ is realized by a convolutional recurrent encoder that produces a $d$-dimensional spatio-temporal embedding, and $g$ is a fully connected classifier that maps this embedding to class scores. During training, the parameters $\theta = \{\theta_\varphi, \theta_g\}$ of $\varphi$ and $g$ are jointly optimized (Section~\ref{sec:training}) so that the predicted class $\hat{y} = \arg\max_k\, g(\varphi(V))_k$ agrees with the ground-truth label $y$ over the training distribution.
+    The encoder $\varphi$ produces a $d$-dimensional representation
+    of the video, while $g$ maps this representation to $K$ class 
+    scores. Their parameters $\theta=\{\theta_\varphi,\theta_g\}$ 
+    are optimized jointly so that the predicted class
+    $\hat{y}=\arg\max_k g(\varphi(V))_k$ agrees with the 
+    ground-truth label.
 
-    This formulation motivates the architectural choice made in Section~\ref{sec:architecture}: because $\varphi$ must model both intra-frame spatial patterns (posture, object interaction) and inter-frame temporal dynamics (motion, sequence progression) within a single differentiable function, a ConvLSTM is adopted so that $\varphi$ performs joint spatio-temporal representation learning rather than treating the two aspects with separate, disjoint models.
+    Based on the related-work analysis, $\varphi$ is implemented 
+    using ConvLSTM because it preserves spatial feature maps while 
+    modelling temporal changes across successive frames.
 
-    \subsection{Model Architecture}
+    \subsection{Reconfigurable Model Architecture}
     \label{sec:architecture}
 
-    Following prior evidence that ConvLSTM effectively couples spatial and temporal
-    feature learning~\cite{xingjian2015convlstm,vrskova2022,
-    vrskova2023_3dcnn_convlstm}, the proposed encoder $\varphi$ stacks five stages:
-    (i) per-frame spatial feature extraction, (ii) temporal sequence modeling,
-    (iii) feature stabilization, (iv) spatial feature refinement, and
-    (v) classification. Each stage is formalized below.
+    The proposed method uses the established ConvLSTM cell~\cite{
+    xingjian2015convlstm,vrskova2022,vrskova2023_3dcnn_convlstm} 
+    within a configurable stacked architecture. Rather than 
+    introducing a new recurrent mechanism, the model allows the 
+    recurrent depth, filter widths, and spatial kernels to be 
+    varied while retaining the same input format and 
+    classification head.
 
-    The model consumes a mini-batch of clips of shape
+    An architecture is defined by the ordered layer list
+    $\mathcal{A}=((d_1,k_1),\ldots,(d_L,k_L))$, where $L$ is the 
+    number of ConvLSTM layers, $d_\ell$ is the number of filters, 
+    and $k_\ell$ specifies the kernel dimensions of layer $\ell$. 
+    The architecture search varies depth and width while keeping 
+    all kernels fixed at $3\times3$. The selected 
+    \texttt{ConvLSTM[64,64,128]} is one configuration from this 
+    family, identified through the experiments reported in 
+    Section~\ref{sec:results}.
+
+    The reference model of Vršková et al.~\cite{vrskova2022} 
+    uses a per-frame convolution, a single ConvLSTM layer, a 
+    post-recurrent convolution, and a large flattened dense 
+    classifier. In contrast, the proposed architecture feeds 
+    the frame sequence directly into a configurable ConvLSTM 
+    stack and applies global spatial pooling to the final 
+    hidden map before classification. This removes the large
+    flattened classifier and makes the classification head 
+    independent of the input resolution.
+
+    The model receives mini-batches of video clips with shape
 
     \begin{equation}
         (B, T, C, H, W),
         \label{eq:batch}
     \end{equation}
 
-    where $B$ is the batch size, $T$ the clip length, $C$ the channel count, and $H \times W$ the frame resolution.
-
-    \subsubsection{Stage 1 --- TimeDistributed spatial encoding}
-
-    A 2-D convolution with kernel $W_s$ is applied independently to every frame via
-    time distribution, sharing weights across the temporal axis, followed by a
-    rectified linear unit (ReLU) activation:
-
-    \begin{equation}
-        x_t = \mathrm{ReLU}(W_s * f_t + b_s), \qquad t = 1, \ldots, T.
-        \label{eq:stage1}
-    \end{equation}
-
-    Applying the same kernel at every time step keeps the parameter count independent of $T$ and produces a per-frame feature map sequence $(x_1, \ldots, x_T)$ that preserves frame order, which the recurrent stage below requires.
-
-    \subsubsection{Stage 2 --- ConvLSTM2D temporal modeling}
-
-    The frame-level features are passed to a ConvLSTM2D layer, which replaces the
-    fully connected products of a standard LSTM with convolutions so that the hidden
-    and cell states retain spatial structure.
+    where $B$ is the batch size, $T$ is the number of frames, 
+    $C$ is the number of channels, and $H\times W$ is the 
+    frame resolution. Frames are arranged in channel-first 
+    format during computation. Figure
+    ~\ref{fig:configurable-convlstm} summarizes the complete
+    processing pipeline.
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.8\textwidth]{figures/conv_lstm_architecture.jpg}
-        \caption{A single ConvLSTM cell and its gated state transitions, adapted
-        from Vrskova et al.~\cite{vrskova2022}.}
-        \label{fig:convlstm-cell}
+        \resizebox{\textwidth}{!}{%
+            $\boxed{\begin{gathered}
+                \text{Input clip}\\ T\times C\times H\times W
+            \end{gathered}}
+            \longrightarrow
+            \boxed{\begin{gathered}
+                \text{Configurable ConvLSTM stack}\\
+                (d_1,k_1),\ldots,(d_L,k_L)
+            \end{gathered}}
+            \longrightarrow
+            \boxed{\begin{gathered}
+                \text{Final hidden map}\\
+                \text{Global spatial averaging}
+            \end{gathered}}
+            \longrightarrow
+            \boxed{\begin{gathered}
+                \text{Dropout}\\ \text{Linear classifier}
+            \end{gathered}}$%
+        }
+        \caption{Reconfigurable ConvLSTM architecture.}
+        \label{fig:configurable-convlstm}
     \end{figure}
 
-    Figure~\ref{fig:convlstm-cell} shows how one ConvLSTM cell combines the current
-    spatial input $x_t$ with the previous hidden and cell states. Its gates control what
-    information is retained in $C_t$ and exposed through $H_t$, preserving spatial
-    structure while accumulating temporal context.
+    \subsubsection{Stage 1 --- Configurable recurrent stack}
 
-    At each time step $t$, the cell operations are defined as
+    The first ConvLSTM layer processes the RGB frame sequence 
+    directly. Each subsequent layer receives the complete 
+    sequence of hidden feature maps produced by the 
+    preceding layer:
+    
+    \begin{equation}
+        x_t^{(\ell)} =
+        \begin{cases}
+            f_t, & \ell=1,\\
+            H_t^{(\ell-1)}, & \ell>1.
+        \end{cases}
+        \label{eq:stack-input}
+    \end{equation}
+
+    For a single layer, with the layer index omitted for 
+    clarity, the ConvLSTM state is updated using the 
+    following operations:
 
     \begin{align}
-        i_t &= \sigma\big(W_{xi} * x_t + W_{hi} * H_{t-1} + W_{ci} \circ C_{t-1} + b_i\big), \label{eq:input_gate} \\
-        f_t &= \sigma\big(W_{xf} * x_t + W_{hf} * H_{t-1} + W_{cf} \circ C_{t-1} + b_f\big), \label{eq:forget_gate} \\
-        C_t &= f_t \circ C_{t-1} + i_t \circ \tanh\big(W_{xc} * x_t + W_{hc} * H_{t-1} + b_c\big), \label{eq:cell_state} \\
-        o_t &= \sigma\big(W_{xo} * x_t + W_{ho} * H_{t-1} + W_{co} \circ C_t + b_o\big), \label{eq:output_gate} \\
-        H_t &= o_t \circ \tanh(C_t). \label{eq:hidden_state}
+        i_t &= \sigma\big(W_{xi} * x_t + W_{hi} * H_{t-1} 
+        + b_i\big), \label{eq:input_gate} \\
+        f_t &= \sigma\big(W_{xf} * x_t + W_{hf} * H_{t-1} 
+        + b_f\big), \label{eq:forget_gate} \\
+        C_t &= f_t \circ C_{t-1} + i_t \circ \tanh\big(
+            W_{xc} * x_t + W_{hc} * H_{t-1} + b_c\big), 
+            \label{eq:cell_state} \\
+        o_t &= \sigma\big(W_{xo} * x_t + W_{ho} * H_{t-1}
+         + b_o\big), \label{eq:output_gate} \\
+        H_t &= o_t \circ \tanh(C_t). 
+        \label{eq:hidden_state}
     \end{align}
 
-    Here ``$*$'' denotes convolution, ``$\circ$'' the Hadamard product, and
-    $\sigma(\cdot)$ the logistic sigmoid. The final hidden state $H_T$ summarizes the
-    full clip.
+    Here, $\ast$ denotes convolution, $\circ$ denotes the 
+    Hadamard product, and $\sigma(\cdot)$ is the logistic 
+    sigmoid function. The convolutional gates update the 
+    hidden and cell states while preserving the spatial 
+    dimensions of the input feature maps.
 
-    \subsubsection{Stage 3 --- Batch normalization}
+    Intermediate ConvLSTM layers return all $T$ hidden 
+    maps so that the next layer can continue modelling 
+    the temporal sequence. Only the final layer returns
+    its last hidden map,
+    $H_T^{(L)}\in\R^{d_L\times H\times W}$, for 
+    classification. Hidden and cell states are initialized 
+    to zero for each video clip and are not carried between 
+    independently processed clips.
 
-    To stabilize the distribution of activations entering the next convolution, batch normalization is applied channel-wise over the mini-batch:
+
+    \subsubsection{Stage 2 --- Global spatial pooling}
+
+    The final ConvLSTM hidden map is reduced by averaging 
+    each feature channel across its spatial dimensions:
 
     \begin{equation}
-        z = \gamma \cdot \frac{H_T - \mu}{\sqrt{\sigma^2 + \varepsilon}} + \beta,
-        \label{eq:batchnorm}
+        v_j = \frac{1}{HW}\sum_{a=1}^{H}\sum_{b=1}^{W}
+        \big(H_T^{(L)}\big)_{j,a,b},
+        \qquad j=1,\ldots,d_L.
+        \label{eq:pooling}
     \end{equation}
 
-    where $\mu$ and $\sigma^2$ are the batch mean and variance of $H_T$, and $\gamma, \beta$ are learned scale and shift parameters. This reduces internal covariate shift and, empirically, allows a higher learning rate without divergence.
+    This produces the embedding $v=\varphi(V)\in\R^{d_L}$ 
+    without flattening every spatial location. Consequently, 
+    the classifier input depends only on the width of the 
+    final ConvLSTM layer rather than on the frame resolution. 
+    This is the main architectural change responsible for 
+    reducing the size of the classification head.
 
-    \subsubsection{Stage 4 --- Spatial feature refinement}
+    \subsubsection{Stage 3 --- Lightweight classification head}
 
-    A second 2-D convolution refines the normalized spatio-temporal feature map:
+    The pooled representation is regularized using dropout with 
+    rate $p=0.5$ during training:
 
     \begin{equation}
-        x' = \mathrm{ReLU}(W_r * z + b_r),
-        \label{eq:stage4}
-    \end{equation}
-
-    followed by dropout, applied element-wise with rate $p$ during training:
-
-    \begin{equation}
-        x'' = m \circ x' / (1 - p), \qquad m_j \sim \mathrm{Bernoulli}(1 - p).
+        \tilde{v} = m\circ v/(1-p), \qquad
+        m_j\sim\mathrm{Bernoulli}(1-p).
         \label{eq:dropout1}
     \end{equation}
 
-    Inverted dropout scaling (division by $1-p$) keeps the expected activation magnitude unchanged at inference time, when no units are dropped.
-
-    \subsubsection{Stage 5 --- Classification head}
-
-    The refined feature map is flattened to a vector $v \in \R^{d}$ and passed through two fully connected layers:
+    A single fully connected layer then maps the pooled 
+    representation to $K$ class logits, while softmax converts 
+    the logits into class probabilities:
 
     \begin{align}
-        h &= \mathrm{Dropout}\big(\mathrm{ReLU}(W_1 v + b_1),\, p\big), \label{eq:fc1} \\
-        \hat{y} &= \mathrm{softmax}(W_2 h + b_2), \qquad \hat{y} \in \R^{K}. \label{eq:softmax}
+        z &= W_g\tilde{v}+b_g, \qquad z\in\R^K, \label{eq:fc1}\\
+        \hat{y} &= \mathrm{softmax}(z). \label{eq:softmax}
     \end{align}
 
-    with the hidden layer set to 256 units, matching Algorithm~\ref{alg:convlstm}. The softmax output $\hat{y}$ is the estimated posterior over the $K$ activity classes, used both for prediction ($\hat{y}_{\mathrm{class}} = \arg\max_k \hat{y}_k$) and for the loss in Section~\ref{sec:training}.
+    During inference, dropout is disabled and $\tilde{v}=v$. The 
+    predicted class is obtained from $\arg\max_k z_k$. The 
+    implementation returns the logits directly because the 
+    cross-entropy loss applies the corresponding log-softmax 
+    operation internally. No additional hidden dense layer is 
+    used in the reported configurable models.
 
-    Relative to transformer or 3-D CNN alternatives, this architecture's convolutional--recurrent inductive bias constrains the hypothesis space it can represent. That constraint is intentional here: with the modestly sized surveillance datasets used in this study, it lets $\varphi$ and $g$ be learned reliably without large-scale pretraining, at the cost of the longer-range temporal modeling capacity that attention-based alternatives would offer on larger data.
-
-    \begin{algorithm}[h]
-        \caption{Proposed ConvLSTM Forward Pass}
+    \begin{algorithm}[htbp]
+        \caption{Reconfigurable ConvLSTM Forward Pass}
         \label{alg:convlstm}
         \begin{algorithmic}[1]
-            \Require Clip $V = (f_1, \ldots, f_T)$, $f_t \in \R^{H \times W \times C}$
-            \Require Parameters $\theta = \{W_s, b_s,\ \text{ConvLSTM weights},\ \gamma, \beta,\ W_r, b_r,\ W_1, b_1,\ W_2, b_2\}$
-            \Ensure Predicted class label $\hat{y}_{\mathrm{class}}$
-            \For{$t = 1$ \textbf{to} $T$} \Comment{Stage 1: per-frame spatial encoding, Eq.~\eqref{eq:stage1}}
-                \State $x_t \gets \mathrm{ReLU}(\mathrm{Conv2D}(f_t; W_s, b_s))$
+            \Require Clip $V=(f_1,\ldots,f_T)$; ordered layers 
+            $\mathcal{A}$;
+            parameters $\theta$; dropout rate $p$
+            \Ensure Class logits $z$
+            \For{$\ell=1$ \textbf{to} $L$}
+                \State $H_0^{(\ell)},C_0^{(\ell)}\gets 0,0$
+                \For{$t=1$ \textbf{to} $T$}
+                    \State Select $x_t^{(\ell)}$ using 
+                    Eq.~\eqref{eq:stack-input}
+                    \State $(H_t^{(\ell)},C_t^{(\ell)})\gets
+                        \mathrm{ConvLSTMCell}_{\ell}
+                        (x_t^{(\ell)},H_{t-1}^{(\ell)},C_{t-1}^{(\ell)})$
+                \EndFor
             \EndFor
-            \State $H_0, C_0 \gets 0, 0$
-            \For{$t = 1$ \textbf{to} $T$} \Comment{Stage 2: ConvLSTM2D recurrence, Eqs.~\eqref{eq:input_gate}--\eqref{eq:hidden_state}}
-                \State $i_t, f_t, o_t \gets \textsc{Gates}(x_t, H_{t-1}, C_{t-1})$
-                \State $C_t \gets f_t \circ C_{t-1} + i_t \circ \tanh(\mathrm{Conv}(x_t, H_{t-1}))$
-                \State $H_t \gets o_t \circ \tanh(C_t)$
-            \EndFor
-            \State $z \gets \mathrm{BatchNorm}(H_T; \gamma, \beta)$ \Comment{Stage 3, Eq.~\eqref{eq:batchnorm}}
-            \State $x' \gets \mathrm{ReLU}(\mathrm{Conv2D}(z; W_r, b_r))$ \Comment{Stage 4, Eq.~\eqref{eq:stage4}}
-            \State $x'' \gets \mathrm{Dropout}(x', p)$ \Comment{Eq.~\eqref{eq:dropout1}}
-            \State $v \gets \mathrm{Flatten}(x'')$
-            \State $h \gets \mathrm{Dropout}(\mathrm{ReLU}(W_1 v + b_1),\, p)$ \Comment{Stage 5, Eq.~\eqref{eq:fc1}}
-            \State $\hat{y} \gets \mathrm{Softmax}(W_2 h + b_2)$ \Comment{Eq.~\eqref{eq:softmax}}
-            \State $\hat{y}_{\mathrm{class}} \gets \arg\max_k \hat{y}[k]$
-            \State \Return $\hat{y}_{\mathrm{class}}$
+            \State $v\gets\mathrm{SpatialMean}(H_T^{(L)})$
+            \State $\tilde{v}\gets\mathrm{Dropout}(v,p)$
+                \Comment{Training only; otherwise $\tilde{v}=v$}
+            \State $z\gets W_g\tilde{v}+b_g$
+            \State \Return $z$
         \end{algorithmic}
     \end{algorithm}
 
-    Lines 1--3 correspond to Stage 1 (Eq.~\eqref{eq:stage1}), lines 5--9 to Stage 2 (Eqs.~\eqref{eq:input_gate}--\eqref{eq:hidden_state}), line 10 to Stage 3 (Eq.~\eqref{eq:batchnorm}), lines 11--12 to Stage 4 (Eqs.~\eqref{eq:stage4}--\eqref{eq:dropout1}), and lines 13--16 to Stage 5 (Eqs.~\eqref{eq:fc1}--\eqref{eq:softmax}), giving a one-to-one correspondence between the algorithm and the equations defining $\varphi$ and $g$ in Section~\ref{sec:architecture}.
+    Algorithm~\ref{alg:convlstm} summarizes the shared forward pass. 
+    Changing the layer list $\mathcal{A}$ modifies the depth and width 
+    of the recurrent encoder without requiring a separate implementation 
+    for every architecture evaluated in Section~\ref{sec:results}.
 
     \subsection{Training Procedure}
     \label{sec:training}
 
-    The network is trained end-to-end in a supervised setting on labeled activity clips $\{(V^{(n)}, y^{(n)})\}_{n=1}^{N}$, where $y^{(n)}$ is a one-hot encoding of the ground-truth class over $K$ categories. The objective is the categorical cross-entropy loss
+    The network is trained end-to-end using labelled video clips
+    $\{(V^{(n)},y^{(n)})\}_{n=1}^{N}$, where $y^{(n)}$ is the 
+    ground-truth class represented as a one-hot vector over $K$ 
+    categories. Training minimizes the categorical cross-entropy loss:
 
     \begin{equation}
-        L_{CE}(\theta) = -\frac{1}{N} \sum_{n=1}^{N} \sum_{k=1}^{K} y_k^{(n)} \log \hat{y}_k^{(n)}(\theta),
+        L_{CE}(\theta) = -\frac{1}{N} \sum_{n=1}^{N} 
+        \sum_{k=1}^{K} y_k^{(n)} \log \hat{y}_k^{(n)}(\theta),
         \label{eq:crossentropy}
     \end{equation}
 
-    where $y_k^{(n)}$ is the $k$-th entry of the ground-truth one-hot vector for sample $n$, and $\hat{y}_k^{(n)}(\theta) = g(\varphi(V^{(n)}))_k$ is the corresponding predicted probability from Eq.~\eqref{eq:softmax}. This objective is well suited to multi-class classification because it penalizes low predicted probability mass on the true class more heavily as that probability approaches zero.
+    Here, $y_k^{(n)}$ is the ground-truth value for class $k$, while
+    $\hat{y}_k^{(n)}(\theta)$ is the predicted probability obtained 
+    from Eq.~\eqref{eq:softmax}. Cross-entropy penalizes low 
+    probability assigned to the correct class and is appropriate 
+    for the mutually exclusive multiclass task considered in this study.
 
-    To further discourage overfitting, an $L_2$ weight-decay term is added to the objective:
+    An optional $L_2$ weight-decay term can be added to the objective:
 
     \begin{equation}
         L(\theta) = L_{CE}(\theta) + \lambda \lVert \theta \rVert_2^2,
         \label{eq:regularized}
     \end{equation}
 
-    with weight-decay coefficient $\lambda$ controlling the strength of the $L_2$ penalty on the network parameters $\theta$.
+    The coefficient $\lambda$ controls the strength of regularization 
+    applied to the network parameters. The reported experiments use 
+    $\lambda=0$, and therefore optimize only the cross-entropy term.
 
-    Parameters are updated with Adam, which maintains exponential moving averages of the gradient (first moment) and its square (second moment) for adaptive, per-parameter step sizes:
+    Model parameters are updated using Adam, which maintains moving 
+    estimates of the first and second moments of the gradient:
 
     \begin{align}
         m_t &= \beta_1 m_{t-1} + (1-\beta_1) g_t, \qquad
         v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2, \label{eq:adam1} \\
         \hat{m}_t &= \frac{m_t}{1-\beta_1^{t}}, \qquad
         \hat{v}_t = \frac{v_t}{1-\beta_2^{t}}, \label{eq:adam2} \\
-        \theta_t &= \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \varepsilon}, \label{eq:adam3}
+        \theta_t &= \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} 
+        + \varepsilon}, \label{eq:adam3}
     \end{align}
 
-    where $g_t = \nabla_\theta L(\theta_{t-1})$ is the gradient at step $t$, $\eta$ is the learning rate, and $\beta_1, \beta_2$ control the decay rates of the moment estimates. Dropout (Eqs.~\eqref{eq:dropout1}, \eqref{eq:fc1}) is active only during this training procedure and is disabled at inference, when the model uses the full network deterministically.
+    In these equations, $g_t=\nabla_\theta L(\theta_{t-1})$ is the 
+    gradient at training step $t$, $\eta$ is the learning rate, and 
+    $\beta_1$ and $\beta_2$ control the decay of the moment estimates. 
+    Dropout from Eq.~\eqref{eq:dropout1} is enabled only during training.
 
-    Together, Eqs.~\eqref{eq:crossentropy}--\eqref{eq:adam3} specify the complete optimization procedure: at each training step, a mini-batch of clips is forward-propagated through Algorithm~\ref{alg:convlstm} to obtain $\hat{y}$, the regularized loss~\eqref{eq:regularized} is computed, gradients are back-propagated through every stage of Section~\ref{sec:architecture}, and parameters are updated via the Adam rule~\eqref{eq:adam1}--\eqref{eq:adam3} until convergence.
-
+    For each mini-batch, the clips are passed through 
+    Algorithm~\ref{alg:convlstm}, the loss is computed, and gradients are
+    propagated through the recurrent encoder and classification head. 
+    Training continues until the configured epoch limit or validation-based 
+    stopping condition is reached. The exact training settings and model 
+    selection procedure are reported in Section~\ref{sec:experimental-setup}.
 
     % =============================
     % Experimental Results and Discussion
