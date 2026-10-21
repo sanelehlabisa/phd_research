@@ -35,9 +35,10 @@ def passed_trace():
 
 
 def test_notebook_export_parity():
-    path = ROOT / "notebooks/aad_frame_depth_workflow"
-    export = path.with_suffix(".py").read_text(encoding="utf-8")
-    notebook = matrix.read_json(path.with_suffix(".ipynb"))
+    export = (ROOT / "notebooks/scripts/08_aad_frame_depth_workflow.py").read_text(
+        encoding="utf-8"
+    )
+    notebook = matrix.read_json(ROOT / "notebooks/08_aad_frame_depth_workflow.ipynb")
     code = "".join(
         "".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "code"
     )

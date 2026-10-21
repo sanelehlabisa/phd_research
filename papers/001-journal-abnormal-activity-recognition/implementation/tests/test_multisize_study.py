@@ -679,7 +679,7 @@ def test_zip_rejects_missing_completed_checkpoint(tmp_path):
 def test_notebook_download_stage_never_bootstraps_or_trains(monkeypatch):
     import ast
 
-    notebook = matrix.read_json(ROOT / "notebooks/aad_experiment_workflow.ipynb")
+    notebook = matrix.read_json(ROOT / "notebooks/06_aad_experiment_workflow.ipynb")
     code = "".join(
         next(c["source"] for c in notebook["cells"] if c["cell_type"] == "code")
     )

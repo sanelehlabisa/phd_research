@@ -8,8 +8,8 @@ from notebooks.utils import aad_study
 
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK = ROOT / "notebooks/aad_experiment_workflow.ipynb"
-EXPORT = ROOT / "notebooks/aad_experiment_workflow.py"
+NOTEBOOK = ROOT / "notebooks/06_aad_experiment_workflow.ipynb"
+EXPORT = ROOT / "notebooks/scripts/06_aad_experiment_workflow.py"
 
 
 def test_batch_size_selection_requires_safety_and_material_speedup():

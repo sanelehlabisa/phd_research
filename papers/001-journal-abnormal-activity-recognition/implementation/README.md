@@ -4,6 +4,28 @@ Code for the [journal paper](../README.md). It now provides a small, explicit
 family of ConvLSTM architectures for controlled comparison—not an unrestricted
 hyperparameter grid.
 
+## Notebooks and exports
+
+Notebook names are numbered; existing Python exports use the same basename in
+[`notebooks/scripts/`](notebooks/scripts/). Paste a complete export into one
+Colab cell. Notebook-only helpers stay in `notebooks/utils/`.
+
+| Notebook | Purpose |
+|---|---|
+| [01_dataset_setup](notebooks/01_dataset_setup.ipynb) | Dataset preview |
+| [02_model_inspection](notebooks/02_model_inspection.ipynb) | Inspect model shapes and predictions |
+| [03_train_model](notebooks/03_train_model.ipynb) | Single-model diagnostic training |
+| [04_run_experiments](notebooks/04_run_experiments.ipynb) | Legacy Kinetics diagnostics |
+| [05_aad_train_and_evaluate](notebooks/05_aad_train_and_evaluate.ipynb) | Legacy selected-study confirmation |
+| [06_aad_experiment_workflow](notebooks/06_aad_experiment_workflow.ipynb) | Legacy AAD search/comparison |
+| [07_aad_focused_workflow](notebooks/07_aad_focused_workflow.ipynb) | Focused AAD search/comparison |
+| [08_aad_frame_depth_workflow](notebooks/08_aad_frame_depth_workflow.ipynb) | AAD frame/depth campaign |
+| [09_train_demo_winner_colab](notebooks/09_train_demo_winner_colab.ipynb) | Train the AAD winner for the demo |
+| [10_train_demo_kinetics_colab](notebooks/10_train_demo_kinetics_colab.ipynb) | Train the same architecture on Kinetics |
+
+09 and 10 train separately; they do not rerun architecture search or transfer
+AAD accuracy claims to new weights or datasets.
+
 ## Current roadmap
 
 [091 local Gradio demo](../../../agents/work/091-local-gradio-winner-demo/prompt.md)
@@ -50,8 +72,8 @@ console-derived search, ranks ten custom configurations and keeps final test
 results blank. It informed [077 focused A100 rerun](../../../agents/work/077-focused-aad-colab-rerun/prompt.md),
 16 architectures at 32/64px and 8/16 FPS (64 jobs), then [076 fixed ten-model comparison](../../../agents/work/076-aad-shortlist-comparison/prompt.md).
 [078 figure improvements](../../../agents/work/078-aad-ablation-figures/prompt.md) follow the new evidence.
-Use the new [focused notebook](notebooks/aad_focused_workflow.ipynb) or
-[matching Python export](notebooks/aad_focused_workflow.py) for 077 -> 076.
+Use the new [focused notebook](notebooks/07_aad_focused_workflow.ipynb) or
+[matching Python export](notebooks/scripts/07_aad_focused_workflow.py) for 077 -> 076.
 The existing notebook still runs 075; its saved outputs and profiles are unchanged.
 See [077 verification](../../../agents/work/077-focused-aad-colab-rerun/completion.md)
 and [076 verification](../../../agents/work/076-aad-shortlist-comparison/completion.md).
@@ -272,8 +294,8 @@ cell expecting this new 128-job campaign.
 
 ### Current Run All (089): Drive first, search, comparison and test
 
-Open [aad_frame_depth_workflow.ipynb](notebooks/aad_frame_depth_workflow.ipynb),
-or paste the entire [matching Python export](notebooks/aad_frame_depth_workflow.py)
+Open [08_aad_frame_depth_workflow.ipynb](notebooks/08_aad_frame_depth_workflow.ipynb),
+or paste the entire [matching Python export](notebooks/scripts/08_aad_frame_depth_workflow.py)
 into one Colab A100 cell. No stage toggles or manual result directories:
 
 1. Safe checkout update, pinned dependencies and CUDA check. If packages need
@@ -455,8 +477,8 @@ class-folder path and classes discovered from its folders. Preserve historical
 VDD runs, but do not treat runs lacking the current split, seeds, metrics and
 provenance as comparable new evidence. Kinetics notebooks are exploratory
 diagnostics, not part of the active AAD paper study. The active notebook is
-[`aad_experiment_workflow.ipynb`](notebooks/aad_experiment_workflow.ipynb), with
-a matching [Python export](notebooks/aad_experiment_workflow.py).
+[`06_aad_experiment_workflow.ipynb`](notebooks/06_aad_experiment_workflow.ipynb), with
+a matching [Python export](notebooks/scripts/06_aad_experiment_workflow.py).
 
 ## Model context
 
@@ -546,7 +568,7 @@ not architecture-equivalent reproductions.
 
 ### Preserved automatic study (075)
 
-Open `aad_experiment_workflow.ipynb` or its matching Python export on Colab.
+Open `06_aad_experiment_workflow.ipynb` or its matching `scripts/` Python export on Colab.
 Keep `WORKFLOW_STAGE = "all"`: paths, selected FPS and training settings pass
 internally; no manual stage toggles. After setup, the equivalent command is:
 
@@ -728,8 +750,8 @@ stratification does not establish source-group independence.
 
 ### Run and resume
 
-The [active notebook](notebooks/aad_experiment_workflow.ipynb) and matching
-[Python export](notebooks/aad_experiment_workflow.py) support:
+The [active notebook](notebooks/06_aad_experiment_workflow.ipynb) and matching
+[Python export](notebooks/scripts/06_aad_experiment_workflow.py) support:
 
 - `WORKFLOW_STAGE = "all"` (default): wide/deep 075 search, verified handoff, comparison,
   validation freeze, one-time test/examples and ZIP. No manually supplied paths.
@@ -899,13 +921,13 @@ the current search/comparison notebook and is not used by the active profiles.
 Keep its linked runs, dataset and split manifest available at their recorded
 paths when using it for later final training/evaluation.
 
-The matching [plain-Python export](notebooks/05_aad_train_and_evaluate.py) uses
+The matching [plain-Python export](notebooks/scripts/05_aad_train_and_evaluate.py) uses
 the same setup, pinned requirements and GPU check. From the Colab implementation
 directory, run:
 
 ```bash
 AAD_STUDY_RUN_DIR="runs/studies/<completed-run>" \
-  python notebooks/05_aad_train_and_evaluate.py
+  python notebooks/scripts/05_aad_train_and_evaluate.py
 ```
 
 The notebook contains no magics, so a normal Python export or one-cell copy
@@ -972,7 +994,7 @@ its separate model manifest at
 
 | Notebook | End-to-end workflow |
 |---|---|
-| [AAD experiments](notebooks/aad_experiment_workflow.ipynb) | Default Run All: focused search, comparison, frozen test, examples and ZIP without manual stage/path handoff |
+| [06 AAD experiments](notebooks/06_aad_experiment_workflow.ipynb) | Default Run All: focused search, comparison, frozen test, examples and ZIP without manual stage/path handoff |
 | [01 Dataset](notebooks/01_dataset_setup.ipynb) | Split summary; the same training video at native FPS, sampled FPS, then augmented |
 | [02 Model](notebooks/02_model_inspection.ipynb) | Architecture, parameter count, one random-weight prediction, playable labelled video and probabilities |
 | [03 Training](notebooks/03_train_model.ipynb) | Train/validate one model, live epoch curves, restore the selected checkpoint, show five validation predictions |
@@ -1441,8 +1463,8 @@ as the local folder. Authentication is interactive; do not put a token in code.
 
 ### Train this model on Colab (093)
 
-Upload [train_demo_winner_colab.ipynb](notebooks/train_demo_winner_colab.ipynb),
-or paste the complete [Python export](notebooks/train_demo_winner_colab.py)
+Upload [09_train_demo_winner_colab.ipynb](notebooks/09_train_demo_winner_colab.ipynb),
+or paste the complete [Python export](notebooks/scripts/09_train_demo_winner_colab.py)
 into one Colab cell. Select a GPU (A100 recommended), run, and authorize Drive.
 No stage toggles or local-demo commit/push are required for the pasted script.
 
@@ -1459,6 +1481,26 @@ All ML runs in fresh subprocesses, avoiding stale kernel imports after setup.
 Rerunning starts fresh, not a resume. Interrupted writes can damage a checkpoint;
 Drive storage is not an uninterrupted-runtime guarantee. New weights do not
 inherit the paper's score. Local tests verify orchestration, not real Colab training.
+
+### Train the selected architecture on Kinetics
+
+Use [10_train_demo_kinetics_colab.ipynb](notebooks/10_train_demo_kinetics_colab.ipynb)
+or its [one-cell Python export](notebooks/scripts/10_train_demo_kinetics_colab.py).
+It uses the public `sanelehlabisa/kinetics-400-dataset` copy, keeps the selected
+`[64,64,128]` architecture, and infers all available classes rather than using an
+AAD class list. Training and its saved artifacts are separate from the AAD demo.
+This is a larger-dataset diagnostic, not new evidence for the current AAD paper.
+
+Defaults: 32 epochs maximum, 8 minimum, patience 8; eight `64x64` frames at
+16 FPS, batch 32, and no decoded RAM cache. Edit the three budget constants at
+the top of the notebook/export to change the run length. The first timestamp
+audit reads training/validation clips before epoch 1 and can take time.
+
+Publish this notebook/scripts update before running 10 on Colab: it pulls the
+shared 09 runner from `master`. Weights, actual labels, split, curves, confusion
+matrix, prediction examples and ZIP save separately to
+`MyDrive/phd_demo_kinetics/<run>/`. Kinetics labels differ, so these weights
+cannot replace the deployed AAD app's checkpoint.
 
 ## Setup and commands
 

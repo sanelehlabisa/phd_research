@@ -850,13 +850,15 @@ def test_strict_decode_failure_cannot_substitute_another_partition(protocol):
 
 
 def test_notebook_source_matches_export_and_new_entry_is_explicit():
-    book = study_matrix.read_json(ROOT / "notebooks/aad_experiment_workflow.ipynb")
+    book = study_matrix.read_json(ROOT / "notebooks/06_aad_experiment_workflow.ipynb")
     source = "".join(
         c["source"] if isinstance(c["source"], str) else "".join(c["source"])
         for c in book["cells"]
         if c["cell_type"] == "code"
     )
-    script = (ROOT / "notebooks/aad_experiment_workflow.py").read_text(encoding="utf-8")
+    script = (ROOT / "notebooks/scripts/06_aad_experiment_workflow.py").read_text(
+        encoding="utf-8"
+    )
     assert source.strip() == script.removeprefix("# In[ ]:\n").strip()
     assert 'WORKFLOW_STAGE = "all"' in source
     assert "run_full_aad_study(IMPLEMENTATION_ROOT)" in source

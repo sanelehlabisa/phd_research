@@ -63,7 +63,7 @@ def winner_config(local_runs):
     }
 
 
-def prepare_storage():
+def prepare_storage(storage_name="phd_demo"):
     """Verify Drive before training; route only experiment outputs there."""
     from google.colab import drive
 
@@ -76,9 +76,9 @@ def prepare_storage():
         + "_"
         + uuid.uuid4().hex[:8]
     )
-    destination = my_drive / "phd_demo" / run_id
+    destination = my_drive / storage_name / run_id
     destination.mkdir(parents=True, exist_ok=False)
-    local_runs = CONTENT_ROOT / f"phd_demo_{run_id}"
+    local_runs = CONTENT_ROOT / f"{storage_name}_{run_id}"
     local_runs.mkdir(exist_ok=False)
     # The shared runner stores its decoded cache under runs_dir/cache.
     # A local symlink sends only runs_dir/experiments to Drive, never that cache.
@@ -97,7 +97,7 @@ def prepare_storage():
     return local_runs, destination
 
 
-def train_command(config_path):
+def train_command(config_path, minimum_epochs=128, run_label="demo-selected-colab"):
     """Use the existing validation-only trainer, with no study/search/test stage."""
     return [
         sys.executable,
@@ -107,15 +107,18 @@ def train_command(config_path):
         "--config",
         str(config_path),
         "--minimum-epochs",
-        "128",
+        str(minimum_epochs),
         "--run-label",
-        "demo-selected-colab",
+        run_label,
         "--matched-training-evaluation",
         "--per-class-reporting",
     ]
 
 
-def save_bundle(run_dir, local_runs, destination, root):
+def save_bundle(
+    run_dir, local_runs, destination, root, *, split_manifest=None,
+    purpose=None, app_launch=True,
+):
     """Keep the checkpoint beside its class/config metadata for the local app."""
     model_dir = run_dir / "models" / MODEL
     checkpoint = model_dir / "checkpoints/best_model.pth"
@@ -136,22 +139,38 @@ def save_bundle(run_dir, local_runs, destination, root):
         raise RuntimeError(
             "Training is incomplete; retained files are not a final bundle."
         )
-    shutil.copy2(
-        root / "splits/abnormal-activities-dataset_seed42.json",
-        run_dir / "split_manifest.json",
+    split_source = Path(
+        split_manifest or manifest.get("split_manifest")
+        or "splits/abnormal-activities-dataset_seed42.json"
     )
+    if not split_source.is_absolute():
+        split_source = root / split_source
+    shutil.copy2(split_source, run_dir / "split_manifest.json")
+    inventory = destination / "dataset_inventory.json"
+    if inventory.is_file():
+        shutil.copy2(inventory, run_dir / inventory.name)
     receipt = {
-        "purpose": "Fresh demo retraining; not the archived paper checkpoint/score.",
+        "purpose": purpose or "Fresh demo retraining; not the archived paper checkpoint/score.",
         "test_access": "locked",
         "checkpoint": str(checkpoint.relative_to(run_dir)),
         "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
         "metadata": "config.json",
         "git_revision": manifest.get("git_revision"),
-        "local_launch_after_extracting_into_implementation_runs_demo": (
+    }
+    if app_launch:
+        receipt["local_launch_after_extracting_into_implementation_runs_demo"] = (
             f'python demo.py --checkpoint "runs/demo/{run_dir.name}/'
             f'models/{MODEL}/checkpoints/best_model.pth"'
-        ),
-    }
+        )
+    else:
+        config = json.loads((run_dir / "resolved_config.json").read_text(encoding="utf-8"))
+        checkpoint_metadata = json.loads(checkpoint.with_suffix(".json").read_text(encoding="utf-8"))
+        receipt.update({
+            "dataset_name": config["dataset_name"],
+            "class_names": checkpoint_metadata["class_names"],
+            "split_manifest": "split_manifest.json",
+            "app_compatible": False,
+        })
     (run_dir / "demo_bundle.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8"
     )
@@ -178,10 +197,10 @@ def save_bundle(run_dir, local_runs, destination, root):
         f"Saved bundle: {archive} ({archive.stat().st_size / 1024**2:.1f} MiB)",
         flush=True,
     )
-    print(
-        receipt["local_launch_after_extracting_into_implementation_runs_demo"],
-        flush=True,
-    )
+    if app_launch:
+        print(receipt["local_launch_after_extracting_into_implementation_runs_demo"], flush=True)
+    else:
+        print("Separate label task; these weights do not load in the deployed AAD demo.", flush=True)
     return archive
 
 
@@ -208,12 +227,18 @@ def show_validation_preview(run_dir):
         display(Video(row["path"], embed=True))
 
 
-def train_demo_on_colab():
+def train_demo_on_colab(
+    *, config_factory=None, dataset_setup=None, minimum_epochs=128,
+    run_label="demo-selected-colab", storage_name="phd_demo",
+    purpose=None, app_launch=True, update_checkout=True,
+):
     """Mount/check Drive, install, train once on GPU, package and preview."""
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-    local_runs, destination = prepare_storage()
+    local_runs, destination = (
+        prepare_storage() if storage_name == "phd_demo" else prepare_storage(storage_name)
+    )
     REPO_ROOT.parent.mkdir(parents=True, exist_ok=True)
-    if not (REPO_ROOT / ".git").is_dir():
+    if update_checkout and not (REPO_ROOT / ".git").is_dir():
         if REPO_ROOT.exists() and any(REPO_ROOT.iterdir()):
             raise RuntimeError(
                 f"{REPO_ROOT} is not an empty Git checkout; files preserved."
@@ -221,12 +246,13 @@ def train_demo_on_colab():
         subprocess.run(
             ["git", "clone", "--branch", "master", REPO_URL, str(REPO_ROOT)], check=True
         )
-    else:
+    elif update_checkout:
         subprocess.run(
             ["git", "pull", "--ff-only", "origin", "master"], cwd=REPO_ROOT, check=True
         )
     root = REPO_ROOT / "papers/001-journal-abnormal-activity-recognition/implementation"
-    missing = [name for name in REQUIRED_FILES if not (root / name).is_file()]
+    required = REQUIRED_FILES if dataset_setup is None else REQUIRED_FILES[:-1]
+    missing = [name for name in required if not (root / name).is_file()]
     if missing:
         raise RuntimeError(f"Checkout is missing required training files: {missing}")
     bootstrap = subprocess.run(
@@ -253,24 +279,40 @@ def train_demo_on_colab():
         cwd=root,
         check=True,
     )
+    config = (config_factory or winner_config)(local_runs)
+    if dataset_setup is not None:
+        config = dataset_setup(root, destination, config)
+    if not 1 <= minimum_epochs <= config["epochs"]:
+        raise ValueError("minimum_epochs must be between 1 and the epoch cap")
     config_path = destination / "training_config.json"
     config_path.write_text(
-        json.dumps(winner_config(local_runs), indent=2) + "\n", encoding="utf-8"
+        json.dumps(config, indent=2) + "\n", encoding="utf-8"
     )
     print(
         "ONE fresh [64,64,128] model; 8 frames, 64x64, 16 FPS. "
-        "128 minimum / 256 maximum epochs, validation-loss selection. "
+        f"{minimum_epochs} minimum / {config['epochs']} maximum epochs, validation-loss selection. "
         "Test stays locked. Rerunning starts a NEW training, not a resume.\n"
         f"Checkpoints/metrics are written to Drive during training: {destination}",
         flush=True,
     )
-    subprocess.run(train_command(config_path), cwd=root, check=True)
+    command = (
+        train_command(config_path)
+        if minimum_epochs == 128 and run_label == "demo-selected-colab"
+        else train_command(config_path, minimum_epochs, run_label)
+    )
+    subprocess.run(command, cwd=root, check=True)
     runs = sorted(
         path.parent for path in (destination / "experiments").glob("*/run.json")
     )
     if len(runs) != 1:
         raise RuntimeError(f"Expected exactly one training run, found {len(runs)}.")
-    archive = save_bundle(runs[0], local_runs, destination, root)
+    if app_launch and purpose is None:
+        archive = save_bundle(runs[0], local_runs, destination, root)
+    else:
+        archive = save_bundle(
+            runs[0], local_runs, destination, root,
+            split_manifest=config["split_manifest"], purpose=purpose, app_launch=app_launch,
+        )
     # Saving succeeds before optional browser/UI operations.
     try:
         show_validation_preview(runs[0])

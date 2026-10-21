@@ -423,7 +423,7 @@ def test_notebook_contracts_and_controlled_reference_snapshot():
             assert "prepare_data(IMPLEMENTATION_ROOT)" in source
         assert "RUN_" not in source and "controlled_stage_command" not in source
         assert "requirements.txt" in source
-    aad_notebook = root / "notebooks" / "aad_experiment_workflow.ipynb"
+    aad_notebook = root / "notebooks" / "06_aad_experiment_workflow.ipynb"
     aad_source = json.loads(aad_notebook.read_text(encoding="utf-8"))
     aad_code = [cell for cell in aad_source["cells"] if cell["cell_type"] == "code"]
     assert len(aad_code) == 1

@@ -185,11 +185,13 @@ def test_compact_bundle_omits_weights_and_retains_restart_metadata(tmp_path):
 
 
 def test_new_notebook_export_parity_and_download_marker_scope(tmp_path, monkeypatch):
-    nb = matrix.read_json(ROOT / "notebooks/aad_focused_workflow.ipynb")
+    nb = matrix.read_json(ROOT / "notebooks/07_aad_focused_workflow.ipynb")
     code = "\n".join(
         "".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"
     )
-    export = (ROOT / "notebooks/aad_focused_workflow.py").read_text(encoding="utf-8")
+    export = (ROOT / "notebooks/scripts/07_aad_focused_workflow.py").read_text(
+        encoding="utf-8"
+    )
     assert ast.dump(ast.parse(code)) == ast.dump(ast.parse(export))
     assert "run_focused_aad_study(root)" in code and 'pull", "--ff-only"' in code
     assert all(c.get("outputs", []) == [] for c in nb["cells"])

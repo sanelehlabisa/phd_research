@@ -24,7 +24,7 @@ def test_notebook_has_matching_plain_python_export():
     code = "\n\n".join(
         "".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "code"
     )
-    script = (ROOT / "notebooks/05_aad_train_and_evaluate.py").read_text()
+    script = (ROOT / "notebooks/scripts/05_aad_train_and_evaluate.py").read_text()
     assert script.strip() == code.strip()
     ast.parse(script)
     assert 'pull", "--ff-only"' in script and "reset" not in script

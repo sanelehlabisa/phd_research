@@ -31,8 +31,13 @@ through [079](agents/work/079-aad-results-section-structure/completion.md).
 Other sections still require separate alignment; no deployment/generalization
 certification is implied.
 Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
-CLI and model code remains in `src/`. Existing run folders stay local and are
-not included in source commits. [091: the local-only Gradio demo](agents/work/091-local-gradio-winner-demo/prompt.md)
+CLI and model code remains in `src/`. Notebooks use numbered names; their
+available Python exports live under `implementation/notebooks/scripts/`. See the
+[notebook index](papers/001-journal-abnormal-activity-recognition/implementation/README.md#notebooks-and-exports).
+The separate Kinetics winner notebook trains the selected architecture on its
+own inferred classes; it does not replace AAD paper evidence. Existing run folders
+stay local and are not included in source commits.
+[091: the local-only Gradio demo](agents/work/091-local-gradio-winner-demo/prompt.md)
 supports uploads/examples and guarded checkpoint loading.
 [094](agents/work/094-trained-demo-lfs/prompt.md) now defaults to the owner's
 Colab-retrained checkpoint, with one curated weight file prepared in Git LFS.
@@ -40,7 +45,7 @@ Its recorded validation accuracy is 98.75%; no new test score is claimed.
 The original October 16 checkpoint remains unavailable; explicit random mode
 is retained only for UI testing.
 [093](agents/work/093-colab-demo-training/prompt.md) adds a
-[one-cell GPU training notebook/export](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/train_demo_winner_colab.py)
+[one-cell GPU training notebook/export](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/scripts/09_train_demo_winner_colab.py)
 for that model only, with Drive-saved weights/metadata and validation previews.
 The app stays local; no search or test evaluation is rerun.
 [095](agents/work/095-simple-demo-spaces/prompt.md) simplifies the UI and prepares
@@ -103,8 +108,8 @@ reviews 131 console-derived search entries without final comparison/test results
 It informed the fresh [077 focused A100 rerun](agents/work/077-focused-aad-colab-rerun/prompt.md):
 16 architectures at two sizes/two FPS values, then [076 fixed finalist comparison](agents/work/076-aad-shortlist-comparison/prompt.md).
 [078](agents/work/078-aad-ablation-figures/prompt.md) covers clearer ablation figures/tally markers later; manuscript revision (062) follows verified results.
-The new focused runner is [aad_focused_workflow.ipynb](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_focused_workflow.ipynb),
-with a matching [copy-paste Python export](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_focused_workflow.py).
+The new focused runner is [07_aad_focused_workflow.ipynb](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/07_aad_focused_workflow.ipynb),
+with a matching [copy-paste Python export](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/scripts/07_aad_focused_workflow.py).
 It runs 64 search jobs then ten fresh comparison trainings automatically, with
 compact results backups. The old notebook/profiles and saved evidence remain unchanged.
 Implementation is [locally verified](agents/work/077-focused-aad-colab-rerun/completion.md).
@@ -141,7 +146,7 @@ four-condition top-five ranking, frame-aware reuse and verified results-only
 Drive-copy safeguards. Existing reports/notebooks remain unchanged; no real
 training or Drive upload was performed. See the implementation guide for CLI use.
 [089 Colab campaign](agents/work/089-colab-campaign-readiness/completion.md) adds the
-[new notebook](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/aad_frame_depth_workflow.ipynb)
+[new notebook](papers/001-journal-abnormal-activity-recognition/implementation/notebooks/08_aad_frame_depth_workflow.ipynb)
 and matching Python export: authorize Drive, verify a visible test file, run
 128 search jobs at 32px/128 epochs, five validation-only 64px checks, checked
 family-specific learning rates and ten fresh 64px/256-epoch comparisons,

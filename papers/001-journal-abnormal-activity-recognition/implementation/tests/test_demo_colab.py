@@ -16,8 +16,8 @@ from zipfile import ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPORT = ROOT / "notebooks/train_demo_winner_colab.py"
-NOTEBOOK = EXPORT.with_suffix(".ipynb")
+EXPORT = ROOT / "notebooks/scripts/09_train_demo_winner_colab.py"
+NOTEBOOK = ROOT / "notebooks/09_train_demo_winner_colab.ipynb"
 
 
 def load_export():
