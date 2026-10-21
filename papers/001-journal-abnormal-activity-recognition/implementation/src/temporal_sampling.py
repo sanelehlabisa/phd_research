@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 VERSION = "timestamps_v1"
+CLIP_VERSION = "timestamps_clip_v1"
 
 
 def timestamp_plan(timestamps, target_fps, count, source_fps=None, duration=None):
@@ -69,13 +70,16 @@ def timestamp_plan(timestamps, target_fps, count, source_fps=None, duration=None
 
 
 @lru_cache(maxsize=2048)
-def _video_timeline(path, size, modified_ns):
+def _video_timeline(path, size, modified_ns, stop_after=None):
     """Inspect train/validation PTS without materialising RGB video tensors."""
     import av
 
     timestamps = []
     last_duration = None
+    complete = True
     with av.open(str(path)) as container:
+        if not container.streams.video:
+            raise ValueError(f"No video stream: {path}")
         stream = container.streams.video[0]
         fps = float(stream.average_rate) if stream.average_rate else None
         for frame in container.decode(stream):
@@ -87,21 +91,48 @@ def _video_timeline(path, size, modified_ns):
                 if getattr(frame, "duration", 0)
                 else None
             )
+            if stop_after is not None and timestamps[-1] - timestamps[0] > stop_after + 1e-9:
+                complete = False
+                break
+    if not timestamps:
+        raise ValueError(f"No decodable video frames: {path}")
     duration = (
         timestamps[-1] - timestamps[0] + last_duration
         if timestamps and last_duration and last_duration > 0
         else None
     )
-    return tuple(timestamps), fps, duration
+    return tuple(timestamps), fps, duration, complete
 
 
-def video_plan(path, target_fps, count):
+def video_plan(path, target_fps, count, *, sampling_version=VERSION):
+    """Plan full-timeline sampling, or explicitly inspect only the needed prefix."""
+    if sampling_version not in {VERSION, CLIP_VERSION}:
+        raise ValueError("unsupported sampling_version")
+    if type(count) is not int or count < 1:
+        raise ValueError("frame count must be positive")
+    if type(target_fps) is not int or target_fps < 1:
+        raise ValueError("target FPS must be a positive integer")
     path = Path(path).resolve()
     stat = path.stat()
-    timestamps, fps, duration = _video_timeline(
-        str(path), stat.st_size, stat.st_mtime_ns
+    stop_after = (count - 1) / target_fps if sampling_version == CLIP_VERSION else None
+    timestamps, fps, duration, complete = _video_timeline(
+        str(path), stat.st_size, stat.st_mtime_ns, stop_after
     )
-    return timestamp_plan(timestamps, target_fps, count, fps, duration)
+    plan = timestamp_plan(timestamps, target_fps, count, fps, duration)
+    if sampling_version == CLIP_VERSION:
+        plan.update({
+            "sampling_version": CLIP_VERSION,
+            "source_complete": complete,
+            "audit_scope": "full_video" if complete else "requested_clip_prefix",
+            "observed_prefix_frame_count": len(timestamps),
+            "observed_prefix_span_seconds": timestamps[-1] - timestamps[0],
+            "observed_prefix_variable_frame_rate": plan["variable_frame_rate"],
+            "policy": "clip_start_zero; causal_zero_order_hold; repeat_last_after_eof; inspect_requested_prefix_only",
+        })
+        if not complete:
+            for field in ("source_frame_count", "source_duration_seconds", "variable_frame_rate"):
+                plan[field] = None
+    return plan
 
 
 def load_timestamp_clip(path, plan, frame_size):
@@ -127,9 +158,10 @@ def load_timestamp_clip(path, plan, frame_size):
 
 def prepare_sampling_audit(dataset, indices, partitions):
     """Probe explicitly supplied training/validation indices only."""
+    version = getattr(dataset, "sampling_version", VERSION)
     if dataset._mode != "video":
         raise ValueError(
-            "timestamps_v1 requires original videos with presentation timestamps"
+            f"{version} requires original videos with presentation timestamps"
         )
     records = []
     for i in tqdm(
@@ -140,7 +172,8 @@ def prepare_sampling_audit(dataset, indices, partitions):
         if key not in dataset.sampling_plans:
             try:
                 dataset.sampling_plans[key] = video_plan(
-                    path, dataset.target_fps, dataset.sequence_length
+                    path, dataset.target_fps, dataset.sequence_length,
+                    **({"sampling_version": version} if version != VERSION else {}),
                 )
             except Exception as error:
                 raise RuntimeError(
@@ -150,7 +183,7 @@ def prepare_sampling_audit(dataset, indices, partitions):
             {"source": key, "partition": partitions[i], **dataset.sampling_plans[key]}
         )
     return {
-        "sampling_version": VERSION,
+        "sampling_version": version,
         "test_clips": 0,
         "records": records,
         "note": "Coverage is first-clip only, not full-video/stateful processing.",

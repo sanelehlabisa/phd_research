@@ -31,6 +31,7 @@ from torchvision.transforms import InterpolationMode
 from torchvision.transforms import functional as transform_functional
 
 from .dataset_source import resolve_dataset
+from .experiment_config import normalise_excluded_samples
 from .utils import (
     TARGET_FPS,
     read_video_torchvision,
@@ -166,6 +167,7 @@ class AHARDataset(Dataset):
         accepted_classes: list[str] | tuple[str, ...] | None = None,
         sampling_version: str = "legacy",
         sampling_plans: dict | None = None,
+        excluded_samples: list[str] | tuple[str, ...] = (),
     ) -> None:
         """
         Initializes the dataset and automatically detects the data format.
@@ -186,10 +188,11 @@ class AHARDataset(Dataset):
         self.frame_size = frame_size
         self.transform = transform
         self.target_fps = target_fps
-        if sampling_version not in {"legacy", "timestamps_v1"}:
+        if sampling_version not in {"legacy", "timestamps_v1", "timestamps_clip_v1"}:
             raise ValueError("unsupported sampling_version")
         self.sampling_version = sampling_version
         self.sampling_plans = sampling_plans if sampling_plans is not None else {}
+        self.excluded_samples = normalise_excluded_samples(excluded_samples)
 
         available_classes = sorted(
             d.name for d in self.dataset_dir.iterdir() if d.is_dir()
@@ -212,7 +215,7 @@ class AHARDataset(Dataset):
 
         self._mode = self._detect_mode()
         if sampling_version != "legacy" and self._mode != "video":
-            raise ValueError("timestamps_v1 requires original timestamped videos")
+            raise ValueError(f"{sampling_version} requires original timestamped videos")
 
         self.samples: list[tuple[Path, int]] = []
         for cls in self.class_names:
@@ -225,6 +228,25 @@ class AHARDataset(Dataset):
                 for f in sorted(cls_dir.iterdir()):
                     if f.suffix.lower() in self.SUPPORTED_EXTS:
                         self.samples.append((f, self.class_to_idx[cls]))
+
+        if self.excluded_samples:
+            excluded = set(self.excluded_samples)
+            available = {
+                path.relative_to(self.dataset_dir).as_posix() for path, _ in self.samples
+            }
+            unknown = sorted(excluded - available)
+            if unknown:
+                raise ValueError(f"excluded_samples paths not found in dataset: {unknown}")
+            self.samples = [
+                (path, label) for path, label in self.samples
+                if path.relative_to(self.dataset_dir).as_posix() not in excluded
+            ]
+            retained_labels = {label for _, label in self.samples}
+            empty_classes = [
+                name for name, label in self.class_to_idx.items() if label not in retained_labels
+            ]
+            if empty_classes:
+                raise ValueError(f"excluded_samples leaves classes without clips: {empty_classes}")
 
         print(
             f"✅ {len(self.samples)} {'clips' if self._mode == 'frames' else 'videos'} "
@@ -301,13 +323,17 @@ class AHARDataset(Dataset):
         Returns:
             video_tensor (torch.Tensor): Processed video tensor of shape (T, C, H, W).
         """
-        if self.sampling_version == "timestamps_v1":
+        if self.sampling_version in {"timestamps_v1", "timestamps_clip_v1"}:
             from .temporal_sampling import video_plan, load_timestamp_clip
 
             key = str(path.resolve())
             if key not in self.sampling_plans:
                 self.sampling_plans[key] = video_plan(
-                    path, self.target_fps, self.sequence_length
+                    path, self.target_fps, self.sequence_length,
+                    **(
+                        {"sampling_version": self.sampling_version}
+                        if self.sampling_version != "timestamps_v1" else {}
+                    ),
                 )
             return load_timestamp_clip(path, self.sampling_plans[key], self.frame_size)
         video, fps = read_video_torchvision(path)  # (T, H, W, C) uint8

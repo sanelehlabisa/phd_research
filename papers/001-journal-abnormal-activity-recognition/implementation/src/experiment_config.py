@@ -8,7 +8,7 @@ import json
 import math
 import re
 from dataclasses import asdict, dataclass, fields
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 
@@ -189,6 +189,7 @@ class ExperimentConfig:
     dataset_dir: str = DEFAULT_AAD_DATASET_DIR
     runs_dir: str = "runs"
     split_manifest: str | None = None
+    excluded_samples: tuple[str, ...] = ()
     split_seed: int = 42
     train_ratio: float = 0.7
     val_ratio: float = 0.15
@@ -238,6 +239,8 @@ class ExperimentConfig:
         resolved.update(values)
         if "convlstm_layers" in resolved:
             resolved["convlstm_layers"] = _normalise_layers(resolved["convlstm_layers"])
+        if "excluded_samples" in resolved:
+            resolved["excluded_samples"] = normalise_excluded_samples(resolved["excluded_samples"])
         return cls(**resolved)
 
     @classmethod
@@ -260,6 +263,10 @@ class ExperimentConfig:
         """Return the complete configuration as JSON-compatible values."""
         values = asdict(self)
         values["convlstm_layers"] = _layers_to_json(self.convlstm_layers)
+        if self.excluded_samples:
+            values["excluded_samples"] = list(self.excluded_samples)
+        else:
+            values.pop("excluded_samples")
         # Keep historical serialized configs/checkpoint provenance unchanged.
         if self.sampling_version == "legacy" and self.target_fps == 16:
             values.pop("target_fps")
@@ -290,6 +297,7 @@ class ExperimentConfig:
             )
         if self.split_manifest is not None:
             _require_non_empty_string("split_manifest", self.split_manifest)
+        normalise_excluded_samples(self.excluded_samples)
 
         for field_name in ("split_seed", "seed", "num_workers"):
             value = getattr(self, field_name)
@@ -384,8 +392,24 @@ class ExperimentConfig:
                 raise ValueError(f"{field_name} must be {expected}")
         if self.scheduler not in {"none", "reduce_on_plateau"}:
             raise ValueError("scheduler must be none or reduce_on_plateau")
-        if self.sampling_version not in {"legacy", "timestamps_v1"}:
+        if self.sampling_version not in {"legacy", "timestamps_v1", "timestamps_clip_v1"}:
             raise ValueError("unsupported sampling_version")
+
+
+def normalise_excluded_samples(values) -> tuple[str, ...]:
+    """Validate exact, portable paths relative to the selected dataset root."""
+    if not isinstance(values, (list, tuple)):
+        raise ValueError("excluded_samples must be a list or tuple of relative paths")
+    for value in values:
+        if (
+            not isinstance(value, str) or not value
+            or "\\" in value or PureWindowsPath(value).drive
+            or any(part in {"", ".", ".."} for part in value.split("/"))
+        ):
+            raise ValueError("excluded_samples must contain safe relative paths without '..'")
+    if len(set(values)) != len(values):
+        raise ValueError("excluded_samples must contain unique paths")
+    return tuple(values)
 
 
 def _require_non_empty_string(field_name: str, value: object) -> None:

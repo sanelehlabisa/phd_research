@@ -558,7 +558,8 @@ def main(argv: list[str] | None = None) -> None:
 
     # Eager full-dataset caching would decode locked test clips before splitting.
     dataset = AHARDataset(
-        args.dataset_dir, args.sequence_length, (args.width, args.height)
+        args.dataset_dir, args.sequence_length, (args.width, args.height),
+        excluded_samples=experiment_config.excluded_samples,
     )
     dataset_name = args.dataset_name
     num_classes = dataset.num_classes

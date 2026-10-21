@@ -30,8 +30,11 @@ from pathlib import Path
 import json
 import sys
 
+import av
 import kagglehub
+from tqdm import tqdm
 from src.dataset_source import resolve_downloaded_dataset_root, VIDEO_EXTENSIONS
+from src.temporal_sampling import CLIP_VERSION, video_plan
 
 
 def video_count(directory):
@@ -88,7 +91,7 @@ def find_class_root(download_root):
     )
 
 
-def download_dataset(handle, output_path):
+def download_dataset(handle, output_path, target_fps=16, frame_count=8):
     print(f"Downloading public Kaggle dataset: {handle}", flush=True)
     download_root = Path(kagglehub.dataset_download(handle))
     class_root, source_split = find_class_root(download_root)
@@ -99,26 +102,54 @@ def download_dataset(handle, output_path):
             f"Unsupported Kinetics class layout at {class_root}: every class folder "
             "must contain supported videos directly. No folders were silently dropped."
         )
+    # Record unusable inputs explicitly; never modify or duplicate Kaggle files.
+    usable_counts = dict.fromkeys(counts, 0)
+    excluded = []
+    paths = [
+        path for directory in directories for path in sorted(directory.iterdir())
+        if path.is_file() and path.suffix.lower() in VIDEO_EXTENSIONS
+    ]
+    for path in tqdm(paths, desc="Check Kinetics input clips", unit="clip"):
+        try:
+            video_plan(path, target_fps, frame_count, sampling_version=CLIP_VERSION)
+        except (av.error.FFmpegError, ValueError, OSError) as error:
+            excluded.append({"source": str(path), "reason": str(error)})
+            tqdm.write(f"Excluded unusable input: {path}: {error}")
+            continue
+        usable_counts[path.parent.name] += 1
     inventory = {
         "source_handle": handle,
         "download_root": str(download_root.resolve()),
+        "source_dataset_root": str(class_root),
         "dataset_root": str(class_root),
         "source_split": source_split,
         "class_names": list(counts),
-        "class_clip_counts": counts,
-        "total_clips": sum(counts.values()),
+        "original_class_clip_counts": counts,
+        "original_total_clips": sum(counts.values()),
+        "class_clip_counts": usable_counts,
+        "total_clips": sum(usable_counts.values()),
+        "excluded_count": len(excluded),
+        "excluded_clips": excluded,
+        "excluded_samples": [
+            Path(row["source"]).relative_to(class_root).as_posix() for row in excluded
+        ],
+        "validation_scope": "requested input prefix only; not whole-file integrity",
+        "sampling_version": CLIP_VERSION,
         "note": "Observed Kaggle contents; completeness of the official release is not assumed.",
     }
     Path(output_path).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
     print(f"Actual dataset root: {class_root}", flush=True)
-    print(f"Actual classes: {len(counts)} | clips: {inventory['total_clips']}", flush=True)
-    print(f"Class clip counts: {json.dumps(counts, sort_keys=True)}", flush=True)
+    print(f"Actual classes: {len(counts)} | usable clips: {inventory['total_clips']} | excluded: {len(excluded)}", flush=True)
+    print(f"Class clip counts: {json.dumps(usable_counts, sort_keys=True)}", flush=True)
+    empty_classes = [name for name, count in usable_counts.items() if count == 0]
+    if empty_classes:
+        raise RuntimeError(f"No usable clips in these classes: {empty_classes}; see {output_path}. No class was silently dropped.")
     if source_split:
         print(f"Using upstream {source_split} only; generating a new 70/15/15 clip split.", flush=True)
 
 
 if __name__ == "__main__":
-    download_dataset(sys.argv[1], sys.argv[2])
+    download_dataset(sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]))
 '''
 
 
@@ -133,6 +164,7 @@ def kinetics_config(local_runs, winner_recipe):
         "early_stopping_patience": EARLY_STOPPING_PATIENCE,
         "cache_dataset": False,
         "num_workers": 2,
+        "sampling_version": "timestamps_clip_v1",
     })
     return config
 
@@ -141,7 +173,8 @@ def prepare_kinetics_dataset(root, destination, config, run_logged):
     """Download/count in a fresh process; keep this run's split on Drive."""
     inventory_path = destination / "dataset_inventory.json"
     run_logged(
-        [sys.executable, "-u", "-c", DATASET_SETUP_CODE, HANDLE, str(inventory_path)],
+        [sys.executable, "-u", "-c", DATASET_SETUP_CODE, HANDLE, str(inventory_path),
+         str(config["target_fps"]), str(config["sequence_length"])],
         cwd=root,
         log_path=destination / "dataset.log",
     )
@@ -149,6 +182,7 @@ def prepare_kinetics_dataset(root, destination, config, run_logged):
     return {
         **config,
         "dataset_dir": inventory["dataset_root"],
+        "excluded_samples": inventory["excluded_samples"],
         "split_manifest": str(destination / "kinetics_split_seed42.json"),
     }
 
@@ -182,8 +216,9 @@ def train_kinetics_on_colab():
         raise ValueError("Use 1 <= MINIMUM_EPOCHS <= EPOCHS and positive patience.")
     print(PURPOSE, flush=True)
     print(
-        "All downloaded classes are used. Timestamp auditing decodes training/validation "
-        "clips before epoch 1; the first pass can take time. Decoded caching is disabled.",
+        "All classes are retained. Unusable input clips are logged and excluded without "
+        "deleting source files. Prefix-only checks replace whole-video timestamp scans. "
+        "Decoded caching is disabled.",
         flush=True,
     )
     shared = load_shared_runner()

@@ -1494,10 +1494,17 @@ It uses the public `sanelehlabisa/kinetics-400-dataset` copy, keeps the selected
 AAD class list. Training and its saved artifacts are separate from the AAD demo.
 This is a larger-dataset diagnostic, not new evidence for the current AAD paper.
 
+Kinetics checks only the requested input prefix using `timestamps_clip_v1`,
+not whole-video timestamp scans. Unusable files are excluded before splitting;
+`dataset_inventory.json` records original/usable counts and excluded paths/reasons,
+and `excluded_samples` is retained in the training config. Original files are
+never deleted or copied. Empty classes cause an explicit error. This is input
+validation, not a whole-file integrity check. The AAD sampler remains unchanged.
+
 Defaults: 128 epochs maximum, 64 minimum, patience 16; eight `64x64` frames at
 16 FPS, batch 32, and no decoded RAM cache. Edit the three budget constants at
-the top of the notebook/export to change the run length. The first timestamp
-audit reads training/validation clips before epoch 1 and can take time.
+the top of the notebook/export to change the run length. Checks and training
+show live progress; existing Kaggle downloads are reused when cached.
 
 Publish this notebook/scripts update before running 10 on Colab: it pulls the
 shared 09 runner from `master`. Weights, actual labels, split, curves, confusion

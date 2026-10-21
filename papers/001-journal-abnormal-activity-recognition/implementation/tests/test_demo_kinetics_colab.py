@@ -44,9 +44,11 @@ class KineticsDemoTests(unittest.TestCase):
                 (directory / f"clip-{number}.mp4").touch()
         return root.resolve()
 
-    def dataset_helpers(self):
+    def dataset_helpers(self, real_probe=False):
         namespace = {"__name__": "kinetics_dataset_test"}
         exec(self.module.DATASET_SETUP_CODE, namespace)
+        if not real_probe:
+            namespace["video_plan"] = Mock(return_value={"sampling_version": "timestamps_clip_v1"})
         return namespace
 
     def test_notebook_parity_safe_import_and_plain_python(self):
@@ -83,6 +85,7 @@ class KineticsDemoTests(unittest.TestCase):
         self.assertEqual(config["early_stopping_patience"], 16)
         self.assertFalse(config["cache_dataset"])
         self.assertEqual(config["num_workers"], 2)
+        self.assertEqual(config["sampling_version"], "timestamps_clip_v1")
         self.assertNotIn("aad", json.dumps(config).lower())
         self.assertNotIn("accepted_classes", config)
         self.assertNotIn("class_names", config)
@@ -104,9 +107,95 @@ class KineticsDemoTests(unittest.TestCase):
         self.assertEqual(inventory["class_names"], sorted(names))
         self.assertEqual(inventory["total_clips"], 18)
         self.assertEqual(inventory["class_clip_counts"], dict.fromkeys(names, 3))
-        self.assertIn("Actual classes: 6 | clips: 18", stdout.getvalue())
+        self.assertIn("Actual classes: 6 | usable clips: 18 | excluded: 0", stdout.getvalue())
+        self.assertEqual(inventory["excluded_samples"], [])
         self.assertIn(str(root), stdout.getvalue())
         self.assertNotIn("full 400", stdout.getvalue())
+
+    def test_unusable_clip_is_recorded_excluded_and_never_deleted(self):
+        root = self.class_root(self.base / "download")
+        bad = root / "rowing/clip-1.mp4"
+        bad.write_bytes(b"unchanged broken video")
+        helpers = self.dataset_helpers()
+
+        def probe(path, fps, frames, **kwargs):
+            self.assertEqual(kwargs, {"sampling_version": "timestamps_clip_v1"})
+            if path == bad:
+                raise ValueError(f"No video stream: {path}")
+            return {}
+
+        helpers["video_plan"] = probe
+        output = self.base / "inventory.json"
+        with patch("kagglehub.dataset_download", return_value=str(root)), redirect_stdout(io.StringIO()) as stdout:
+            helpers["download_dataset"](self.module.HANDLE, output)
+        inventory = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(inventory["original_total_clips"], 9)
+        self.assertEqual(inventory["total_clips"], 8)
+        self.assertEqual(inventory["excluded_samples"], ["rowing/clip-1.mp4"])
+        self.assertIn("No video stream", inventory["excluded_clips"][0]["reason"])
+        self.assertEqual(inventory["class_names"], ["clapping", "juggling", "rowing"])
+        self.assertEqual(inventory["class_clip_counts"]["rowing"], 2)
+        self.assertIn("Excluded unusable input", stdout.getvalue())
+        self.assertEqual(bad.read_bytes(), b"unchanged broken video")
+
+    def test_empty_usable_class_fails_with_a_saved_receipt_not_silent_class_drop(self):
+        root = self.class_root(self.base / "download", clips=1)
+        helpers = self.dataset_helpers()
+        helpers["video_plan"].side_effect = [ValueError("No video stream"), {}, {}]
+        output = self.base / "inventory.json"
+        with patch("kagglehub.dataset_download", return_value=str(root)), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(RuntimeError, "No usable clips.*clapping"):
+                helpers["download_dataset"](self.module.HANDLE, output)
+        self.assertEqual(json.loads(output.read_text())["excluded_count"], 1)
+
+    def test_preflight_does_not_hide_programming_errors_as_bad_media(self):
+        root = self.class_root(self.base / "download")
+        helpers = self.dataset_helpers()
+        helpers["video_plan"].side_effect = TypeError("unexpected API bug")
+        with patch("kagglehub.dataset_download", return_value=str(root)), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(TypeError, "unexpected API bug"):
+                helpers["download_dataset"](self.module.HANDLE, self.base / "inventory.json")
+
+    def test_real_filtered_dataset_trains_and_saves_artifacts_without_bad_clip(self):
+        import torch
+        from src import experiments
+        from src.utils import write_video_torchvision
+
+        torch.set_num_threads(1)
+        root = self.base / "real-clips"
+        for name in ("clapping", "rowing"):
+            for index in range(10):
+                write_video_torchvision(
+                    torch.zeros(12, 3, 8, 8), root / name / f"{index}.mp4", fps=20
+                )
+        bad = root / "rowing/unusable.mp4"
+        bad.write_bytes(b"not a usable MP4")
+        helpers = self.dataset_helpers(real_probe=True)
+        receipt = self.base / "inventory.json"
+        with patch("kagglehub.dataset_download", return_value=str(root)), redirect_stdout(io.StringIO()):
+            helpers["download_dataset"](self.module.HANDLE, receipt)
+        inventory = json.loads(receipt.read_text())
+        self.assertEqual(inventory["excluded_samples"], ["rowing/unusable.mp4"])
+        config = self.module.kinetics_config(self.base / "runs", self.shared.winner_config)
+        config.update(
+            dataset_dir=str(root), excluded_samples=inventory["excluded_samples"],
+            split_manifest=str(self.base / "split.json"), convlstm_layers=[[2, [3, 3]]],
+            epochs=1, height=8, width=8, batch_size=4, num_workers=0,
+            prediction_samples_per_category=0,
+        )
+        path = self.base / "config.json"
+        path.write_text(json.dumps(config))
+        with patch.object(torch.cuda, "is_available", return_value=False), redirect_stdout(io.StringIO()):
+            run = experiments.main(["--config", str(path)])
+        split = json.loads((self.base / "split.json").read_text())
+        self.assertEqual(split["counts"]["total"], 20)
+        self.assertNotIn("rowing/unusable.mp4", [row["path"] for row in split["samples"]])
+        result = json.loads((run / "summary.json").read_text())["all"][0]
+        self.assertEqual(result["test_access"], "locked")
+        self.assertTrue(Path(result["selected_checkpoint"]).is_file())
+        self.assertTrue(Path(result["sampling_report"]).is_file())
+        self.assertTrue((run / "models" / self.shared.MODEL / "metrics/validation_confusion_matrix.png").is_file())
+        self.assertEqual(bad.read_bytes(), b"not a usable MP4")
 
     def test_official_training_root_preferred_without_merging_splits(self):
         helpers = self.dataset_helpers()
@@ -150,11 +239,15 @@ class KineticsDemoTests(unittest.TestCase):
             self.assertEqual(command[:4], [sys.executable, "-u", "-c", self.module.DATASET_SETUP_CODE])
             self.assertEqual(command[4], self.module.HANDLE)
             self.assertEqual(kwargs, {"cwd": ROOT, "log_path": destination / "dataset.log"})
-            Path(command[5]).write_text(json.dumps({"dataset_root": str(actual)}), encoding="utf-8")
+            self.assertEqual(command[6:], ["16", "8"])
+            Path(command[5]).write_text(json.dumps({
+                "dataset_root": str(actual), "excluded_samples": ["rowing/clip-0.mp4"]
+            }), encoding="utf-8")
             return subprocess.CompletedProcess(command, 0)
 
         resolved = self.module.prepare_kinetics_dataset(ROOT, destination, config, run)
         self.assertEqual(resolved["dataset_dir"], str(actual))
+        self.assertEqual(resolved["excluded_samples"], ["rowing/clip-0.mp4"])
         self.assertEqual(Path(resolved["split_manifest"]), destination / "kinetics_split_seed42.json")
         self.assertNotEqual(resolved["split_manifest"], self.shared.winner_config(self.base)["split_manifest"])
 
@@ -173,7 +266,7 @@ class KineticsDemoTests(unittest.TestCase):
         self.assertTrue(callable(options["dataset_setup"]))
         self.assertEqual(options["config_factory"](self.base)["epochs"], 128)
         self.assertIn("not paper evidence", options["purpose"])
-        self.assertIn("before epoch 1", stdout.getvalue())
+        self.assertIn("Prefix-only checks", stdout.getvalue())
 
     def test_missing_published_helper_fails_before_dataset_or_training(self):
         self.module.REPO_ROOT = self.base / "checkout"

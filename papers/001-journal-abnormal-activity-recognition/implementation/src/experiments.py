@@ -1297,6 +1297,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         (args.width, args.height),
         target_fps=experiment_config.target_fps,
         sampling_version=experiment_config.sampling_version,
+        excluded_samples=experiment_config.excluded_samples,
     )
     num_classes = dataset.num_classes
     print(
@@ -1311,7 +1312,7 @@ def main(argv: list[str] | None = None) -> Path | None:
         seed=args.split_seed,
     )
     sampling_report_path = None
-    if experiment_config.sampling_version == "timestamps_v1":
+    if experiment_config.sampling_version in {"timestamps_v1", "timestamps_clip_v1"}:
         from .temporal_sampling import prepare_sampling_audit
 
         partitions = {
@@ -1622,7 +1623,7 @@ def main(argv: list[str] | None = None) -> Path | None:
                 model_dir / "metrics",
                 selected_validation_metrics,
             )
-        if experiment_config.sampling_version == "timestamps_v1":
+        if experiment_config.sampling_version in {"timestamps_v1", "timestamps_clip_v1"}:
             from .study_resources import inference_measurement
 
             # Exclude optimizer and checkpoint-copy tensors from inference memory.

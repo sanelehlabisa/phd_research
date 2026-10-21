@@ -227,6 +227,7 @@ def main(argv=None) -> Path:
         (config.width, config.height),
         target_fps=config.target_fps,
         sampling_version=config.sampling_version,
+        excluded_samples=config.excluded_samples,
     )
     num_classes = dataset.num_classes
     print(f"📦 {len(dataset)} samples | {num_classes} classes: {dataset.class_names}")

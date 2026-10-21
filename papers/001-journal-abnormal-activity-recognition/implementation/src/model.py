@@ -744,6 +744,7 @@ def main() -> None:
         args.dataset_dir,
         sequence_length=args.sequence_length,
         frame_size=(args.height, args.width),
+        excluded_samples=config.excluded_samples,
     )
     if not dataset.samples:
         raise ValueError("dataset contains no usable samples")
