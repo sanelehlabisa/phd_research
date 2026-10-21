@@ -21,7 +21,7 @@ Colab cell. Notebook-only helpers stay in `notebooks/utils/`.
 | [07_aad_focused_workflow](notebooks/07_aad_focused_workflow.ipynb) | Focused AAD search/comparison |
 | [08_aad_frame_depth_workflow](notebooks/08_aad_frame_depth_workflow.ipynb) | AAD frame/depth campaign |
 | [09_train_demo_winner_colab](notebooks/09_train_demo_winner_colab.ipynb) | Train the AAD winner for the demo |
-| [10_train_demo_kinetics_colab](notebooks/10_train_demo_kinetics_colab.ipynb) | Train the same architecture on Kinetics |
+| [10_train_demo_kinetics_colab](notebooks/10_train_demo_kinetics_colab.ipynb) | Train a double-width ConvLSTM on Kinetics |
 
 09 and 10 train separately; they do not rerun architecture search or transfer
 AAD accuracy claims to new weights or datasets.
@@ -1485,13 +1485,13 @@ Rerunning starts fresh, not a resume. Interrupted writes can damage a checkpoint
 Drive storage is not an uninterrupted-runtime guarantee. New weights do not
 inherit the paper's score. Local tests verify orchestration, not real Colab training.
 
-### Train the selected architecture on Kinetics
+### Train a wider ConvLSTM on Kinetics
 
 Use [10_train_demo_kinetics_colab.ipynb](notebooks/10_train_demo_kinetics_colab.ipynb)
 or its [one-cell Python export](notebooks/scripts/10_train_demo_kinetics_colab.py).
-It uses the public `sanelehlabisa/kinetics-400-dataset` copy, keeps the selected
-`[64,64,128]` architecture, and infers all available classes rather than using an
-AAD class list. Training and its saved artifacts are separate from the AAD demo.
+It uses the public `sanelehlabisa/kinetics-400-dataset` copy, doubles the selected
+architecture's filters to `[128,128,256]`, and infers all available classes rather
+than using an AAD class list. Training and its saved artifacts are separate from the AAD demo.
 This is a larger-dataset diagnostic, not new evidence for the current AAD paper.
 
 Kinetics checks only the requested input prefix using `timestamps_clip_v1`,
@@ -1502,9 +1502,22 @@ never deleted or copied. Empty classes cause an explicit error. This is input
 validation, not a whole-file integrity check. The AAD sampler remains unchanged.
 
 Defaults: 128 epochs maximum, 64 minimum, patience 16; eight `64x64` frames at
-16 FPS, batch 32, and no decoded RAM cache. Edit the three budget constants at
-the top of the notebook/export to change the run length. Checks and training
+**4 FPS** (initial 1.75 seconds), batch 32, Adam LR 0.001, WD 0, the same
+linear-head design and no decoded RAM cache. Edit `WIDTH_MULTIPLIER`, `TARGET_FPS`
+or the three budget constants at the top of the notebook/export. Checks and training
 show live progress; existing Kaggle downloads are reused when cached.
+
+The October 21 pasted baseline is learning slowly: validation loss 5.926 to
+5.601 and accuracy 0.5% to 2.6% over epochs 1-12, with constant LR 0.001.
+The requested wider-model trial keeps the new 4-FPS input; both width and FPS
+differ from that logged baseline, so this is not an isolated width ablation.
+Set `WIDTH_MULTIPLIER=1` for the baseline width at the same input. Compare widths
+only with matched FPS, inventories/exclusions, splits, seeds and budgets; keep test locked.
+At 400 classes the 2x-width model has 5,427,088 parameters versus 1,386,640 and
+roughly 4x convolution arithmetic. No accuracy, GPU-memory fit or runtime claim;
+batch size is not silently reduced. Longer decoding can also increase runtime.
+At the old run's roughly 284 seconds/epoch, the 128-epoch cap meant about ten
+hours before setup/export; the new run needs its own timing measurement.
 
 Publish this notebook/scripts update before running 10 on Colab: it pulls the
 shared 09 runner from `master`. Weights, actual labels, split, curves, confusion

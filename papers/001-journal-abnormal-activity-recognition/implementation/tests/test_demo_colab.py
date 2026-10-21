@@ -181,7 +181,7 @@ class DemoColabTests(unittest.TestCase):
         self.assertNotEqual((local_runs / "cache").parent, destination)
         self.assertFalse((destination / "cache").exists())
 
-    def _workflow(self, bootstrap_code=0, gpu_error=False, preview_error=False):
+    def _workflow(self, bootstrap_code=0, gpu_error=False, preview_error=False, target_fps=16):
         events = []
         commands = []
         archive = self.destination / "demo_model.zip"
@@ -206,7 +206,9 @@ class DemoColabTests(unittest.TestCase):
                         encoding="utf-8"
                     )
                 )
-                self.assertEqual(config, self.module.winner_config(self.local_runs))
+                expected = self.module.winner_config(self.local_runs)
+                expected["target_fps"] = target_fps
+                self.assertEqual(config, expected)
                 self.assertEqual(kwargs["cwd"], self.root)
                 run_dir = self.destination / "experiments/synthetic_run"
                 run_dir.mkdir()
@@ -260,6 +262,32 @@ class DemoColabTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Dependency setup failed"):
             self.module.train_demo_on_colab()
         self.assertEqual(events, ["bootstrap"])
+
+    def test_training_banner_uses_effective_input_not_aad_defaults(self):
+        self._workflow(target_fps=4)
+        config = self.module.winner_config(self.local_runs)
+        config["target_fps"] = 4
+        with redirect_stdout(io.StringIO()) as output:
+            self.module.train_demo_on_colab(config_factory=lambda _runs: config)
+        self.assertIn("8 frames, 64x64, 4 FPS (initial 1.75s window)", output.getvalue())
+        self.assertNotIn("16 FPS", output.getvalue())
+
+    def test_validation_preview_distinguishes_playback_and_model_fps(self):
+        run = self.destination / "experiments/preview"
+        predictions = run / "models" / self.module.MODEL / "predictions"
+        predictions.mkdir(parents=True)
+        (predictions / "predictions.json").write_text(
+            json.dumps({"playback_fps": 10, "records": []}), encoding="utf-8"
+        )
+        (run / "config.json").write_text(
+            '{"experiment_config": {"target_fps": 4}}', encoding="utf-8"
+        )
+        (run / "resolved_config.json").write_text('{"target_fps": 4}', encoding="utf-8")
+        display_module = ModuleType("IPython.display")
+        display_module.Image = display_module.Video = display_module.display = Mock()
+        with patch.dict(sys.modules, {"IPython.display": display_module}), redirect_stdout(io.StringIO()) as output:
+            self.module.show_validation_preview(run)
+        self.assertIn("play at 10 FPS; model input uses 4 FPS", output.getvalue())
 
     def test_gpu_failure_prevents_training(self):
         events, _, _ = self._workflow(gpu_error=True)

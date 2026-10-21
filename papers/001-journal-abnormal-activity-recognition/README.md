@@ -7,7 +7,8 @@
 - Dated Colab reports: [`implementation/reports/README.md`](implementation/reports/README.md)
 
 Use the [numbered notebook index](implementation/README.md#notebooks-and-exports):
-09 trains the AAD winner; 10 trains the same architecture on Kinetics classes.
+09 trains the AAD winner; 10 trains a double-width [128,128,256] Kinetics variant.
+Notebook 10 retains the longer 4-FPS input window; AAD settings remain unchanged.
 Copy-paste Python exports are grouped in `implementation/notebooks/scripts/`.
 
 AAD is the primary dataset for the active study. VDD remains available as an optional dataset
