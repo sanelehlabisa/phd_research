@@ -7,9 +7,9 @@ import subprocess
 import sys
 
 
-EPOCHS = 32
-MINIMUM_EPOCHS = 8
-EARLY_STOPPING_PATIENCE = 8
+EPOCHS = 128
+MINIMUM_EPOCHS = 64
+EARLY_STOPPING_PATIENCE = 16
 REPO_ROOT = Path("/content/phd_research")
 REPO_URL = "https://github.com/sanelehlabisa/phd_research.git"
 HANDLE = "sanelehlabisa/kinetics-400-dataset"
