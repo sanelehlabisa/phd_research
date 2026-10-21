@@ -1476,14 +1476,23 @@ def main(argv: list[str] | None = None) -> Path | None:
         )
         for epoch in epoch_progress:
             epoch_learning_rate = opt.param_groups[0]["lr"]
-            training_metrics = train_classifier_epoch(
-                model,
-                train_loader,
-                criterion,
-                opt,
-                device,
-                num_classes,
-            )
+            with tqdm(
+                total=len(train_loader.dataset), desc=f"Train epoch {epoch + 1}",
+                unit="clip", leave=False, mininterval=1.0,
+            ) as batch_progress:
+                def on_batch(completed, total, loss):
+                    batch_progress.update(completed - batch_progress.n)
+                    batch_progress.set_postfix(loss=f"{loss:.3f}", refresh=False)
+
+                training_metrics = train_classifier_epoch(
+                    model,
+                    train_loader,
+                    criterion,
+                    opt,
+                    device,
+                    num_classes,
+                    on_batch=on_batch,
+                )
             validation_metrics = evaluate_classifier(
                 model,
                 val_loader,

@@ -78,9 +78,9 @@ class KineticsDemoTests(unittest.TestCase):
             "augment", "batch_size", "optimizer", "train_ratio", "val_ratio", "test_ratio",
         ):
             self.assertEqual(config[key], expected[key], key)
-        self.assertEqual(config["epochs"], 32)
-        self.assertEqual(self.module.MINIMUM_EPOCHS, 8)
-        self.assertEqual(config["early_stopping_patience"], 8)
+        self.assertEqual(config["epochs"], 128)
+        self.assertEqual(self.module.MINIMUM_EPOCHS, 64)
+        self.assertEqual(config["early_stopping_patience"], 16)
         self.assertFalse(config["cache_dataset"])
         self.assertEqual(config["num_workers"], 2)
         self.assertNotIn("aad", json.dumps(config).lower())
@@ -149,12 +149,11 @@ class KineticsDemoTests(unittest.TestCase):
         def run(command, **kwargs):
             self.assertEqual(command[:4], [sys.executable, "-u", "-c", self.module.DATASET_SETUP_CODE])
             self.assertEqual(command[4], self.module.HANDLE)
-            self.assertEqual(kwargs, {"cwd": ROOT, "check": True})
+            self.assertEqual(kwargs, {"cwd": ROOT, "log_path": destination / "dataset.log"})
             Path(command[5]).write_text(json.dumps({"dataset_root": str(actual)}), encoding="utf-8")
             return subprocess.CompletedProcess(command, 0)
 
-        with patch.object(self.module.subprocess, "run", side_effect=run):
-            resolved = self.module.prepare_kinetics_dataset(ROOT, destination, config)
+        resolved = self.module.prepare_kinetics_dataset(ROOT, destination, config, run)
         self.assertEqual(resolved["dataset_dir"], str(actual))
         self.assertEqual(Path(resolved["split_manifest"]), destination / "kinetics_split_seed42.json")
         self.assertNotEqual(resolved["split_manifest"], self.shared.winner_config(self.base)["split_manifest"])
@@ -163,15 +162,16 @@ class KineticsDemoTests(unittest.TestCase):
         trainer = Mock(return_value=self.base / "bundle.zip")
         with patch.object(self.module, "load_shared_runner", return_value={
             "train_demo_on_colab": trainer, "winner_config": self.shared.winner_config,
+            "run_logged": Mock(),
         }), redirect_stdout(io.StringIO()) as stdout:
             self.assertEqual(self.module.train_kinetics_on_colab(), self.base / "bundle.zip")
         options = trainer.call_args.kwargs
-        self.assertEqual(options["minimum_epochs"], 8)
+        self.assertEqual(options["minimum_epochs"], 64)
         self.assertEqual(options["storage_name"], "phd_demo_kinetics")
         self.assertFalse(options["app_launch"])
         self.assertFalse(options["update_checkout"])
-        self.assertIs(options["dataset_setup"], self.module.prepare_kinetics_dataset)
-        self.assertEqual(options["config_factory"](self.base)["epochs"], 32)
+        self.assertTrue(callable(options["dataset_setup"]))
+        self.assertEqual(options["config_factory"](self.base)["epochs"], 128)
         self.assertIn("not paper evidence", options["purpose"])
         self.assertIn("before epoch 1", stdout.getvalue())
 

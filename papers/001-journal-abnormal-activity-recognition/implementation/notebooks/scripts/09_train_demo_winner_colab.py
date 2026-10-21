@@ -1,6 +1,7 @@
 # Paste this entire file into ONE Colab GPU cell and run.
 # Authorize Google Drive when asked. This trains ONE model, not the search.
 from datetime import datetime, timezone
+from collections import deque
 from pathlib import Path
 import hashlib
 import json
@@ -24,6 +25,38 @@ REQUIRED_FILES = (
     "requirements.txt",
     "splits/abnormal-activities-dataset_seed42.json",
 )
+
+
+def run_logged(command, cwd, log_path, allowed_codes=(0,)):
+    """Forward child stdout/stderr to the cell and retain the real failure."""
+    log_path = Path(log_path)
+    tail = deque(maxlen=25)
+    print(f"Live log: {log_path}", flush=True)
+    with log_path.open("w", encoding="utf-8") as log, subprocess.Popen(
+        command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, encoding="utf-8", errors="replace", bufsize=1,
+    ) as process:
+        try:
+            for line in process.stdout:
+                print(line, end="", flush=True)
+                log.write(line)
+                log.flush()
+                tail.append(line.rstrip())
+            code = process.wait()
+        except BaseException:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            raise
+    if code not in allowed_codes:
+        raise RuntimeError(
+            f"Command failed (exit {code}). Full log: {log_path}\n"
+            + "\n".join(tail)
+        )
+    return code
 
 
 def winner_config(local_runs):
@@ -243,41 +276,43 @@ def train_demo_on_colab(
             raise RuntimeError(
                 f"{REPO_ROOT} is not an empty Git checkout; files preserved."
             )
-        subprocess.run(
-            ["git", "clone", "--branch", "master", REPO_URL, str(REPO_ROOT)], check=True
+        run_logged(
+            ["git", "clone", "--branch", "master", REPO_URL, str(REPO_ROOT)],
+            cwd=REPO_ROOT.parent, log_path=destination / "checkout.log",
         )
     elif update_checkout:
-        subprocess.run(
-            ["git", "pull", "--ff-only", "origin", "master"], cwd=REPO_ROOT, check=True
+        run_logged(
+            ["git", "pull", "--ff-only", "origin", "master"],
+            cwd=REPO_ROOT, log_path=destination / "checkout.log",
         )
     root = REPO_ROOT / "papers/001-journal-abnormal-activity-recognition/implementation"
     required = REQUIRED_FILES if dataset_setup is None else REQUIRED_FILES[:-1]
     missing = [name for name in required if not (root / name).is_file()]
     if missing:
         raise RuntimeError(f"Checkout is missing required training files: {missing}")
-    bootstrap = subprocess.run(
+    run_logged(
         [
             sys.executable,
+            "-u",
             str(root / "notebooks/utils/colab_bootstrap.py"),
             str(root / "requirements.txt"),
         ],
         cwd=root,
+        log_path=destination / "setup.log",
+        allowed_codes=(0, 75),
     )
-    if bootstrap.returncode not in (0, 75):
-        raise RuntimeError(
-            "Dependency setup failed; see output above. Training not started."
-        )
     # 75 requests a restart for notebook imports. Here ALL ML work is in fresh
     # processes, so no stale torch/NumPy modules are reused by training.
-    subprocess.run(
+    run_logged(
         [
             sys.executable,
+            "-u",
             "-c",
             "from notebooks.utils.helpers import validate_runtime; "
             "print(validate_runtime(require_cuda=True), flush=True)",
         ],
         cwd=root,
-        check=True,
+        log_path=destination / "runtime.log",
     )
     config = (config_factory or winner_config)(local_runs)
     if dataset_setup is not None:
@@ -300,7 +335,7 @@ def train_demo_on_colab(
         if minimum_epochs == 128 and run_label == "demo-selected-colab"
         else train_command(config_path, minimum_epochs, run_label)
     )
-    subprocess.run(command, cwd=root, check=True)
+    run_logged(command, cwd=root, log_path=destination / "training.log")
     runs = sorted(
         path.parent for path in (destination / "experiments").glob("*/run.json")
     )

@@ -718,6 +718,9 @@ def test_real_timestamp_leaf_training_and_artifacts(
         ]
     )
     result = study_matrix.read_json(leaf / "summary.json")["all"][0]
+    captured = capsys.readouterr()
+    assert "Timestamp audit (train/validation)" in captured.err
+    assert "Train epoch 1" in captured.err
     assert result["early_stopping"]["actual_epochs"] == 1
     if matched:
         row = {"config": config.to_dict()}
@@ -744,7 +747,7 @@ def test_real_timestamp_leaf_training_and_artifacts(
         for name in ("results.csv", "results.md", "results.json", "summary.json"):
             assert "macro" not in (leaf / name).read_text()
         assert "macro" not in Path(result["metrics_path"]).read_text()
-        assert "macro" not in capsys.readouterr().out.lower()
+        assert "macro" not in captured.out.lower()
         for key in (
             "validation_micro_precision",
             "validation_micro_recall",

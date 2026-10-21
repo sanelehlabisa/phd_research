@@ -1478,6 +1478,9 @@ No stage toggles or local-demo commit/push are required for the pasted script.
   `python demo.py --checkpoint ...` command. Keep the extracted hierarchy intact.
 
 All ML runs in fresh subprocesses, avoiding stale kernel imports after setup.
+Child stdout/stderr and progress stream into the cell; full setup, runtime,
+dataset (Kinetics) and training logs are retained beside `training_config.json`
+on Drive. Failed commands include their underlying error and log path.
 Rerunning starts fresh, not a resume. Interrupted writes can damage a checkpoint;
 Drive storage is not an uninterrupted-runtime guarantee. New weights do not
 inherit the paper's score. Local tests verify orchestration, not real Colab training.
@@ -1491,7 +1494,7 @@ It uses the public `sanelehlabisa/kinetics-400-dataset` copy, keeps the selected
 AAD class list. Training and its saved artifacts are separate from the AAD demo.
 This is a larger-dataset diagnostic, not new evidence for the current AAD paper.
 
-Defaults: 32 epochs maximum, 8 minimum, patience 8; eight `64x64` frames at
+Defaults: 128 epochs maximum, 64 minimum, patience 16; eight `64x64` frames at
 16 FPS, batch 32, and no decoded RAM cache. Edit the three budget constants at
 the top of the notebook/export to change the run length. The first timestamp
 audit reads training/validation clips before epoch 1 and can take time.

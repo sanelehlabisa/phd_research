@@ -1,9 +1,10 @@
 """Offline Colab-export checks: no ML imports, cloud access or training."""
 
 import ast
-from contextlib import ExitStack
+from contextlib import ExitStack, redirect_stdout
 import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -130,6 +131,34 @@ class DemoColabTests(unittest.TestCase):
                 self.module.train_demo_on_colab()
         runner.assert_not_called()
 
+    def test_child_stdout_stderr_and_progress_are_visible_and_saved(self):
+        command = [sys.executable, "-u", "-c",
+                   "import sys; print('ready', flush=True); "
+                   "sys.stderr.write('progress 1/2\\rprogress 2/2\\n')"]
+        log_path = self.base / "training.log"
+        with redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(self.module.run_logged(command, self.base, log_path), 0)
+        for expected in ("ready", "progress 1/2", "progress 2/2"):
+            self.assertIn(expected, output.getvalue())
+            self.assertIn(expected, log_path.read_text(encoding="utf-8"))
+
+    def test_child_failure_includes_actual_traceback_and_drive_log(self):
+        command = [sys.executable, "-u", "-c",
+                   "raise ValueError('synthetic underlying training error')"]
+        log_path = self.base / "training.log"
+        with redirect_stdout(io.StringIO()), self.assertRaises(RuntimeError) as caught:
+            self.module.run_logged(command, self.base, log_path)
+        self.assertIn("ValueError: synthetic underlying training error", str(caught.exception))
+        self.assertIn(str(log_path), str(caught.exception))
+        self.assertIn("Traceback", log_path.read_text(encoding="utf-8"))
+
+    def test_bootstrap_restart_code_remains_allowed_for_fresh_children(self):
+        command = [sys.executable, "-c", "raise SystemExit(75)"]
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(self.module.run_logged(
+                command, self.base, self.base / "setup.log", allowed_codes=(0, 75)
+            ), 75)
+
     def test_drive_storage_probe_routes_experiments_but_not_cache(self):
         with patch.dict(
             sys.modules, {"google": self.google, "google.colab": self.colab}
@@ -161,13 +190,15 @@ class DemoColabTests(unittest.TestCase):
             commands.append(command)
             if any(str(item).endswith("colab_bootstrap.py") for item in command):
                 events.append("bootstrap")
+                if bootstrap_code not in kwargs.get("allowed_codes", (0,)):
+                    raise RuntimeError("Dependency setup failed: synthetic error")
                 return subprocess.CompletedProcess(command, bootstrap_code)
             if "-c" in command:
                 self.assertEqual(command[0], sys.executable)
                 self.assertIn("validate_runtime(require_cuda=True)", command[-1])
                 events.append("gpu")
                 if gpu_error:
-                    raise subprocess.CalledProcessError(1, command)
+                    raise RuntimeError("GPU check failed: synthetic error")
             if "src.experiments" in command:
                 events.append("train")
                 config = json.loads(
@@ -207,7 +238,7 @@ class DemoColabTests(unittest.TestCase):
             )
         )
         stack.enter_context(
-            patch.object(self.module.subprocess, "run", side_effect=run)
+            patch.object(self.module, "run_logged", side_effect=run)
         )
         stack.enter_context(patch.object(self.module, "save_bundle", side_effect=save))
         stack.enter_context(
@@ -232,7 +263,7 @@ class DemoColabTests(unittest.TestCase):
 
     def test_gpu_failure_prevents_training(self):
         events, _, _ = self._workflow(gpu_error=True)
-        with self.assertRaises(subprocess.CalledProcessError):
+        with self.assertRaisesRegex(RuntimeError, "GPU check failed"):
             self.module.train_demo_on_colab()
         self.assertEqual(events, ["bootstrap", "gpu"])
 

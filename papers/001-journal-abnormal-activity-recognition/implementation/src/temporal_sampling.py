@@ -14,6 +14,7 @@ import statistics
 
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
 VERSION = "timestamps_v1"
 
@@ -131,13 +132,20 @@ def prepare_sampling_audit(dataset, indices, partitions):
             "timestamps_v1 requires original videos with presentation timestamps"
         )
     records = []
-    for i in sorted(set(indices)):
+    for i in tqdm(
+        sorted(set(indices)), desc="Timestamp audit (train/validation)", unit="clip"
+    ):
         path = dataset.samples[i][0]
         key = str(Path(path).resolve())
         if key not in dataset.sampling_plans:
-            dataset.sampling_plans[key] = video_plan(
-                path, dataset.target_fps, dataset.sequence_length
-            )
+            try:
+                dataset.sampling_plans[key] = video_plan(
+                    path, dataset.target_fps, dataset.sequence_length
+                )
+            except Exception as error:
+                raise RuntimeError(
+                    f"Timestamp audit failed for clip {path}: {error}"
+                ) from error
         records.append(
             {"source": key, "partition": partitions[i], **dataset.sampling_plans[key]}
         )

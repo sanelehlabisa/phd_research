@@ -137,13 +137,13 @@ def kinetics_config(local_runs, winner_recipe):
     return config
 
 
-def prepare_kinetics_dataset(root, destination, config):
+def prepare_kinetics_dataset(root, destination, config, run_logged):
     """Download/count in a fresh process; keep this run's split on Drive."""
     inventory_path = destination / "dataset_inventory.json"
-    subprocess.run(
+    run_logged(
         [sys.executable, "-u", "-c", DATASET_SETUP_CODE, HANDLE, str(inventory_path)],
         cwd=root,
-        check=True,
+        log_path=destination / "dataset.log",
     )
     inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
     return {
@@ -189,7 +189,9 @@ def train_kinetics_on_colab():
     shared = load_shared_runner()
     return shared["train_demo_on_colab"](
         config_factory=lambda runs: kinetics_config(runs, shared["winner_config"]),
-        dataset_setup=prepare_kinetics_dataset,
+        dataset_setup=lambda root, destination, config: prepare_kinetics_dataset(
+            root, destination, config, shared["run_logged"]
+        ),
         minimum_epochs=MINIMUM_EPOCHS,
         run_label="demo-kinetics-exploratory",
         storage_name="phd_demo_kinetics",
