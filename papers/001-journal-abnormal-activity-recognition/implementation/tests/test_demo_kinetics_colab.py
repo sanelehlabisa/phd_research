@@ -76,20 +76,22 @@ class KineticsDemoTests(unittest.TestCase):
         expected = self.shared.winner_config(self.base)
         for key in (
             "models", "sequence_length", "height", "width",
-            "hidden_classifier_width", "seed", "split_seed", "learning_rate", "weight_decay",
+            "hidden_classifier_width", "seed", "split_seed", "learning_rate",
             "augment", "batch_size", "optimizer", "train_ratio", "val_ratio", "test_ratio",
             "scheduler", "loss",
         ):
             self.assertEqual(config[key], expected[key], key)
         self.assertEqual(config["epochs"], 128)
-        self.assertEqual(self.module.WIDTH_MULTIPLIER, 2)
-        self.assertEqual(config["convlstm_layers"], [[128, [3, 3]], [128, [3, 3]], [256, [3, 3]]])
+        self.assertEqual(self.module.WIDTH_MULTIPLIER, 1)
+        self.assertEqual(config["convlstm_layers"], [[64, [3, 3]], [64, [3, 3]], [128, [3, 3]]])
+        self.assertEqual(config["weight_decay"], 1e-4)
+        self.assertEqual(expected["weight_decay"], 0)
         self.assertEqual(self.shared.winner_config(self.base)["convlstm_layers"], [[64, [3, 3]], [64, [3, 3]], [128, [3, 3]]])
         self.assertEqual(config["target_fps"], 4)
         self.assertEqual((config["sequence_length"] - 1) / config["target_fps"], 1.75)
         self.assertEqual(self.shared.winner_config(self.base)["target_fps"], 16)
-        self.assertEqual(self.module.MINIMUM_EPOCHS, 64)
-        self.assertEqual(config["early_stopping_patience"], 16)
+        self.assertEqual(self.module.MINIMUM_EPOCHS, 16)
+        self.assertEqual(config["early_stopping_patience"], 8)
         self.assertFalse(config["cache_dataset"])
         self.assertEqual(config["num_workers"], 2)
         self.assertEqual(config["sampling_version"], "timestamps_clip_v1")
@@ -105,7 +107,9 @@ class KineticsDemoTests(unittest.TestCase):
     def test_width_scaling_preserves_source_recipe_and_supports_baseline(self):
         baseline = self.shared.winner_config(self.base)
         original = json.loads(json.dumps(baseline))
+        self.module.WIDTH_MULTIPLIER = 2
         scaled = self.module.kinetics_config(self.base, lambda _runs: baseline)
+        self.assertEqual(scaled["convlstm_layers"], [[128, [3, 3]], [128, [3, 3]], [256, [3, 3]]])
         self.assertEqual(baseline, original)
         scaled["convlstm_layers"][0][1][0] = 5
         self.assertEqual(baseline, original)
@@ -280,13 +284,14 @@ class KineticsDemoTests(unittest.TestCase):
         }), redirect_stdout(io.StringIO()) as stdout:
             self.assertEqual(self.module.train_kinetics_on_colab(), self.base / "bundle.zip")
         options = trainer.call_args.kwargs
-        self.assertEqual(options["minimum_epochs"], 64)
+        self.assertEqual(options["minimum_epochs"], 16)
         self.assertEqual(options["storage_name"], "phd_demo_kinetics")
         self.assertFalse(options["app_launch"])
         self.assertFalse(options["update_checkout"])
         self.assertTrue(callable(options["dataset_setup"]))
         self.assertEqual(options["config_factory"](self.base)["epochs"], 128)
-        self.assertEqual(options["config_factory"](self.base)["convlstm_layers"], [[128, [3, 3]], [128, [3, 3]], [256, [3, 3]]])
+        self.assertEqual(options["config_factory"](self.base)["convlstm_layers"], [[64, [3, 3]], [64, [3, 3]], [128, [3, 3]]])
+        self.assertEqual(options["config_factory"](self.base)["weight_decay"], 1e-4)
         self.assertIn("not paper evidence", options["purpose"])
         self.assertIn("Prefix-only checks", stdout.getvalue())
 

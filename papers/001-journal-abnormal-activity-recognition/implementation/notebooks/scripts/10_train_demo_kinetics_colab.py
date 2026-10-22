@@ -1,5 +1,5 @@
 # Paste this entire file into ONE Colab GPU cell and run; authorize Drive.
-# Exploratory single-label Kinetics training with a wider ConvLSTM variant.
+# Exploratory single-label Kinetics training with a regularized ConvLSTM.
 from pathlib import Path
 import json
 import runpy
@@ -8,11 +8,12 @@ import sys
 
 
 EPOCHS = 128
-MINIMUM_EPOCHS = 64
-EARLY_STOPPING_PATIENCE = 16
+MINIMUM_EPOCHS = 16
+EARLY_STOPPING_PATIENCE = 8
 # Keep the longer input window; scale filters, not the 3x3 kernel dimensions.
 TARGET_FPS = 4
-WIDTH_MULTIPLIER = 2  # [64,64,128] -> [128,128,256]; use 1 for the baseline width.
+WIDTH_MULTIPLIER = 1  # [64,64,128]; use 2 only for an explicit wider-model trial.
+WEIGHT_DECAY = 1e-4  # Adam L2 regularization; AAD's saved recipe stays unchanged.
 REPO_ROOT = Path("/content/phd_research")
 REPO_URL = "https://github.com/sanelehlabisa/phd_research.git"
 HANDLE = "sanelehlabisa/kinetics-400-dataset"
@@ -21,7 +22,7 @@ SHARED_RUNNER = (
     "notebooks/scripts/09_train_demo_winner_colab.py"
 )
 PURPOSE = (
-    "Exploratory single-label Kinetics task using a width-scaled variant of the "
+    "Exploratory single-label Kinetics task using a regularized variant of the "
     "selected architecture; not paper evidence, multi-label recognition, or proof of "
     "out-of-distribution AAD generalization. Separate weights and label head."
 )
@@ -172,6 +173,7 @@ def kinetics_config(local_runs, winner_recipe):
         "epochs": EPOCHS,
         "early_stopping_patience": EARLY_STOPPING_PATIENCE,
         "target_fps": TARGET_FPS,
+        "weight_decay": WEIGHT_DECAY,
         "cache_dataset": False,
         "num_workers": 2,
         "sampling_version": "timestamps_clip_v1",

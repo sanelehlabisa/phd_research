@@ -21,7 +21,7 @@ Colab cell. Notebook-only helpers stay in `notebooks/utils/`.
 | [07_aad_focused_workflow](notebooks/07_aad_focused_workflow.ipynb) | Focused AAD search/comparison |
 | [08_aad_frame_depth_workflow](notebooks/08_aad_frame_depth_workflow.ipynb) | AAD frame/depth campaign |
 | [09_train_demo_winner_colab](notebooks/09_train_demo_winner_colab.ipynb) | Train the AAD winner for the demo |
-| [10_train_demo_kinetics_colab](notebooks/10_train_demo_kinetics_colab.ipynb) | Train a double-width ConvLSTM on Kinetics |
+| [10_train_demo_kinetics_colab](notebooks/10_train_demo_kinetics_colab.ipynb) | Train a regularized ConvLSTM on Kinetics |
 
 09 and 10 train separately; they do not rerun architecture search or transfer
 AAD accuracy claims to new weights or datasets.
@@ -1485,12 +1485,12 @@ Rerunning starts fresh, not a resume. Interrupted writes can damage a checkpoint
 Drive storage is not an uninterrupted-runtime guarantee. New weights do not
 inherit the paper's score. Local tests verify orchestration, not real Colab training.
 
-### Train a wider ConvLSTM on Kinetics
+### Train a regularized ConvLSTM on Kinetics
 
 Use [10_train_demo_kinetics_colab.ipynb](notebooks/10_train_demo_kinetics_colab.ipynb)
 or its [one-cell Python export](notebooks/scripts/10_train_demo_kinetics_colab.py).
-It uses the public `sanelehlabisa/kinetics-400-dataset` copy, doubles the selected
-architecture's filters to `[128,128,256]`, and infers all available classes rather
+It uses the public `sanelehlabisa/kinetics-400-dataset` copy, restores the selected
+architecture's `[64,64,128]` filters, and infers all available classes rather
 than using an AAD class list. Training and its saved artifacts are separate from the AAD demo.
 This is a larger-dataset diagnostic, not new evidence for the current AAD paper.
 
@@ -1501,21 +1501,24 @@ and `excluded_samples` is retained in the training config. Original files are
 never deleted or copied. Empty classes cause an explicit error. This is input
 validation, not a whole-file integrity check. The AAD sampler remains unchanged.
 
-Defaults: 128 epochs maximum, 64 minimum, patience 16; eight `64x64` frames at
-**4 FPS** (initial 1.75 seconds), batch 32, Adam LR 0.001, WD 0, the same
-linear-head design and no decoded RAM cache. Edit `WIDTH_MULTIPLIER`, `TARGET_FPS`
+Defaults: 128 epochs maximum, 16 minimum, patience 8; eight `64x64` frames at
+**4 FPS** (initial 1.75 seconds), batch 32, Adam LR 0.001, WD 0.0001, the same
+linear-head design and no decoded RAM cache. Edit `WIDTH_MULTIPLIER`, `WEIGHT_DECAY`, `TARGET_FPS`
 or the three budget constants at the top of the notebook/export. Checks and training
 show live progress; existing Kaggle downloads are reused when cached.
 
 The October 21 pasted baseline is learning slowly: validation loss 5.926 to
 5.601 and accuracy 0.5% to 2.6% over epochs 1-12, with constant LR 0.001.
-The requested wider-model trial keeps the new 4-FPS input; both width and FPS
-differ from that logged baseline, so this is not an isolated width ablation.
-Set `WIDTH_MULTIPLIER=1` for the baseline width at the same input. Compare widths
-only with matched FPS, inventories/exclusions, splits, seeds and budgets; keep test locked.
-At 400 classes the 2x-width model has 5,427,088 parameters versus 1,386,640 and
-roughly 4x convolution arithmetic. No accuracy, GPU-memory fit or runtime claim;
-batch size is not silently reduced. Longer decoding can also increase runtime.
+The October 22 supplied curve shows train accuracy about 32% versus validation
+about 5%, with rising validation loss: consistent with overfitting, not a frozen
+optimizer. Its exact run configuration/history was not provided locally.
+The revised diagnostic restores smaller capacity (1,386,640 parameters for 400
+classes), adds Adam weight decay and removes the forced 64-epoch minimum.
+The existing runner still restores the lowest-validation-loss checkpoint.
+This is a combined mitigation, not an isolated ablation or proven improvement.
+`WIDTH_MULTIPLIER=2` retains the explicit wider option. Keep test locked and
+preserve old evidence; compare only matched inventories/splits. LR, augmentation,
+FPS and batch are unchanged. No accuracy, GPU-memory fit or runtime guarantee.
 At the old run's roughly 284 seconds/epoch, the 128-epoch cap meant about ten
 hours before setup/export; the new run needs its own timing measurement.
 

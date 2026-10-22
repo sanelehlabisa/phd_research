@@ -7,7 +7,7 @@
 - Dated Colab reports: [`implementation/reports/README.md`](implementation/reports/README.md)
 
 Use the [numbered notebook index](implementation/README.md#notebooks-and-exports):
-09 trains the AAD winner; 10 trains a double-width [128,128,256] Kinetics variant.
+09 trains the AAD winner; 10 tries regularized [64,64,128] Kinetics training.
 Notebook 10 retains the longer 4-FPS input window; AAD settings remain unchanged.
 Copy-paste Python exports are grouped in `implementation/notebooks/scripts/`.
 
