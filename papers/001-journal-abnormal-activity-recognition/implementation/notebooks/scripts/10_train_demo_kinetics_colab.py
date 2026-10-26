@@ -1,5 +1,5 @@
 # Paste this entire file into ONE Colab GPU cell and run; authorize Drive.
-# Exploratory single-label Kinetics training with the selected architecture.
+# Exploratory single-label Kinetics training with a regularized ConvLSTM.
 from pathlib import Path
 import json
 import runpy
@@ -8,8 +8,12 @@ import sys
 
 
 EPOCHS = 128
-MINIMUM_EPOCHS = 64
-EARLY_STOPPING_PATIENCE = 16
+MINIMUM_EPOCHS = 16
+EARLY_STOPPING_PATIENCE = 8
+# Keep the longer input window; scale filters, not the 3x3 kernel dimensions.
+TARGET_FPS = 4
+WIDTH_MULTIPLIER = 1  # [64,64,128]; use 2 only for an explicit wider-model trial.
+WEIGHT_DECAY = 1e-4  # Adam L2 regularization; AAD's saved recipe stays unchanged.
 REPO_ROOT = Path("/content/phd_research")
 REPO_URL = "https://github.com/sanelehlabisa/phd_research.git"
 HANDLE = "sanelehlabisa/kinetics-400-dataset"
@@ -18,8 +22,8 @@ SHARED_RUNNER = (
     "notebooks/scripts/09_train_demo_winner_colab.py"
 )
 PURPOSE = (
-    "Exploratory single-label Kinetics task using the selected [64,64,128] "
-    "architecture; not paper evidence, multi-label recognition, or proof of "
+    "Exploratory single-label Kinetics task using a regularized variant of the "
+    "selected architecture; not paper evidence, multi-label recognition, or proof of "
     "out-of-distribution AAD generalization. Separate weights and label head."
 )
 
@@ -91,7 +95,7 @@ def find_class_root(download_root):
     )
 
 
-def download_dataset(handle, output_path, target_fps=16, frame_count=8):
+def download_dataset(handle, output_path, target_fps=4, frame_count=8):
     print(f"Downloading public Kaggle dataset: {handle}", flush=True)
     download_root = Path(kagglehub.dataset_download(handle))
     class_root, source_split = find_class_root(download_root)
@@ -154,14 +158,22 @@ if __name__ == "__main__":
 
 
 def kinetics_config(local_runs, winner_recipe):
-    """Keep the architecture/input recipe; use a short, separate dataset task."""
-    config = winner_recipe(local_runs)
+    """Scale recurrent filters while preserving the AAD recipe and kernel sizes."""
+    if type(WIDTH_MULTIPLIER) is not int or WIDTH_MULTIPLIER < 1:
+        raise ValueError("WIDTH_MULTIPLIER must be a positive integer.")
+    config = dict(winner_recipe(local_runs))
+    config["convlstm_layers"] = [
+        [filters * WIDTH_MULTIPLIER, list(kernel)]
+        for filters, kernel in config["convlstm_layers"]
+    ]
     config.update({
         "dataset_name": "kinetics400-exploratory",
         "dataset_dir": "datasets/kinetics400",  # Replaced with the actual download root.
         "split_manifest": str(Path(local_runs) / "kinetics_split_seed42.json"),
         "epochs": EPOCHS,
         "early_stopping_patience": EARLY_STOPPING_PATIENCE,
+        "target_fps": TARGET_FPS,
+        "weight_decay": WEIGHT_DECAY,
         "cache_dataset": False,
         "num_workers": 2,
         "sampling_version": "timestamps_clip_v1",
@@ -214,6 +226,10 @@ def train_kinetics_on_colab():
     """Run one fresh training and save its own checkpoint, labels and examples."""
     if not 1 <= MINIMUM_EPOCHS <= EPOCHS or EARLY_STOPPING_PATIENCE < 1:
         raise ValueError("Use 1 <= MINIMUM_EPOCHS <= EPOCHS and positive patience.")
+    if type(TARGET_FPS) is not int or TARGET_FPS < 1:
+        raise ValueError("TARGET_FPS must be a positive integer.")
+    if type(WIDTH_MULTIPLIER) is not int or WIDTH_MULTIPLIER < 1:
+        raise ValueError("WIDTH_MULTIPLIER must be a positive integer.")
     print(PURPOSE, flush=True)
     print(
         "All classes are retained. Unusable input clips are logged and excluded without "

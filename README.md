@@ -34,9 +34,11 @@ Notebook-only helpers live under `implementation/notebooks/utils/`; reusable
 CLI and model code remains in `src/`. Notebooks use numbered names; their
 available Python exports live under `implementation/notebooks/scripts/`. See the
 [notebook index](papers/001-journal-abnormal-activity-recognition/implementation/README.md#notebooks-and-exports).
-The separate Kinetics winner notebook trains the selected architecture on its
+The separate Kinetics notebook trains a regularized selected architecture on its
 own inferred classes; it does not replace AAD paper evidence. Existing run folders
 stay local and are not included in source commits.
+Its current diagnostic restores [64,64,128], adds weight decay and permits earlier
+stopping at the same 4-FPS input; see the implementation guide for the exploratory scope.
 [091: the local-only Gradio demo](agents/work/091-local-gradio-winner-demo/prompt.md)
 supports uploads/examples and guarded checkpoint loading.
 [094](agents/work/094-trained-demo-lfs/prompt.md) now defaults to the owner's

@@ -71,18 +71,27 @@ class KineticsDemoTests(unittest.TestCase):
         }
         self.assertFalse(imports & {"torch", "torchvision", "numpy", "kagglehub", "src"})
 
-    def test_recipe_preserves_architecture_and_infers_every_class(self):
+    def test_recipe_preserves_optimizer_scales_width_and_infers_every_class(self):
         config = self.module.kinetics_config(self.base, self.shared.winner_config)
         expected = self.shared.winner_config(self.base)
         for key in (
-            "convlstm_layers", "models", "sequence_length", "height", "width",
-            "target_fps", "seed", "split_seed", "learning_rate", "weight_decay",
+            "models", "sequence_length", "height", "width",
+            "hidden_classifier_width", "seed", "split_seed", "learning_rate",
             "augment", "batch_size", "optimizer", "train_ratio", "val_ratio", "test_ratio",
+            "scheduler", "loss",
         ):
             self.assertEqual(config[key], expected[key], key)
         self.assertEqual(config["epochs"], 128)
-        self.assertEqual(self.module.MINIMUM_EPOCHS, 64)
-        self.assertEqual(config["early_stopping_patience"], 16)
+        self.assertEqual(self.module.WIDTH_MULTIPLIER, 1)
+        self.assertEqual(config["convlstm_layers"], [[64, [3, 3]], [64, [3, 3]], [128, [3, 3]]])
+        self.assertEqual(config["weight_decay"], 1e-4)
+        self.assertEqual(expected["weight_decay"], 0)
+        self.assertEqual(self.shared.winner_config(self.base)["convlstm_layers"], [[64, [3, 3]], [64, [3, 3]], [128, [3, 3]]])
+        self.assertEqual(config["target_fps"], 4)
+        self.assertEqual((config["sequence_length"] - 1) / config["target_fps"], 1.75)
+        self.assertEqual(self.shared.winner_config(self.base)["target_fps"], 16)
+        self.assertEqual(self.module.MINIMUM_EPOCHS, 16)
+        self.assertEqual(config["early_stopping_patience"], 8)
         self.assertFalse(config["cache_dataset"])
         self.assertEqual(config["num_workers"], 2)
         self.assertEqual(config["sampling_version"], "timestamps_clip_v1")
@@ -92,6 +101,22 @@ class KineticsDemoTests(unittest.TestCase):
         self.assertIn("exploratory", config["dataset_name"])
         self.module.EPOCHS = 12
         self.assertEqual(self.module.kinetics_config(self.base, self.shared.winner_config)["epochs"], 12)
+        self.module.TARGET_FPS = 16
+        self.assertEqual(self.module.kinetics_config(self.base, self.shared.winner_config)["target_fps"], 16)
+
+    def test_width_scaling_preserves_source_recipe_and_supports_baseline(self):
+        baseline = self.shared.winner_config(self.base)
+        original = json.loads(json.dumps(baseline))
+        self.module.WIDTH_MULTIPLIER = 2
+        scaled = self.module.kinetics_config(self.base, lambda _runs: baseline)
+        self.assertEqual(scaled["convlstm_layers"], [[128, [3, 3]], [128, [3, 3]], [256, [3, 3]]])
+        self.assertEqual(baseline, original)
+        scaled["convlstm_layers"][0][1][0] = 5
+        self.assertEqual(baseline, original)
+        self.module.WIDTH_MULTIPLIER = 1
+        restored = self.module.kinetics_config(self.base, lambda _runs: baseline)
+        self.assertEqual(restored["convlstm_layers"], baseline["convlstm_layers"])
+        self.assertEqual(restored["target_fps"], 4)
 
     def test_mocked_unversioned_download_discovers_all_nested_classes_and_counts(self):
         downloaded = self.base / "kaggle"
@@ -239,7 +264,7 @@ class KineticsDemoTests(unittest.TestCase):
             self.assertEqual(command[:4], [sys.executable, "-u", "-c", self.module.DATASET_SETUP_CODE])
             self.assertEqual(command[4], self.module.HANDLE)
             self.assertEqual(kwargs, {"cwd": ROOT, "log_path": destination / "dataset.log"})
-            self.assertEqual(command[6:], ["16", "8"])
+            self.assertEqual(command[6:], ["4", "8"])
             Path(command[5]).write_text(json.dumps({
                 "dataset_root": str(actual), "excluded_samples": ["rowing/clip-0.mp4"]
             }), encoding="utf-8")
@@ -259,12 +284,14 @@ class KineticsDemoTests(unittest.TestCase):
         }), redirect_stdout(io.StringIO()) as stdout:
             self.assertEqual(self.module.train_kinetics_on_colab(), self.base / "bundle.zip")
         options = trainer.call_args.kwargs
-        self.assertEqual(options["minimum_epochs"], 64)
+        self.assertEqual(options["minimum_epochs"], 16)
         self.assertEqual(options["storage_name"], "phd_demo_kinetics")
         self.assertFalse(options["app_launch"])
         self.assertFalse(options["update_checkout"])
         self.assertTrue(callable(options["dataset_setup"]))
         self.assertEqual(options["config_factory"](self.base)["epochs"], 128)
+        self.assertEqual(options["config_factory"](self.base)["convlstm_layers"], [[64, [3, 3]], [64, [3, 3]], [128, [3, 3]]])
+        self.assertEqual(options["config_factory"](self.base)["weight_decay"], 1e-4)
         self.assertIn("not paper evidence", options["purpose"])
         self.assertIn("Prefix-only checks", stdout.getvalue())
 
@@ -278,6 +305,24 @@ class KineticsDemoTests(unittest.TestCase):
             ["git", "pull", "--ff-only", "origin", "master"],
             cwd=self.module.REPO_ROOT, check=True,
         )
+
+    def test_invalid_fps_fails_before_checkout_or_dataset(self):
+        for fps in (0, -4, 4.5, True):
+            with self.subTest(fps=fps), patch.object(self.module, "load_shared_runner") as load:
+                self.module.TARGET_FPS = fps
+                with self.assertRaisesRegex(ValueError, "TARGET_FPS must be a positive integer"):
+                    self.module.train_kinetics_on_colab()
+                load.assert_not_called()
+
+    def test_invalid_width_fails_before_checkout_or_dataset(self):
+        for width in (0, -2, 1.5, True):
+            with self.subTest(width=width), patch.object(self.module, "load_shared_runner") as load:
+                self.module.WIDTH_MULTIPLIER = width
+                with self.assertRaisesRegex(ValueError, "WIDTH_MULTIPLIER must be a positive integer"):
+                    self.module.train_kinetics_on_colab()
+                with self.assertRaisesRegex(ValueError, "WIDTH_MULTIPLIER must be a positive integer"):
+                    self.module.kinetics_config(self.base, self.shared.winner_config)
+                load.assert_not_called()
 
     def test_bundle_keeps_actual_split_labels_checkpoint_and_validation_artifacts(self):
         destination = self.base / "drive"

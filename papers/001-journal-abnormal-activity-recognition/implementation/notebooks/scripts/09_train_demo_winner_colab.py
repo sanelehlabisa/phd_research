@@ -249,9 +249,10 @@ def show_validation_preview(run_dir):
     examples = json.loads(
         (model_dir / "predictions/predictions.json").read_text(encoding="utf-8")
     )
+    config = json.loads((run_dir / "resolved_config.json").read_text(encoding="utf-8"))
     print(
         "Validation examples (not test). Sampled clips play at "
-        f"{examples['playback_fps']} FPS; model input uses 16 FPS."
+        f"{examples['playback_fps']} FPS; model input uses {config['target_fps']} FPS."
     )
     for row in examples["records"][:5]:
         print(
@@ -324,7 +325,10 @@ def train_demo_on_colab(
         json.dumps(config, indent=2) + "\n", encoding="utf-8"
     )
     print(
-        "ONE fresh [64,64,128] model; 8 frames, 64x64, 16 FPS. "
+        f"ONE fresh {[layer[0] for layer in config['convlstm_layers']]} model; "
+        f"{config['sequence_length']} frames, {config['height']}x{config['width']}, "
+        f"{config['target_fps']} FPS "
+        f"(initial {(config['sequence_length'] - 1) / config['target_fps']:.4g}s window). "
         f"{minimum_epochs} minimum / {config['epochs']} maximum epochs, validation-loss selection. "
         "Test stays locked. Rerunning starts a NEW training, not a resume.\n"
         f"Checkpoints/metrics are written to Drive during training: {destination}",
