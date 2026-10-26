@@ -1,0 +1,1077 @@
+{
+  "date": "2026-10-26",
+  "image_size_px": [
+    2700,
+    1650
+  ],
+  "search_aggregation": "Arithmetic mean validation accuracy over exactly four frame/FPS conditions per architecture; no averaging of F1/class metrics.",
+  "search_rows": [
+    {
+      "model": "custom_64_64_128",
+      "architecture": "64-64-128",
+      "depth": 3,
+      "parameters": 1336459,
+      "accuracy": 0.9,
+      "minimum_accuracy": 0.74375,
+      "mean_validation_loss": 0.4374629262834787,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.975
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.98125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.74375
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.9
+        }
+      ]
+    },
+    {
+      "model": "custom_96_96_96_96",
+      "architecture": "96-96-96-96",
+      "depth": 4,
+      "parameters": 2335403,
+      "accuracy": 0.8921875,
+      "minimum_accuracy": 0.76875,
+      "mean_validation_loss": 0.41180115267634393,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9375
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.89375
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.76875
+        }
+      ]
+    },
+    {
+      "model": "custom_128_128_128",
+      "architecture": "128-128-128",
+      "depth": 3,
+      "parameters": 2965899,
+      "accuracy": 0.878125,
+      "minimum_accuracy": 0.6625,
+      "mean_validation_loss": 0.45336041289847345,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.975
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.6625
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.90625
+        }
+      ]
+    },
+    {
+      "model": "custom_128_64_64",
+      "architecture": "128-64-64",
+      "depth": 3,
+      "parameters": 1342667,
+      "accuracy": 0.8515625,
+      "minimum_accuracy": 0.63125,
+      "mean_validation_loss": 0.4885267113335431,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.95625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.63125
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.83125
+        }
+      ]
+    },
+    {
+      "model": "custom_32_64",
+      "architecture": "32-64",
+      "depth": 2,
+      "parameters": 262603,
+      "accuracy": 0.8484375,
+      "minimum_accuracy": 0.80625,
+      "mean_validation_loss": 0.6350090332329273,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.8625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.88125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.80625
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.84375
+        }
+      ]
+    },
+    {
+      "model": "custom_96_96",
+      "architecture": "96-96",
+      "depth": 2,
+      "parameters": 1007531,
+      "accuracy": 0.846875,
+      "minimum_accuracy": 0.675,
+      "mean_validation_loss": 0.5323534446768463,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.975
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.98125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.675
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.75625
+        }
+      ]
+    },
+    {
+      "model": "custom_64_64",
+      "architecture": "64-64",
+      "depth": 2,
+      "parameters": 450507,
+      "accuracy": 0.84375,
+      "minimum_accuracy": 0.6125,
+      "mean_validation_loss": 0.5829954031854868,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.9625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.93125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.86875
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.6125
+        }
+      ]
+    },
+    {
+      "model": "custom_48_48_48",
+      "architecture": "48-48-48",
+      "depth": 3,
+      "parameters": 421019,
+      "accuracy": 0.80625,
+      "minimum_accuracy": 0.48125,
+      "mean_validation_loss": 0.5943554520606995,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.91875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.8625
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.48125
+        }
+      ]
+    },
+    {
+      "model": "custom_96_96_96",
+      "architecture": "96-96-96",
+      "depth": 3,
+      "parameters": 1671467,
+      "accuracy": 0.803125,
+      "minimum_accuracy": 0.3,
+      "mean_validation_loss": 0.6462777103297412,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.98125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.98125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.95
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.3
+        }
+      ]
+    },
+    {
+      "model": "custom_48_48",
+      "architecture": "48-48",
+      "depth": 2,
+      "parameters": 254939,
+      "accuracy": 0.796875,
+      "minimum_accuracy": 0.625,
+      "mean_validation_loss": 0.6715640082955361,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.90625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.85625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.8
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.625
+        }
+      ]
+    },
+    {
+      "model": "custom_96",
+      "architecture": "96",
+      "depth": 1,
+      "parameters": 343595,
+      "accuracy": 0.7921875,
+      "minimum_accuracy": 0.50625,
+      "mean_validation_loss": 0.7151590768247843,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.90625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.86875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.50625
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.8875
+        }
+      ]
+    },
+    {
+      "model": "custom_64_32",
+      "architecture": "64-32",
+      "depth": 2,
+      "parameters": 265707,
+      "accuracy": 0.771875,
+      "minimum_accuracy": 0.58125,
+      "mean_validation_loss": 0.7170341372489929,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.84375
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.825
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.58125
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.8375
+        }
+      ]
+    },
+    {
+      "model": "custom_96_64_64",
+      "architecture": "96-64-64",
+      "depth": 3,
+      "parameters": 1007307,
+      "accuracy": 0.7578125,
+      "minimum_accuracy": 0.3625,
+      "mean_validation_loss": 0.6796582353301346,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.98125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.725
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.3625
+        }
+      ]
+    },
+    {
+      "model": "custom_128",
+      "architecture": "128",
+      "depth": 1,
+      "parameters": 605579,
+      "accuracy": 0.746875,
+      "minimum_accuracy": 0.5,
+      "mean_validation_loss": 0.7894063711166381,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.91875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.5
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.60625
+        }
+      ]
+    },
+    {
+      "model": "custom_32_32_32_32",
+      "architecture": "32-32-32-32",
+      "depth": 4,
+      "parameters": 262379,
+      "accuracy": 0.7375,
+      "minimum_accuracy": 0.60625,
+      "mean_validation_loss": 0.8184620484709739,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.81875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.60625
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.65
+        }
+      ]
+    },
+    {
+      "model": "custom_64_64_64",
+      "architecture": "64-64-64",
+      "depth": 3,
+      "parameters": 745675,
+      "accuracy": 0.71875,
+      "minimum_accuracy": 0.4,
+      "mean_validation_loss": 0.774111070856452,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.95625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.55
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.4
+        }
+      ]
+    },
+    {
+      "model": "custom_32_64_64",
+      "architecture": "32-64-64",
+      "depth": 3,
+      "parameters": 557771,
+      "accuracy": 0.7125,
+      "minimum_accuracy": 0.25,
+      "mean_validation_loss": 0.8373214121907949,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.94375
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.69375
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.25
+        }
+      ]
+    },
+    {
+      "model": "custom_64_64_64_64",
+      "architecture": "64-64-64-64",
+      "depth": 4,
+      "parameters": 1040843,
+      "accuracy": 0.703125,
+      "minimum_accuracy": 0.29375,
+      "mean_validation_loss": 0.831267741881311,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.95
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.29375
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.6
+        }
+      ]
+    },
+    {
+      "model": "custom_32_32_32_32_32",
+      "architecture": "32-32-32-32-32",
+      "depth": 5,
+      "parameters": 336235,
+      "accuracy": 0.7,
+      "minimum_accuracy": 0.53125,
+      "mean_validation_loss": 0.8509864777326583,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.88125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.84375
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.53125
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.54375
+        }
+      ]
+    },
+    {
+      "model": "custom_32_32",
+      "architecture": "32-32",
+      "depth": 2,
+      "parameters": 114667,
+      "accuracy": 0.690625,
+      "minimum_accuracy": 0.6375,
+      "mean_validation_loss": 0.9237720608711243,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.7375
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.6375
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.675
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.7125
+        }
+      ]
+    },
+    {
+      "model": "custom_96_96_96_96_96",
+      "architecture": "96-96-96-96-96",
+      "depth": 5,
+      "parameters": 2999339,
+      "accuracy": 0.6609375,
+      "minimum_accuracy": 0.2875,
+      "mean_validation_loss": 0.9292176080867648,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.78125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.2875
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.60625
+        }
+      ]
+    },
+    {
+      "model": "custom_32_32_32",
+      "architecture": "32-32-32",
+      "depth": 3,
+      "parameters": 188523,
+      "accuracy": 0.6546875,
+      "minimum_accuracy": 0.53125,
+      "mean_validation_loss": 0.9157852828502655,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.7375
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.75
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.53125
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.6
+        }
+      ]
+    },
+    {
+      "model": "custom_48_48_48_48_48",
+      "architecture": "48-48-48-48-48",
+      "depth": 5,
+      "parameters": 753179,
+      "accuracy": 0.65,
+      "minimum_accuracy": 0.2875,
+      "mean_validation_loss": 0.9918879047036171,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.85
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.8625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.6
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.2875
+        }
+      ]
+    },
+    {
+      "model": "custom_64_96_64",
+      "architecture": "64-96-64",
+      "depth": 3,
+      "parameters": 1077579,
+      "accuracy": 0.621875,
+      "minimum_accuracy": 0.26875,
+      "mean_validation_loss": 1.061404481716454,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.9625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.975
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.26875
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.28125
+        }
+      ]
+    },
+    {
+      "model": "custom_64_64_32",
+      "architecture": "64-64-32",
+      "depth": 3,
+      "parameters": 560875,
+      "accuracy": 0.6203125,
+      "minimum_accuracy": 0.25625,
+      "mean_validation_loss": 1.0814952418208121,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.95625
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.3
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.25625
+        }
+      ]
+    },
+    {
+      "model": "custom_64",
+      "architecture": "64",
+      "depth": 1,
+      "parameters": 155339,
+      "accuracy": 0.6140625,
+      "minimum_accuracy": 0.45625,
+      "mean_validation_loss": 1.156789880990982,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.78125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.7625
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.45625
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.45625
+        }
+      ]
+    },
+    {
+      "model": "custom_64_64_64_64_64",
+      "architecture": "64-64-64-64-64",
+      "depth": 5,
+      "parameters": 1336011,
+      "accuracy": 0.6140625,
+      "minimum_accuracy": 0.15,
+      "mean_validation_loss": 1.111041136085987,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.9375
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.4
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.15
+        }
+      ]
+    },
+    {
+      "model": "custom_64_128_64",
+      "architecture": "64-128-64",
+      "depth": 3,
+      "parameters": 1483211,
+      "accuracy": 0.603125,
+      "minimum_accuracy": 0.23125,
+      "mean_validation_loss": 1.1425365800037979,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.975
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.96875
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.2375
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.23125
+        }
+      ]
+    },
+    {
+      "model": "custom_16_16_16",
+      "architecture": "16-16-16",
+      "depth": 3,
+      "parameters": 48187,
+      "accuracy": 0.59375,
+      "minimum_accuracy": 0.5625,
+      "mean_validation_loss": 1.147912123799324,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.58125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.64375
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.5875
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.5625
+        }
+      ]
+    },
+    {
+      "model": "custom_48_48_48_48",
+      "architecture": "48-48-48-48",
+      "depth": 4,
+      "parameters": 587099,
+      "accuracy": 0.56875,
+      "minimum_accuracy": 0.225,
+      "mean_validation_loss": 1.2324577420949936,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.93125
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.88125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.2375
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.225
+        }
+      ]
+    },
+    {
+      "model": "custom_48",
+      "architecture": "48",
+      "depth": 1,
+      "parameters": 88859,
+      "accuracy": 0.503125,
+      "minimum_accuracy": 0.3125,
+      "mean_validation_loss": 1.4081944465637206,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.65
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.63125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.41875
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.3125
+        }
+      ]
+    },
+    {
+      "model": "custom_32",
+      "architecture": "32",
+      "depth": 1,
+      "parameters": 40811,
+      "accuracy": 0.4421875,
+      "minimum_accuracy": 0.3,
+      "mean_validation_loss": 1.4749937027692797,
+      "settings": [
+        {
+          "frames": 8,
+          "fps": 8,
+          "validation_accuracy": 0.56875
+        },
+        {
+          "frames": 8,
+          "fps": 16,
+          "validation_accuracy": 0.53125
+        },
+        {
+          "frames": 16,
+          "fps": 8,
+          "validation_accuracy": 0.36875
+        },
+        {
+          "frames": 16,
+          "fps": 16,
+          "validation_accuracy": 0.3
+        }
+      ]
+    }
+  ],
+  "final_metric": "Unchanged saved test_accuracy",
+  "final_rows": [
+    {
+      "model": "custom_top1",
+      "architecture": "64-64-128",
+      "parameters": 1336459,
+      "accuracy": 0.9937888198757764
+    },
+    {
+      "model": "custom_top3",
+      "architecture": "128-128-128",
+      "parameters": 2965899,
+      "accuracy": 0.9875776397515528
+    },
+    {
+      "model": "custom_top4",
+      "architecture": "128-64-64",
+      "parameters": 1342667,
+      "accuracy": 0.9813664596273292
+    },
+    {
+      "model": "custom_top2",
+      "architecture": "96-96-96-96",
+      "parameters": 2335403,
+      "accuracy": 0.9813664596273292
+    },
+    {
+      "model": "mc3_18",
+      "architecture": "mc3_18",
+      "parameters": 11495883,
+      "accuracy": 0.9751552795031055
+    },
+    {
+      "model": "r3d_18",
+      "architecture": "r3d_18",
+      "parameters": 33171915,
+      "accuracy": 0.9503105590062112
+    },
+    {
+      "model": "swin3d_s",
+      "architecture": "swin3d_s",
+      "parameters": 49517537,
+      "accuracy": 0.9503105590062112
+    },
+    {
+      "model": "paper_convlstm_adapted",
+      "architecture": "paper_convlstm_adapted",
+      "parameters": 134415195,
+      "accuracy": 0.9440993788819876
+    },
+    {
+      "model": "swin3d_t",
+      "architecture": "swin3d_t",
+      "parameters": 27858929,
+      "accuracy": 0.9316770186335404
+    },
+    {
+      "model": "custom_top5",
+      "architecture": "32-64",
+      "parameters": 262603,
+      "accuracy": 0.9254658385093167
+    }
+  ],
+  "source_and_protected_file_sha256": {
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/presentation/pris-presentation/script.txt": "92efac51fee0a009e3313a390d93f5bb5aec7f4683996e7fec7c706e44573869",
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/presentation/pris-presentation/SENG-F-12-HLABISA-SANELE-animated.pptx": "b47a446ce3e378901b04e99b0fad7032302b18614715f01dd1290ecf3b1eb372",
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-16/search_results.csv": "55c8ef7eae7ae79a0ac70b28a006f28cd942a6ad772e7c3cdf51449068db39e2",
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-16/comparison_results.csv": "c7788850709f99769f863d8aa6a1b055b458687857d45a10ff4bba7e97f5cf36",
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/implementation/reports/2026-10-16/architecture_ranking.csv": "494c1d47e2c044e25afc0e57c5664e9d76c2ca46f4b7540e52bda323a125253b",
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/presentation/pris-presentation/assets/gradio_app_qr.png": "d62636954ef231e561578a4c6df52ffc84afd56e3c0ffb339ef19b66c89f57cc",
+    "/home/it-software/Desktop/projects/2026/phd_research/papers/001-journal-abnormal-activity-recognition/presentation/pris-presentation/assets/surveillance_operator.png": "70bb4a8edf7751f8576dabeb48b9d6b9af99a7fd220619b4d6181ddda49e4fee"
+  },
+  "model_cards_per_chart": 10,
+  "card_layout": "10 rows \u00d7 1 column to the right of the graph",
+  "slides_and_script_unchanged": true
+}

@@ -1,0 +1,29 @@
+Presentation Script
+Slide 1 — Cover Page
+“Good morning, I’m Sanele Hlabisa. Welcome to my talk, where I’ll share insights from my research paper, A Lightweight ConvLSTM Architecture for Abnormal Human Activity Recognition in Surveillance Videos. Let’s begin.”
+
+Slide 2 — Why This Problem Matters
+“Surveillance cameras record more footage than people can continuously monitor. When one operator must watch several feeds, fatigue and divided attention can lead to important events being missed. This creates a need for automated activity recognition.
+Existing automated systems commonly use 3D CNNs, ViTs, or ConvLSTMs. Although these models can perform well, 3D CNNs and transformers are often large and computationally expensive. We therefore focused on ConvLSTM because it combines spatial features with temporal memory while supporting a more compact architecture.
+This led to my research question: Can a compact ConvLSTM maintain strong recognition performance with fewer parameters?”
+
+Slide 3 — Proposed Solution and Architecture Search
+“To answer the research question, I developed a configurable stacked ConvLSTM architecture. Instead of using one fixed model, I could vary the number of layers and the number of filters in each layer.
+For example, I tested flat configurations, where every layer has the same width; expanding configurations, where the number of filters increases; and contracting configurations, where it decreases.
+I evaluated these models on the Abnormal Activities Dataset, which contains 1,069 surveillance-video clips across 11 normal and abnormal activity classes. I selected this dataset because it is directly aligned with abnormal activity recognition, unlike broader action datasets such as Kinetics or UCF101.
+I then tested 32 architectures under four temporal settings—eight or sixteen frames sampled at eight or sixteen frames per second—giving 128 controlled search runs.
+In this graph, the horizontal axis shows the number of parameters, while the vertical axis shows mean validation accuracy. The different markers represent the number of ConvLSTM layers.
+The results show that increasing model size initially improves performance, but only up to a point. The largest models were not necessarily the best. The strongest overall configuration was ConvLSTM sixty-four, sixty-four, one-twenty-eight, which achieved the highest mean validation accuracy with approximately 1.34 million parameters.
+This became our turning-point model: large enough to learn effectively, but without unnecessary model growth.”
+
+Slide 4 — Comparison, Deployment and Future Work
+“From the architecture search, I shortlisted the top five ConvLSTM models and compared them with five existing models: the adapted reference ConvLSTM, two 3D CNNs, and two video transformers.
+The selected ConvLSTM[64,64,128] achieved the best overall result, with 99.38% test accuracy using only 1.34 million parameters.
+I then deployed the model as a Gradio application on Hugging Face Spaces.
+In the app, I can select one of the example videos, run the prediction, and immediately see the recognised activity.
+Deployment also highlighted practical challenges. More than one activity may occur in the same video, and some activities can continue beyond one fixed window.
+Future work will therefore focus on multi-label recognition and continuous overlapping windows.
+So, in this research, we built a reconfigurable ConvLSTM, searched for an efficient configuration, compared it with established video models, and deployed it as a working prototype.
+And the results answered our original research question: yes, a compact and configurable ConvLSTM can maintain strong recognition performance with far fewer parameters.
+Thanks”
+

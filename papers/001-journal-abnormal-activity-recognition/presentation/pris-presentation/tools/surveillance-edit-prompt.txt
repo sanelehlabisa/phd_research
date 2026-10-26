@@ -1,0 +1,11 @@
+Surveillance illustration edit — 26 October 2026
+Tool: built-in image_gen (not CLI/API fallback).
+Output: ../assets/surveillance_operator.png
+Input: original 01_surveillance_operator.png, preserved in the temporary cleanup backup.
+
+Use case: precise-object-edit.
+Asset type: first-slide research presentation illustration.
+Input image: the supplied surveillance control-room illustration is the edit target.
+Primary request: change the operator so he is wearing a plain security-style cap, visibly asleep in a reclined office chair, with both feet resting on top of the desk. Show his face in a natural three-quarter side view, eyes closed and head relaxed, so sleeping is immediately clear. Give the cap a plain unbranded appearance. Keep the anatomy natural and the feet visibly supported by the tabletop.
+Preserve the original clean semi-realistic illustrated style, white background, muted blue/grey palette, wide landscape framing, generous empty left portion for slide text, and the wall of multiple visible CCTV surveillance feeds on the right. Keep the desk and monitoring equipment, adapting only the foreground geometry enough for the sleeping pose. Do not cover the feeds with the feet. The sleeping operator and unattended feeds should communicate the possibility of missed detections without labels.
+Constraints: no titles, captions, text, speech bubbles, Zzz symbols, watermarks, logos, new people in the control room, graphic incidents, or alert overlays. Preserve the original aspect ratio and sharp presentation-quality finish.

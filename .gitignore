@@ -27,6 +27,10 @@
 *.vrb
 *.xdv
 *.pdf
+# The final PRIS presentation PDF is an intentional deliverable.
+!papers/001-journal-abnormal-activity-recognition/presentation/pris-presentation/SENG-F-12-HLABISA-SANELE.pdf
+# Local presentation-editor lock files are never deliverables.
+papers/001-journal-abnormal-activity-recognition/presentation/**/.~lock.*#
 *.dvi
 
 # Local per-paper implementation data and generated artifacts

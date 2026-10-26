@@ -1,0 +1,14 @@
+Cover banner — 26 October 2026
+Method: built-in image_gen; new illustration, no input image or CLI fallback.
+Output: ../assets/cover_detection.png
+Actual size: 2172 × 724 pixels (3:1).
+Conceptual illustration only: the highlighted screen is not measured model output.
+The existing slides, script, QR code, graphs and surveillance image are unchanged.
+
+Use case: scientific-educational.
+Asset type: a very wide, shallow horizontal cover-slide banner for PhD research on abnormal human-activity recognition from surveillance video.
+Primary request: create a new centered illustration that communicates a CCTV camera observing a potentially violent event and an attentive security operator seeing the event highlighted in the camera footage.
+Composition: approximately 3:1 panoramic aspect ratio, ideally 3072 by 1024 pixels. A single coherent horizontal composition, with the visual content centered and comfortable clean margins on all four sides. On the left, a clearly recognizable mounted CCTV camera angled toward two adults in a non-graphic confrontation near the center-left: one reaching forward in a shove, the other recoiling with raised defensive hands. Show full bodies with believable anatomy, no injuries. On the right, an alert security guard in a blue uniform and plain cap sits upright at a compact desk looking at a large monitor. The monitor clearly shows the same confrontation from the CCTV viewpoint, with one restrained amber detection rectangle around the two people. A small secondary feed on that monitor can show ordinary pedestrian movement, so the highlighted event stands out. Keep the screen readable as an illustration without tiny interface details. The camera, scene, and operator should read as one simple story, not a complicated flowchart.
+Style: clean professional semi-realistic editorial digital illustration, crisp forms, restrained detail and soft shading, natural human proportions, muted steel blues, navy, cool greys and a little teal. Match the visual language of a polished illustrated security control-room slide, not a comic, infographic icon set, or photograph.
+Background: pure solid white (#FFFFFF), not transparent, with only very faint grounding shadows immediately beneath the objects. No room wall, large floor plane, coloured background, vignette, border, or full-canvas gradient. The illustration must blend cleanly into a white PowerPoint cover page. Distribute the content across the wide band; do not leave one half empty. Keep the tallest objects within the shallow banner.
+Constraints: no text, titles, labels, logos, watermark, numbers, confidence scores, QR codes, neural-network diagrams, arrows, weapons, blood, injuries, dramatic combat, police action, sleeping operator, or extra prominent characters. Conceptual research illustration, not claimed experimental output. The image should be calm and academically appropriate while making the detection idea immediately clear.

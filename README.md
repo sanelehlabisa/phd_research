@@ -57,7 +57,11 @@ with CUDA dependencies and GPU-decorated inference; local CPU use is unchanged.
 [098](agents/work/098-demo-example-videos/prompt.md) bundles three small validation
 video examples for the local demo and Spaces; no test data or metrics changed.
 [092: the five-minute presentation](agents/work/092-five-minute-results-presentation/prompt.md)
-remains deferred.
+is complete: the [deck, practice script and current image tools](papers/001-journal-abnormal-activity-recognition/presentation/pris-presentation/tools/README.md)
+are organized under PRIS, including the owner's revised PPTX, PDF and script.
+The owner now edits the deck/script manually; five final
+images remain in a flat assets folder, with graphs beside vertical top-ten keys. Obsolete
+builds/previews were removed; PowerPoint Slide Show and rehearsal remain manual.
 
 Tickets 057–061 established configurable datasets/classes, separate search and
 comparison profiles, aligned the guides, and made the Colab notebook a thin
